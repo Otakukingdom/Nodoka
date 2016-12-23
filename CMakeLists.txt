@@ -13,7 +13,7 @@ find_package(Qt5Widgets)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES src/main.cpp)
 add_executable(NodokaNative WIN32 ${SOURCE_FILES})
 
 target_link_libraries(NodokaNative Qt5::Widgets vlc vlccore)
