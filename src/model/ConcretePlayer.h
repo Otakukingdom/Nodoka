@@ -5,7 +5,7 @@
 #ifndef NODOKANATIVE_MEDIAPLAYER_H
 #define NODOKANATIVE_MEDIAPLAYER_H
 
-#include <c++/memory>
+#include <memory>
 #include "vlc/vlc.h"
 
 class ConcretePlayer {

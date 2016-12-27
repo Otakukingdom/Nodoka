@@ -15,11 +15,14 @@ set(CMAKE_CXX_STANDARD 14)
 
 find_package(Qt5Widgets)
 
+if(APPLE)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
+endif()
+
 FILE(GLOB_RECURSE LibFiles "src/*.h")
 add_custom_target(headers SOURCES ${LibFiles})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc)
 
 set(SOURCE_FILES src/main.cpp src/model/ConcretePlayer.cpp src/model/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h)
 add_executable(NodokaNative WIN32 ${SOURCE_FILES})
