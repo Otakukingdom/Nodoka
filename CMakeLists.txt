@@ -24,7 +24,7 @@ add_custom_target(headers SOURCES ${LibFiles})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set(SOURCE_FILES src/main.cpp src/model/ConcretePlayer.cpp src/model/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h)
+set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h)
 add_executable(NodokaNative WIN32 ${SOURCE_FILES})
 
 target_link_libraries(NodokaNative Qt5::Widgets vlc vlccore)
