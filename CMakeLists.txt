@@ -17,6 +17,8 @@ find_package(Qt5Widgets)
 
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
+elseif(WIN32)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc)
 endif()
 
 FILE(GLOB_RECURSE LibFiles "src/*.h")
