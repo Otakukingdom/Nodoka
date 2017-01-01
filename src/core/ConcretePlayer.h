@@ -8,15 +8,18 @@
 #include <memory>
 #include "vlc/vlc.h"
 
-class ConcretePlayer {
+namespace Core {
+    class ConcretePlayer {
 
-    std::shared_ptr<libvlc_instance_t> inst;
-    std::shared_ptr<libvlc_media_player_t> mediaPlayer;
-    std::shared_ptr<libvlc_media_t> mediaItem;
+        std::shared_ptr<libvlc_instance_t> inst;
+        std::shared_ptr<libvlc_media_player_t> mediaPlayer;
+        std::shared_ptr<libvlc_media_t> mediaItem;
 
-public:
-    ConcretePlayer();
-};
+    public:
+        ConcretePlayer();
+    };
+}
+
 
 
 #endif //NODOKANATIVE_MEDIAPLAYER_H
