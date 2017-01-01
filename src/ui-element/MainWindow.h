@@ -8,6 +8,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
+#include <src/model/Directory.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -18,13 +19,15 @@ class MainWindow;
 class MainWindow : public QMainWindow {
 
 public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(Directory* directoryModel,
+               QWidget *parent = 0);
     virtual ~MainWindow();
     void performSettings();
     void performExit();
     void setup();
 
 private:
+    Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
 

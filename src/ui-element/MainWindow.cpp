@@ -5,15 +5,18 @@
 #include "MainWindow.h"
 #include "SettingsForm.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(Directory* directoryModel, QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
 
     // a hack so the menu shows up on mac
     ui->menubar->setNativeMenuBar(false);
 
+    // set the model
+    this->directoryModel = directoryModel;
+
     // initialize the settings form
-    this->settingsForm = new SettingsForm();
+    this->settingsForm = new SettingsForm(this->directoryModel);
 
     this->setup();
 }

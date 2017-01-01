@@ -6,6 +6,7 @@
 #define NODOKANATIVE_SETTINGSFORM_H
 
 #include <QtWidgets/QWidget>
+#include <src/model/Directory.h>
 #include "ui_SettingsForm.h"
 
 namespace Ui {
@@ -15,7 +16,7 @@ namespace Ui {
 
 class SettingsForm : public QWidget  {
 public:
-    SettingsForm(QWidget *parent = 0);
+    SettingsForm(Directory* directoryModel, QWidget *parent = 0);
     virtual ~SettingsForm();
 
 private:
