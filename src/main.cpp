@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
         messageBox->critical(0, "Error", "Failed to load the config file");
 
         // since we failed to load the db, we shouldn't continue
-        return 1;
+        return EXIT_FAILURE;
     } else {
         QWidget *widget = new MainWindow();
         widget->show();
