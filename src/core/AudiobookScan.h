@@ -1,2 +1,5 @@
 #include "Qt"
 
+namespace Core {
+
+}

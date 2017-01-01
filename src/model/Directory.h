@@ -14,6 +14,9 @@ class Directory : public QSqlTableModel {
 public:
     Directory(QObject *parent = 0);
 
+    void addDirectory(QString path);
+    void removeDirectory(QString path);
+
 };
 
 

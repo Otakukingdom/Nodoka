@@ -21,6 +21,7 @@ public:
 
 private:
     Ui::SettingsForm *ui;
+    void setup();
 
 };
 
