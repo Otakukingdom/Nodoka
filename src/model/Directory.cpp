@@ -7,3 +7,4 @@
 Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("directories");
 }
+
