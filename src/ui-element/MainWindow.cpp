@@ -12,11 +12,16 @@ MainWindow::MainWindow(QWidget *parent) :
     // a hack so the menu shows up on mac
     ui->menubar->setNativeMenuBar(false);
 
+    // do a null initialize on the settingsForm, this act as a sentinal
+    // to avoid undefined behavior
+    this->settingsForm = NULL;
+
     this->setup();
 }
 
 void MainWindow::setup() {
     connect(this->ui->actionExit, &QAction::triggered, this, &MainWindow::performExit);
+    connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 }
 
 
@@ -29,7 +34,10 @@ void MainWindow::performExit() {
 }
 
 void MainWindow::performSettings() {
-    SettingsForm settingsForm;
-    settingsForm.show();
+    if(this->settingsForm == NULL) {
+        this->settingsForm = new SettingsForm();
+    }
+    this->settingsForm->setWindowModality(Qt::WindowModality::ApplicationModal);
+    this->settingsForm->show();
 }
 

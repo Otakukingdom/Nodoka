@@ -9,6 +9,7 @@
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
 #include "ui_MainWindow.h"
+#include "SettingsForm.h"
 
 namespace Ui {
 class MainWindow;
@@ -25,6 +26,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    SettingsForm* settingsForm;
 
 };
 
