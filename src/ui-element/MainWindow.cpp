@@ -12,10 +12,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // a hack so the menu shows up on mac
     ui->menubar->setNativeMenuBar(false);
 
+    this->setup();
 }
 
 void MainWindow::setup() {
-
+    connect(this->ui->actionExit, &QAction::triggered, this, &MainWindow::performExit);
 }
 
 
