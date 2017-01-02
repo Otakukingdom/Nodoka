@@ -8,6 +8,15 @@ AudiobookRecord::AudiobookRecord(QString path) {
     // set up the fields
     this->setup();
 
+    this->path = path;
+
+    // set up the value for the record
+    this->setValues();
+}
+
+void AudiobookRecord::setValues() {
+    this->setValue("path", this->path);
+    this->setValue("name", this->calculateName());
 }
 
 void AudiobookRecord::setup() {
@@ -50,4 +59,17 @@ void AudiobookRecord::setup() {
     createdAtField.setName("created_at");
     createdAtField.setType(QVariant::DateTime);
     this->append(createdAtField);
+}
+
+QString AudiobookRecord::calculateName() {
+    QString name = "";
+    QDir dir(this->path);
+    if(dir.exists()) {
+        name = dir.dirName();
+    } else {
+        // if not exists, just default to the path name
+        name = dir.path();
+    }
+
+    return QString();
 }

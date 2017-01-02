@@ -9,6 +9,9 @@
 
 class AudiobookRecord : public QSqlRecord {
     void setup();
+    void setValues();
+    QString path;
+    QString calculateName();
 
 public:
     AudiobookRecord(QString path);
