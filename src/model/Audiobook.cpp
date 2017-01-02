@@ -14,7 +14,7 @@ Audiobook::Audiobook(QObject *parent) : QSqlTableModel(parent) {
 }
 
 void Audiobook::addAudiobook(QString path) {
-    AudiobookRecord record(path);
+    AudiobookRecord record(path, false);
     this->insertRecord(-1, record);
 }
 

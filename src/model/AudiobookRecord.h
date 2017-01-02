@@ -8,13 +8,17 @@
 #include <QtSql>
 
 class AudiobookRecord : public QSqlRecord {
+private:
+    bool readMode;
+
     void setup();
     void setValues();
     QString path;
     QString calculateName();
 
 public:
-    AudiobookRecord(QString path);
+    AudiobookRecord();
+    AudiobookRecord(QString path, bool readMode);
 
 };
 

@@ -4,11 +4,18 @@
 
 #include "AudiobookRecord.h"
 
-AudiobookRecord::AudiobookRecord(QString path) {
+AudiobookRecord::AudiobookRecord() {
+    this->readMode = false;
+    this->path = this->value("full_path").toString();
+}
+
+AudiobookRecord::AudiobookRecord(QString path, bool readMode) {
+    // initialize instance vars
+    this->readMode = readMode;
+    this->path = path;
+
     // set up the fields
     this->setup();
-
-    this->path = path;
 
     // set up the value for the record
     this->setValues();
@@ -73,3 +80,4 @@ QString AudiobookRecord::calculateName() {
 
     return QString();
 }
+

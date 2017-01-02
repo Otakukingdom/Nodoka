@@ -6,6 +6,7 @@
 #define NODOKANATIVE_AUDIOBOOK_H
 
 #include <QSqlTableModel>
+#include "AudiobookRecord.h"
 
 class Audiobook : public QSqlTableModel {
 
