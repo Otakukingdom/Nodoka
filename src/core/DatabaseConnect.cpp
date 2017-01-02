@@ -27,7 +27,27 @@ bool ::Core::openDb() {
                        ")");
 
     query.exec("CREATE TABLE IF NOT EXISTS audiobooks("
-                       ","
+                       "id INTEGER AUTOINCREMENT,"
+                       "directory TEXT,"
+                       "name TEXT,"
+                       "full_path TEXT,"
+                       "completeness INTEGER,"
+                       "default_order INTEGER,"
+                       "selected_file INTEGER,"
+                       "created_at TEXT"
+                       ")");
+
+    query.exec("CREATE TABLE IF NOT EXISTS audiobook_file("
+                       "id INTEGER AUTOINCREMENT,"
+                       "audiobook_id INTEGER,"
+                       "name TEXT,"
+                       "full_path TEXT,"
+                       "length_of_file TEXT,"
+                       "position INTEGER,"
+                       "completeness INTEGER,"
+                       "seek_position REAL,"
+                       "file_exists BOOL,"
+                       "created_at TEXT"
                        ")");
 
     return true;
