@@ -56,3 +56,5 @@ cmake-build-debug/
 
 *.exe
 *.cbp
+
+*.db
