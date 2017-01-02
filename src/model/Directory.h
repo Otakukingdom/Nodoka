@@ -6,7 +6,6 @@
 #define NODOKANATIVE_DIRECTORY_H
 
 
-#include <QDebug>
 #include <QtSql/QSqlRecord>
 #include <QtWidgets/QMessageBox>
 #include <QtSql/QSqlError>
