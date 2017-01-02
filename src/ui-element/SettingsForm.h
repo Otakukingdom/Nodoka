@@ -20,6 +20,9 @@ public:
     virtual ~SettingsForm();
 
 private:
+    Directory *directoryModel;
+    void performAddDirectory();
+
     Ui::SettingsForm *ui;
     void setup();
 
