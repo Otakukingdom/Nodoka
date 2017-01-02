@@ -3,7 +3,6 @@
 //
 
 #include <QtWidgets/QFileDialog>
-#include <QDebug>
 #include <QtWidgets/QMessageBox>
 #include "SettingsForm.h"
 
@@ -27,9 +26,7 @@ void SettingsForm::setup() {
 }
 
 void SettingsForm::performAddDirectory() {
-    qDebug() << "Perform add dir called";
     auto dir = QFileDialog::getExistingDirectory(this, "Select Folder", "", QFileDialog::ShowDirsOnly);
-    qDebug() << "Directory is " << dir;
     this->directoryModel->addDirectory(dir);
 }
 

@@ -3,7 +3,6 @@
 //
 
 #include "MainWindow.h"
-#include "SettingsForm.h"
 
 MainWindow::MainWindow(Directory* directoryModel, QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
