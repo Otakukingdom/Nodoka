@@ -26,5 +26,9 @@ bool ::Core::openDb() {
                        "last_scanned text"
                        ")");
 
+    query.exec("CREATE TABLE IF NOT EXISTS audiobooks("
+                       ","
+                       ")");
+
     return true;
 }

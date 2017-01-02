@@ -34,14 +34,21 @@ void Directory::addDirectory(QString path) {
         auto errorObj = this->lastError();
         QMessageBox *messageBox = new QMessageBox();
         messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error messsage is: " + errorObj.driverText());
+        return;
     }
-
 }
 
 void Directory::removeDirectory(QModelIndex index) {
     int row = index.row();
     this->removeRow(row);
-    this->submitAll();
+    auto res = this->submitAll();
+
+    if(!res) {
+        auto errorObj = this->lastError();
+        QMessageBox *messageBox = new QMessageBox();
+        messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error messsage is: " + errorObj.driverText());
+        return;
+    }
 }
 
 QSqlRecord Directory::getEmptyRecord() {
