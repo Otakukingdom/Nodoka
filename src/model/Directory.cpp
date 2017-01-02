@@ -9,11 +9,14 @@
 #include <QtWidgets/QMessageBox>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlField>
+#include <QtCore/QDateTime>
 #include "Directory.h"
 
 Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("directories");
     this->setEditStrategy(EditStrategy::OnManualSubmit);
+
+    this->submitAll();
 }
 
 
@@ -21,13 +24,10 @@ void Directory::addDirectory(QString path) {
     auto record = this->getEmptyRecord();
 
     // create the time string
-    std::time_t now = std::time(0);
-    std::string timeString;
-    std::stringstream s(timeString);
-    s << now;
+    auto now = QDateTime::currentDateTimeUtc();
 
     record.setValue("full_path", path);
-    record.setValue("created_at", QString::fromStdString(timeString));
+    record.setValue("created_at", now);
 
     this->insertRecord(-1, record);
     auto res = this->submitAll();
