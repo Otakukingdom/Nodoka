@@ -33,7 +33,7 @@ void Directory::addDirectory(QString path) {
     if(!res) {
         auto errorObj = this->lastError();
         QMessageBox *messageBox = new QMessageBox();
-        messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error messsage is: " + errorObj.driverText());
+        messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error message is: " + errorObj.driverText());
         return;
     }
 }
@@ -46,7 +46,7 @@ void Directory::removeDirectory(QModelIndex index) {
     if(!res) {
         auto errorObj = this->lastError();
         QMessageBox *messageBox = new QMessageBox();
-        messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error messsage is: " + errorObj.driverText());
+        messageBox->critical(0, "Error", "Failed to write to config file, error message is: " + errorObj.driverText());
         return;
     }
 }
