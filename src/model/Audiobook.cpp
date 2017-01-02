@@ -2,8 +2,9 @@
 // Created by mistlight on 1/2/2017.
 //
 
-#include <QtSql/QSqlRecord>
+#include <QtSql>
 #include "Audiobook.h"
+#include "AudiobookRecord.h"
 
 Audiobook::Audiobook(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("audiobooks");
@@ -12,7 +13,8 @@ Audiobook::Audiobook(QObject *parent) : QSqlTableModel(parent) {
     this->select();
 }
 
-QSqlRecord Audiobook::getEmptyRecord() {
-    QSqlRecord record;
-    return record;
+void Audiobook::addAudiobook(QString path) {
+    AudiobookRecord record(path);
+    this->insertRecord(-1, record);
 }
+

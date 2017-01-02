@@ -11,8 +11,7 @@ class Audiobook : public QSqlTableModel {
 
 public:
     Audiobook(QObject *parent = 0);
-    QSqlRecord getEmptyRecord();
-
+    void addAudiobook(QString path);
 };
 
 

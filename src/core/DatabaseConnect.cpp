@@ -4,6 +4,8 @@
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
+#include <QSqlError>
+#include <QtWidgets/QMessageBox>
 #include "DatabaseConnect.h"
 
 bool ::Core::openDb() {
@@ -15,19 +17,28 @@ bool ::Core::openDb() {
     }
 
     QSqlQuery query;
-    query.exec("CREATE TABLE IF NOT EXISTS metadata ("
+    bool response = false;
+    response = query.exec("CREATE TABLE IF NOT EXISTS metadata ("
                        "key text PRIMARY KEY,"
                        "value text"
                        ")");
 
-    query.exec("CREATE TABLE IF NOT EXISTS directories("
+    if(!response) {
+        return false;
+    }
+
+    response = query.exec("CREATE TABLE IF NOT EXISTS directories("
                        "full_path text PRIMARY KEY,"
                        "created_at text,"
                        "last_scanned text"
                        ")");
 
-    query.exec("CREATE TABLE IF NOT EXISTS audiobooks("
-                       "id INTEGER AUTOINCREMENT,"
+    if(!response) {
+        return false;
+    }
+
+    response = query.exec("CREATE TABLE IF NOT EXISTS audiobooks("
+                       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                        "directory TEXT,"
                        "name TEXT,"
                        "full_path TEXT,"
@@ -37,8 +48,13 @@ bool ::Core::openDb() {
                        "created_at TEXT"
                        ")");
 
-    query.exec("CREATE TABLE IF NOT EXISTS audiobook_file("
-                       "id INTEGER AUTOINCREMENT,"
+    if(!response) {
+        QMessageBox::critical(0, "Warning", "Failed to create audiobook config: " + query.lastError().databaseText());
+        return false;
+    }
+
+    response = query.exec("CREATE TABLE IF NOT EXISTS audiobook_file("
+                       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                        "audiobook_id INTEGER,"
                        "name TEXT,"
                        "full_path TEXT,"
@@ -49,6 +65,11 @@ bool ::Core::openDb() {
                        "file_exists BOOL,"
                        "created_at TEXT"
                        ")");
+
+    if(!response) {
+        QMessageBox::critical(0, "Warning", "Failed to create audiobook file config");
+        return false;
+    }
 
     return true;
 }
