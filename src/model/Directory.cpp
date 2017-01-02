@@ -13,6 +13,13 @@ Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
 
 
 void Directory::addDirectory(QString path) {
+    // validate directory path, this function has side effects and will emit error message
+    // on it's own, so we don't have to do anything here
+    if(!this->validateDirectoryPath(path)) {
+        // if invalid, return
+        return;
+    }
+
     auto record = this->getEmptyRecord();
 
     // create the time string
@@ -70,5 +77,31 @@ QSqlRecord Directory::getEmptyRecord() {
     record.append(lastScannedField);
 
     return record;
+}
+
+bool Directory::validateDirectoryPath(QString path) {
+    if(this->directoryIsParent(path)) {
+        QMessageBox *messageBox = new QMessageBox();
+        messageBox->information(0, "Error", "Failed to add directory, cannot add a directory that is a subdirectory of an existing directory");
+        return false;
+    }
+
+    return true;
+}
+
+// check if the current directory is a child directory of any of the directory
+// in the model
+bool Directory::directoryIsParent(QString potentialChildPath) {
+    int rowCount = this->rowCount();
+    for(int i = 0; i < rowCount; i++) {
+        QSqlRecord currentRecord = this->record(i);
+        QString path = currentRecord.field("full_path").value().toString();
+
+        if(potentialChildPath.startsWith(path)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 

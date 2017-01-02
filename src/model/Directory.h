@@ -16,6 +16,10 @@
 class Directory : public QSqlTableModel {
     Q_OBJECT
 
+private:
+    bool validateDirectoryPath(QString path);
+    bool directoryIsParent(QString potentialChildPath);
+
 public:
     Directory(QObject *parent = 0);
 
@@ -26,6 +30,7 @@ public:
 signals:
     void directoryAdded(QSqlRecord);
     void directoryRemove(QSqlRecord);
+
 };
 
 
