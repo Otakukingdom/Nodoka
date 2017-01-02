@@ -6,6 +6,12 @@
 #define NODOKANATIVE_DIRECTORY_H
 
 
+#include <QDebug>
+#include <QtSql/QSqlRecord>
+#include <QtWidgets/QMessageBox>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlField>
+#include <QtCore/QDateTime>
 #include <QSqlTableModel>
 
 class Directory : public QSqlTableModel {
@@ -17,6 +23,10 @@ public:
     QSqlRecord getEmptyRecord();
     void addDirectory(QString path);
     void removeDirectory(QModelIndex index);
+
+signals:
+    void directoryAdded(QSqlRecord);
+    void directoryRemove(QSqlRecord);
 };
 
 

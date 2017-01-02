@@ -2,12 +2,6 @@
 // Created by mistlight on 1/1/2017.
 //
 
-#include <QDebug>
-#include <QtSql/QSqlRecord>
-#include <QtWidgets/QMessageBox>
-#include <QtSql/QSqlError>
-#include <QtSql/QSqlField>
-#include <QtCore/QDateTime>
 #include "Directory.h"
 
 Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
@@ -36,10 +30,14 @@ void Directory::addDirectory(QString path) {
         messageBox->critical(0, "Error", "Failed to write to config file: " + path + ", error message is: " + errorObj.driverText());
         return;
     }
+
+    emit directoryAdded(record);
 }
 
 void Directory::removeDirectory(QModelIndex index) {
     int row = index.row();
+    auto record = this->record(row);
+
     this->removeRow(row);
     auto res = this->submitAll();
 
@@ -49,6 +47,8 @@ void Directory::removeDirectory(QModelIndex index) {
         messageBox->critical(0, "Error", "Failed to write to config file, error message is: " + errorObj.driverText());
         return;
     }
+
+    emit directoryRemove(record);
 }
 
 QSqlRecord Directory::getEmptyRecord() {
