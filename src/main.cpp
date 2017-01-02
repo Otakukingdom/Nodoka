@@ -5,13 +5,12 @@
 #include <src/core/ConcretePlayer.h>
 #include <QtWidgets/QMessageBox>
 #include <src/model/Directory.h>
+#include <src/core/NodokaApp.h>
 #include "ui-element/MainWindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
-    // initialize player, which will initialize vlc backend related items
-    auto player = new Core::ConcretePlayer();
 
     if(!Core::openDb()) {
         QMessageBox *messageBox = new QMessageBox();
@@ -20,12 +19,9 @@ int main(int argc, char *argv[]) {
         // since we failed to load the db, we shouldn't continue
         return EXIT_FAILURE;
     } else {
-        // initialize db backed models
-        auto directoryModel = new Directory();
+        Core::NodokaApp app;
 
-
-        QWidget *widget = new MainWindow(directoryModel);
-        widget->show();
+        app.start();
     }
 
     return app.exec();
