@@ -4,8 +4,6 @@
 
 #include <QDebug>
 #include <QtSql/QSqlRecord>
-#include <ctime>
-#include <sstream>
 #include <QtWidgets/QMessageBox>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlField>
@@ -16,7 +14,7 @@ Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("directories");
     this->setEditStrategy(EditStrategy::OnManualSubmit);
 
-    this->submitAll();
+    this->select();
 }
 
 
@@ -40,8 +38,10 @@ void Directory::addDirectory(QString path) {
 
 }
 
-void Directory::removeDirectory(QString path) {
-
+void Directory::removeDirectory(QModelIndex index) {
+    int row = index.row();
+    this->removeRow(row);
+    this->submitAll();
 }
 
 QSqlRecord Directory::getEmptyRecord() {

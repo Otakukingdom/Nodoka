@@ -16,7 +16,7 @@ public:
 
     QSqlRecord getEmptyRecord();
     void addDirectory(QString path);
-    void removeDirectory(QString path);
+    void removeDirectory(QModelIndex index);
 };
 
 

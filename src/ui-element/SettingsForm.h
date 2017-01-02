@@ -22,6 +22,8 @@ public:
 private:
     Directory *directoryModel;
     void performAddDirectory();
+    void performRemoveDirectory();
+    void performClose();
 
     Ui::SettingsForm *ui;
     void setup();
