@@ -15,9 +15,9 @@ public:
 
     AudiobookFile(QObject *parent = 0);
     void registerAudioBook(int audiobookId, std::shared_ptr<QDir> directory);
+    void addAudiobookFile(int audiobookId, int position, QString path);
     int getRowForPath(QString path);
 
-    void addAudiobookFile(QString path);
 
 };
 

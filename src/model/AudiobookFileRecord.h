@@ -18,6 +18,8 @@ private:
 public:
     AudiobookFileRecord();
     AudiobookFileRecord(QString path, bool readMode);
+
+    void setInitValues();
 };
 
 

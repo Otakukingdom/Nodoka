@@ -1,11 +1,11 @@
 #include <memory>
+#include <QtWidgets/QMessageBox>
 #include "AudiobookScan.h"
 
 // helper functions
 
 // do the actual recusrive scan directory
 static void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> currentDirectory, Audiobook* audiobook);
-static bool isAudiobookFile(std::shared_ptr<QFile> file);
 static bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> vector);
 
 void Core::scanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook) {
@@ -29,11 +29,17 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
         std::shared_ptr<QDir> potentialDir(new QDir(currentPath));
         std::shared_ptr<QFile> potentialFile(new QFile(currentPath));
 
+
         // if it is a directory, then we
         if(potentialDir->exists()) {
+            // don't bother with these..
+            if(potentialDir->dirName() == "." || potentialDir->dirName() == "..") {
+                continue;
+            }
+
             loadedDirectories.push_back(potentialDir);
         } else if(potentialFile->exists()) {
-            if(isAudiobookFile(potentialFile)) {
+            if(Core::isAudiobookFile(potentialFile)) {
                 loadedAudioFiles.push_back(potentialFile);
             }
         }
@@ -68,7 +74,7 @@ bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> dirList) {
     return false;
 }
 
-bool isAudiobookFile(std::shared_ptr<QFile> file) {
+bool Core::isAudiobookFile(std::shared_ptr<QFile> file) {
     // by default, non-existing file is not considered to be an audiobook file
     if(!file->exists()) {
         return false;
@@ -82,4 +88,38 @@ bool isAudiobookFile(std::shared_ptr<QFile> file) {
     } else {
         return false;
     }
+}
+
+
+QList<QString> Core::getAllFiles(std::shared_ptr<QDir> directory) {
+    QList<QString> filePaths;
+    QDirIterator it(*directory, QDirIterator::NoIteratorFlags);
+
+    while(it.hasNext()) {
+        QString currentPath = it.next();
+
+        QFileInfo currentFileInfo(currentPath);
+
+        if(currentFileInfo.isFile()) {
+            std::shared_ptr<QFile> currentFile(new QFile(currentPath));
+
+            if(Core::isAudiobookFile(currentFile)) {
+                filePaths.push_back(currentPath);
+            }
+
+        } else if(currentFileInfo.isDir()) {
+            std::shared_ptr<QDir> currentDir(new QDir(currentPath));
+            // skip the special . and .. directories
+            if(currentDir->dirName() == "." || currentDir->dirName() == "..") {
+                continue;
+            }
+
+            auto subFilePaths = getAllFiles(currentDir);
+            filePaths.append(subFilePaths);
+        }
+    }
+
+    filePaths.sort();
+
+    return filePaths;
 }

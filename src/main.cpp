@@ -6,9 +6,13 @@
 #include <QtWidgets/QMessageBox>
 #include <src/model/Directory.h>
 #include <src/core/NodokaApp.h>
+#include <iostream>
 #include "ui-element/MainWindow.h"
 
 int main(int argc, char *argv[]) {
+    std::cout << "Init" << std::endl;
+    std::cout.flush();
+
     QApplication app(argc, argv);
 
 

@@ -35,3 +35,9 @@ void AudiobookFileRecord::setup() {
 
 void AudiobookFileRecord::setValues() {
 }
+
+void AudiobookFileRecord::setInitValues() {
+    this->setValue("file_exists", true);
+    this->setValue("seek_position", 0.0);
+    this->setValue("completeness", 0);
+}
