@@ -3,6 +3,7 @@
 //
 
 #include <QtSql>
+#include <QtWidgets/QMessageBox>
 #include "Audiobook.h"
 
 Audiobook::Audiobook(AudiobookFile* audiobookFileModel, QObject *parent) : QSqlTableModel(parent) {
@@ -22,5 +23,39 @@ void Audiobook::registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_pt
     record.setNull("selected_file");
 
     this->insertRecord(-1, record);
+
+    // submit the data
+    auto res = this->submitAll();
+    if(!res) {
+        QMessageBox::critical(0, "Error", "Insert audiobook failed");
+    }
+
+    res = this->select();
+    if(!res) {
+        QMessageBox::critical(0, "Error", "Update select failed");
+    }
+
+
+    int row = getRowForPath(directory->path());
+    if(row == -1) {
+        QMessageBox::critical(0, "Error", "Audiobook failed to write");
+    }
+
+    this->audiobookFile->registerAudioBook(this->record(row).value("id").toInt(), directory);
+}
+
+int Audiobook::getRowForPath(QString path) {
+    int row = -1;
+
+    for(int i = 0; i < this->rowCount(); i++) {
+        auto record = this->record(i);
+
+        if(record.value("full_path").toString() == path) {
+            row = i;
+            break;
+        }
+    }
+
+    return row;
 }
 

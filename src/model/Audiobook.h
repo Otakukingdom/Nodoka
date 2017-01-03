@@ -15,6 +15,8 @@ class Audiobook : public QSqlTableModel {
 
 public:
     Audiobook(AudiobookFile* audiobookFileModel, QObject *parent = 0);
+    int getRowForPath(QString path);
+    
     void registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory);
 };
 
