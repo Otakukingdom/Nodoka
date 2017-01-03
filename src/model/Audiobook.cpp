@@ -13,8 +13,8 @@ Audiobook::Audiobook(QObject *parent) : QSqlTableModel(parent) {
     this->select();
 }
 
-void Audiobook::addAudiobook(QString path) {
-    AudiobookRecord record(path, false);
+void Audiobook::registerAudiobook(std::shared_ptr<QDir> directory) {
+    AudiobookRecord record(directory->path(), false);
     this->insertRecord(-1, record);
 }
 

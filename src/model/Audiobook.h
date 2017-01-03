@@ -6,13 +6,14 @@
 #define NODOKANATIVE_AUDIOBOOK_H
 
 #include <QSqlTableModel>
+#include <memory>
 #include "AudiobookRecord.h"
 
 class Audiobook : public QSqlTableModel {
 
 public:
     Audiobook(QObject *parent = 0);
-    void addAudiobook(QString path);
+    void registerAudiobook(std::shared_ptr<QDir> directory);
 };
 
 

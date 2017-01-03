@@ -10,9 +10,12 @@
 
 class DirectoryHandler : public QObject {
     Q_OBJECT
+private:
+    Audiobook* audiobookModel;
+    AudiobookFile* audiobookFileModel;
 
 public:
-    DirectoryHandler();
+    DirectoryHandler(Audiobook* audiobookModel, AudiobookFile* audiobookFileModel);
     void handleDirectoryAdded(QSqlRecord record);
     void handleDirectoryRemoved(QSqlRecord record);
 

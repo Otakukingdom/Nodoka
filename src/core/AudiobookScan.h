@@ -1,13 +1,16 @@
-#include <QtSql/QSqlRecord>
+#include <QtSql>
 #include <src/model/Audiobook.h>
 #include <src/model/AudiobookFile.h>
 #include "Qt"
 
+/**
+ * AudiobookScan is a collection of free functions, all designed to scan a directory and
+ * operate on the given audiobook and audiobookFiles
+ */
 namespace Core {
 
     // function to scan a directory
-    void scanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook, AudiobookFile* audiobookFile);
+    void scanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook);
 
-    void reScanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook, AudiobookFile* audiobookFile);
 
 }

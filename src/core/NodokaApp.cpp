@@ -13,8 +13,12 @@ Core::NodokaApp::NodokaApp() {
 
     this->mainWindow = new MainWindow(directoryModel);
 
+    this->audiobookModel = new Audiobook();
+
+    this->audiobookFileModel = new AudiobookFile();
+
     // initialize event handlers
-    this->directoryHandler = new DirectoryHandler();
+    this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);
 
     this->setup();
 }

@@ -9,6 +9,8 @@
 
 class AudiobookFile : public QSqlTableModel {
 
+public:
+
     AudiobookFile(QObject *parent = 0);
     void addAudiobookFile(QString path);
 
