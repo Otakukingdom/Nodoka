@@ -42,7 +42,7 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
             // if all of the directories are similar, then simply make a call
             // to register this audiobook right away
             if(checkDirectorysimilarity(loadedDirectories)) {
-                audiobook->registerAudiobook(currentDirectory);
+                audiobook->registerAudiobook(directoryRecord, currentDirectory);
             } else {
                 for(auto &dir : loadedDirectories) {
                     performScanDirectory(directoryRecord, dir, audiobook);
@@ -50,7 +50,7 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
             }
         } else {
             if(loadedAudioFiles.size() > 0) {
-                audiobook->registerAudiobook(currentDirectory);
+                audiobook->registerAudiobook(directoryRecord, currentDirectory);
             }
         }
     }

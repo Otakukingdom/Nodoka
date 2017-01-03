@@ -7,15 +7,14 @@
 Core::NodokaApp::NodokaApp() {
     // initialize db backed models
     this->directoryModel = new Directory();
+    this->audiobookFileModel = new AudiobookFile();
+    this->audiobookModel = new Audiobook(this->audiobookFileModel);
 
     // initialize player, which will initialize vlc backend related items
     this->player = new Core::ConcretePlayer();
 
+    // initialize the ui
     this->mainWindow = new MainWindow(directoryModel);
-
-    this->audiobookModel = new Audiobook();
-
-    this->audiobookFileModel = new AudiobookFile();
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);

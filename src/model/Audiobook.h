@@ -8,12 +8,14 @@
 #include <QSqlTableModel>
 #include <memory>
 #include "AudiobookRecord.h"
+#include "AudiobookFile.h"
 
 class Audiobook : public QSqlTableModel {
+    AudiobookFile* audiobookFile;
 
 public:
-    Audiobook(QObject *parent = 0);
-    void registerAudiobook(std::shared_ptr<QDir> directory);
+    Audiobook(AudiobookFile* audiobookFileModel, QObject *parent = 0);
+    void registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory);
 };
 
 

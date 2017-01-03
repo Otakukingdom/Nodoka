@@ -22,7 +22,7 @@ AudiobookRecord::AudiobookRecord(QString path, bool readMode) {
 }
 
 void AudiobookRecord::setValues() {
-    this->setValue("path", this->path);
+    this->setValue("full_path", this->path);
     this->setValue("name", this->calculateName());
 }
 
