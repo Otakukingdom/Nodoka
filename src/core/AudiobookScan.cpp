@@ -7,6 +7,7 @@
 // do the actual recusrive scan directory
 static void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> currentDirectory, Audiobook* audiobook);
 static bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> vector);
+static QMap<QString, bool> isAudioBookFileCache;
 
 void Core::scanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook) {
     QString path = directoryRecord.value("full_path").toString();
@@ -39,7 +40,7 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
 
             loadedDirectories.push_back(potentialDir);
         } else if(potentialFile->exists()) {
-            if(Core::isAudiobookFile(potentialFile)) {
+            if(Core::isAudiobookFile(currentPath, potentialFile)) {
                 loadedAudioFiles.push_back(potentialFile);
             }
         }
@@ -74,18 +75,24 @@ bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> dirList) {
     return false;
 }
 
-bool Core::isAudiobookFile(std::shared_ptr<QFile> file) {
+bool Core::isAudiobookFile(QString path, std::shared_ptr<QFile> file) {
     // by default, non-existing file is not considered to be an audiobook file
     if(!file->exists()) {
         return false;
+    }
+
+    if(isAudioBookFileCache.contains(path)) {
+        return isAudioBookFileCache[path];
     }
 
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForFile(*file);
 
     if(type.name().startsWith("audio") || type.name().startsWith("video")) {
+        isAudioBookFileCache[path] = true;
         return true;
     } else {
+        isAudioBookFileCache[path] = false;
         return false;
     }
 }
@@ -103,7 +110,7 @@ QList<QString> Core::getAllFiles(std::shared_ptr<QDir> directory) {
         if(currentFileInfo.isFile()) {
             std::shared_ptr<QFile> currentFile(new QFile(currentPath));
 
-            if(Core::isAudiobookFile(currentFile)) {
+            if(Core::isAudiobookFile(currentPath, currentFile)) {
                 filePaths.push_back(currentPath);
             }
 

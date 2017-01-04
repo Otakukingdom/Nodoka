@@ -16,6 +16,8 @@ Audiobook::Audiobook(AudiobookFile* audiobookFileModel, QObject *parent) : QSqlT
 }
 
 void Audiobook::registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory) {
+    qDebug() << "Registering: " << directory->path();
+
     AudiobookRecord record(directory->path(), false);
     record.setValue("directory", baseDirectoryRecord.value("full_path").toString());
     record.setValue("completeness", 0);
@@ -36,27 +38,17 @@ void Audiobook::registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_pt
     }
 
 
-    int row = getRowForPath(directory->path());
-    if(row == -1) {
-        QMessageBox::critical(0, "Error", "Audiobook failed to write");
+    QSqlQuery query;
+    query.prepare("SELECT * FROM audiobooks WHERE full_path=?");
+    query.addBindValue(directory->path());
+    res = query.exec();
+    auto hasNext = query.next();
+    if(!res || !hasNext) {
+        QMessageBox::critical(0, "Error", "Get audiobook id of recently added audiobook failed");
     }
+    int audiobookId = query.record().value("id").toInt();
 
-    this->audiobookFile->registerAudioBook(this->record(row).value("id").toInt(), directory);
-}
-
-int Audiobook::getRowForPath(QString path) {
-    int row = -1;
-
-    for(int i = 0; i < this->rowCount(); i++) {
-        auto record = this->record(i);
-
-        if(record.value("full_path").toString() == path) {
-            row = i;
-            break;
-        }
-    }
-
-    return row;
+    this->audiobookFile->registerAudioBook(audiobookId, directory);
 }
 
 void Audiobook::removeAudiobookByBase(QString path) {

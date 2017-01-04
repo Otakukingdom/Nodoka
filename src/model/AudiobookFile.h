@@ -20,7 +20,6 @@ public:
     void registerAudioBook(int audiobookId, std::shared_ptr<QDir> directory);
     void removeAudiobook(int audiobookId);
     void addAudiobookFile(int audiobookId, int position, QString path);
-    int getRowForPath(QString path);
 
 
 };

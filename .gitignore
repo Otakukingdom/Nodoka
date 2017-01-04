@@ -58,3 +58,4 @@ cmake-build-debug/
 *.cbp
 
 *.db
+*.db-journal

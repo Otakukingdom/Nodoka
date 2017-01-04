@@ -13,11 +13,10 @@ private:
     bool readMode;
 
     void setup();
-    void setValues();
 
 public:
     AudiobookFileRecord();
-    AudiobookFileRecord(QString path, bool readMode);
+    AudiobookFileRecord(bool readMode);
 
     void setInitValues();
 };
