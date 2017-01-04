@@ -22,6 +22,8 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
     std::vector<std::shared_ptr<QDir>> loadedDirectories;
     std::vector<std::shared_ptr<QFile>> loadedAudioFiles;
 
+    qDebug() << "performScanDir called on: " << currentDirectory->path();
+
     while(it.hasNext()) {
         QString currentPath = it.next();
 
@@ -43,23 +45,23 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
                 loadedAudioFiles.push_back(potentialFile);
             }
         }
+    }
 
-        if(loadedDirectories.size() > 0) {
-            // if all of the directories are similar, then simply make a call
-            // to register this audiobook right away
+    if(loadedDirectories.size() > 0) {
+        // if all of the directories are similar, then simply make a call
+        // to register this audiobook right away
 
-            // TODO: add more checks here...
-            if(checkDirectorysimilarity(loadedDirectories)) {
-                audiobook->registerAudiobook(directoryRecord, currentDirectory);
-            } else {
-                for(auto &dir : loadedDirectories) {
-                    performScanDirectory(directoryRecord, dir, audiobook);
-                }
-            }
+        // TODO: add more checks here...
+        if(checkDirectorysimilarity(loadedDirectories)) {
+            audiobook->registerAudiobook(directoryRecord, currentDirectory);
         } else {
-            if(loadedAudioFiles.size() > 0) {
-                audiobook->registerAudiobook(directoryRecord, currentDirectory);
+            for(auto &dir : loadedDirectories) {
+                performScanDirectory(directoryRecord, dir, audiobook);
             }
+        }
+    } else {
+        if(loadedAudioFiles.size() > 0) {
+            audiobook->registerAudiobook(directoryRecord, currentDirectory);
         }
     }
 }

@@ -9,6 +9,7 @@
 
 AudiobookFile::AudiobookFile(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("audiobook_file");
+    this->select();
 }
 
 void AudiobookFile::addAudiobookFile(int audiobookId, int position, QString path) {
@@ -18,6 +19,7 @@ void AudiobookFile::addAudiobookFile(int audiobookId, int position, QString path
     record.setValue("audiobook_id", audiobookId);
     record.setValue("position", position);
     this->insertRecord(-1, record);
+    this->submitAll();
 }
 
 void AudiobookFile::registerAudioBook(int audiobookId, std::shared_ptr<QDir> directory) {

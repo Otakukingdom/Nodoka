@@ -11,6 +11,9 @@
 
 class AudiobookFile : public QSqlTableModel {
 
+private:
+    QMap<int, QString> rowCache;
+
 public:
 
     AudiobookFile(QObject *parent = 0);
