@@ -16,5 +16,5 @@ void DirectoryHandler::handleDirectoryAdded(QSqlRecord record) {
 }
 
 void DirectoryHandler::handleDirectoryRemoved(QSqlRecord record) {
-
+    this->audiobookModel->removeAudiobook(record);
 }

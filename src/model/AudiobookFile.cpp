@@ -4,6 +4,7 @@
 
 #include <QtCore/QDirIterator>
 #include <src/core/AudiobookScan.h>
+#include <QtWidgets/QMessageBox>
 #include "AudiobookFileRecord.h"
 
 
@@ -46,5 +47,15 @@ int AudiobookFile::getRowForPath(QString path) {
     }
 
     return row;
+}
+
+void AudiobookFile::removeAudiobook(int audiobookId) {
+    QSqlQuery query;
+    query.prepare("DELETE FROM audiobook_file WHERE audiobook_id = ?");
+    query.addBindValue(audiobookId);
+    auto res = query.exec();
+    if(!res) {
+        QMessageBox::critical(0, "Error", "Failed to delete file entry");
+    }
 }
 

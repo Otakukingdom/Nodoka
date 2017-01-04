@@ -13,6 +13,11 @@ Directory::Directory(QObject *parent) : QSqlTableModel(parent) {
 
 
 void Directory::addDirectory(QString path) {
+    // do not continue on a null or empty path string...
+    if(path.isEmpty()) {
+        return;
+    }
+
     // validate directory path, this function has side effects and will emit error message
     // on it's own, so we don't have to do anything here
     if(!this->validateDirectoryPath(path)) {

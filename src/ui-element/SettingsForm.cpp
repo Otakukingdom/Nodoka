@@ -27,7 +27,11 @@ void SettingsForm::setup() {
 
 void SettingsForm::performAddDirectory() {
     auto dir = QFileDialog::getExistingDirectory(this, "Select Folder", "", QFileDialog::ShowDirsOnly);
-    this->directoryModel->addDirectory(dir);
+
+    // only perform this when user has actually selected something
+    if(!dir.isEmpty()) {
+        this->directoryModel->addDirectory(dir);
+    }
 }
 
 void SettingsForm::performRemoveDirectory() {

@@ -59,3 +59,32 @@ int Audiobook::getRowForPath(QString path) {
     return row;
 }
 
+void Audiobook::removeAudiobook(QString path) {
+    int row = this->getRowForPath(path);
+    if(row != -1) {
+        this->removeAudiobook(row);
+    } else {
+        QMessageBox::critical(0, "Warning", "Cannot seem to find the audiobook entry to remove...");
+    }
+}
+
+void Audiobook::removeAudiobook(int row) {
+    auto record = this->record(row);
+    auto audiobookId = record.value("id").toInt();
+
+    // if we have an empty record.. ignore this
+    if(record.isEmpty()) {
+        return;
+    }
+
+    // remove all the dependencies first
+    this->audiobookFile->removeAudiobook(audiobookId);
+
+    // remove the audiobook entry
+    this->removeRow(row);
+}
+
+void Audiobook::removeAudiobook(QSqlRecord record) {
+    this->removeAudiobook(record.value("full_path").toString());
+}
+
