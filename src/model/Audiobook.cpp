@@ -77,16 +77,12 @@ void Audiobook::removeAudiobookByBase(QString path) {
     QSqlQuery deleteQuery;
     deleteQuery.prepare("DELETE FROM audiobooks WHERE directory=?");
     deleteQuery.addBindValue(path);
-    auto deleteRes = query.exec();
-    qDebug() << "Query executed: " << deleteQuery.executedQuery();
-    qDebug() << "Path was: " << path;
+    deleteQuery.exec();
+    auto deleteRes = deleteQuery.exec();
     if(!deleteRes) {
         QMessageBox::critical(0, "Warning", "Query to delete audiobook information failed");
         return;
     }
-
-    // ensure the changes are final
-    this->submitAll();
 }
 
 void Audiobook::removeAudiobook(QSqlRecord record) {

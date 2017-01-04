@@ -22,8 +22,6 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
     std::vector<std::shared_ptr<QDir>> loadedDirectories;
     std::vector<std::shared_ptr<QFile>> loadedAudioFiles;
 
-    qDebug() << "performScanDir called on: " << currentDirectory->path();
-
     while(it.hasNext()) {
         QString currentPath = it.next();
 
