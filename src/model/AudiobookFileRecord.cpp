@@ -16,11 +16,6 @@ AudiobookFileRecord::AudiobookFileRecord(bool readMode) {
 }
 
 void AudiobookFileRecord::setup() {
-    QSqlField idField;
-    idField.setName("id");
-    idField.setType(QVariant::Int);
-    this->append(idField);
-
     QSqlField abIdField;
     abIdField.setName("audiobook_id");
     abIdField.setType(QVariant::Int);

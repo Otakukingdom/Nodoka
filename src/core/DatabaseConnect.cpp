@@ -54,10 +54,9 @@ bool ::Core::openDb() {
     }
 
     response = query.exec("CREATE TABLE IF NOT EXISTS audiobook_file("
-                       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                        "audiobook_id INTEGER,"
                        "name TEXT,"
-                       "full_path TEXT,"
+                       "full_path TEXT PRIMARY KEY,"
                        "length_of_file TEXT,"
                        "position INTEGER,"
                        "completeness INTEGER,"
