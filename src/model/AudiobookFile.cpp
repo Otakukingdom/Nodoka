@@ -57,5 +57,8 @@ void AudiobookFile::removeAudiobook(int audiobookId) {
     if(!res) {
         QMessageBox::critical(0, "Error", "Failed to delete file entry");
     }
+
+    // ensure the changes are final
+    this->submitAll();
 }
 

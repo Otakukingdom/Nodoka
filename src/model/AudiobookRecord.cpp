@@ -78,6 +78,6 @@ QString AudiobookRecord::calculateName() {
         name = dir.path();
     }
 
-    return QString();
+    return name;
 }
 

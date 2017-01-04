@@ -19,8 +19,7 @@ public:
     
     void registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory);
     void removeAudiobook(QSqlRecord record);
-    void removeAudiobook(QString path);
-    void removeAudiobook(int row);
+    void removeAudiobookByBase(QString path);
 };
 
 

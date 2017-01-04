@@ -59,32 +59,37 @@ int Audiobook::getRowForPath(QString path) {
     return row;
 }
 
-void Audiobook::removeAudiobook(QString path) {
-    int row = this->getRowForPath(path);
-    if(row != -1) {
-        this->removeAudiobook(row);
-    } else {
-        QMessageBox::critical(0, "Warning", "Cannot seem to find the audiobook entry to remove...");
-    }
-}
-
-void Audiobook::removeAudiobook(int row) {
-    auto record = this->record(row);
-    auto audiobookId = record.value("id").toInt();
-
-    // if we have an empty record.. ignore this
-    if(record.isEmpty()) {
+void Audiobook::removeAudiobookByBase(QString path) {
+    QSqlQuery query;
+    query.prepare("SELECT * FROM audiobooks WHERE directory=?");
+    query.addBindValue(path);
+    auto res = query.exec();
+    if(!res) {
+        QMessageBox::critical(0, "Warning", "Query to retrieve audiobook information failed");
         return;
     }
 
-    // remove all the dependencies first
-    this->audiobookFile->removeAudiobook(audiobookId);
+    while(query.next()) {
+        auto audiobookId = query.value("id").toInt();
+        this->audiobookFile->removeAudiobook(audiobookId);
+    }
 
-    // remove the audiobook entry
-    this->removeRow(row);
+    QSqlQuery deleteQuery;
+    deleteQuery.prepare("DELETE FROM audiobooks WHERE directory=?");
+    deleteQuery.addBindValue(path);
+    auto deleteRes = query.exec();
+    qDebug() << "Query executed: " << deleteQuery.executedQuery();
+    qDebug() << "Path was: " << path;
+    if(!deleteRes) {
+        QMessageBox::critical(0, "Warning", "Query to delete audiobook information failed");
+        return;
+    }
+
+    // ensure the changes are final
+    this->submitAll();
 }
 
 void Audiobook::removeAudiobook(QSqlRecord record) {
-    this->removeAudiobook(record.value("full_path").toString());
+    this->removeAudiobookByBase(record.value("full_path").toString());
 }
 
