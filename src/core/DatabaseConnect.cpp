@@ -71,5 +71,10 @@ bool ::Core::openDb() {
         return false;
     }
 
+    query.exec("CREATE INDEX IF NOT EXISTS audiobook_dir_index ON audiobooks(directory)");
+    query.exec("CREATE INDEX IF NOT EXISTS audiobook_full_path_index ON audiobooks(full_path)");
+    query.exec("CREATE INDEX IF NOT EXISTS audiobook_ab_id_index ON audiobook_file(audiobook_id)");
+    query.exec("CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path)");
+
     return true;
 }

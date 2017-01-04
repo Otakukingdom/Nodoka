@@ -95,6 +95,7 @@ bool Core::isAudiobookFile(QString path, std::shared_ptr<QFile> file) {
         isAudioBookFileCache[path] = false;
         return false;
     }
+
 }
 
 
