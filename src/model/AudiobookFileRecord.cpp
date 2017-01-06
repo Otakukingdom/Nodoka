@@ -4,11 +4,6 @@
 
 #include "AudiobookFileRecord.h"
 
-AudiobookFileRecord::AudiobookFileRecord() {
-    this->setup();
-    this->readMode = true;
-}
-
 AudiobookFileRecord::AudiobookFileRecord(bool readMode) {
     this->setup();
     this->readMode = readMode;

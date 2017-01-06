@@ -15,7 +15,6 @@ private:
     void setup();
 
 public:
-    AudiobookFileRecord();
     AudiobookFileRecord(bool readMode);
 
     void setInitValues();
