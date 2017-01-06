@@ -27,7 +27,7 @@ add_custom_target(headers SOURCES ${LibFiles})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h src/ui-element/SettingsForm.cpp src/ui-element/SettingsForm.h src/core/AudiobookScan.cpp src/model/Directory.cpp src/model/Directory.h src/core/DatabaseConnect.cpp src/core/DatabaseConnect.h src/core/NodokaApp.cpp src/core/NodokaApp.h src/event-handler/DirectoryHandler.cpp src/event-handler/DirectoryHandler.h src/model/Audiobook.cpp src/model/Audiobook.h src/model/AudiobookRecord.cpp src/model/AudiobookRecord.h src/model/AudiobookFile.cpp src/model/AudiobookFile.h src/model/AudiobookFileRecord.cpp src/model/AudiobookFileRecord.h src/ui-element/delegate/AudiobookDelegate.cpp src/ui-element/delegate/AudiobookDelegate.h)
+set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h src/ui-element/SettingsForm.cpp src/ui-element/SettingsForm.h src/core/AudiobookScan.cpp src/model/Directory.cpp src/model/Directory.h src/core/DatabaseConnect.cpp src/core/DatabaseConnect.h src/core/NodokaApp.cpp src/core/NodokaApp.h src/event-handler/DirectoryHandler.cpp src/event-handler/DirectoryHandler.h src/model/Audiobook.cpp src/model/Audiobook.h src/model/AudiobookRecord.cpp src/model/AudiobookRecord.h src/model/AudiobookFile.cpp src/model/AudiobookFile.h src/model/AudiobookFileRecord.cpp src/model/AudiobookFileRecord.h)
 add_executable(NodokaNative ${SOURCE_FILES})
 
 target_link_libraries(NodokaNative Qt5::Widgets Qt5::Sql vlc vlccore)
