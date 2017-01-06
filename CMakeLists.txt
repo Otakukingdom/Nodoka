@@ -13,8 +13,8 @@ set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Qt5Widgets)
-find_package(Qt5Sql)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Sql REQUIRED)
 
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
