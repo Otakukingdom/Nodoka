@@ -16,6 +16,8 @@ class Audiobook : public QSqlTableModel {
 public:
     Audiobook(AudiobookFile* audiobookFileModel, QObject *parent = 0);
 
+    QVariant data(const QModelIndex &index, int role) const;
+
     void registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory);
     void removeAudiobook(QSqlRecord record);
     void removeAudiobookByBase(QString path);

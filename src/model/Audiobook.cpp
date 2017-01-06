@@ -81,3 +81,11 @@ void Audiobook::removeAudiobook(QSqlRecord record) {
     this->removeAudiobookByBase(record.value("full_path").toString());
 }
 
+QVariant Audiobook::data(const QModelIndex &index, int role) const {
+    if(role == Qt::DisplayRole) {
+        return this->record(index.row()).value("name");
+    }
+
+    return QSqlTableModel::data(index, role);
+}
+
