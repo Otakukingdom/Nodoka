@@ -4,7 +4,7 @@
 
 #include "MainWindow.h"
 
-MainWindow::MainWindow(Directory* directoryModel, QWidget *parent) :
+MainWindow::MainWindow(Directory* directoryModel, Audiobook* audiobookModel, QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
 
@@ -13,6 +13,7 @@ MainWindow::MainWindow(Directory* directoryModel, QWidget *parent) :
 
     // set the model
     this->directoryModel = directoryModel;
+    this->audiobookModel = audiobookModel;
 
     // initialize the settings form
     this->settingsForm = new SettingsForm(this->directoryModel);
@@ -23,6 +24,8 @@ MainWindow::MainWindow(Directory* directoryModel, QWidget *parent) :
 void MainWindow::setup() {
     connect(this->ui->actionExit, &QAction::triggered, this, &MainWindow::performExit);
     connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
+
+    this->ui->audiobookView->setModel(this->audiobookModel);
 }
 
 

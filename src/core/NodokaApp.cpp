@@ -14,7 +14,7 @@ Core::NodokaApp::NodokaApp() {
     this->player = new Core::ConcretePlayer();
 
     // initialize the ui
-    this->mainWindow = new MainWindow(directoryModel);
+    this->mainWindow = new MainWindow(this->directoryModel, this->audiobookModel);
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);

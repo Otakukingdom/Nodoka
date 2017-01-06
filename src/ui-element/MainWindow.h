@@ -9,6 +9,7 @@
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
 #include <src/model/Directory.h>
+#include <src/model/Audiobook.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -18,18 +19,21 @@ class MainWindow;
 
 class MainWindow : public QMainWindow {
 
+private:
+    Audiobook* audiobookModel;
+    Directory* directoryModel;
+    Ui::MainWindow *ui;
+    SettingsForm* settingsForm;
+
+
 public:
     MainWindow(Directory* directoryModel,
+               Audiobook* audiobookModel,
                QWidget *parent = 0);
     virtual ~MainWindow();
     void performSettings();
     void performExit();
     void setup();
-
-private:
-    Directory* directoryModel;
-    Ui::MainWindow *ui;
-    SettingsForm* settingsForm;
 
 };
 
