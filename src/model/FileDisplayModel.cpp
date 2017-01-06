@@ -3,3 +3,8 @@
 //
 
 #include "FileDisplayModel.h"
+
+FileDisplayModel::FileDisplayModel(QObject *parent) : QSqlTableModel(parent) {
+    this->setTable("audiobook_files");
+    this->hasFilter = false;
+}

@@ -6,12 +6,20 @@
 #define NODOKANATIVE_FILEDISPLAYMODEL_H
 
 
-#include <QtGui/QStandardItemModel>
+#include <QSqlTableModel>
 
-class FileDisplayModel : public QStandardItemModel {
+class FileDisplayModel : public QSqlTableModel {
+
+public:
+    FileDisplayModel(QObject *parent = 0);
+    void setSelectedAudiobook(int audiobookId);
+
+private:
+    bool hasFilter;
 
 
-
+public slots:
+    void selectedAudiobookUpdated(int audiobookId);
 };
 
 
