@@ -29,6 +29,7 @@ private:
     Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
+    bool isPlaying;
 
 
 public:
@@ -40,6 +41,8 @@ public:
     void performSettings();
     void performExit();
     void setup();
+
+    void setIsPlaying(bool isPlaying);
 
 };
 

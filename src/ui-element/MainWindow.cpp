@@ -7,6 +7,7 @@
 MainWindow::MainWindow(Directory* directoryModel, Audiobook* audiobookModel, Core::ConcretePlayer* player, QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
+    this->setIsPlaying(false);
 
     // we will need this reference so FileList can make direct reference to it
     this->concretePlayer = player;
@@ -65,6 +66,7 @@ void MainWindow::setup() {
     // prevent editing of audiobook and file list view
     this->ui->audiobookView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->ui->fileView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
 }
 
 
@@ -79,5 +81,17 @@ void MainWindow::performExit() {
 void MainWindow::performSettings() {
     this->settingsForm->setWindowModality(Qt::WindowModality::ApplicationModal);
     this->settingsForm->show();
+}
+
+void MainWindow::setIsPlaying(bool isPlaying) {
+    this->isPlaying = isPlaying;
+
+    if(!isPlaying) {
+        QIcon playIcon(":/icons/play.png");
+        this->ui->playButton->setIcon(playIcon);
+    } else {
+        QIcon playIcon(":/icons/pause.png");
+        this->ui->playButton->setIcon(playIcon);
+    }
 }
 
