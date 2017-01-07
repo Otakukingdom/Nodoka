@@ -7,19 +7,22 @@
 
 
 #include <QSqlTableModel>
+#include <QtCore/QItemSelection>
 
 class FileDisplayModel : public QSqlTableModel {
 
 public:
     FileDisplayModel(QObject *parent = 0);
     void setSelectedAudiobook(int audiobookId);
+    QVariant data(const QModelIndex &index, int role) const;
 
 private:
     bool hasFilter;
+    int selectedAudiobookId;
 
 
 public slots:
-    void selectedAudiobookUpdated(int audiobookId);
+    void selectedAudiobookUpdated(const QItemSelection &selected, const QItemSelection &deselected);
 };
 
 

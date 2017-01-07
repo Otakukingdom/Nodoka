@@ -10,6 +10,7 @@
 #include <QMainWindow>
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
+#include <src/model/FileDisplayModel.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -21,6 +22,7 @@ class MainWindow : public QMainWindow {
 
 private:
     Audiobook* audiobookModel;
+    FileDisplayModel* fileDisplayModel;
     Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
