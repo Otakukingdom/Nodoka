@@ -7,23 +7,38 @@
 
 #include <memory>
 #include <QObject>
+#include <src/model/AudiobookFileProxy.h>
 #include "vlc/vlc.h"
 
 namespace Core {
     class ConcretePlayer : public QObject {
         Q_OBJECT
 
+        std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
+
         libvlc_instance_t* inst;
         libvlc_media_player_t* mediaPlayer;
         libvlc_media_t* mediaItem;
+        libvlc_event_manager_t* mediaEventManager;
+        libvlc_event_manager_t* playerEventManager;
+        libvlc_state_t currentState;
 
+        bool mediaLoaded;
         QString currentPath;
 
+        void setupCallbacks();
+
     public:
+        libvlc_state_t getCurrentState();
         void play();
-        void loadMedia(QString path);
+        void stop();
+        void loadMedia(QSqlRecord record);
         void releaseMedia();
         ConcretePlayer();
+
+    signals:
+        void stateChanged(libvlc_state_t newState);
+
     };
 }
 

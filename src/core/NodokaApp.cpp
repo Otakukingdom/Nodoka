@@ -3,6 +3,7 @@
 //
 
 #include "NodokaApp.h"
+#include "PlayerEventHandler.h"
 
 Core::NodokaApp::NodokaApp() {
     // initialize db backed models
@@ -18,6 +19,7 @@ Core::NodokaApp::NodokaApp() {
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);
+    auto playerEventHandler = new PlayerEventHandler(this->player, this->mainWindow);
 
     this->setup();
 }

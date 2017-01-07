@@ -58,8 +58,7 @@ void MainWindow::setup() {
 
                 auto currentRecord = model->record(row);
 
-                auto path = currentRecord.value("full_path").toString();
-                this->concretePlayer->loadMedia(path);
+                this->concretePlayer->loadMedia(currentRecord);
                 this->concretePlayer->play();
     });
 
