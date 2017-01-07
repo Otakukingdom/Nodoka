@@ -16,7 +16,7 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
     this->selectedAudiobookId = audiobookId;
 
     this->hasFilter = true;
-    this->setFilter("audiobook_id=\'" + QString::number(audiobookId) + "\'");
+    this->setFilter("audiobook_id=\'" + QString::number(this->selectedAudiobookId) + "\'");
 
     // update the selection
     auto res = this->select();
@@ -25,7 +25,6 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
     }
 }
 
-
 QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
         return this->record(index.row()).value("name");
@@ -33,3 +32,4 @@ QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
 
     return QSqlTableModel::data(index, role);
 }
+

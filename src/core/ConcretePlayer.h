@@ -6,16 +6,23 @@
 #define NODOKANATIVE_MEDIAPLAYER_H
 
 #include <memory>
+#include <QObject>
 #include "vlc/vlc.h"
 
 namespace Core {
-    class ConcretePlayer {
+    class ConcretePlayer : public QObject {
+        Q_OBJECT
 
-        std::shared_ptr<libvlc_instance_t> inst;
-        std::shared_ptr<libvlc_media_player_t> mediaPlayer;
-        std::shared_ptr<libvlc_media_t> mediaItem;
+        libvlc_instance_t* inst;
+        libvlc_media_player_t* mediaPlayer;
+        libvlc_media_t* mediaItem;
+
+        QString currentPath;
 
     public:
+        void play();
+        void loadMedia(QString path);
+        void releaseMedia();
         ConcretePlayer();
     };
 }

@@ -4,9 +4,12 @@
 
 #include "MainWindow.h"
 
-MainWindow::MainWindow(Directory* directoryModel, Audiobook* audiobookModel, QWidget *parent) :
+MainWindow::MainWindow(Directory* directoryModel, Audiobook* audiobookModel, Core::ConcretePlayer* player, QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
+
+    // we will need this reference so FileList can make direct reference to it
+    this->concretePlayer = player;
 
     // a hack so the menu shows up on mac
     ui->menubar->setNativeMenuBar(false);
@@ -45,6 +48,24 @@ void MainWindow::setup() {
             });
 
     this->ui->fileView->setModel(this->fileDisplayModel);
+
+
+    // connect file selector view to concrete player
+    connect(this->ui->fileView, &QListView::doubleClicked,
+            [this] (const QModelIndex &index) {
+                QSqlTableModel* model = (QSqlTableModel *) this->ui->fileView->model();
+                auto row = index.row();
+
+                auto currentRecord = model->record(row);
+
+                auto path = currentRecord.value("full_path").toString();
+                this->concretePlayer->loadMedia(path);
+                this->concretePlayer->play();
+    });
+
+    // prevent editing of audiobook and file list view
+    this->ui->audiobookView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->ui->fileView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 

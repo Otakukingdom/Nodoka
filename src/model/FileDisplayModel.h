@@ -22,7 +22,7 @@ private:
 
 
 public slots:
-    void selectedAudiobookUpdated(const QItemSelection &selected, const QItemSelection &deselected);
+
 };
 
 

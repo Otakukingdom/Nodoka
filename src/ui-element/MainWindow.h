@@ -8,9 +8,11 @@
 
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
+#include <QAbstractItemView>
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
 #include <src/model/FileDisplayModel.h>
+#include <src/core/ConcretePlayer.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -23,6 +25,7 @@ class MainWindow : public QMainWindow {
 private:
     Audiobook* audiobookModel;
     FileDisplayModel* fileDisplayModel;
+    Core::ConcretePlayer* concretePlayer;
     Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
@@ -31,6 +34,7 @@ private:
 public:
     MainWindow(Directory* directoryModel,
                Audiobook* audiobookModel,
+               Core::ConcretePlayer* concretePlayer,
                QWidget *parent = 0);
     virtual ~MainWindow();
     void performSettings();
