@@ -30,6 +30,7 @@ namespace Core {
 
     public:
         libvlc_state_t getCurrentState();
+        libvlc_time_t getCurrentTime();
         void play();
         void stop();
         void loadMedia(QSqlRecord record);
@@ -38,6 +39,7 @@ namespace Core {
 
     signals:
         void stateChanged(libvlc_state_t newState);
+        void timeProgressed(libvlc_time_t time);
 
     };
 }

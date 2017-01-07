@@ -49,8 +49,17 @@ void Core::ConcretePlayer::stop() {
 void Core::ConcretePlayer::setupCallbacks() {
     libvlc_event_attach(this->mediaEventManager,
                         libvlc_MediaStateChanged,
-                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *player) {
-                            emit ((ConcretePlayer*)player)->stateChanged(((ConcretePlayer*) player)->getCurrentState());
+                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+                            emit player->stateChanged(player->getCurrentState());
+                        },
+                        this);
+
+    libvlc_event_attach(this->playerEventManager,
+                        libvlc_MediaPlayerTimeChanged,
+                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+                            emit player->timeProgressed(player->getCurrentTime());
                         },
                         this);
 
@@ -62,4 +71,8 @@ libvlc_state_t Core::ConcretePlayer::getCurrentState() {
     }
 
     return libvlc_media_player_get_state(this->mediaPlayer);
+}
+
+libvlc_time_t Core::ConcretePlayer::getCurrentTime() {
+    return libvlc_media_player_get_time(this->mediaPlayer);
 }
