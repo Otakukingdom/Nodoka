@@ -23,16 +23,8 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
     if(!res) {
         qWarning() << this->lastError().driverText();
     }
-
-    qDebug() << "select called";
 }
 
-
-void FileDisplayModel::selectedAudiobookUpdated(const QItemSelection &selected, const QItemSelection &deselected) {
-    if(selected.size() > 0) {
-        qDebug() << "file selection changed";
-    }
-}
 
 QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
