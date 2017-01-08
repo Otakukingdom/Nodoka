@@ -37,10 +37,13 @@ namespace Core {
         void loadMedia(QSqlRecord record);
         void releaseMedia();
         ConcretePlayer();
+        long long getDurationInMs();
+        double getDurationInSeconds();
 
     signals:
         void stateChanged(libvlc_state_t newState);
         void timeProgressed(libvlc_time_t time);
+        void parsedStatusChanged(bool isParsed);
 
     };
 }

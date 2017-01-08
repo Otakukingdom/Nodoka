@@ -68,6 +68,20 @@ void Core::ConcretePlayer::setupCallbacks() {
                         },
                         this);
 
+    libvlc_event_attach(this->mediaEventManager,
+                        libvlc_MediaParsedChanged,
+                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+
+                            int parsedStatus = libvlc_media_is_parsed(player->mediaItem);
+
+                            if(parsedStatus) {
+                                emit player->parsedStatusChanged(true);
+                            } else {
+                                emit player->parsedStatusChanged(false);
+                            }
+                        },
+                        this);
 }
 
 libvlc_state_t Core::ConcretePlayer::getCurrentState() {
@@ -84,4 +98,23 @@ libvlc_time_t Core::ConcretePlayer::getCurrentTime() {
 
 std::shared_ptr<AudiobookFileProxy> Core::ConcretePlayer::getAudiobookFile() {
     return this->audiobookFileProxy;
+}
+
+long long Core::ConcretePlayer::getDurationInMs() {
+    long long durationInMs = libvlc_media_get_duration(this->mediaItem);
+    if(durationInMs == -1) {
+        return -1;
+    }
+    return durationInMs;
+}
+
+double Core::ConcretePlayer::getDurationInSeconds() {
+    int durationInMs = libvlc_media_get_duration(this->mediaItem);
+    if(durationInMs == -1) {
+        return -1;
+    }
+
+    double durationInSeconds = durationInMs / 1000.0;
+
+    return durationInSeconds;
 }

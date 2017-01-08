@@ -12,6 +12,7 @@ Core::PlayerEventHandler::PlayerEventHandler(Core::ConcretePlayer *concretePlaye
 }
 
 void Core::PlayerEventHandler::setupPlayerCallbacks() {
+    // setup the callbacks
     connect(this->concretePlayer, &ConcretePlayer::stateChanged, [this](libvlc_state_t newState) {
 
         if(libvlc_Playing == newState) {
@@ -22,8 +23,18 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
     });
 
     connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [this](libvlc_time_t time) {
-        double currentTime = time / 1000.0;
-        notifyPlayerTime(*this->concretePlayer->getAudiobookFile(), currentTime);
+        notifyPlayerTime(*this->concretePlayer->getAudiobookFile(), time);
     });
 
+    connect(this->concretePlayer, &ConcretePlayer::parsedStatusChanged, [this](bool isParsed) {
+        if(isParsed) {
+            MediaProperty property(concretePlayer->getDurationInMs());
+
+            // this will update the abFile object
+            auto abFile = this->concretePlayer->getAudiobookFile();
+            abFile->setProperty(property);
+
+            notifyMediaParsed(*abFile);
+        }
+    });
 }

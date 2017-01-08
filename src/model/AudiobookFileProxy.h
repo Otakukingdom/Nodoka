@@ -8,10 +8,12 @@
 
 #include <QSqlRecord>
 #include <QVariant>
+#include "MediaProperty.h"
 
 class AudiobookFileProxy {
     QSqlRecord record;
     bool isNull;
+    MediaProperty mediaProperty;
 
 public:
     AudiobookFileProxy(QSqlRecord record);
@@ -19,6 +21,10 @@ public:
     QString path();
     QString name();
     bool getNullState();
+    bool isPropertyParsed();
+
+    void setProperty(MediaProperty property);
+    double getMediaDuration();
 
 };
 

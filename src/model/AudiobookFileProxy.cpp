@@ -25,3 +25,25 @@ AudiobookFileProxy::AudiobookFileProxy() {
 QString AudiobookFileProxy::name() {
     return this->record.value("name").toString();
 }
+
+void AudiobookFileProxy::setProperty(MediaProperty property) {
+    this->mediaProperty = property;
+}
+
+double AudiobookFileProxy::getMediaDuration() {
+    // if we have a null object, then we shouldn't return a valid
+    // duration
+    if(this->mediaProperty.isNullObject()) {
+        return -1;
+    }
+
+    return this->mediaProperty.getDuration();
+}
+
+bool AudiobookFileProxy::isPropertyParsed() {
+    if(this->mediaProperty.isNullObject()) {
+        return false;
+    } else {
+        return true;
+    }
+}

@@ -108,7 +108,7 @@ void MainWindow::playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying) {
     this->setIsPlaying(isPlaying);
 }
 
-void MainWindow::playerTimeUpdated(AudiobookFileProxy abFile, double currentTime) {
+void MainWindow::playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime) {
     this->setCurrentTime(currentTime);
 }
 
@@ -119,17 +119,30 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
         QString text = "Currently Playing: " + this->currentlyPlayingFile.name();
         this->ui->currentlyPlayingLabel->setText(text);
     }
+
+    // set the slider max value if we have a parsed duration
+    if(this->currentlyPlayingFile.isPropertyParsed()) {
+        long long totalDuration = this->currentlyPlayingFile.getMediaDuration();
+        this->ui->progressSlider->setMaximum(totalDuration);
+    }
 }
 
-void MainWindow::setCurrentTime(double currentTime) {
+void MainWindow::setCurrentTime(long long currentTime) {
     this->currentTime = currentTime;
 
-    int timeInteger = ((int) round(this->currentTime));
+    // update the progress slider
+    this->ui->progressSlider->setValue(currentTime);
 
+    // update the label
     QTime time(0, 0);
-    time = time.addSecs(timeInteger);
+    time = time.addMSecs(currentTime);
     QString timeInFormat = time.toString("hh:mm:ss");
 
     this->ui->timeLabel->setText(timeInFormat);
+}
+
+// if there is an update with the AudiobookFile state, the Proxy file will be updated
+void MainWindow::audiobookFileStateUpdated(AudiobookFileProxy abFile) {
+    this->setCurrentlyPlayingFile(abFile);
 }
 

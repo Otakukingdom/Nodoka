@@ -47,12 +47,13 @@ public:
     void setup();
 
     void setCurrentlyPlayingFile(AudiobookFileProxy file);
-    void setCurrentTime(double currentTime);
+    void setCurrentTime(long long currentTime);
     void setIsPlaying(bool isPlaying);
 
 public slots:
+    void audiobookFileStateUpdated(AudiobookFileProxy abFile);
     void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
-    void playerTimeUpdated(AudiobookFileProxy abFile, double currentTime);
+    void playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime);
 
 };
 

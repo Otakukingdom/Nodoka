@@ -22,8 +22,14 @@ namespace Core {
         void setupPlayerCallbacks();
 
     signals:
+        // when the play state of the media player changes
         void notifyPlayerState(AudiobookFileProxy file, bool isPlaying);
+
+        // when there is progression with the current media file
         void notifyPlayerTime(AudiobookFileProxy file, double currentTime);
+
+        // when media is parsed
+        void notifyMediaParsed(AudiobookFileProxy file);
     };
 
 }
