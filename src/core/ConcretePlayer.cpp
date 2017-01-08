@@ -13,6 +13,8 @@ Core::ConcretePlayer::ConcretePlayer() {
     this->mediaLoaded = false;
     this->audiobookFileProxy = nullptr;
 
+    this->hasSeekTo = false;
+
     return;
 }
 
@@ -117,4 +119,18 @@ double Core::ConcretePlayer::getDurationInSeconds() {
     double durationInSeconds = durationInMs / 1000.0;
 
     return durationInSeconds;
+}
+
+void Core::ConcretePlayer::updateSeekPosition(long long position) {
+    // first check if we have a file
+    if(!this->mediaLoaded) {
+        // do not bother if we don't have a loaded media
+        return;
+    }
+
+    if(libvlc_media_player_is_seekable(this->mediaPlayer)) {
+        libvlc_media_player_set_time(this->mediaPlayer, static_cast<libvlc_time_t>(position));
+    } else {
+        qDebug() << "Media not seekable";
+    }
 }

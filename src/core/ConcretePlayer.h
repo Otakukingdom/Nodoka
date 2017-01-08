@@ -16,6 +16,9 @@ namespace Core {
 
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
 
+        long long seekTo;
+        bool hasSeekTo;
+
         libvlc_instance_t* inst;
         libvlc_media_player_t* mediaPlayer;
         libvlc_media_t* mediaItem;
@@ -45,6 +48,8 @@ namespace Core {
         void timeProgressed(libvlc_time_t time);
         void parsedStatusChanged(bool isParsed);
 
+    public slots:
+        void updateSeekPosition(long long position);
     };
 }
 

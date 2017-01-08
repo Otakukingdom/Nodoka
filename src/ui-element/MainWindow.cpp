@@ -69,6 +69,7 @@ void MainWindow::setup() {
 
     // slider interaction is disabled by default
     this->ui->progressSlider->setEnabled(false);
+    this->ui->progressSlider->setTracking(false);
 
     // define what the play button do
     connect(this->ui->playButton, &QPushButton::clicked, [=]() {
@@ -78,6 +79,20 @@ void MainWindow::setup() {
             this->concretePlayer->play();
         }
     });
+
+    // connect the changes from the progress slider to the player
+    connect(this->ui->progressSlider, &QSlider::sliderMoved,
+            concretePlayer, &Core::ConcretePlayer::updateSeekPosition);
+
+    connect(this->ui->progressSlider, &QSlider::sliderPressed,
+            [=]() {
+                this->concretePlayer->stop();
+            });
+
+    connect(this->ui->progressSlider, &QSlider::sliderReleased,
+            [=]() {
+                this->concretePlayer->play();
+            });
 }
 
 
