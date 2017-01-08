@@ -67,6 +67,9 @@ void MainWindow::setup() {
     this->ui->audiobookView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->ui->fileView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // slider interaction is disabled by default
+    this->ui->progressSlider->setEnabled(false);
+
     // define what the play button do
     connect(this->ui->playButton, &QPushButton::clicked, [=]() {
         if(this->isPlaying) {
@@ -124,6 +127,10 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
     if(this->currentlyPlayingFile.isPropertyParsed()) {
         long long totalDuration = this->currentlyPlayingFile.getMediaDuration();
         this->ui->progressSlider->setMaximum(static_cast<int>(totalDuration));
+
+
+        // enable the slider
+        this->ui->progressSlider->setEnabled(true);
     }
 }
 
