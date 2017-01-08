@@ -21,3 +21,7 @@ AudiobookFileProxy::AudiobookFileProxy() {
     this->record = QSqlRecord();
     this->isNull = true;
 }
+
+QString AudiobookFileProxy::name() {
+    return this->record.value("name").toString();
+}

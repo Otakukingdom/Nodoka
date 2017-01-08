@@ -114,6 +114,11 @@ void MainWindow::playerTimeUpdated(AudiobookFileProxy abFile, double currentTime
 
 void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
     this->currentlyPlayingFile = file;
+
+    if(this->currentlyPlayingFile.getNullState() == false) {
+        QString text = "Currently Playing: " + this->currentlyPlayingFile.name();
+        this->ui->currentlyPlayingLabel->setText(text);
+    }
 }
 
 void MainWindow::setCurrentTime(double currentTime) {

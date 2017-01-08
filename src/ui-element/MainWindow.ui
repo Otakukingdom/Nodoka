@@ -43,6 +43,13 @@
      </layout>
     </item>
     <item>
+     <widget class="QLabel" name="currentlyPlayingLabel">
+      <property name="text">
+       <string>Currently Playing: </string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QLabel" name="timeLabel">

@@ -17,6 +17,7 @@ public:
     AudiobookFileProxy(QSqlRecord record);
     AudiobookFileProxy();
     QString path();
+    QString name();
     bool getNullState();
 
 };
