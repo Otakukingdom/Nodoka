@@ -6,8 +6,18 @@
 
 AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record) {
     this->record = record;
+    this->isNull = false;
 }
 
 QString AudiobookFileProxy::path() {
     return this->record.value("full_path").toString();
+}
+
+bool AudiobookFileProxy::getNullState() {
+    return this->isNull;
+}
+
+AudiobookFileProxy::AudiobookFileProxy() {
+    this->record = QSqlRecord();
+    this->isNull = true;
 }

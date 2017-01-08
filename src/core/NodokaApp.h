@@ -21,7 +21,7 @@ namespace Core {
     private:
         ConcretePlayer *player;
         Directory* directoryModel;
-        QWidget* mainWindow;
+        MainWindow* mainWindow;
         DirectoryHandler* directoryHandler;
         Audiobook* audiobookModel;
         AudiobookFile* audiobookFileModel;

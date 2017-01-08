@@ -10,7 +10,7 @@
 #include "ConcretePlayer.h"
 
 namespace Core {
-    class PlayerEventHandler : QObject {
+    class PlayerEventHandler : public QObject {
     Q_OBJECT
 
         ConcretePlayer* concretePlayer;
@@ -20,6 +20,10 @@ namespace Core {
         PlayerEventHandler(ConcretePlayer *concretePlayer, QWidget* mainWindow);
 
         void setupPlayerCallbacks();
+
+    signals:
+        void notifyPlayerState(AudiobookFileProxy file, bool isPlaying);
+        void notifyPlayerTime(AudiobookFileProxy file, double currentTime);
     };
 
 }

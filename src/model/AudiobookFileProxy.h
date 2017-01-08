@@ -11,12 +11,16 @@
 
 class AudiobookFileProxy {
     QSqlRecord record;
+    bool isNull;
 
 public:
     AudiobookFileProxy(QSqlRecord record);
+    AudiobookFileProxy();
     QString path();
+    bool getNullState();
 
 };
 
+Q_DECLARE_METATYPE(AudiobookFileProxy);
 
 #endif //NODOKANATIVE_AUDIOBOOKRECORDPROXY_H

@@ -29,7 +29,11 @@ private:
     Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
+
+    // logical states
     bool isPlaying;
+    AudiobookFileProxy currentlyPlayingFile;
+    double currentTime;
 
 
 public:
@@ -42,7 +46,13 @@ public:
     void performExit();
     void setup();
 
+    void setCurrentlyPlayingFile(AudiobookFileProxy file);
+    void setCurrentTime(double currentTime);
     void setIsPlaying(bool isPlaying);
+
+public slots:
+    void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
+    void playerTimeUpdated(AudiobookFileProxy abFile, double currentTime);
 
 };
 

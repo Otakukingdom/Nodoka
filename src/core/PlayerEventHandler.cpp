@@ -12,15 +12,18 @@ Core::PlayerEventHandler::PlayerEventHandler(Core::ConcretePlayer *concretePlaye
 }
 
 void Core::PlayerEventHandler::setupPlayerCallbacks() {
-    connect(this->concretePlayer, &ConcretePlayer::stateChanged, [](libvlc_state_t newState) {
-        qDebug() << "State changed: " << newState;
+    connect(this->concretePlayer, &ConcretePlayer::stateChanged, [this](libvlc_state_t newState) {
 
         if(libvlc_Playing == newState) {
+            notifyPlayerState(*this->concretePlayer->getAudiobookFile(), true);
+        } else {
+            notifyPlayerState(*this->concretePlayer->getAudiobookFile(), false);
         }
     });
 
-    connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [](libvlc_time_t time) {
-        qDebug() << "Current Time " << time;
+    connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [this](libvlc_time_t time) {
+        double currentTime = time / 1000.0;
+        notifyPlayerTime(*this->concretePlayer->getAudiobookFile(), currentTime);
     });
 
 }

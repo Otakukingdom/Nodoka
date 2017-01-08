@@ -95,3 +95,20 @@ void MainWindow::setIsPlaying(bool isPlaying) {
     }
 }
 
+void MainWindow::playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying) {
+    this->setCurrentlyPlayingFile(abFile);
+    this->setIsPlaying(isPlaying);
+}
+
+void MainWindow::playerTimeUpdated(AudiobookFileProxy abFile, double currentTime) {
+    this->setCurrentTime(currentTime);
+}
+
+void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
+    this->currentlyPlayingFile = file;
+}
+
+void MainWindow::setCurrentTime(double currentTime) {
+    this->currentTime = currentTime;
+}
+

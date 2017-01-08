@@ -35,4 +35,12 @@ void Core::NodokaApp::setup() {
     connect(this->directoryModel, &Directory::directoryRemove,
             this->directoryHandler, &DirectoryHandler::handleDirectoryRemoved);
 
+
+    // we need to register this metatype before using it in signal/slot pattern
+    qRegisterMetaType<AudiobookFileProxy>("AudiobookFileProxy");
+
+    // set up the events between playerEvents and mainWindow
+    connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerState,
+            this->mainWindow, &MainWindow::playerStateUpdated);
+
 }
