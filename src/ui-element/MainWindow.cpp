@@ -118,5 +118,13 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
 
 void MainWindow::setCurrentTime(double currentTime) {
     this->currentTime = currentTime;
+
+    int timeInteger = ((int) round(this->currentTime));
+
+    QTime time(0, 0);
+    time = time.addSecs(timeInteger);
+    QString timeInFormat = time.toString("hh:mm:ss");
+
+    this->ui->timeLabel->setText(timeInFormat);
 }
 
