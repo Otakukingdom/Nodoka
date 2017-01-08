@@ -29,6 +29,7 @@ namespace Core {
         void setupCallbacks();
 
     public:
+        std::shared_ptr<AudiobookFileProxy> getAudiobookFile();
         libvlc_state_t getCurrentState();
         libvlc_time_t getCurrentTime();
         void play();

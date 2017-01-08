@@ -19,7 +19,7 @@ Core::NodokaApp::NodokaApp() {
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);
-    auto playerEventHandler = new PlayerEventHandler(this->player, this->mainWindow);
+    this->playerEventHandler = new PlayerEventHandler(this->player, this->mainWindow);
 
     this->setup();
 }
@@ -34,4 +34,5 @@ void Core::NodokaApp::setup() {
             this->directoryHandler, &DirectoryHandler::handleDirectoryAdded);
     connect(this->directoryModel, &Directory::directoryRemove,
             this->directoryHandler, &DirectoryHandler::handleDirectoryRemoved);
+
 }

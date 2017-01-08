@@ -14,6 +14,9 @@ Core::PlayerEventHandler::PlayerEventHandler(Core::ConcretePlayer *concretePlaye
 void Core::PlayerEventHandler::setupPlayerCallbacks() {
     connect(this->concretePlayer, &ConcretePlayer::stateChanged, [](libvlc_state_t newState) {
         qDebug() << "State changed: " << newState;
+
+        if(libvlc_Playing == newState) {
+        }
     });
 
     connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [](libvlc_time_t time) {

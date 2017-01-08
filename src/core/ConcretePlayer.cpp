@@ -76,3 +76,7 @@ libvlc_state_t Core::ConcretePlayer::getCurrentState() {
 libvlc_time_t Core::ConcretePlayer::getCurrentTime() {
     return libvlc_media_player_get_time(this->mediaPlayer);
 }
+
+std::shared_ptr<AudiobookFileProxy> Core::ConcretePlayer::getAudiobookFile() {
+    return this->audiobookFileProxy;
+}

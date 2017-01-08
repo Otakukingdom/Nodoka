@@ -7,6 +7,7 @@
 
 
 #include "ConcretePlayer.h"
+#include "PlayerEventHandler.h"
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
 #include <src/model/AudiobookFile.h>
@@ -24,6 +25,8 @@ namespace Core {
         DirectoryHandler* directoryHandler;
         Audiobook* audiobookModel;
         AudiobookFile* audiobookFileModel;
+
+        PlayerEventHandler* playerEventHandler;
 
         //private helper function, used to set up the event listeners
         void setup();
