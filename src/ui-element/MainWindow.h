@@ -13,6 +13,7 @@
 #include <src/model/Audiobook.h>
 #include <src/model/FileDisplayModel.h>
 #include <src/core/ConcretePlayer.h>
+#include <src/core/Setting.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -30,6 +31,8 @@ private:
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
 
+    Core::Setting* settings;
+
     // logical states
     bool isPlaying;
     AudiobookFileProxy currentlyPlayingFile;
@@ -40,6 +43,7 @@ public:
     MainWindow(Directory* directoryModel,
                Audiobook* audiobookModel,
                Core::ConcretePlayer* concretePlayer,
+               Core::Setting* setting,
                QWidget *parent = 0);
     virtual ~MainWindow();
     void performSettings();

@@ -4,10 +4,18 @@
 
 #include "MainWindow.h"
 
-MainWindow::MainWindow(Directory* directoryModel, Audiobook* audiobookModel, Core::ConcretePlayer* player, QWidget *parent) :
+const static int MAXIMUM_VOLUME = 150;
+
+MainWindow::MainWindow(Directory* directoryModel,
+                       Audiobook* audiobookModel,
+                       Core::ConcretePlayer* player,
+                       Core::Setting* setting,
+                       QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
     this->setIsPlaying(false);
+
+    this->settings = setting;
 
     // we will need this reference so FileList can make direct reference to it
     this->concretePlayer = player;
@@ -93,6 +101,13 @@ void MainWindow::setup() {
             [=]() {
                 this->concretePlayer->play();
             });
+
+    // set up the volume controls
+    this->ui->volumeSlider->setMaximum(MAXIMUM_VOLUME);
+    this->ui->volumeSlider->setValue(settings->getVolume());
+
+    connect(this->ui->volumeSlider, &QSlider::sliderMoved,
+            this->settings, &Core::Setting::setVolume);
 }
 
 

@@ -9,16 +9,24 @@
 #include <QObject>
 #include <src/model/AudiobookFileProxy.h>
 #include "vlc/vlc.h"
+#include "Setting.h"
 
 namespace Core {
     class ConcretePlayer : public QObject {
         Q_OBJECT
 
+        int volume;
+
+        // outside dependency
+        Setting* setting;
+
+        // state
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
 
         long long seekTo;
         bool hasSeekTo;
 
+        // libvlc objects
         libvlc_instance_t* inst;
         libvlc_media_player_t* mediaPlayer;
         libvlc_media_t* mediaItem;
@@ -29,9 +37,14 @@ namespace Core {
         bool mediaLoaded;
         QString currentPath;
 
-        void setupCallbacks();
+        // set up the vlc callbacks
+        void setupVLCCallbacks();
+
+        // set up the callbacks that we are supposed to listen to
+        void setupEventHandlers();
 
     public:
+        ConcretePlayer(Setting* setting);
         std::shared_ptr<AudiobookFileProxy> getAudiobookFile();
         libvlc_state_t getCurrentState();
         libvlc_time_t getCurrentTime();
@@ -39,7 +52,7 @@ namespace Core {
         void stop();
         void loadMedia(QSqlRecord record);
         void releaseMedia();
-        ConcretePlayer();
+        void setVolume(int volume);
         long long getDurationInMs();
         double getDurationInSeconds();
 
@@ -50,6 +63,7 @@ namespace Core {
 
     public slots:
         void updateSeekPosition(long long position);
+
     };
 }
 

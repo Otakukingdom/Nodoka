@@ -5,7 +5,13 @@
 #include <QDebug>
 #include "ConcretePlayer.h"
 
-Core::ConcretePlayer::ConcretePlayer() {
+Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
+    // load settings
+    this->setting = setting;
+
+    // init volume based on the settings file
+    this->volume = setting->getVolume();
+
     /* Load the VLC engine */
     this->inst = libvlc_new(0, NULL);
 
@@ -35,7 +41,10 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
         this->mediaLoaded = true;
     }
 
-    this->setupCallbacks();
+    libvlc_audio_set_volume(this->mediaPlayer, volume);
+
+    this->setupVLCCallbacks();
+    this->setupEventHandlers();
 }
 
 void Core::ConcretePlayer::releaseMedia() {
@@ -53,7 +62,7 @@ void Core::ConcretePlayer::stop() {
     libvlc_media_player_pause(this->mediaPlayer);
 }
 
-void Core::ConcretePlayer::setupCallbacks() {
+void Core::ConcretePlayer::setupVLCCallbacks() {
     libvlc_event_attach(this->mediaEventManager,
                         libvlc_MediaStateChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
@@ -132,5 +141,19 @@ void Core::ConcretePlayer::updateSeekPosition(long long position) {
         libvlc_media_player_set_time(this->mediaPlayer, static_cast<libvlc_time_t>(position));
     } else {
         qDebug() << "Media not seekable";
+    }
+}
+
+void Core::ConcretePlayer::setupEventHandlers() {
+    connect(this->setting, &Setting::volumeUpdated, [=](int newVolume) {
+        this->setVolume(newVolume);
+    });
+}
+
+void Core::ConcretePlayer::setVolume(int volume) {
+    this->volume = volume;
+
+    if(this->mediaLoaded) {
+        libvlc_audio_set_volume(this->mediaPlayer, volume);
     }
 }

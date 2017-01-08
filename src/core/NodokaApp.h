@@ -8,6 +8,7 @@
 
 #include "ConcretePlayer.h"
 #include "PlayerEventHandler.h"
+#include "Setting.h"
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
 #include <src/model/AudiobookFile.h>
@@ -25,6 +26,7 @@ namespace Core {
         DirectoryHandler* directoryHandler;
         Audiobook* audiobookModel;
         AudiobookFile* audiobookFileModel;
+        Setting* setting;
 
         PlayerEventHandler* playerEventHandler;
 
