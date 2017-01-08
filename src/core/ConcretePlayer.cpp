@@ -28,7 +28,10 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
     this->mediaPlayer = libvlc_media_player_new_from_media(this->mediaItem);
     this->mediaEventManager = libvlc_media_event_manager(this->mediaItem);
     this->playerEventManager = libvlc_media_player_event_manager(this->mediaPlayer);
-    this->mediaLoaded = true;
+
+    if(this->mediaPlayer != NULL) {
+        this->mediaLoaded = true;
+    }
 
     this->setupCallbacks();
 }
@@ -39,7 +42,9 @@ void Core::ConcretePlayer::releaseMedia() {
 }
 
 void Core::ConcretePlayer::play() {
-    libvlc_media_player_play(this->mediaPlayer);
+    if(this->mediaLoaded) {
+        libvlc_media_player_play(this->mediaPlayer);
+    }
 }
 
 void Core::ConcretePlayer::stop() {

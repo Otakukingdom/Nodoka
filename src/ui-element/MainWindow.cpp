@@ -67,6 +67,14 @@ void MainWindow::setup() {
     this->ui->audiobookView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->ui->fileView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // define what the play button do
+    connect(this->ui->playButton, &QPushButton::clicked, [=]() {
+        if(this->isPlaying) {
+            this->concretePlayer->stop();
+        } else {
+            this->concretePlayer->play();
+        }
+    });
 }
 
 
