@@ -24,7 +24,7 @@ public:
     bool isPropertyParsed();
 
     void setProperty(MediaProperty property);
-    double getMediaDuration();
+    long long getMediaDuration();
 
 };
 

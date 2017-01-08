@@ -123,7 +123,7 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
     // set the slider max value if we have a parsed duration
     if(this->currentlyPlayingFile.isPropertyParsed()) {
         long long totalDuration = this->currentlyPlayingFile.getMediaDuration();
-        this->ui->progressSlider->setMaximum(totalDuration);
+        this->ui->progressSlider->setMaximum(static_cast<int>(totalDuration));
     }
 }
 
@@ -131,11 +131,11 @@ void MainWindow::setCurrentTime(long long currentTime) {
     this->currentTime = currentTime;
 
     // update the progress slider
-    this->ui->progressSlider->setValue(currentTime);
+    this->ui->progressSlider->setValue(static_cast<int>(currentTime));
 
     // update the label
     QTime time(0, 0);
-    time = time.addMSecs(currentTime);
+    time = time.addMSecs(static_cast<int>(currentTime));
     QString timeInFormat = time.toString("hh:mm:ss");
 
     this->ui->timeLabel->setText(timeInFormat);

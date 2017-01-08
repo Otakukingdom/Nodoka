@@ -30,7 +30,7 @@ void AudiobookFileProxy::setProperty(MediaProperty property) {
     this->mediaProperty = property;
 }
 
-double AudiobookFileProxy::getMediaDuration() {
+long long AudiobookFileProxy::getMediaDuration() {
     // if we have a null object, then we shouldn't return a valid
     // duration
     if(this->mediaProperty.isNullObject()) {
