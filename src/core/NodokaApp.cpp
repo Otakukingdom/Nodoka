@@ -42,5 +42,6 @@ void Core::NodokaApp::setup() {
     // set up the events between playerEvents and mainWindow
     connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerState,
             this->mainWindow, &MainWindow::playerStateUpdated);
-
+    connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerTime,
+            this->mainWindow, &MainWindow::playerTimeUpdated);
 }
