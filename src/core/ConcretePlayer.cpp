@@ -88,6 +88,11 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
 
                             if(parsedStatus) {
                                 emit player->parsedStatusChanged(true);
+
+                                // load the current time if possible
+                                if(!player->audiobookFileProxy->currentTimeNull()) {
+                                    player->updateSeekPosition(player->audiobookFileProxy->getCurrentTime());
+                                }
                             } else {
                                 emit player->parsedStatusChanged(false);
                             }
@@ -139,6 +144,8 @@ void Core::ConcretePlayer::updateSeekPosition(long long position) {
 
     if(libvlc_media_player_is_seekable(this->mediaPlayer)) {
         libvlc_media_player_set_time(this->mediaPlayer, static_cast<libvlc_time_t>(position));
+
+        emit this->timeProgressed(this->getCurrentTime());
     } else {
         qDebug() << "Media not seekable";
     }

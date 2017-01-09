@@ -202,7 +202,6 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
         long long totalDuration = this->currentlyPlayingFile.getMediaDuration();
         this->ui->progressSlider->setMaximum(static_cast<int>(totalDuration));
 
-
         // enable the slider
         this->ui->progressSlider->setEnabled(true);
     }

@@ -85,3 +85,11 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
                    << ", " << query.lastError().databaseText();
     }
 }
+
+long long AudiobookFileProxy::getCurrentTime() {
+    return this->record.value("seek_position").toInt();
+}
+
+bool AudiobookFileProxy::currentTimeNull() {
+    return this->record.value("seek_position").isNull();
+}

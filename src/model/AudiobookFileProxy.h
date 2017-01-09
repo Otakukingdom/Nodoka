@@ -27,6 +27,8 @@ public:
     bool isPropertyParsed();
     void setAsCurrent();
     void saveCurrentTime(long long currentTime);
+    long long getCurrentTime();
+    bool currentTimeNull();
 
     void setProperty(MediaProperty property);
     long long getMediaDuration();

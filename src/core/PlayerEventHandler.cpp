@@ -29,6 +29,8 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
 
     connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [this](libvlc_time_t time) {
         notifyPlayerTime(*this->concretePlayer->getAudiobookFile(), time);
+
+        this->concretePlayer->getAudiobookFile()->saveCurrentTime(time);
     });
 
     connect(this->concretePlayer, &ConcretePlayer::parsedStatusChanged, [this](bool isParsed) {
