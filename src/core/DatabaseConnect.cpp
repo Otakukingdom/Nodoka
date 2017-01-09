@@ -44,7 +44,7 @@ bool ::Core::openDb() {
                        "full_path TEXT,"
                        "completeness INTEGER,"
                        "default_order INTEGER,"
-                       "selected_file INTEGER,"
+                       "selected_file TEXT,"
                        "created_at TEXT"
                        ")");
 
@@ -58,9 +58,9 @@ bool ::Core::openDb() {
                        "name TEXT,"
                        "full_path TEXT PRIMARY KEY,"
                        "length_of_file TEXT,"
+                       "seek_position TEXT,"
                        "position INTEGER,"
                        "completeness INTEGER,"
-                       "seek_position REAL,"
                        "file_exists BOOL,"
                        "created_at TEXT"
                        ")");

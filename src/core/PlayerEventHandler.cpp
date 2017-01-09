@@ -14,11 +14,14 @@ Core::PlayerEventHandler::PlayerEventHandler(Core::ConcretePlayer *concretePlaye
 void Core::PlayerEventHandler::setupPlayerCallbacks() {
     // setup the callbacks
     connect(this->concretePlayer, &ConcretePlayer::stateChanged, [this](libvlc_state_t newState) {
+        auto abFile = this->concretePlayer->getAudiobookFile();
 
         if(libvlc_Playing == newState) {
-            notifyPlayerState(*this->concretePlayer->getAudiobookFile(), true);
+            abFile->setAsCurrent();
+
+            notifyPlayerState(*abFile, true);
         } else {
-            notifyPlayerState(*this->concretePlayer->getAudiobookFile(), false);
+            notifyPlayerState(*abFile, false);
         }
     });
 

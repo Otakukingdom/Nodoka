@@ -3,9 +3,12 @@
 //
 
 #include "AudiobookFileProxy.h"
+#include <QSqlError>
+#include <QDebug>
 
-AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record) {
+AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting) {
     this->record = record;
+    this->setting = setting;
     this->isNull = false;
 }
 
@@ -45,5 +48,24 @@ bool AudiobookFileProxy::isPropertyParsed() {
         return false;
     } else {
         return true;
+    }
+}
+
+void AudiobookFileProxy::setAsCurrent() {
+    if(!this->mediaProperty.isNullObject()) {
+        int audiobookId = this->record.value("audiobook_id").toInt();
+        auto path = this->record.value("full_path").toString();
+        setting->setCurrentAudiobook(audiobookId);
+
+        QString queryString = "UPDATE audiobooks SET selected_file=? WHERE id=?";
+        QSqlQuery query;
+        query.prepare(queryString);
+        query.addBindValue(path);
+        query.addBindValue(audiobookId);
+        if(!query.exec()) {
+            qWarning() << "audiobook save query failed: "
+                       << query.lastError().driverText()
+                       << ", " << query.lastError().databaseText();
+        }
     }
 }

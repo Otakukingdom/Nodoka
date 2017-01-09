@@ -7,21 +7,25 @@
 
 
 #include <QSqlRecord>
+#include <QSqlQuery>
 #include <QVariant>
+#include <src/core/Setting.h>
 #include "MediaProperty.h"
 
 class AudiobookFileProxy {
+    Core::Setting* setting;
     QSqlRecord record;
     bool isNull;
     MediaProperty mediaProperty;
 
 public:
-    AudiobookFileProxy(QSqlRecord record);
+    AudiobookFileProxy(QSqlRecord record, Core::Setting* setting);
     AudiobookFileProxy();
     QString path();
     QString name();
     bool getNullState();
     bool isPropertyParsed();
+    void setAsCurrent();
 
     void setProperty(MediaProperty property);
     long long getMediaDuration();

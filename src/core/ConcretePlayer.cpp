@@ -29,7 +29,7 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
         this->releaseMedia();
     }
 
-    this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record));
+    this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
     this->currentPath = audiobookFileProxy->path();
 
     this->mediaItem = libvlc_media_new_path(this->inst, this->currentPath.toStdString().c_str());
