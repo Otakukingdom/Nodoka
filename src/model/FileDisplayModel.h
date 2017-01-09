@@ -14,6 +14,7 @@ class FileDisplayModel : public QSqlTableModel {
 public:
     FileDisplayModel(QObject *parent = 0);
     void setSelectedAudiobook(int audiobookId);
+    QModelIndex getFileIndex(QString path);
     QVariant data(const QModelIndex &index, int role) const;
 
 private:

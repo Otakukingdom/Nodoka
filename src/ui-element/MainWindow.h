@@ -46,9 +46,13 @@ public:
                Core::Setting* setting,
                QWidget *parent = 0);
     virtual ~MainWindow();
+
     void performSettings();
     void performExit();
+
+    // helper functions
     void setup();
+    void loadCurrentAudiobookIfExists();
 
     void setCurrentlyPlayingFile(AudiobookFileProxy file);
     void setCurrentTime(long long currentTime);

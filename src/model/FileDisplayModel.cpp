@@ -33,3 +33,18 @@ QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
     return QSqlTableModel::data(index, role);
 }
 
+QModelIndex FileDisplayModel::getFileIndex(QString path) {
+    for(int i = 0; i < rowCount(); i++) {
+        auto currentRecord = this->record(i);
+
+        // select the current file
+        if(currentRecord.value("full_path") == path) {
+            auto indexObject = this->index(i, 0);
+
+            return indexObject;
+        }
+    }
+
+    return QModelIndex();
+}
+

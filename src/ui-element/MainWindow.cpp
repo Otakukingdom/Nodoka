@@ -48,11 +48,38 @@ void MainWindow::setup() {
     connect(this->ui->audiobookView->selectionModel(), &QItemSelectionModel::selectionChanged,
             [this, audiobookModel] (const QItemSelection &selected, const QItemSelection &deselected) {
                 if(selected.indexes().size() > 0) {
+                    // set the audiobook file list
                     auto modelIndex = selected.indexes().first();
                     auto record = audiobookModel->record(modelIndex.row());
                     int audiobookId = record.value("id").toInt();
 
                     this->fileDisplayModel->setSelectedAudiobook(audiobookId);
+
+                    // set the selected audiobook file if it exists
+                    QSqlQuery query;
+                    query.prepare("SELECT id, selected_file from audiobooks WHERE id=?");
+                    query.addBindValue(audiobookId);
+                    if(!query.exec()) {
+                        // if we are here, something went wrong while the query was executing
+                        auto error = query.lastError();
+                        qWarning() << "Something went wrong: "
+                                   << error.driverText()
+                                   << ", " << error.databaseText();
+                    } else {
+                        if(query.next()) {
+                            auto currentRecord = query.record();
+                            if(!currentRecord.value("selected_file").isNull()) {
+                                auto path = currentRecord.value("selected_file").toString();
+                                auto index =
+                                        reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model())->getFileIndex(path);
+
+                                this->ui->fileView->selectionModel()->select(index, QItemSelectionModel::Select);
+
+                                return;
+                            }
+                        }
+                    }
+
                 }
             });
 
@@ -108,6 +135,8 @@ void MainWindow::setup() {
 
     connect(this->ui->volumeSlider, &QSlider::sliderMoved,
             this->settings, &Core::Setting::setVolume);
+
+    loadCurrentAudiobookIfExists();
 }
 
 
@@ -181,5 +210,20 @@ void MainWindow::setCurrentTime(long long currentTime) {
 // if there is an update with the AudiobookFile state, the Proxy file will be updated
 void MainWindow::audiobookFileStateUpdated(AudiobookFileProxy abFile) {
     this->setCurrentlyPlayingFile(abFile);
+}
+
+void MainWindow::loadCurrentAudiobookIfExists() {
+    auto audiobookId = this->settings->getCurrentAudiobookId();
+    if(!audiobookId != -1) {
+        Audiobook* currentModel = reinterpret_cast<Audiobook*>(this->ui->audiobookView->model());
+        for(int i = 0; i < currentModel->rowCount(); i++) {
+            if(currentModel->record(i).value("id").toInt() == audiobookId) {
+                QModelIndex currentIndex = currentModel->index(i, 0);
+                auto selectionModel = this->ui->audiobookView->selectionModel();
+                selectionModel->select(currentIndex, QItemSelectionModel::Select);
+            }
+        }
+
+    }
 }
 
