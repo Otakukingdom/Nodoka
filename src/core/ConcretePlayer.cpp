@@ -48,8 +48,8 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
 }
 
 void Core::ConcretePlayer::releaseMedia() {
-    libvlc_media_player_release(this->mediaPlayer);
     this->mediaLoaded = false;
+    libvlc_media_player_release(this->mediaPlayer);
 }
 
 void Core::ConcretePlayer::play() {
@@ -63,6 +63,13 @@ void Core::ConcretePlayer::stop() {
 }
 
 void Core::ConcretePlayer::setupVLCCallbacks() {
+    libvlc_event_attach(this->playerEventManager,
+                        libvlc_MediaPlayerOpening,
+                        (libvlc_callback_t) [](const struct libvlc_event_t* event, void* data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+                            libvlc_media_parse(player->mediaItem);
+                        }, this);
+
     libvlc_event_attach(this->mediaEventManager,
                         libvlc_MediaStateChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
@@ -75,7 +82,10 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
                         libvlc_MediaPlayerTimeChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
                             auto player = static_cast<ConcretePlayer*>(data);
-                            emit player->timeProgressed(player->getCurrentTime());
+
+                            if(player->mediaLoaded) {
+                                emit player->timeProgressed(player->getCurrentTime());
+                            }
                         },
                         this);
 
@@ -91,6 +101,7 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
 
                                 // load the current time if possible
                                 if(!player->audiobookFileProxy->currentTimeNull()) {
+                                    qDebug() << "Get seek position of " << player->audiobookFileProxy->getCurrentTime() << " from db";
                                     player->updateSeekPosition(player->audiobookFileProxy->getCurrentTime());
                                 }
                             } else {
@@ -144,8 +155,6 @@ void Core::ConcretePlayer::updateSeekPosition(long long position) {
 
     if(libvlc_media_player_is_seekable(this->mediaPlayer)) {
         libvlc_media_player_set_time(this->mediaPlayer, static_cast<libvlc_time_t>(position));
-
-        emit this->timeProgressed(this->getCurrentTime());
     } else {
         qDebug() << "Media not seekable";
     }

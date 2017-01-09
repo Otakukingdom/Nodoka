@@ -87,9 +87,48 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
 }
 
 long long AudiobookFileProxy::getCurrentTime() {
-    return this->record.value("seek_position").toInt();
+    auto path = this->record.value("full_path").toString();
+    QString queryString = "SELECT full_path, seek_position FROM audiobook_file WHERE full_path=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(path);
+
+    if(!query.exec()) {
+        qWarning() << "audiobook retrieve currentTime failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+        return -1;
+    }
+
+    if(query.next())  {
+        auto result = query.record();
+        qDebug() << "seek position is " << result.value("seek_position").toInt();
+        return result.value("seek_position").toInt();
+    } else {
+        qWarning() << "audiobook retrieve currentTime failed: (no result)";
+        return -1;
+    }
 }
 
 bool AudiobookFileProxy::currentTimeNull() {
-    return this->record.value("seek_position").isNull();
+    auto path = this->record.value("full_path").toString();
+    QString queryString = "SELECT full_path, seek_position FROM audiobook_file WHERE full_path=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(path);
+
+    if(!query.exec()) {
+        qWarning() << "audiobook retrieve currentTime null state failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+        return true;
+    }
+
+    if(query.next())  {
+        auto result = query.record();
+        return result.value("seek_position").isNull();
+    } else {
+        qWarning() << "audiobook retrieve currentTime null state failed: (no result)";
+        return true;
+    }
 }

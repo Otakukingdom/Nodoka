@@ -20,8 +20,11 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
             abFile->setAsCurrent();
 
             notifyPlayerState(*abFile, true);
-        } else {
+        } else if(libvlc_Stopped == newState || libvlc_Paused == newState) {
             abFile->saveCurrentTime(this->concretePlayer->getCurrentTime());
+
+            notifyPlayerState(*abFile, false);
+        } else {
 
             notifyPlayerState(*abFile, false);
         }
