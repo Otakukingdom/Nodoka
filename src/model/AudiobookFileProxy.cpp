@@ -69,3 +69,19 @@ void AudiobookFileProxy::setAsCurrent() {
         }
     }
 }
+
+void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
+    auto path = this->record.value("full_path").toString();
+
+    QString queryString = "UPDATE audiobook_file SET seek_position=? WHERE full_path=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(currentTime);
+    query.addBindValue(path);
+
+    if(!query.exec()) {
+        qWarning() << "audiobook save currentTime failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+    }
+}

@@ -21,6 +21,8 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
 
             notifyPlayerState(*abFile, true);
         } else {
+            abFile->saveCurrentTime(this->concretePlayer->getCurrentTime());
+
             notifyPlayerState(*abFile, false);
         }
     });
