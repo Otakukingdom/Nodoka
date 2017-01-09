@@ -89,7 +89,6 @@ void MainWindow::setup() {
     // set up the event handler for file view
     connect(this->ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged,
             [this] (const QItemSelection &selected, const QItemSelection &deselected) {
-                qDebug() << "file view selection changed called";
                 if(selected.indexes().size() > 0) {
                     if(this->currentlyPlayingFile.getNullState()) {
                         auto modelIndex = selected.indexes().first();
