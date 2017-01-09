@@ -102,7 +102,6 @@ long long AudiobookFileProxy::getCurrentTime() {
 
     if(query.next())  {
         auto result = query.record();
-        qDebug() << "seek position is " << result.value("seek_position").toInt();
         return result.value("seek_position").toInt();
     } else {
         qWarning() << "audiobook retrieve currentTime failed: (no result)";

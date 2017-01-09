@@ -204,6 +204,11 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
 
         // enable the slider
         this->ui->progressSlider->setEnabled(true);
+
+        // init the slider with the saved current time
+        if(!file.currentTimeNull()) {
+            this->setCurrentTime(file.getCurrentTime());
+        }
     }
 }
 

@@ -20,8 +20,6 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
     this->audiobookFileProxy = nullptr;
 
     this->hasSeekTo = false;
-
-    return;
 }
 
 void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
@@ -63,13 +61,6 @@ void Core::ConcretePlayer::stop() {
 }
 
 void Core::ConcretePlayer::setupVLCCallbacks() {
-    libvlc_event_attach(this->playerEventManager,
-                        libvlc_MediaPlayerOpening,
-                        (libvlc_callback_t) [](const struct libvlc_event_t* event, void* data) {
-                            auto player = static_cast<ConcretePlayer*>(data);
-                            libvlc_media_parse(player->mediaItem);
-                        }, this);
-
     libvlc_event_attach(this->mediaEventManager,
                         libvlc_MediaStateChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
@@ -101,7 +92,6 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
 
                                 // load the current time if possible
                                 if(!player->audiobookFileProxy->currentTimeNull()) {
-                                    qDebug() << "Get seek position of " << player->audiobookFileProxy->getCurrentTime() << " from db";
                                     player->updateSeekPosition(player->audiobookFileProxy->getCurrentTime());
                                 }
                             } else {
