@@ -43,6 +43,7 @@ void MainWindow::setup() {
     // set up the audobook view
     this->ui->audiobookView->setModel(this->audiobookModel);
 
+
     // connect the audiobook view events to the file selector view
     auto audiobookModel = this->audiobookModel;
     connect(this->ui->audiobookView->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -85,6 +86,21 @@ void MainWindow::setup() {
 
     this->ui->fileView->setModel(this->fileDisplayModel);
 
+    // set up the event handler for file view
+    connect(this->ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged,
+            [this] (const QItemSelection &selected, const QItemSelection &deselected) {
+                qDebug() << "file view selection changed called";
+                if(selected.indexes().size() > 0) {
+                    if(this->currentlyPlayingFile.getNullState()) {
+                        auto modelIndex = selected.indexes().first();
+                        auto model = reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model());
+                        auto record = model->record(modelIndex.row());
+
+                        this->concretePlayer->loadMedia(record);
+                        this->setCurrentlyPlayingFile(*this->concretePlayer->getAudiobookFile());
+                    }
+                }
+            });
 
     // connect file selector view to concrete player
     connect(this->ui->fileView, &QListView::doubleClicked,

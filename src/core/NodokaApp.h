@@ -35,6 +35,7 @@ namespace Core {
 
     public:
         NodokaApp();
+        ~NodokaApp();
         void start();
     };
 

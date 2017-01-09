@@ -157,3 +157,7 @@ void Core::ConcretePlayer::setVolume(int volume) {
         libvlc_audio_set_volume(this->mediaPlayer, volume);
     }
 }
+
+Core::ConcretePlayer::~ConcretePlayer() {
+    qDebug() << "Player destructor called";
+}

@@ -45,6 +45,7 @@ namespace Core {
 
     public:
         ConcretePlayer(Setting* setting);
+        ~ConcretePlayer();
         std::shared_ptr<AudiobookFileProxy> getAudiobookFile();
         libvlc_state_t getCurrentState();
         libvlc_time_t getCurrentTime();

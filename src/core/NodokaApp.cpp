@@ -54,3 +54,6 @@ void Core::NodokaApp::setup() {
     connect(this->playerEventHandler, &PlayerEventHandler::notifyMediaParsed,
             this->mainWindow, &MainWindow::audiobookFileStateUpdated);
 }
+
+Core::NodokaApp::~NodokaApp() {
+}
