@@ -12,17 +12,17 @@ AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting
     this->isNull = false;
 }
 
+AudiobookFileProxy::AudiobookFileProxy() {
+    this->record = QSqlRecord();
+    this->isNull = true;
+}
+
 QString AudiobookFileProxy::path() {
     return this->record.value("full_path").toString();
 }
 
 bool AudiobookFileProxy::getNullState() {
     return this->isNull;
-}
-
-AudiobookFileProxy::AudiobookFileProxy() {
-    this->record = QSqlRecord();
-    this->isNull = true;
 }
 
 QString AudiobookFileProxy::name() {
@@ -130,4 +130,67 @@ bool AudiobookFileProxy::currentTimeNull() {
         qWarning() << "audiobook retrieve currentTime null state failed: (no result)";
         return true;
     }
+}
+
+bool AudiobookFileProxy::hasNextFile() {
+    qDebug() << "hasNextFile called()";
+    int currentPosition = this->record.value("position").toInt();
+    int audiobookId = this->record.value("audiobook_id").toInt();
+
+    int nextPosition = currentPosition + 1;
+
+    QString queryString = "SELECT * FROM audiobook_file WHERE position=? AND audiobook_id=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(nextPosition);
+    query.addBindValue(audiobookId);
+
+    if(!query.exec()) {
+        qWarning() << "audiobook retrieve next file state failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+        return false;
+    }
+    qDebug() << "hasNextFile executed";
+
+    if(query.next()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+AudiobookFileProxy AudiobookFileProxy::getNextFile() {
+    if(!hasNextFile()) {
+        return AudiobookFileProxy();
+    }
+
+    int currentPosition = this->record.value("position").toInt();
+    int audiobookId = this->record.value("audiobook_id").toInt();
+
+    int nextPosition = currentPosition + 1;
+
+    QString queryString = "SELECT * FROM audiobook_file WHERE position=? AND audiobook_id=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(nextPosition);
+    query.addBindValue(audiobookId);
+
+    if(!query.exec()) {
+        qWarning() << "audiobook retrieve next file failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+        return AudiobookFileProxy();
+    }
+
+    if(query.next()) {
+        return AudiobookFileProxy(query.record(), this->setting);
+    } else {
+        qWarning() << "audiobook retrieve next file failed: (next file record is empty)";
+        return AudiobookFileProxy();
+    }
+}
+
+QSqlRecord AudiobookFileProxy::getRecord() {
+    return this->record;
 }

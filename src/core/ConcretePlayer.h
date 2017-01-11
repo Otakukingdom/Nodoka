@@ -40,6 +40,9 @@ namespace Core {
         // set up the vlc callbacks
         void setupVLCCallbacks();
 
+        // media item related callbacks
+        void setupMediaCallbacks();
+
         // set up the callbacks that we are supposed to listen to
         void setupEventHandlers();
 
@@ -61,6 +64,7 @@ namespace Core {
         void stateChanged(libvlc_state_t newState);
         void timeProgressed(libvlc_time_t time);
         void parsedStatusChanged(bool isParsed);
+        void currentFileFinished();
 
     public slots:
         void updateSeekPosition(long long position);

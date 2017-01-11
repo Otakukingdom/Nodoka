@@ -53,6 +53,16 @@ void Core::NodokaApp::setup() {
             this->mainWindow, &MainWindow::playerTimeUpdated);
     connect(this->playerEventHandler, &PlayerEventHandler::notifyMediaParsed,
             this->mainWindow, &MainWindow::audiobookFileStateUpdated);
+    connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerFinished,
+            [this](AudiobookFileProxy currentFile) {
+                auto nextFile = currentFile.getNextFile();
+
+                if(!nextFile.getNullState()) {
+                    mainWindow->setCurrentlyPlayingFile(nextFile);
+                    this->player->loadMedia(nextFile.getRecord());
+                    this->player->play();
+                }
+            });
 }
 
 Core::NodokaApp::~NodokaApp() {

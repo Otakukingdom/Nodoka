@@ -30,6 +30,10 @@ public:
     long long getCurrentTime();
     bool currentTimeNull();
 
+    bool hasNextFile();
+    AudiobookFileProxy getNextFile();
+    QSqlRecord getRecord();
+
     void setProperty(MediaProperty property);
     long long getMediaDuration();
 

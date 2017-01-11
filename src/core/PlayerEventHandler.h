@@ -30,6 +30,8 @@ namespace Core {
 
         // when media is parsed
         void notifyMediaParsed(AudiobookFileProxy file);
+
+        void notifyPlayerFinished(AudiobookFileProxy file);
     };
 
 }
