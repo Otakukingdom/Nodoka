@@ -27,37 +27,48 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
     // null initalization
     this->mediaLoaded = false;
     this->audiobookFileProxy = nullptr;
+    this->autoPlay = false;
 
     this->hasSeekTo = false;
 }
 
 void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
-    qDebug() << "Load media called";
     if(this->mediaLoaded) {
-        qDebug() << "media release called";
-        releaseMedia();
+        qDebug() << "Cannot load media if mediaLoaded is true";
+        return;
     }
+    this->mediaLoaded = true;
 
     this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
     this->currentPath = audiobookFileProxy->path();
 
+    qDebug() << "Media read: " << this->currentPath;
+
     this->mediaItem = libvlc_media_new_path(this->inst, this->currentPath.toStdString().c_str());
     libvlc_media_player_set_media(this->mediaPlayer, this->mediaItem);
-    this->mediaLoaded = true;
+    qDebug() << "Media loaded: " << this->currentPath;
     this->mediaEventManager = libvlc_media_event_manager(this->mediaItem);
-    qDebug() << "new media created";
 
     this->setupMediaCallbacks();
+
+
+    if(this->autoPlay) {
+        this->play();
+    }
 }
 
 void Core::ConcretePlayer::releaseMedia() {
+    qDebug() << "media release called";
+    if(this->mediaLoaded) {
+        libvlc_media_release(this->mediaItem);
+    }
     this->mediaLoaded = false;
-    libvlc_media_release(this->mediaItem);
 }
 
 void Core::ConcretePlayer::play() {
     if(this->mediaLoaded) {
         libvlc_media_player_play(this->mediaPlayer);
+        this->autoPlay = true;
     }
 }
 
@@ -75,15 +86,6 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
                             if(player->mediaLoaded) {
                                 emit player->timeProgressed(player->getCurrentTime());
                             }
-                        },
-                        this);
-
-    // event manager for automatically playing the next file once we reach the end of the earlier file
-    libvlc_event_attach(this->playerEventManager,
-                        libvlc_MediaPlayerEndReached,
-                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
-                            auto player = static_cast<ConcretePlayer*>(data);
-                            emit player->currentFileFinished();
                         },
                         this);
 }
@@ -189,5 +191,14 @@ void Core::ConcretePlayer::setupMediaCallbacks() {
                             }
                         },
                         this);
+
+    libvlc_event_attach(this->mediaEventManager,
+                        libvlc_MediaFreed,
+                        (libvlc_callback_t) [](const struct libvlc_event_t* event, void *data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+
+                            emit player->currentFileFinished();
+                        }, this);
+
 
 }

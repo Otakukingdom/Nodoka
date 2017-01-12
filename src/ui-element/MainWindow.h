@@ -37,7 +37,7 @@ private:
     bool isPlaying;
     AudiobookFileProxy currentlyPlayingFile;
     double currentTime;
-
+    void setCurrentlyPlayingFile(AudiobookFileProxy file);
 
 public:
     MainWindow(Directory* directoryModel,
@@ -54,7 +54,7 @@ public:
     void setup();
     void loadCurrentAudiobookIfExists();
 
-    void setCurrentlyPlayingFile(AudiobookFileProxy file);
+    void setSelectedFile(QString path);
     void setCurrentTime(long long currentTime);
     void setIsPlaying(bool isPlaying);
 

@@ -16,19 +16,17 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
     connect(this->concretePlayer, &ConcretePlayer::stateChanged, [this](libvlc_state_t newState) {
         auto abFile = this->concretePlayer->getAudiobookFile();
 
-        if(libvlc_Playing == newState) {
-            qDebug() << "in playing state";
+        if (libvlc_Playing == newState) {
             abFile->setAsCurrent();
 
             notifyPlayerState(*abFile, true);
-        } else if(libvlc_Stopped == newState || libvlc_Paused == newState) {
-            qDebug() << "in stopped state";
+        } else if (libvlc_Stopped == newState || libvlc_Paused == newState) {
             abFile->saveCurrentTime(this->concretePlayer->getCurrentTime());
 
             notifyPlayerState(*abFile, false);
+        } else if (libvlc_Ended == newState) {
+            concretePlayer->releaseMedia();
         } else {
-            qDebug() << "in unknown state";
-
             notifyPlayerState(*abFile, false);
         }
     });

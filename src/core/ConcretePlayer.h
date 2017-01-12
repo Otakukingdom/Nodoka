@@ -25,6 +25,7 @@ namespace Core {
 
         long long seekTo;
         bool hasSeekTo;
+        bool autoPlay;
 
         // libvlc objects
         libvlc_instance_t* inst;

@@ -3,6 +3,7 @@
 //
 
 #include "NodokaApp.h"
+#include <QItemSelection>
 #include "PlayerEventHandler.h"
 
 Core::NodokaApp::NodokaApp() {
@@ -45,6 +46,7 @@ void Core::NodokaApp::setup() {
 
     // we need to register this metatype before using it in signal/slot pattern
     qRegisterMetaType<AudiobookFileProxy>("AudiobookFileProxy");
+    qRegisterMetaType<QItemSelection>("QItemSelection");
 
     // set up the events between playerEvents and mainWindow
     connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerState,
@@ -55,12 +57,19 @@ void Core::NodokaApp::setup() {
             this->mainWindow, &MainWindow::audiobookFileStateUpdated);
     connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerFinished,
             [this](AudiobookFileProxy currentFile) {
+                qDebug() << "notifyPlayerFinished called()";
                 auto nextFile = currentFile.getNextFile();
 
                 if(!nextFile.getNullState()) {
-                    mainWindow->setCurrentlyPlayingFile(nextFile);
-                    this->player->loadMedia(nextFile.getRecord());
-                    this->player->play();
+                    auto errorMsg = libvlc_errmsg();
+                    if(errorMsg != nullptr) {
+                        qWarning() << "VLC ERROR: " << errorMsg;
+                        return;
+                    }
+
+                    mainWindow->setSelectedFile(nextFile.path());
+                    // this->player->loadMedia(nextFile.getRecord());
+                    // this->player->play();
                 }
             });
 }

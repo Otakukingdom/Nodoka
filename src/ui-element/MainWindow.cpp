@@ -71,11 +71,7 @@ void MainWindow::setup() {
                             auto currentRecord = query.record();
                             if(!currentRecord.value("selected_file").isNull()) {
                                 auto path = currentRecord.value("selected_file").toString();
-                                auto index =
-                                        reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model())->getFileIndex(path);
-
-                                this->ui->fileView->selectionModel()->select(index, QItemSelectionModel::Select);
-
+                                this->setSelectedFile(path);
                                 return;
                             }
                         }
@@ -86,21 +82,6 @@ void MainWindow::setup() {
 
     this->ui->fileView->setModel(this->fileDisplayModel);
 
-    // set up the event handler for file view
-    connect(this->ui->fileView->selectionModel(), &QItemSelectionModel::selectionChanged,
-            [this] (const QItemSelection &selected, const QItemSelection &deselected) {
-                if(selected.indexes().size() > 0) {
-                    if(this->currentlyPlayingFile.getNullState()) {
-                        auto modelIndex = selected.indexes().first();
-                        auto model = reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model());
-                        auto record = model->record(modelIndex.row());
-
-                        this->concretePlayer->loadMedia(record);
-                        this->setCurrentlyPlayingFile(*this->concretePlayer->getAudiobookFile());
-                    }
-                }
-            });
-
     // connect file selector view to concrete player
     connect(this->ui->fileView, &QListView::doubleClicked,
             [this] (const QModelIndex &index) {
@@ -109,6 +90,7 @@ void MainWindow::setup() {
 
                 auto currentRecord = model->record(row);
 
+                this->concretePlayer->releaseMedia();
                 this->concretePlayer->loadMedia(currentRecord);
                 this->concretePlayer->play();
     });
@@ -244,5 +226,15 @@ void MainWindow::loadCurrentAudiobookIfExists() {
         }
 
     }
+}
+
+void MainWindow::setSelectedFile(QString path) {
+    // deselect all first
+    this->ui->fileView->selectionModel()->clearSelection();
+
+    auto index =
+            reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model())->getFileIndex(path);
+
+    this->ui->fileView->selectionModel()->select(index, QItemSelectionModel::Select);
 }
 

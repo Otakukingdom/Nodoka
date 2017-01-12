@@ -133,7 +133,6 @@ bool AudiobookFileProxy::currentTimeNull() {
 }
 
 bool AudiobookFileProxy::hasNextFile() {
-    qDebug() << "hasNextFile called()";
     int currentPosition = this->record.value("position").toInt();
     int audiobookId = this->record.value("audiobook_id").toInt();
 
@@ -151,7 +150,6 @@ bool AudiobookFileProxy::hasNextFile() {
                    << ", " << query.lastError().databaseText();
         return false;
     }
-    qDebug() << "hasNextFile executed";
 
     if(query.next()) {
         return true;
