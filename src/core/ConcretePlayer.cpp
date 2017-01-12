@@ -3,6 +3,7 @@
 //
 
 #include <QDebug>
+#include <include/vlc/vlc.h>
 #include "ConcretePlayer.h"
 
 Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
@@ -37,7 +38,6 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
         qDebug() << "Cannot load media if mediaLoaded is true";
         return;
     }
-    this->mediaLoaded = true;
 
     this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
     this->currentPath = audiobookFileProxy->path();
@@ -45,12 +45,14 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
     qDebug() << "Media read: " << this->currentPath;
 
     this->mediaItem = libvlc_media_new_path(this->inst, this->currentPath.toStdString().c_str());
+    qDebug() << "Media item created : " << this->currentPath;
     libvlc_media_player_set_media(this->mediaPlayer, this->mediaItem);
     qDebug() << "Media loaded: " << this->currentPath;
     this->mediaEventManager = libvlc_media_event_manager(this->mediaItem);
 
     this->setupMediaCallbacks();
 
+    this->mediaLoaded = true;
 
     if(this->autoPlay) {
         this->play();
@@ -59,10 +61,11 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
 
 void Core::ConcretePlayer::releaseMedia() {
     qDebug() << "media release called";
+    this->mediaLoaded = false;
     if(this->mediaLoaded) {
         libvlc_media_release(this->mediaItem);
+        qDebug() << "media released";
     }
-    this->mediaLoaded = false;
 }
 
 void Core::ConcretePlayer::play() {
@@ -85,6 +88,18 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
 
                             if(player->mediaLoaded) {
                                 emit player->timeProgressed(player->getCurrentTime());
+                            }
+                        },
+                        this);
+
+    libvlc_event_attach(this->playerEventManager,
+                        libvlc_MediaPlayerEncounteredError,
+                        (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
+                            auto player = static_cast<ConcretePlayer*>(data);
+                            auto errorMsg = libvlc_errmsg();
+
+                            if(errorMsg != nullptr) {
+                                qDebug() << "Error is: " << errorMsg;
                             }
                         },
                         this);
@@ -161,11 +176,9 @@ void Core::ConcretePlayer::setupMediaCallbacks() {
     libvlc_event_attach(this->mediaEventManager,
                         libvlc_MediaStateChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
-                            qDebug() << "Media state callback";
                             auto player = static_cast<ConcretePlayer*>(data);
-                            if(player->mediaLoaded) {
-                                emit player->stateChanged(player->getCurrentState());
-                            }
+                            auto newState = event->u.media_state_changed.new_state;
+                            emit player->stateChanged(newState);
                         },
                         this);
 
