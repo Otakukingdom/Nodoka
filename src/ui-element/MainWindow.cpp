@@ -73,11 +73,25 @@ void MainWindow::setup() {
                                    << ", " << error.databaseText();
                     } else {
                         if(query.next()) {
+                            // if we are here, it means the current file exists, and we are setting the selection
                             auto currentRecord = query.record();
+                            QString path = "";
                             if(!currentRecord.value("selected_file").isNull()) {
-                                auto path = currentRecord.value("selected_file").toString();
+                                path = currentRecord.value("selected_file").toString();
                                 this->setSelectedFile(path);
+                            } else {
+                                // don't even proceed if this failed
                                 return;
+                            }
+
+                            // check if the player does not have a media loaded, if the player does not have a media loaded
+                            // it means the player hasn't loaded a file yet, we should load whichever file the user left off
+                            // if that is the case...
+                            if(this->concretePlayer->getAudiobookFile() == nullptr) {
+                                auto index = this->fileDisplayModel->getFileIndex(path);
+                                auto currentFileRecord = this->fileDisplayModel->record(index.row());
+
+                                this->concretePlayer->loadMedia(currentFileRecord);
                             }
                         }
                     }
@@ -229,6 +243,7 @@ void MainWindow::loadCurrentAudiobookIfExists() {
                 QModelIndex currentIndex = currentModel->index(i, 0);
                 auto selectionModel = this->ui->audiobookView->selectionModel();
                 selectionModel->select(currentIndex, QItemSelectionModel::Select);
+                return;
             }
         }
 
