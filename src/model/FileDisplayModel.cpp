@@ -5,10 +5,15 @@
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QDebug>
+#include <QSqlIndex>
 #include "FileDisplayModel.h"
 
 FileDisplayModel::FileDisplayModel(QObject *parent) : QSqlTableModel(parent) {
     this->setTable("audiobook_file");
+    auto key = this->primaryKey();
+    key.setName("full_path");
+    key.setCursorName("full_path");
+    this->setPrimaryKey(key);
     this->hasFilter = false;
 }
 

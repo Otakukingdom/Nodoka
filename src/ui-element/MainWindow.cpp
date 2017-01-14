@@ -231,6 +231,8 @@ void MainWindow::loadCurrentAudiobookIfExists() {
 }
 
 void MainWindow::setSelectedFile(QString path) {
+    this->updateFileView();
+
     // deselect all first
     this->ui->fileView->selectionModel()->clearSelection();
 
@@ -238,5 +240,10 @@ void MainWindow::setSelectedFile(QString path) {
             reinterpret_cast<FileDisplayModel*>(this->ui->fileView->model())->getFileIndex(path);
 
     this->ui->fileView->selectionModel()->select(index, QItemSelectionModel::Select);
+}
+
+void MainWindow::updateFileView() {
+    auto model = static_cast<QSqlTableModel*>(this->ui->fileView->model());
+    model->select();
 }
 

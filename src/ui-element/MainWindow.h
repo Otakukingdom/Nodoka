@@ -57,6 +57,7 @@ public:
     void setSelectedFile(QString path);
     void setCurrentTime(long long currentTime);
     void setIsPlaying(bool isPlaying);
+    void updateFileView();
 
 public slots:
     void audiobookFileStateUpdated(AudiobookFileProxy abFile);
