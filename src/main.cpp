@@ -7,13 +7,20 @@
 #include <src/model/Directory.h>
 #include <src/core/NodokaApp.h>
 #include <iostream>
+#include <src/simple-lib/RunGuard.h>
 #include "ui-element/MainWindow.h"
 
 int main(int argc, char *argv[]) {
-    std::cout << "Init" << std::endl;
-    std::cout.flush();
-
     QApplication app(argc, argv);
+    RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG");
+
+    if(!guard.tryToRun()) {
+        QMessageBox *messageBox = new QMessageBox();
+        messageBox->critical(0, "Error", "Cannot launch multiple instances of Nodoka Player");
+
+        return EXIT_FAILURE;
+    }
+
 
 
     if(!Core::openDb()) {
