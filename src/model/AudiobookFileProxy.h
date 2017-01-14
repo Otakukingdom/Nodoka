@@ -29,6 +29,7 @@ public:
     void saveCurrentTime(long long currentTime);
     long long getCurrentTime();
     bool currentTimeNull();
+    int getCompleteness();
 
     bool hasNextFile();
     AudiobookFileProxy getNextFile();
