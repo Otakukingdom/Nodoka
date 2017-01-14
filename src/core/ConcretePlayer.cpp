@@ -33,6 +33,7 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
     this->mediaLoaded = false;
     this->audiobookFileProxy = nullptr;
     this->autoPlay = false;
+    this->threadPool = std::unique_ptr<ThreadPool>(new ThreadPool(1));
 
     this->hasSeekTo = false;
 }
@@ -81,11 +82,14 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
     libvlc_event_attach(this->playerEventManager,
                         libvlc_MediaPlayerTimeChanged,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
-                            auto player = static_cast<ConcretePlayer*>(data);
+                            auto player = static_cast<ConcretePlayer *>(data);
 
-                            if(player->mediaLoaded) {
-                                emit player->timeProgressed(player->getCurrentTime());
-                            }
+                            player->threadPool->enqueue([data, player]() {
+                                if (player->mediaLoaded) {
+                                    emit player->timeProgressed(player->getCurrentTime());
+                                }
+                            });
+
                         },
                         this);
 

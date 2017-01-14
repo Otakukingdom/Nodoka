@@ -8,6 +8,7 @@
 #include <memory>
 #include <QObject>
 #include <src/model/AudiobookFileProxy.h>
+#include <src/simple-lib/ThreadPool.h>
 #include "vlc/vlc.h"
 #include "Setting.h"
 
@@ -23,10 +24,14 @@ namespace Core {
         // state
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
         QString speed;
-
+        bool mediaLoaded;
+        QString currentPath;
         long long seekTo;
         bool hasSeekTo;
         bool autoPlay;
+
+        // thread pool manager
+        std::unique_ptr<ThreadPool> threadPool;
 
         // libvlc objects
         libvlc_instance_t* inst;
@@ -36,8 +41,6 @@ namespace Core {
         libvlc_event_manager_t* playerEventManager;
         libvlc_state_t currentState;
 
-        bool mediaLoaded;
-        QString currentPath;
 
         // set up the vlc callbacks
         void setupVLCCallbacks();
