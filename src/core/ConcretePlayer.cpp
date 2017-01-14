@@ -222,6 +222,10 @@ void Core::ConcretePlayer::handleFinished(const libvlc_event_t *event, void *dat
     // from a callback directly...
     std::thread t1([data]() {
         auto player = static_cast<ConcretePlayer*>(data);
+        // set as complete
+        player->getAudiobookFile()->setAsComplete();
+
+        // go to the next file
         player->playNextFile();
     });
 

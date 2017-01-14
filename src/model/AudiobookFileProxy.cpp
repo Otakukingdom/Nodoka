@@ -239,3 +239,17 @@ int AudiobookFileProxy::getCompleteness() {
         return -1;
     }
 }
+
+void AudiobookFileProxy::setAsComplete() {
+    auto path = this->record.value("full_path").toString();
+
+    QString queryString = "UPDATE audiobook_file SET completeness=100 WHERE full_path=?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(path);
+    if(!query.exec()) {
+        qWarning() << "set as complete query failed: "
+                   << query.lastError().driverText()
+                   << ", " << query.lastError().databaseText();
+    }
+}

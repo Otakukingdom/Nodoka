@@ -27,6 +27,7 @@ public:
     bool isPropertyParsed();
     void setAsCurrent();
     void saveCurrentTime(long long currentTime);
+    void setAsComplete();
     long long getCurrentTime();
     bool currentTimeNull();
     int getCompleteness();
