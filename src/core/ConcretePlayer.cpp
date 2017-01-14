@@ -12,8 +12,9 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
     // load settings
     this->setting = setting;
 
-    // init volume based on the settings file
+    // init volume and speed based on the settings file
     this->volume = setting->getVolume();
+    this->speed = setting->getSpeed();
 
     /* Load the VLC engine */
     this->inst = libvlc_new(0, NULL);
@@ -26,6 +27,7 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
 
     // set the volume of the media player to the read volume
     libvlc_audio_set_volume(this->mediaPlayer, volume);
+    libvlc_media_player_set_rate(this->mediaPlayer, this->getRate());
 
     // null initalization
     this->mediaLoaded = false;
@@ -230,4 +232,14 @@ void Core::ConcretePlayer::handleFinished(const libvlc_event_t *event, void *dat
     });
 
     t1.detach();
+}
+
+void Core::ConcretePlayer::setSpeed(QString speed) {
+    this->speed = speed;
+
+    libvlc_media_player_set_rate(this->mediaPlayer, this->getRate());
+}
+
+float Core::ConcretePlayer::getRate() {
+    return this->speed.toFloat();
 }

@@ -30,3 +30,13 @@ int Core::Setting::getCurrentAudiobookId() {
     return this->setting->value("audiobook_id").toInt();
 }
 
+QString Core::Setting::getSpeed() {
+    return this->setting->value("speed", "1").toString();
+}
+
+void Core::Setting::setSpeed(QString newSpeed) {
+    this->setting->setValue("speed", newSpeed);
+}
+
+
+

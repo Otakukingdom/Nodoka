@@ -22,6 +22,7 @@ namespace Core {
 
         // state
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
+        QString speed;
 
         long long seekTo;
         bool hasSeekTo;
@@ -61,8 +62,10 @@ namespace Core {
         void loadMedia(QSqlRecord record);
         void releaseMedia();
         void setVolume(int volume);
+        void setSpeed(QString speed);
         long long getDurationInMs();
         double getDurationInSeconds();
+        float getRate();
 
     signals:
         void stateChanged(libvlc_state_t newState);

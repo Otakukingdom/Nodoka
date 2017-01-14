@@ -59,6 +59,7 @@ public:
     void setIsPlaying(bool isPlaying);
     void updateFileView();
     void populateSpeedChoose();
+    void setSpeed(QString speed);
 
 public slots:
     void audiobookFileStateUpdated(AudiobookFileProxy abFile);

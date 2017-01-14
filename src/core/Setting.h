@@ -18,6 +18,8 @@ namespace Core {
 
         int getVolume();
         int getCurrentAudiobookId();
+        QString getSpeed();
+        void setSpeed(QString speed);
 
     signals:
         void volumeUpdated(int volume);

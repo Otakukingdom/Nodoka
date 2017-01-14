@@ -3,6 +3,7 @@
 //
 
 #include "MainWindow.h"
+#include <QComboBox>
 
 const static int MAXIMUM_VOLUME = 150;
 
@@ -252,14 +253,43 @@ void MainWindow::updateFileView() {
 }
 
 void MainWindow::populateSpeedChoose() {
-    this->ui->speedChooser->addItem("0.5x");
-    this->ui->speedChooser->addItem("0.75x");
-    this->ui->speedChooser->addItem("1x");
-    this->ui->speedChooser->addItem("1.25x");
-    this->ui->speedChooser->addItem("1.5x");
-    this->ui->speedChooser->addItem("1.75x");
-    this->ui->speedChooser->addItem("2x");
-    this->ui->speedChooser->addItem("2.25x");
-    this->ui->speedChooser->addItem("2.5x");
+    this->ui->speedChooser->addItem("0.5x", QVariant("0.5"));
+    this->ui->speedChooser->addItem("0.75x", QVariant("0.75"));
+    this->ui->speedChooser->addItem("1x", QVariant("1"));
+    this->ui->speedChooser->addItem("1.25x", QVariant("1.25"));
+    this->ui->speedChooser->addItem("1.5x", QVariant("1.5"));
+    this->ui->speedChooser->addItem("1.75x", QVariant("1.75"));
+    this->ui->speedChooser->addItem("2x", QVariant("2"));
+    this->ui->speedChooser->addItem("2.25x", QVariant("2.25"));
+    this->ui->speedChooser->addItem("2.5x", QVariant("2.5"));
+
+    auto speedFromSetting = this->settings->getSpeed();
+    this->setSpeed(speedFromSetting);
+
+
+    connect(this->ui->speedChooser, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int index) -> void {
+        auto currentData = this->ui->speedChooser->itemData(index);
+        auto speedString = currentData.toString();
+        this->settings->setSpeed(speedString);
+
+        this->concretePlayer->setSpeed(speedString);
+    });
+}
+
+void MainWindow::setSpeed(QString speed) {
+    int index = -1;
+    for(int i = 0; i < this->ui->speedChooser->count(); i++) {
+        auto currentData = this->ui->speedChooser->itemData(i);
+        QString currentUserData = currentData.toString();
+
+        if(currentUserData == speed) {
+            index = i;
+            break;
+        }
+    }
+
+    if(index != -1) {
+        this->ui->speedChooser->setCurrentIndex(index);
+    }
 }
 
