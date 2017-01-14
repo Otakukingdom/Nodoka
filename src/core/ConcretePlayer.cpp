@@ -38,19 +38,14 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
 
 void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
     if(this->mediaLoaded) {
-        qDebug() << "Cannot load media if mediaLoaded is true";
         return;
     }
 
     this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
     this->currentPath = audiobookFileProxy->path();
 
-    qDebug() << "Media read: " << this->currentPath;
-
     this->mediaItem = libvlc_media_new_path(this->inst, this->currentPath.toStdString().c_str());
-    qDebug() << "Media item created : " << this->currentPath;
     libvlc_media_player_set_media(this->mediaPlayer, this->mediaItem);
-    qDebug() << "Media loaded: " << this->currentPath;
     this->mediaEventManager = libvlc_media_event_manager(this->mediaItem);
 
     this->setupMediaCallbacks();
@@ -63,11 +58,9 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
 }
 
 void Core::ConcretePlayer::releaseMedia() {
-    qDebug() << "media release called";
     this->mediaLoaded = false;
     if(this->mediaLoaded) {
         libvlc_media_release(this->mediaItem);
-        qDebug() << "media released";
     }
 }
 
