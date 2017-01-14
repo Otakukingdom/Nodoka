@@ -16,8 +16,6 @@ Audiobook::Audiobook(AudiobookFile* audiobookFileModel, QObject *parent) : QSqlT
 }
 
 void Audiobook::registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory) {
-    qDebug() << "Registering: " << directory->path();
-
     AudiobookRecord record(directory->path(), false);
     record.setValue("directory", baseDirectoryRecord.value("full_path").toString());
     record.setValue("completeness", 0);
