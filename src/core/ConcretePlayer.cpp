@@ -3,8 +3,11 @@
 //
 
 #include <QDebug>
+#include <future>
+#include <functional>
 #include <include/vlc/vlc.h>
 #include "ConcretePlayer.h"
+
 
 Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
     // load settings
@@ -92,6 +95,7 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
                         },
                         this);
 
+
     libvlc_event_attach(this->playerEventManager,
                         libvlc_MediaPlayerEncounteredError,
                         (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
@@ -103,6 +107,9 @@ void Core::ConcretePlayer::setupVLCCallbacks() {
                             }
                         },
                         this);
+
+    libvlc_event_attach(this->playerEventManager,
+                        libvlc_MediaPlayerEndReached, ConcretePlayer::handleFinished, this);
 }
 
 libvlc_state_t Core::ConcretePlayer::getCurrentState() {
@@ -205,13 +212,26 @@ void Core::ConcretePlayer::setupMediaCallbacks() {
                         },
                         this);
 
-    libvlc_event_attach(this->mediaEventManager,
-                        libvlc_MediaFreed,
-                        (libvlc_callback_t) [](const struct libvlc_event_t* event, void *data) {
-                            auto player = static_cast<ConcretePlayer*>(data);
 
-                            emit player->currentFileFinished();
-                        }, this);
+}
 
+void Core::ConcretePlayer::playNextFile() {
+    if(this->audiobookFileProxy != nullptr) {
+        auto record = this->audiobookFileProxy->getNextFile();
+        if(!record.getNullState()) {
+            this->loadMedia(record.getRecord());
+            this->play();
+        }
+    }
+}
 
+void Core::ConcretePlayer::handleFinished(const libvlc_event_t *event, void *data) {
+    // we have to put this into a different thread because we can't use vlc functions
+    // from a callback directly...
+    std::thread t1([data]() {
+        auto player = static_cast<ConcretePlayer*>(data);
+        player->playNextFile();
+    });
+
+    t1.detach();
 }

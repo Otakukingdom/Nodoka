@@ -25,7 +25,7 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
 
             notifyPlayerState(*abFile, false);
         } else if (libvlc_Ended == newState) {
-            // concretePlayer->releaseMedia();
+            concretePlayer->releaseMedia();
         } else {
             notifyPlayerState(*abFile, false);
         }
@@ -48,10 +48,5 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
             notifyMediaParsed(*abFile);
         }
     });
-
-    connect(this->concretePlayer, &ConcretePlayer::currentFileFinished,
-            [this]() {
-                // notifyPlayerFinished(*this->concretePlayer->getAudiobookFile());
-            });
 }
 

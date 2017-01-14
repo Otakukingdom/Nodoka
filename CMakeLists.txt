@@ -8,6 +8,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
+
+set(CMAKE_THREAD_LIBS_INIT ON)
+
 # auto generate uic
 set(CMAKE_AUTOUIC ON)
 
@@ -22,6 +25,7 @@ set (RESOURCES icons.qrc)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Sql REQUIRED)
+find_package(Threads REQUIRED)
 
 
 if(APPLE)
@@ -38,4 +42,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h src/ui-element/SettingsForm.cpp src/ui-element/SettingsForm.h src/core/AudiobookScan.cpp src/model/Directory.cpp src/model/Directory.h src/core/DatabaseConnect.cpp src/core/DatabaseConnect.h src/core/NodokaApp.cpp src/core/NodokaApp.h src/event-handler/DirectoryHandler.cpp src/event-handler/DirectoryHandler.h src/model/Audiobook.cpp src/model/Audiobook.h src/model/AudiobookRecord.cpp src/model/AudiobookRecord.h src/model/AudiobookFile.cpp src/model/AudiobookFile.h src/model/AudiobookFileRecord.cpp src/model/AudiobookFileRecord.h src/model/FileDisplayModel.cpp src/model/FileDisplayModel.h src/model/AudiobookFileProxy.cpp src/model/AudiobookFileProxy.h src/core/PlayerEventHandler.cpp src/core/PlayerEventHandler.h src/model/MediaProperty.cpp src/model/MediaProperty.h src/core/Setting.cpp src/core/Setting.h)
 add_executable(NodokaNative ${SOURCE_FILES} ${RESOURCES})
 
-target_link_libraries(NodokaNative Qt5::Widgets Qt5::Sql vlc vlccore)
+target_link_libraries(NodokaNative Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads)

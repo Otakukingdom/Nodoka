@@ -55,23 +55,6 @@ void Core::NodokaApp::setup() {
             this->mainWindow, &MainWindow::playerTimeUpdated);
     connect(this->playerEventHandler, &PlayerEventHandler::notifyMediaParsed,
             this->mainWindow, &MainWindow::audiobookFileStateUpdated);
-    connect(this->playerEventHandler, &PlayerEventHandler::notifyPlayerFinished,
-            [this](AudiobookFileProxy currentFile) {
-                qDebug() << "notifyPlayerFinished called()";
-                auto nextFile = currentFile.getNextFile();
-
-                if(!nextFile.getNullState()) {
-                    auto errorMsg = libvlc_errmsg();
-                    if(errorMsg != nullptr) {
-                        qWarning() << "VLC ERROR: " << errorMsg;
-                        return;
-                    }
-
-                    mainWindow->setSelectedFile(nextFile.path());
-                    // this->player->loadMedia(nextFile.getRecord());
-                    // this->player->play();
-                }
-            });
 }
 
 Core::NodokaApp::~NodokaApp() {

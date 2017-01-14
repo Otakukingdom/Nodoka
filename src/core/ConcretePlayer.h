@@ -47,6 +47,8 @@ namespace Core {
         // set up the callbacks that we are supposed to listen to
         void setupEventHandlers();
 
+        static void handleFinished(const struct libvlc_event_t* event, void* data);
+
     public:
         ConcretePlayer(Setting* setting);
         ~ConcretePlayer();
@@ -54,6 +56,7 @@ namespace Core {
         libvlc_state_t getCurrentState();
         libvlc_time_t getCurrentTime();
         void play();
+        void playNextFile();
         void stop();
         void loadMedia(QSqlRecord record);
         void releaseMedia();
