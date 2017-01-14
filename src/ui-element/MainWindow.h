@@ -58,6 +58,7 @@ public:
     void setCurrentTime(long long currentTime);
     void setIsPlaying(bool isPlaying);
     void updateFileView();
+    void populateSpeedChoose();
 
 public slots:
     void audiobookFileStateUpdated(AudiobookFileProxy abFile);

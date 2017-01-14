@@ -37,6 +37,10 @@ MainWindow::MainWindow(Directory* directoryModel,
 void MainWindow::setup() {
     this->setWindowTitle("Nodoka");
 
+    // populate the speed combo box
+    this->populateSpeedChoose();
+
+    // settings, exit...
     connect(this->ui->actionExit, &QAction::triggered, this, &MainWindow::performExit);
     connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 
@@ -245,5 +249,17 @@ void MainWindow::setSelectedFile(QString path) {
 void MainWindow::updateFileView() {
     auto model = static_cast<QSqlTableModel*>(this->ui->fileView->model());
     model->select();
+}
+
+void MainWindow::populateSpeedChoose() {
+    this->ui->speedChooser->addItem("0.5x");
+    this->ui->speedChooser->addItem("0.75x");
+    this->ui->speedChooser->addItem("1x");
+    this->ui->speedChooser->addItem("1.25x");
+    this->ui->speedChooser->addItem("1.5x");
+    this->ui->speedChooser->addItem("1.75x");
+    this->ui->speedChooser->addItem("2x");
+    this->ui->speedChooser->addItem("2.25x");
+    this->ui->speedChooser->addItem("2.5x");
 }
 

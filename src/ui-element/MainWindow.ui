@@ -100,7 +100,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox"/>
+       <widget class="QComboBox" name="speedChooser"/>
       </item>
       <item>
        <widget class="QSlider" name="volumeSlider">
