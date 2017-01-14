@@ -1,5 +1,6 @@
+// Original from: http://stackoverflow.com/a/28172162/596065
+// By Dmitry Sazonov
 //
-// Created by mistlight on 1/14/17.
 //
 
 #include "RunGuard.h"
