@@ -4,7 +4,6 @@
 
 #include <QDebug>
 #include <future>
-#include <functional>
 #include <include/vlc/vlc.h>
 #include "ConcretePlayer.h"
 
