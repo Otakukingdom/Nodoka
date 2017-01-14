@@ -27,7 +27,15 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
 
 QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
-        return this->record(index.row()).value("name");
+        auto name = this->record(index.row()).
+                value("name").toString();
+        auto comepleteness = this->record(index.row()).
+                value("completeness").toInt();
+        auto completenessString = QString::number(comepleteness);
+
+        QString label = "(" + completenessString + ")" + name;
+
+        return label;
     }
 
     return QSqlTableModel::data(index, role);
