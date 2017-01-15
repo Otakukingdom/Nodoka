@@ -3,5 +3,10 @@
     <qresource>
         <file>icons/play.png</file>
         <file>icons/pause.png</file>
+        <file>icons/app/Entypo_d83d(0)_32.png</file>
+        <file>icons/app/Entypo_d83d(0)_64.png</file>
+        <file>icons/app/Entypo_d83d(0)_128.png</file>
+        <file>icons/app/Entypo_d83d(0)_256.png</file>
+        <file>icons/app/Entypo_d83d(0)_512.png</file>
     </qresource>
 </RCC>
