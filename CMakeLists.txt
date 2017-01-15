@@ -31,7 +31,7 @@ find_package(Threads REQUIRED)
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
 elseif(WIN32)
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/win32)
 endif()
 
 FILE(GLOB_RECURSE LibFiles "src/*.h")

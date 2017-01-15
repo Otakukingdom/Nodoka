@@ -6,6 +6,10 @@
 #include <future>
 #include <include/vlc/vlc.h>
 #include "ConcretePlayer.h"
+#include <QTextCodec>
+#include <iostream>
+#include <QFile>
+#include <cstdio>
 
 
 Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
@@ -18,7 +22,16 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
 
     /* Load the VLC engine */
     this->inst = libvlc_new(0, NULL);
+    if(this->inst == NULL) {
+        qWarning() << "ERROR";
+        throw "Exception has occured";
+    }
+
     this->mediaPlayer = libvlc_media_player_new(this->inst);
+
+    if(this->mediaPlayer == NULL) {
+        qWarning() << "ERROR: Could not create media player";
+    }
     this->playerEventManager = libvlc_media_player_event_manager(this->mediaPlayer);
 
     // set up callbacks
@@ -46,7 +59,19 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
     this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
     this->currentPath = audiobookFileProxy->path();
 
-    this->mediaItem = libvlc_media_new_path(this->inst, this->currentPath.toStdString().c_str());
+    auto path =  this->currentPath;
+    this->currentFile = std::unique_ptr<QFile>(new QFile(path));
+
+    if(!this->currentFile->open(QIODevice::ReadWrite)) {
+        qDebug() << "QFILE FAILED!: " << path;
+        return;
+    }
+
+
+    this->mediaItem = libvlc_media_new_fd(this->inst, this->currentFile->handle());
+    if(this->mediaItem == NULL) {
+        return;
+    }
     libvlc_media_player_set_media(this->mediaPlayer, this->mediaItem);
     this->mediaEventManager = libvlc_media_event_manager(this->mediaItem);
 

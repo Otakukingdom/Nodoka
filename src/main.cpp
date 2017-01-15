@@ -1,14 +1,10 @@
 #include <QApplication>
 #include <QWidget>
-#include <QDebug>
 #include <src/core/DatabaseConnect.h>
 #include <src/core/ConcretePlayer.h>
 #include <QtWidgets/QMessageBox>
-#include <src/model/Directory.h>
 #include <src/core/NodokaApp.h>
-#include <iostream>
 #include <src/simple-lib/RunGuard.h>
-#include "ui-element/MainWindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

@@ -11,6 +11,7 @@
 #include <src/simple-lib/ThreadPool.h>
 #include "vlc/vlc.h"
 #include "Setting.h"
+#include <QFile>
 
 namespace Core {
     class ConcretePlayer : public QObject {
@@ -23,6 +24,7 @@ namespace Core {
 
         // state
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
+        std::unique_ptr<QFile> currentFile;
         QString speed;
         bool mediaLoaded;
         QString currentPath;
