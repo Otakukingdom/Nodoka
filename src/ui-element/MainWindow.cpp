@@ -281,7 +281,9 @@ void MainWindow::populateSpeedChoose() {
     this->setSpeed(speedFromSetting);
 
 
-    connect(this->ui->speedChooser, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int index) -> void {
+    connect(this->ui->speedChooser,
+            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            [this](int index) -> void {
         auto currentData = this->ui->speedChooser->itemData(index);
         auto speedString = currentData.toString();
         this->settings->setSpeed(speedString);
