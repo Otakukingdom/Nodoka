@@ -10,6 +10,8 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG");
 
+    qDebug() << "Starting in debug mode";
+
     if(!guard.tryToRun()) {
         QMessageBox *messageBox = new QMessageBox();
         messageBox->critical(0, "Error", "Cannot launch multiple instances of Nodoka Player");
