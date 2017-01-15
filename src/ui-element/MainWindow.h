@@ -14,6 +14,7 @@
 #include <src/model/FileDisplayModel.h>
 #include <src/core/ConcretePlayer.h>
 #include <src/core/Setting.h>
+#include <QComboBox>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 

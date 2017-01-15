@@ -3,7 +3,6 @@
 //
 
 #include "MainWindow.h"
-#include <QComboBox>
 
 const static int MAXIMUM_VOLUME = 150;
 

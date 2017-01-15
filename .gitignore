@@ -59,3 +59,5 @@ cmake-build-debug/
 
 *.db
 *.db-journal
+*.ini
+*.iml

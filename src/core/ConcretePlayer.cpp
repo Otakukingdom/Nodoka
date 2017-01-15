@@ -8,8 +8,6 @@
 #include "ConcretePlayer.h"
 #include <QTextCodec>
 #include <iostream>
-#include <QFile>
-#include <cstdio>
 
 
 Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
