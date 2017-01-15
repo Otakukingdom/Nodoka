@@ -54,6 +54,7 @@ CTestTestfile.cmake
 
 cmake-build-debug/
 cmake-build-release/
+plugins/plugins.dat
 
 *.exe
 *.cbp
