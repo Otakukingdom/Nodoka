@@ -20,6 +20,9 @@ SettingsForm::~SettingsForm() {
 }
 
 void SettingsForm::setup() {
+    QFont font = QFont("Cabin", 11, 1);
+    this->setFont(font);
+
     connect(this->ui->addDirectoryButton, &QPushButton::clicked, this, &SettingsForm::performAddDirectory);
     connect(this->ui->removeDirectoryButton, &QPushButton::clicked, this, &SettingsForm::performRemoveDirectory);
     connect(this->ui->closeButton, &QPushButton::clicked, this, &SettingsForm::performClose);

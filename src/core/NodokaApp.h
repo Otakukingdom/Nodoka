@@ -9,6 +9,7 @@
 #include "ConcretePlayer.h"
 #include "PlayerEventHandler.h"
 #include "Setting.h"
+#include <QFontDatabase>
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
 #include <src/model/AudiobookFile.h>

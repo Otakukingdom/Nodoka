@@ -10,5 +10,9 @@
         <file>icons/app/Entypo_d83d(0)_512.png</file>
         <file>icons/app/linecons_e00a(0)_256.png</file>
         <file>icons/app/linecons_e00a(0)_512.png</file>
+
+        <file alias="Cabin.ttf">font/Cabin-Regular.ttf</file>
+        <file alias="CabinM.ttf">font/Cabin-Medium.ttf</file>
+        <file alias="CabinB.ttf">font/Cabin-Bold.ttf</file>
     </qresource>
 </RCC>

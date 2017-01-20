@@ -37,6 +37,11 @@ MainWindow::MainWindow(Directory* directoryModel,
 void MainWindow::setup() {
     this->setWindowTitle("Nodoka");
 
+    // set the font
+    QFont font = QFont("Cabin", 11, 1);
+    this->setFont(font);
+
+
     // populate the speed combo box
     this->populateSpeedChoose();
 

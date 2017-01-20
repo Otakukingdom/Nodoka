@@ -7,6 +7,9 @@
 #include "PlayerEventHandler.h"
 
 Core::NodokaApp::NodokaApp() {
+    // load fonts
+    QFontDatabase::addApplicationFont(":Cabin.ttf");
+
     // we need this to read settings
     this->setting = new Setting();
 
