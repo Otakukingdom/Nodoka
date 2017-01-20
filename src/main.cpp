@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG");
+    RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG ver0.0.2");
 
     qDebug() << "Starting in debug mode";
 

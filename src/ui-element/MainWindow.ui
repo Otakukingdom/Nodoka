@@ -17,6 +17,9 @@
    <iconset resource="../../icons.qrc">
     <normaloff>:/icons/app/Entypo_d83d(0)_512.png</normaloff>:/icons/app/Entypo_d83d(0)_512.png</iconset>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>

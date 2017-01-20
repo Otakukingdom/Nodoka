@@ -6,9 +6,32 @@
 #include <QItemSelection>
 #include "PlayerEventHandler.h"
 
+const static char* MAINWINDOW_STYLE =
+"QMainWindow {"
+        "background-color: #fff;"
+        "font-family: \"Cabin Medium\";"
+        "font-size: 14px;"
+        "}"
+        ""
+        "QListView {"
+        "font-family: \"Raleway Medium\";"
+        "font-size: 14px;"
+        "}"
+        ""
+        "QMenuBar {"
+        "font-family: \"Cabin Medium\";"
+        "font-size: 14px;"
+        "padding-bottom: 4px;"
+        "}"
+        ""
+        "QMenuBar::item {"
+        "font-family: \"Cabin Medium\";"
+        "}"
+;
+
 Core::NodokaApp::NodokaApp() {
     // load fonts
-    QFontDatabase::addApplicationFont(":Cabin.ttf");
+    QFontDatabase::addApplicationFont(":CabinM.ttf");
 
     // we need this to read settings
     this->setting = new Setting();
@@ -40,6 +63,9 @@ void Core::NodokaApp::start() {
 }
 
 void Core::NodokaApp::setup() {
+    // set the stylesheet
+    this->mainWindow->setStyleSheet(MAINWINDOW_STYLE);
+
     // set up the listeners for the directory add/remove
     connect(this->directoryModel, &Directory::directoryAdded,
             this->directoryHandler, &DirectoryHandler::handleDirectoryAdded);

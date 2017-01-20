@@ -38,7 +38,7 @@ void MainWindow::setup() {
     this->setWindowTitle("Nodoka");
 
     // set the font
-    QFont font = QFont("Cabin", 11, 1);
+    QFont font = QFont("Cabin", 10, 1);
     this->setFont(font);
 
 
