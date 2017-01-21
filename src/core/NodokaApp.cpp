@@ -12,6 +12,8 @@ Core::NodokaApp::NodokaApp() {
     QFontDatabase::addApplicationFont(":CabinB.ttf");
     QFontDatabase::addApplicationFont(":RalewayM.ttf");
 
+    QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
+
     // we need this to read settings
     this->setting = new Setting();
 

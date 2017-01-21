@@ -52,6 +52,7 @@ void MainWindow::setup() {
     auto audiobookListDelegate = new AudiobookListDelegate(AB_ITEM_STYLESHEET);
     this->ui->audiobookView->setModel(this->audiobookModel);
     this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
+    this->ui->audiobookView->setStyleSheet(LIST_VIEW_STYLESHEET);
 
 
     // connect the audiobook view events to the file selector view
@@ -105,6 +106,7 @@ void MainWindow::setup() {
             });
 
     this->ui->fileView->setModel(this->fileDisplayModel);
+    this->ui->fileView->setStyleSheet(LIST_VIEW_STYLESHEET);
 
     // connect file selector view to concrete player
     connect(this->ui->fileView, &QListView::doubleClicked,

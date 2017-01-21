@@ -17,6 +17,7 @@ void AudiobookListDelegate::paint(QPainter *painter,
     if(this->styleSheet != "") {
         doc.setDefaultStyleSheet(this->styleSheet);
     }
+
     QTextOption textOption = doc.defaultTextOption();
     textOption.setWrapMode(QTextOption::WordWrap);
     doc.setDefaultTextOption(textOption);
@@ -30,8 +31,12 @@ void AudiobookListDelegate::paint(QPainter *painter,
     QAbstractTextDocumentLayout::PaintContext ctx;
 
     // Highlighting text if item is selected
-    if (optionV4.state & QStyle::State_Selected)
+    if (optionV4.state & QStyle::State_Selected) {
         ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::HighlightedText));
+    } else {
+        ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::WindowText));
+    }
+
 
     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4);
     painter->save();
