@@ -2,6 +2,7 @@
 // Created by mistlight on 12/22/2016.
 //
 
+#include <src/model/AudiobookListDelegate.h>
 #include "MainWindow.h"
 
 const static int MAXIMUM_VOLUME = 150;
@@ -48,7 +49,9 @@ void MainWindow::setup() {
     connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 
     // set up the audobook view
+    auto audiobookListDelegate = new AudiobookListDelegate();
     this->ui->audiobookView->setModel(this->audiobookModel);
+    this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
 
 
     // connect the audiobook view events to the file selector view

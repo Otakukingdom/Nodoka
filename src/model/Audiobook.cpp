@@ -81,7 +81,9 @@ void Audiobook::removeAudiobook(QSqlRecord record) {
 
 QVariant Audiobook::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
-        return this->record(index.row()).value("name");
+        auto label = this->record(index.row()).value("name").toString();
+        label += "\nsecond line";
+        return label;
     }
 
     return QSqlTableModel::data(index, role);
