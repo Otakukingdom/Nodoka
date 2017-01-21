@@ -35,6 +35,7 @@ void AudiobookListDelegate::paint(QPainter *painter,
 
     QAbstractTextDocumentLayout::PaintContext ctx;
 
+
     // Highlighting text if item is selected
     if (optionV4.state & QStyle::State_Selected) {
         ctx.palette.setColor(QPalette::Text, HIGHLIGHTED_FOREGROUND);

@@ -106,6 +106,12 @@ const static char* LIST_VIEW_STYLESHEET = ""
         "QListView::item:hover {"
         "background-color: #5b7d87;"
         "}"
+        ""
+        "QAbstractScrollArea {"
+        "background-color: #91b3bc;"
+        "color: #2b4251;"
+        "}"
+        ""
 ;
 
 // Stylesheet string to be used in the File list view
