@@ -64,6 +64,7 @@ public:
     void populateSpeedChoose();
     void setSpeed(QString speed);
 
+
 public slots:
     void audiobookFileStateUpdated(AudiobookFileProxy abFile);
     void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
@@ -71,12 +72,8 @@ public slots:
 
 };
 
-
 // Stylesheet string to be used in the Audiobook list view
 const static char* AB_ITEM_STYLESHEET = ""
-;
-
-const static char* LIST_VIEW_STYLESHEET = ""
         "div {"
         "padding: 3px 5px 3px 5px;"
         "font-family: \"Cabin Medium\";"
@@ -87,25 +84,23 @@ const static char* LIST_VIEW_STYLESHEET = ""
         "font-size: 14px;"
         "font-weight: bold;"
         "}"
-        ""
-        "QListView#audiobookView, QListView {"
+;
+
+const static char* LIST_VIEW_STYLESHEET = ""
+        "QListView {"
         "font-family: \"Raleway Medium\";"
         "font-size: 14px;"
         "border: 0px solid #38302e;"
         "background-color: #91b3bc;"
-        "selection-background-color: #3e3e3b;"
-        "selection-color: #fff;"
         "color: #2d3142;"
         "}"
         ""
-        "QListView#audiobookView::item:selected {"
+        "QListView::item:selected {"
         "background-color: #3e3e3b;"
-        "color: #fff;"
         "}"
         ""
-        "QListView#audiobookView::item:selected:active {"
+        "QListView::item:selected:active {"
         "background-color: #3e3e3b;"
-        "color: #fff;"
         "}"
         ""
         "QListView::item:hover {"

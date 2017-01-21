@@ -3,6 +3,8 @@
 
 #include "AudiobookListDelegate.h"
 
+const static QColor HIGHLIGHTED_FOREGROUND = QColor("#d3d0cb");
+
 void AudiobookListDelegate::paint(QPainter *painter,
                                   const QStyleOptionViewItem &option,
                                   const QModelIndex &index) const {
@@ -32,7 +34,7 @@ void AudiobookListDelegate::paint(QPainter *painter,
 
     // Highlighting text if item is selected
     if (optionV4.state & QStyle::State_Selected) {
-        ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::HighlightedText));
+        ctx.palette.setColor(QPalette::Text, HIGHLIGHTED_FOREGROUND);
     } else {
         ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::WindowText));
     }
