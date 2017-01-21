@@ -15,6 +15,8 @@
 #include <src/core/ConcretePlayer.h>
 #include <src/core/Setting.h>
 #include <QComboBox>
+#include <QTreeWidget>
+#include <QStandardItemModel>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 

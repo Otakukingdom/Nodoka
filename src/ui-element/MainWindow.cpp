@@ -20,9 +20,6 @@ MainWindow::MainWindow(Directory* directoryModel,
     // we will need this reference so FileList can make direct reference to it
     this->concretePlayer = player;
 
-    // a hack so the menu shows up on mac
-    ui->menubar->setNativeMenuBar(false);
-
     // set the model
     this->directoryModel = directoryModel;
     this->audiobookModel = audiobookModel;
@@ -33,6 +30,7 @@ MainWindow::MainWindow(Directory* directoryModel,
 
     this->setup();
 }
+
 
 void MainWindow::setup() {
     this->setWindowTitle("Nodoka");
