@@ -72,4 +72,9 @@ public slots:
 };
 
 
+const static char* AB_ITEM_STYLESHEET = ""
+".item {"
+        "font-family: \"Cabin Medium\""
+        "}";
+
 #endif //NODOKANATIVE_MAINWINDOW_H

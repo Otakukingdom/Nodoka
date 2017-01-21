@@ -12,11 +12,16 @@ void AudiobookListDelegate::paint(QPainter *painter,
     QStyle *style = optionV4.widget? optionV4.widget->style() : QApplication::style();
 
     QTextDocument doc;
+    // if we don't have an empty string, then set the style sheet
+    // for the QTextDocument
+    if(this->styleSheet != "") {
+        doc.setDefaultStyleSheet(this->styleSheet);
+    }
     doc.setHtml(optionV4.text);
 
     /// Painting item without text
     optionV4.text = QString();
-    style->drawControl(QStyle::CE_ItemViewItem, &optionV4, painter);
+    style->drawControl(QStyle::CE_ItemViewItem, &optionV4, painter, optionV4.widget);
 
     QAbstractTextDocumentLayout::PaintContext ctx;
 
@@ -42,3 +47,11 @@ QSize AudiobookListDelegate::sizeHint(const QStyleOptionViewItem &option,
     doc.setTextWidth(optionV4.rect.width());
     return QSize(doc.idealWidth(), doc.size().height());
 ;}
+
+AudiobookListDelegate::AudiobookListDelegate(QString styleSheet) {
+    this->styleSheet = styleSheet;
+}
+
+AudiobookListDelegate::AudiobookListDelegate() {
+    this->styleSheet = "";
+}

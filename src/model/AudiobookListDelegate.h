@@ -11,6 +11,12 @@
 #include <QAbstractTextDocumentLayout>
 
 class AudiobookListDelegate: public QStyledItemDelegate {
+private:
+    QString styleSheet;
+
+public:
+    AudiobookListDelegate();
+    AudiobookListDelegate(QString styleSheet);
 
 protected:
     void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;

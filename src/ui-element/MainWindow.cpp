@@ -49,7 +49,7 @@ void MainWindow::setup() {
     connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 
     // set up the audobook view
-    auto audiobookListDelegate = new AudiobookListDelegate();
+    auto audiobookListDelegate = new AudiobookListDelegate(AB_ITEM_STYLESHEET);
     this->ui->audiobookView->setModel(this->audiobookModel);
     this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
 
