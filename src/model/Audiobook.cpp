@@ -81,9 +81,16 @@ void Audiobook::removeAudiobook(QSqlRecord record) {
 
 QVariant Audiobook::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
-        auto label = "<div class=\"item\"><span id=\"name\">" +
-                this->record(index.row()).value("name").toString() +
-                "</span></div>";
+        auto currentRecord = this->record(index.row());
+        auto name = currentRecord.value("name").toString();
+        auto progress = currentRecord.value("completeness").toString();
+
+        auto label = "<div class=\"item\"><span class=\"name\">" +
+                name +
+                "</span><br>" +
+                "<span class=\"progress\">Progress: " + progress + "% </span>" +
+                "</div>"
+        ;
         return label;
     }
 

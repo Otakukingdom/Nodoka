@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QAbstractTextDocumentLayout>
+#include <QTextOption>
 
 class AudiobookListDelegate: public QStyledItemDelegate {
 private:

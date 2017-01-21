@@ -9,6 +9,8 @@
 Core::NodokaApp::NodokaApp() {
     // load fonts
     QFontDatabase::addApplicationFont(":CabinM.ttf");
+    QFontDatabase::addApplicationFont(":CabinB.ttf");
+    QFontDatabase::addApplicationFont(":RalewayM.ttf");
 
     // we need this to read settings
     this->setting = new Setting();

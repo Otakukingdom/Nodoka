@@ -72,9 +72,21 @@ public slots:
 };
 
 
+// Stylesheet string to be used in the Audiobook list view
 const static char* AB_ITEM_STYLESHEET = ""
-".item {"
-        "font-family: \"Cabin Medium\""
-        "}";
+"div.item {"
+        "padding: 3px 5px 3px 5px;"
+        "font-family: \"Cabin Medium\";"
+        "}"
+        ""
+        "span.name {"
+        "font-family: \"Cabin Bold\";"
+        "font-size: 14px;"
+        "font-weight: bold;"
+        "}"
+        "";
+
+// Stylesheet string to be used in the File list view
+const static char* FILE_ITEM_STYLESHEET = "";
 
 #endif //NODOKANATIVE_MAINWINDOW_H

@@ -17,7 +17,11 @@ void AudiobookListDelegate::paint(QPainter *painter,
     if(this->styleSheet != "") {
         doc.setDefaultStyleSheet(this->styleSheet);
     }
+    QTextOption textOption = doc.defaultTextOption();
+    textOption.setWrapMode(QTextOption::WordWrap);
+    doc.setDefaultTextOption(textOption);
     doc.setHtml(optionV4.text);
+    doc.setTextWidth(optionV4.rect.width());
 
     /// Painting item without text
     optionV4.text = QString();
@@ -43,6 +47,9 @@ QSize AudiobookListDelegate::sizeHint(const QStyleOptionViewItem &option,
     initStyleOption(&optionV4, index);
 
     QTextDocument doc;
+    if(this->styleSheet != "") {
+        doc.setDefaultStyleSheet(this->styleSheet);
+    }
     doc.setHtml(optionV4.text);
     doc.setTextWidth(optionV4.rect.width());
     return QSize(doc.idealWidth(), doc.size().height());
