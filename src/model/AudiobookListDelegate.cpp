@@ -63,7 +63,7 @@ QSize AudiobookListDelegate::sizeHint(const QStyleOptionViewItem &option,
     doc.setHtml(optionV4.text);
     doc.setTextWidth(optionV4.rect.width());
     return QSize(doc.idealWidth(), doc.size().height());
-;}
+}
 
 AudiobookListDelegate::AudiobookListDelegate(QString styleSheet) {
     this->styleSheet = styleSheet;
