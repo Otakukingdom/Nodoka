@@ -125,6 +125,12 @@ const static char* LIST_VIEW_STYLESHEET = ""
         "color: #2b4251;"
         "}"
         ""
+        "QListView#audiobookView::item {"
+        "padding-top: 10px;"
+        "padding-bottom: 10px;"
+        "border-bottom: 1px solid #c0c0c0;"
+        "}"
+        ""
 ;
 
 // Stylesheet string to be used in the File list view

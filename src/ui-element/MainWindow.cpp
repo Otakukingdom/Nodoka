@@ -53,6 +53,7 @@ void MainWindow::setup() {
     this->ui->audiobookView->setModel(this->audiobookModel);
     this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
     this->ui->audiobookViewVertical->setStyleSheet(LIST_VIEW_STYLESHEET);
+    this->ui->audiobookView->setFocusPolicy(Qt::NoFocus);
 
 
     // connect the audiobook view events to the file selector view
@@ -110,6 +111,7 @@ void MainWindow::setup() {
     this->ui->fileView->setModel(this->fileDisplayModel);
     this->ui->fileView->setItemDelegate(fileListDelegate);
     this->ui->fileViewVertical->setStyleSheet(LIST_VIEW_STYLESHEET);
+    this->ui->fileView->setFocusPolicy(Qt::NoFocus);
 
     // connect file selector view to concrete player
     connect(this->ui->fileView, &QListView::doubleClicked,
