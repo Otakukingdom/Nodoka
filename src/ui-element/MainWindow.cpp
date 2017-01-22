@@ -230,12 +230,7 @@ void MainWindow::setCurrentTime(long long currentTime) {
     // update the progress slider
     this->ui->progressSlider->setValue(static_cast<int>(currentTime));
 
-    // update the label
-    QTime time(0, 0);
-    time = time.addMSecs(static_cast<int>(currentTime));
-    QString timeInFormat = time.toString("hh:mm:ss");
-
-    this->ui->timeLabel->setText(timeInFormat);
+    this->setLabel(this->ui->currentlyPlayingLabel, this->currentlyPlayingFile, currentTime);
 }
 
 // if there is an update with the AudiobookFile state, the Proxy file will be updated
@@ -319,13 +314,31 @@ void MainWindow::setSpeed(QString speed) {
     }
 }
 
-void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy) {
+void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy, long long currentTime) {
     QString text = "<div id=\"playing-label\">"
-            "<span style=\"font-weight: bold;\">Currently Playing:</span> ";
+            "<span style=\"font-weight: bold;\">Current File </span> ";
     if(proxy.getNullState()) {
         text += "<span style=\"font-style: italic;\">No File Loaded</span>";
     } else {
         text += "<span class=\"file-name\">" + proxy.name() +"</span>";
+    }
+
+    text += "<br>";
+
+    if(currentTime >= 0) {
+        // update the label
+        QTime time(0, 0);
+        time = time.addMSecs(static_cast<int>(currentTime));
+        QString timeInFormat = time.toString("hh:mm:ss");
+        text += "<span style=\"font-weight: bold;\">Time </span>";
+        text += "<span>";
+        text += timeInFormat;
+        text += "</span>";
+    } else {
+        text += "<span style=\"font-weight: bold;\">Time </span>";
+        text += "<span>";
+        text += "--:--:--";
+        text += "</span>";
     }
 
     text += "</div>";

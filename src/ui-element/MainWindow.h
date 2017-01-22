@@ -70,7 +70,9 @@ public slots:
     void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
     void playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime);
 
-    void setLabel(QLabel *pLabel, AudiobookFileProxy proxy = AudiobookFileProxy());
+    void setLabel(QLabel *pLabel,
+                  AudiobookFileProxy proxy = AudiobookFileProxy(),
+                  long long currentTime = -1);
 };
 
 // Stylesheet string to be used in the Audiobook list view
