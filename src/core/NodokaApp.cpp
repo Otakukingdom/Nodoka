@@ -12,6 +12,7 @@ Core::NodokaApp::NodokaApp() {
     QFontDatabase::addApplicationFont(":RobotoB.ttf");
     QFontDatabase::addApplicationFont(":RobotoR.ttf");
     QFontDatabase::addApplicationFont(":RobotoI.ttf");
+    QFontDatabase::addApplicationFont(":RobotoMonoR.ttf");
     QFontDatabase::addApplicationFont(":SourceB.ttf");
     QFontDatabase::addApplicationFont(":SourceR.ttf");
 

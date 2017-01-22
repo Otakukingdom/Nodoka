@@ -11,6 +11,7 @@
     <file>icons/app/linecons_e00a(0)_512.png</file>
     <file alias="SourceB.ttf">font/SourceSansPro-Bold.ttf</file>
     <file alias="SourceR.ttf">font/SourceSansPro-Regular.ttf</file>
+    <file alias="RobotoMonoR.ttf">font/RobotoMono-Regular.ttf</file>
     <file alias="RobotoI.ttf">font/Roboto-Italic.ttf</file>
     <file alias="RobotoB.ttf">font/Roboto-Bold.ttf</file>
     <file alias="RobotoR.ttf">font/Roboto-Regular.ttf</file>
