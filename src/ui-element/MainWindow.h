@@ -76,6 +76,7 @@ public slots:
 const static char* AB_ITEM_STYLESHEET = ""
         "div.item {"
         "font-family: \"Cabin Medium\";"
+        "margin-left: 20px;"
         "}"
         ""
         "span.name {"
@@ -92,7 +93,6 @@ const static char* LIST_VIEW_STYLESHEET = ""
         "border: 0px solid #38302e;"
         "background-color: #eee;"
         "color: #515151;"
-        "padding-left: 15px;"
         "}"
         ""
         "QWidget#fileViewVertical, QListView#fileView {"
@@ -124,6 +124,9 @@ const static char* LIST_VIEW_STYLESHEET = ""
 ;
 
 // Stylesheet string to be used in the File list view
-const static char* FILE_ITEM_STYLESHEET = "";
+const static char* FILE_ITEM_STYLESHEET = ""
+        "div.file-item {"
+        "margin-left: 20px;"
+        "}";
 
 #endif //NODOKANATIVE_MAINWINDOW_H

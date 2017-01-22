@@ -38,7 +38,10 @@ QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
                 value("completeness").toInt();
         auto completenessString = QString::number(comepleteness);
 
-        QString label = "(" + completenessString + ")" + name;
+        QString label = "<div class=\"file-item\"><span class=\"name\">" +
+                name + "</span><br />" +
+                "<span>" + completenessString +"% Completed </span>" +
+                "</div>";
 
         return label;
     }
