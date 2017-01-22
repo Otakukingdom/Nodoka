@@ -6,7 +6,7 @@
 // We need to set this manually because we can't easily set the QColor from stylesheets
 // when the item is selected in the ListView
 // I know.. it's a very sad hack indeed
-const static QColor HIGHLIGHTED_FOREGROUND = QColor("#d3d0cb");
+const static QColor HIGHLIGHTED_FOREGROUND = QColor("#eeeeee");
 
 void AudiobookListDelegate::paint(QPainter *painter,
                                   const QStyleOptionViewItem &option,
