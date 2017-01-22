@@ -70,17 +70,17 @@ public slots:
     void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
     void playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime);
 
+    void setLabel(QLabel *pLabel, AudiobookFileProxy proxy = AudiobookFileProxy());
 };
 
 // Stylesheet string to be used in the Audiobook list view
 const static char* AB_ITEM_STYLESHEET = ""
         "div.item {"
-        "font-family: \"Cabin Medium\";"
+        "font-family: \"Roboto\";"
         "margin-left: 20px;"
         "}"
         ""
         "span.name {"
-        "font-family: \"Cabin Bold\";"
         "font-size: 14px;"
         "font-weight: bold;"
         "}"
@@ -88,7 +88,6 @@ const static char* AB_ITEM_STYLESHEET = ""
 
 const static char* LIST_VIEW_STYLESHEET = ""
         "QWidget#audiobookViewVertical, QListView#audiobookView {"
-        "font-family: \"Raleway Medium\";"
         "font-size: 14px;"
         "border: 0px solid #38302e;"
         "background-color: #eee;"
@@ -96,7 +95,6 @@ const static char* LIST_VIEW_STYLESHEET = ""
         "}"
         ""
         "QWidget#fileViewVertical, QListView#fileView {"
-        "font-family: \"Raleway Medium\";"
         "border: 0px solid #38302e;"
         "background-color: #fff;"
         "color: #515151;"
@@ -127,6 +125,13 @@ const static char* LIST_VIEW_STYLESHEET = ""
 const static char* FILE_ITEM_STYLESHEET = ""
         "div.file-item {"
         "margin-left: 20px;"
-        "}";
+        "font-family: \"Roboto\""
+        "}"
+        ""
+        "span.name {"
+        "font-weight: bold;"
+        "}"
+        ""
+;
 
 #endif //NODOKANATIVE_MAINWINDOW_H

@@ -36,9 +36,9 @@ MainWindow::MainWindow(Directory* directoryModel,
 void MainWindow::setup() {
     this->setWindowTitle("Nodoka");
 
-    // set the font
-    QFont font = QFont("Cabin", 10, 1);
-    this->setFont(font);
+    // set the initial label
+    this->ui->currentlyPlayingLabel->setTextFormat(Qt::RichText);
+    this->setLabel(this->ui->currentlyPlayingLabel);
 
 
     // populate the speed combo box
@@ -206,8 +206,7 @@ void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
     this->setSelectedFile(file.path());
 
     if(this->currentlyPlayingFile.getNullState() == false) {
-        QString text = "Currently Playing: " + this->currentlyPlayingFile.name();
-        this->ui->currentlyPlayingLabel->setText(text);
+        setLabel(this->ui->currentlyPlayingLabel, this->currentlyPlayingFile);
     }
 
     // set the slider max value if we have a parsed duration
@@ -318,5 +317,19 @@ void MainWindow::setSpeed(QString speed) {
     if(index != -1) {
         this->ui->speedChooser->setCurrentIndex(index);
     }
+}
+
+void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy) {
+    QString text = "<div id=\"playing-label\">"
+            "<span style=\"font-weight: bold;\">Currently Playing:</span> ";
+    if(proxy.getNullState()) {
+        text += "<span style=\"font-style: italic;\">No File Loaded</span>";
+    } else {
+        text += "<span class=\"file-name\">" + proxy.name() +"</span>";
+    }
+
+    text += "</div>";
+
+    pLabel->setText(text);
 }
 

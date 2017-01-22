@@ -8,9 +8,12 @@
 
 Core::NodokaApp::NodokaApp() {
     // load fonts
-    QFontDatabase::addApplicationFont(":CabinM.ttf");
-    QFontDatabase::addApplicationFont(":CabinB.ttf");
-    QFontDatabase::addApplicationFont(":RalewayM.ttf");
+    QFontDatabase::addApplicationFont(":RobotoM.ttf");
+    QFontDatabase::addApplicationFont(":RobotoB.ttf");
+    QFontDatabase::addApplicationFont(":RobotoR.ttf");
+    QFontDatabase::addApplicationFont(":RobotoI.ttf");
+    QFontDatabase::addApplicationFont(":SourceB.ttf");
+    QFontDatabase::addApplicationFont(":SourceR.ttf");
 
     QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
 
