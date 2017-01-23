@@ -10,6 +10,9 @@
     <file>icons/app/linecons_e00a(0)_256.png</file>
     <file>icons/app/linecons_e00a(0)_512.png</file>
     <file>icons/misc/downarrow.png</file>
+    <file>icons/misc/volumedown.png</file>
+    <file>icons/misc/volumeup.png</file>
+    <file>icons/misc/speed.png</file>
     <file alias="SourceB.ttf">font/SourceSansPro-Bold.ttf</file>
     <file alias="SourceR.ttf">font/SourceSansPro-Regular.ttf</file>
     <file alias="RobotoMonoR.ttf">font/RobotoMono-Regular.ttf</file>
