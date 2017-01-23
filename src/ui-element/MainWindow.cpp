@@ -56,6 +56,26 @@ void MainWindow::menuSetup() {
                         QPoint(0, this->ui->abToolButton->height())));
     });
 
+
+    // set up context menu for audiobookView
+    this->ui->audiobookView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this->ui->audiobookView, &QWidget::customContextMenuRequested, [this](const QPoint &pos) {
+        // we first want to check if user clicked on an audiobook item
+        auto modelIndex = this->ui->audiobookView->indexAt(pos);
+        if(modelIndex.isValid()) {
+            QMenu menu(this);
+            menu.addAction("Reset read state");
+            menu.addAction("Mark as read");
+            menu.addAction("Rescan this Audiobook");
+            menu.addAction("Remove this Audiobook");
+            menu.exec(this->ui->audiobookView->mapToGlobal(pos));
+
+        } else {
+            // if the user clicked somewhere other than the audiobook item, there is nothing to show...
+            return;
+        }
+
+    });
 }
 
 
