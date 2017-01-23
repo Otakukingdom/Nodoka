@@ -131,3 +131,12 @@ QList<QString> Core::getAllFiles(std::shared_ptr<QDir> directory) {
 
     return filePaths;
 }
+
+void Core::ScanDirectoryTask::run() {
+    scanDirectory(this->record, this->audiobook);
+}
+
+Core::ScanDirectoryTask::ScanDirectoryTask(QSqlRecord directoryRecord, Audiobook *audiobook) {
+    this->record = directoryRecord;
+    this->audiobook = audiobook;
+}

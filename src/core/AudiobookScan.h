@@ -1,7 +1,9 @@
 #include <QtSql>
 #include <src/model/Audiobook.h>
 #include <src/model/AudiobookFile.h>
+#include <QRunnable>
 #include "Qt"
+
 
 /**
  * AudiobookScan is a collection of free functions, all designed to scan a directory and
@@ -15,4 +17,16 @@ namespace Core {
     bool isAudiobookFile(QString path, std::shared_ptr<QFile> file);
 
     QList<QString> getAllFiles(std::shared_ptr<QDir> directory);
+
+
+    class ScanDirectoryTask : public QRunnable {
+        QSqlRecord record;
+        Audiobook* audiobook;
+
+    public:
+        ScanDirectoryTask(QSqlRecord directoryRecord, Audiobook* audiobook);
+
+        void run();
+    };
+
 }

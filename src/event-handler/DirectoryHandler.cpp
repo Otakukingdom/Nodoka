@@ -12,7 +12,8 @@ DirectoryHandler::DirectoryHandler(Audiobook* audiobookModel, AudiobookFile* aud
 }
 
 void DirectoryHandler::handleDirectoryAdded(QSqlRecord record) {
-    Core::scanDirectory(record, this->audiobookModel);
+    auto task = new Core::ScanDirectoryTask(record, this->audiobookModel);
+    QThreadPool::globalInstance()->start(task);
 }
 
 void DirectoryHandler::handleDirectoryRemoved(QSqlRecord record) {

@@ -65,7 +65,11 @@ void AudiobookFileProxy::setAsCurrent() {
                        << query.lastError().driverText()
                        << ", " << query.lastError().databaseText();
         }
+
+        // set the current audiobook in the ini file
+        this->setting->setCurrentAudiobook(audiobookId);
     }
+
 }
 
 void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
