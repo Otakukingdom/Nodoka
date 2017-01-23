@@ -29,7 +29,33 @@ MainWindow::MainWindow(Directory* directoryModel,
     // initialize the settings form
     this->settingsForm = new SettingsForm(this->directoryModel);
 
+    this->menuSetup();
     this->setup();
+}
+
+void MainWindow::menuSetup() {
+    // create the actions we will use for the menu
+    QAction* settings = new QAction("Add/Remove Scanning Directories");
+    QAction* audiobookAdd = new QAction("Add an Audiobook");
+    QAction* rescan = new QAction("Rescan Directories");
+
+    // connect the actions to specific functions that will trigger its functionality
+    connect(settings, &QAction::triggered, this, &MainWindow::performSettings);
+    connect(rescan, &QAction::triggered, this, &MainWindow::performRescan);
+
+    // create the menu and add all of the actions
+    this->audiobookMenu = new QMenu("Audiobook Menu", this->ui->abToolButton);
+    this->audiobookMenu->addAction(audiobookAdd);
+    this->audiobookMenu->addAction(rescan);
+    this->audiobookMenu->addAction(settings);
+
+    // connect the menu
+    connect(this->ui->abToolButton, &QToolButton::clicked, [this]() {
+        this->audiobookMenu->exec(
+                this->ui->abToolButton->mapToGlobal(
+                        QPoint(0, this->ui->abToolButton->height())));
+    });
+
 }
 
 
@@ -44,9 +70,6 @@ void MainWindow::setup() {
     // populate the speed combo box
     this->populateSpeedChoose();
 
-    // settings, exit...
-    connect(this->ui->actionExit, &QAction::triggered, this, &MainWindow::performExit);
-    connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 
     // set up the audobook view
     auto audiobookListDelegate = new AudiobookListDelegate(AB_ITEM_STYLESHEET, 20);
@@ -339,5 +362,10 @@ void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy, long long cu
     text += "</div>";
 
     pLabel->setText(text);
+}
+
+// TODO perform rescan of audiobooks
+void MainWindow::performRescan() {
+
 }
 

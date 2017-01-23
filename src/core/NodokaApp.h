@@ -178,6 +178,17 @@ const static char* MAINWINDOW_STYLE = "QMainWindow {"
         "background-color: #fff;"
         "border-radius: 15px;"
         "}"
+        ""
+        "QMenu {"
+        "font-family: \"Source Sans Pro\";"
+        "background-color:#858585;"
+        "color: #fff;"
+        "}"
+        ""
+        "QMenu:selected {"
+        "background-color:#FEDB53;"
+        "color: #000;"
+        "}"
 
 ;
 

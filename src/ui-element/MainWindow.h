@@ -6,6 +6,7 @@
 #define NODOKANATIVE_MAINWINDOW_H
 
 
+#include <QMenu>
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
 #include <QAbstractItemView>
@@ -36,11 +37,16 @@ private:
 
     Core::Setting* settings;
 
+    //menus
+    QMenu* audiobookMenu;
+
     // logical states
     bool isPlaying;
     AudiobookFileProxy currentlyPlayingFile;
     double currentTime;
     void setCurrentlyPlayingFile(AudiobookFileProxy file);
+
+
 
 public:
     MainWindow(Directory* directoryModel,
@@ -51,9 +57,11 @@ public:
     virtual ~MainWindow();
 
     void performSettings();
+    void performRescan();
     void performExit();
 
     // helper functions
+    void menuSetup();
     void setup();
     void loadCurrentAudiobookIfExists();
 
