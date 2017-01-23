@@ -49,7 +49,7 @@ void MainWindow::setup() {
     connect(this->ui->actionSettings, &QAction::triggered, this, &MainWindow::performSettings);
 
     // set up the audobook view
-    auto audiobookListDelegate = new AudiobookListDelegate(AB_ITEM_STYLESHEET);
+    auto audiobookListDelegate = new AudiobookListDelegate(AB_ITEM_STYLESHEET, 20);
     this->ui->audiobookView->setModel(this->audiobookModel);
     this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
     this->ui->audiobookViewVertical->setStyleSheet(LIST_VIEW_STYLESHEET);
@@ -107,7 +107,7 @@ void MainWindow::setup() {
             });
 
     // set up fileView
-    auto fileListDelegate = new AudiobookListDelegate(FILE_ITEM_STYLESHEET);
+    auto fileListDelegate = new AudiobookListDelegate(FILE_ITEM_STYLESHEET, 10);
     this->ui->fileView->setModel(this->fileDisplayModel);
     this->ui->fileView->setItemDelegate(fileListDelegate);
     this->ui->fileViewVertical->setStyleSheet(LIST_VIEW_STYLESHEET);
@@ -317,12 +317,11 @@ void MainWindow::setSpeed(QString speed) {
 }
 
 void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy, long long currentTime) {
-    QString text = "<div id=\"playing-label\">"
-            "<span style=\"font-weight: bold;\">Current File </span> ";
+    QString text = "<div id=\"playing-label\">";
     if(proxy.getNullState()) {
-        text += "<span style=\"font-style: italic;\">No File Loaded</span>";
+        text += "<span style=\"font-size: 15px; font-style: italic;\">No File Loaded</span>";
     } else {
-        text += "<span class=\"file-name\">" + proxy.name() +"</span>";
+        text += "<span style=\"font-size: 15px; font-weight: bold;\">" + proxy.name() +"</span>";
     }
 
     text += "<br>";
@@ -332,14 +331,8 @@ void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy, long long cu
         QTime time(0, 0);
         time = time.addMSecs(static_cast<int>(currentTime));
         QString timeInFormat = time.toString("hh:mm:ss");
-        text += "<span style=\"font-weight: bold;\">Time </span>";
         text += "<span>";
         text += timeInFormat;
-        text += "</span>";
-    } else {
-        text += "<span style=\"font-weight: bold;\">Time </span>";
-        text += "<span>";
-        text += "--:--:--";
         text += "</span>";
     }
 

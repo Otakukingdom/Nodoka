@@ -219,6 +219,12 @@
          </item>
          <item>
           <widget class="QSlider" name="volumeSlider">
+           <property name="maximumSize">
+            <size>
+             <width>250</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>

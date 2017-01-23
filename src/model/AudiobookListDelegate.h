@@ -14,10 +14,11 @@
 class AudiobookListDelegate: public QStyledItemDelegate {
 private:
     QString styleSheet;
+    int extraPadding;
 
 public:
     AudiobookListDelegate();
-    AudiobookListDelegate(QString styleSheet);
+    AudiobookListDelegate(QString styleSheet, int extraPadding = 0);
 
 protected:
     void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;

@@ -8,6 +8,8 @@
 // I know.. it's a very sad hack indeed
 const static QColor HIGHLIGHTED_FOREGROUND = QColor("#eeeeee");
 
+const static int HEIGHT_EXTRA_PADDING = 20;
+
 void AudiobookListDelegate::paint(QPainter *painter,
                                   const QStyleOptionViewItem &option,
                                   const QModelIndex &index) const {
@@ -44,7 +46,7 @@ void AudiobookListDelegate::paint(QPainter *painter,
     }
 
 
-    QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4);
+    QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4, optionV4.widget);
     painter->save();
     painter->translate(textRect.topLeft());
     painter->setClipRect(textRect.translated(-textRect.topLeft()));
@@ -63,13 +65,14 @@ QSize AudiobookListDelegate::sizeHint(const QStyleOptionViewItem &option,
     }
     doc.setHtml(optionV4.text);
     doc.setTextWidth(optionV4.rect.width());
-    return QSize(doc.idealWidth(), doc.size().height());
+    return QSize(doc.idealWidth(), doc.size().height() + this->extraPadding);
 }
 
-AudiobookListDelegate::AudiobookListDelegate(QString styleSheet) {
+AudiobookListDelegate::AudiobookListDelegate(QString styleSheet, int extraPadding) {
     this->styleSheet = styleSheet;
+    this->extraPadding = extraPadding;
 }
 
 AudiobookListDelegate::AudiobookListDelegate() {
-    this->styleSheet = "";
+    AudiobookListDelegate("");
 }
