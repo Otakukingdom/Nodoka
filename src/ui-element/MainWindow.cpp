@@ -283,6 +283,9 @@ void MainWindow::setCurrentTime(long long currentTime) {
     this->ui->progressSlider->setValue(static_cast<int>(currentTime));
 
     this->setLabel(this->ui->currentlyPlayingLabel, this->currentlyPlayingFile, currentTime);
+
+    // tell the file list view to update as well...
+    this->ui->fileView->update();
 }
 
 // if there is an update with the AudiobookFile state, the Proxy file will be updated
