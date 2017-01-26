@@ -3,6 +3,7 @@
 //
 
 #include <src/model/AudiobookListDelegate.h>
+#include <src/model/ProxyManager.h>
 #include "MainWindow.h"
 
 const static int MAXIMUM_VOLUME = 150;
@@ -11,6 +12,7 @@ MainWindow::MainWindow(Directory* directoryModel,
                        Audiobook* audiobookModel,
                        Core::ConcretePlayer* player,
                        Core::Setting* setting,
+                       std::shared_ptr<ProxyManager> manager,
                        QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
@@ -24,7 +26,8 @@ MainWindow::MainWindow(Directory* directoryModel,
     // set the model
     this->directoryModel = directoryModel;
     this->audiobookModel = audiobookModel;
-    this->fileDisplayModel = new FileDisplayModel(this);
+
+    this->fileDisplayModel = new FileDisplayModel(manager, this);
 
     // initialize the settings form
     this->settingsForm = new SettingsForm(this->directoryModel);

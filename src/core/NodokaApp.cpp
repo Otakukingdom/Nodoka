@@ -21,19 +21,22 @@ Core::NodokaApp::NodokaApp() {
     // we need this to read settings
     this->setting = new Setting();
 
+    this->proxyManager = std::shared_ptr<ProxyManager>(new ProxyManager(this->setting));
+
     // initialize db backed models
     this->directoryModel = new Directory();
     this->audiobookFileModel = new AudiobookFile();
     this->audiobookModel = new Audiobook(this->audiobookFileModel);
 
     // initialize player, which will initialize vlc backend related items
-    this->player = new Core::ConcretePlayer(this->setting);
+    this->player = new Core::ConcretePlayer(this->setting, this->proxyManager);
 
     // initialize the ui
     this->mainWindow = new MainWindow(this->directoryModel,
                                       this->audiobookModel,
                                       this->player,
-                                      this->setting);
+                                      this->setting,
+                                      this->proxyManager);
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);

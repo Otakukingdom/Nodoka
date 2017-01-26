@@ -10,9 +10,10 @@
 #include <iostream>
 
 
-Core::ConcretePlayer::ConcretePlayer(Setting* setting) {
+Core::ConcretePlayer::ConcretePlayer(Setting* setting, std::shared_ptr<ProxyManager> manager) {
     // load settings
     this->setting = setting;
+    this->proxyManager = manager;
 
     // init volume and speed based on the settings file
     this->volume = setting->getVolume();
@@ -54,7 +55,7 @@ void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
         return;
     }
 
-    this->audiobookFileProxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy(record, this->setting));
+    this->audiobookFileProxy = this->proxyManager->getAudiobookFileProxy(record);
     this->currentPath = audiobookFileProxy->path();
 
     auto path =  this->currentPath;

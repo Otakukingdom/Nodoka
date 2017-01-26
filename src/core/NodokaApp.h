@@ -28,6 +28,7 @@ namespace Core {
         Audiobook* audiobookModel;
         AudiobookFile* audiobookFileModel;
         Setting* setting;
+        std::shared_ptr<ProxyManager> proxyManager;
 
         PlayerEventHandler* playerEventHandler;
 

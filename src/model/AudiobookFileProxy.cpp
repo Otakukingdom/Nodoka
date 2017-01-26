@@ -113,6 +113,7 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
     this->currentFileSetting->setValue("currentTime", currentTime);
     if(completeness) {
         this->currentFileSetting->setValue("completeness", calcCompleteness);
+        qDebug() << "Completeness set as " << calcCompleteness;
     }
 }
 

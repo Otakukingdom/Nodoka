@@ -8,13 +8,17 @@
 #include <QSqlIndex>
 #include "FileDisplayModel.h"
 
-FileDisplayModel::FileDisplayModel(QObject *parent) : QSqlTableModel(parent) {
+
+FileDisplayModel::FileDisplayModel(std::shared_ptr<ProxyManager> manager, QObject *parent) : QSqlTableModel(parent) {
+    this->manager = manager;
     this->setTable("audiobook_file");
+
     auto key = this->primaryKey();
     key.setName("full_path");
     key.setCursorName("full_path");
     this->setPrimaryKey(key);
     this->hasFilter = false;
+
 }
 
 void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
@@ -32,10 +36,12 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
 
 QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
+        auto currentRecord = this->record(index.row());
+        auto proxyEntry = this->manager->getAudiobookFileProxy(currentRecord);
+
         auto name = this->record(index.row()).
                 value("name").toString();
-        auto comepleteness = this->record(index.row()).
-                value("completeness").toInt();
+        auto comepleteness = proxyEntry->getCompleteness();
         auto completenessString = QString::number(comepleteness);
 
         QString label = "<div class=\"file-item\"><span class=\"name\">" +

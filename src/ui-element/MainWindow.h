@@ -53,6 +53,7 @@ public:
                Audiobook* audiobookModel,
                Core::ConcretePlayer* concretePlayer,
                Core::Setting* setting,
+               std::shared_ptr<ProxyManager> manager,
                QWidget *parent = 0);
     virtual ~MainWindow();
 

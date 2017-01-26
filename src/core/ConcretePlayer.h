@@ -12,6 +12,7 @@
 #include "vlc/vlc.h"
 #include "Setting.h"
 #include <QFile>
+#include <src/model/ProxyManager.h>
 
 namespace Core {
     class ConcretePlayer : public QObject {
@@ -21,6 +22,7 @@ namespace Core {
 
         // outside dependency
         Setting* setting;
+        std::shared_ptr<ProxyManager> proxyManager;
 
         // state
         std::shared_ptr<AudiobookFileProxy> audiobookFileProxy;
@@ -56,7 +58,7 @@ namespace Core {
         static void handleFinished(const struct libvlc_event_t* event, void* data);
 
     public:
-        ConcretePlayer(Setting* setting);
+        ConcretePlayer(Setting* setting, std::shared_ptr<ProxyManager> manager);
         ~ConcretePlayer();
         std::shared_ptr<AudiobookFileProxy> getAudiobookFile();
         libvlc_state_t getCurrentState();
