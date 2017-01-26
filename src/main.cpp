@@ -8,6 +8,10 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    app.setOrganizationName("Otakukingdom Co");
+    app.setOrganizationDomain("nodoka.otakukingdom.com");
+    app.setApplicationName("Nodoka");
+
     RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG ver0.0.2a");
 
     qDebug() << "Starting in debug mode";

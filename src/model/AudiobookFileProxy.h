@@ -9,6 +9,7 @@
 #include <QSqlRecord>
 #include <QSqlQuery>
 #include <QVariant>
+#include <QHash>
 #include <src/core/Setting.h>
 #include "MediaProperty.h"
 

@@ -16,6 +16,7 @@ namespace Core {
     public:
         Setting();
 
+
         int getVolume();
         int getCurrentAudiobookId();
         QString getSpeed();

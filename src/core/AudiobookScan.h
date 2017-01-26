@@ -3,6 +3,7 @@
 #include <src/model/AudiobookFile.h>
 #include <QRunnable>
 #include "Qt"
+#include <QProgressDialog>
 
 
 /**
