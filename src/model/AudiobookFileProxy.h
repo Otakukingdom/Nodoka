@@ -10,10 +10,14 @@
 #include <QSqlQuery>
 #include <QVariant>
 #include <QHash>
+#include <QSharedPointer>
 #include <src/core/Setting.h>
 #include "MediaProperty.h"
+#include <QSettings>
+#include <memory>
 
 class AudiobookFileProxy {
+    QSharedPointer<QSettings> currentFileSetting;
     Core::Setting* setting;
     QSqlRecord record;
     bool isNull;

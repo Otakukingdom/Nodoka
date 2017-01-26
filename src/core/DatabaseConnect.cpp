@@ -7,10 +7,20 @@
 #include <QSqlError>
 #include <QtWidgets/QMessageBox>
 #include "DatabaseConnect.h"
+#include "Util.h"
+#include <Qdir>
+#include <QDebug>
 
 bool ::Core::openDb() {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("nodoka.db");
+
+    // ensure the path gets created for settings, if not already exists
+    createSettingPathIfNotExists();
+
+    auto dbFilePath = QDir(getSettingPath() + "/nodoka.db").absolutePath();
+    db.setDatabaseName(dbFilePath);
+
+    qDebug() << "db file set to: " << dbFilePath;
 
     if(!db.open()) {
         return false;

@@ -5,11 +5,23 @@
 #include "AudiobookFileProxy.h"
 #include <QSqlError>
 #include <QDebug>
+#include <src/core/Util.h>
 
 AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting) {
     this->record = record;
     this->setting = setting;
     this->isNull = false;
+
+    auto path = this->path();
+    // if we have an empty path, it's not a valid AudiobookFile record...
+    if(path == "") {
+        this->isNull;
+        return;
+    }
+
+    auto pathToSettings = Core::getUniqueSettingPath(path);
+
+    this->currentFileSetting = QSharedPointer<QSettings>(new QSettings(pathToSettings, QSettings::IniFormat));
 }
 
 AudiobookFileProxy::AudiobookFileProxy() {
@@ -31,6 +43,18 @@ QString AudiobookFileProxy::name() {
 
 void AudiobookFileProxy::setProperty(MediaProperty property) {
     this->mediaProperty = property;
+
+    // once media property is set, check if there is elements where we
+    // can start writing to the file storage
+    if(this->mediaProperty.isNullObject()) {
+        // if the media property is null, we don't have to do anything
+        return;
+    }
+
+    auto currentDuration = this->getMediaDuration();
+    if(currentDuration > 0) {
+        this->currentFileSetting->setValue("duration", currentDuration);
+    }
 }
 
 long long AudiobookFileProxy::getMediaDuration() {
@@ -69,7 +93,6 @@ void AudiobookFileProxy::setAsCurrent() {
         // set the current audiobook in the ini file
         this->setting->setCurrentAudiobook(audiobookId);
     }
-
 }
 
 void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
@@ -87,79 +110,18 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
         }
     }
 
-    if(completeness){
-        QString queryString = "UPDATE audiobook_file SET seek_position=?,completeness=? WHERE full_path=?";
-        QSqlQuery query;
-        query.prepare(queryString);
-        query.addBindValue(currentTime);
-        query.addBindValue(calcCompleteness);
-        query.addBindValue(path);
-
-        if(!query.exec()) {
-            qWarning() << "audiobook save currentTime failed: "
-                       << query.lastError().driverText()
-                       << ", " << query.lastError().databaseText();
-        }
-    } else {
-        QString queryString = "UPDATE audiobook_file SET seek_position=? WHERE full_path=?";
-        QSqlQuery query;
-        query.prepare(queryString);
-        query.addBindValue(currentTime);
-        query.addBindValue(path);
-
-        if(!query.exec()) {
-            qWarning() << "audiobook save currentTime failed: "
-                       << query.lastError().driverText()
-                       << ", " << query.lastError().databaseText();
-        }
+    this->currentFileSetting->setValue("currentTime", currentTime);
+    if(completeness) {
+        this->currentFileSetting->setValue("completeness", calcCompleteness);
     }
-
 }
 
 long long AudiobookFileProxy::getCurrentTime() {
-    auto path = this->record.value("full_path").toString();
-    QString queryString = "SELECT full_path, seek_position FROM audiobook_file WHERE full_path=?";
-    QSqlQuery query;
-    query.prepare(queryString);
-    query.addBindValue(path);
-
-    if(!query.exec()) {
-        qWarning() << "audiobook retrieve currentTime failed: "
-                   << query.lastError().driverText()
-                   << ", " << query.lastError().databaseText();
-        return -1;
-    }
-
-    if(query.next())  {
-        auto result = query.record();
-        return result.value("seek_position").toInt();
-    } else {
-        qWarning() << "audiobook retrieve currentTime failed: (no result)";
-        return -1;
-    }
+    return this->currentFileSetting->value("currentTime").toLongLong();
 }
 
 bool AudiobookFileProxy::currentTimeNull() {
-    auto path = this->record.value("full_path").toString();
-    QString queryString = "SELECT full_path, seek_position FROM audiobook_file WHERE full_path=?";
-    QSqlQuery query;
-    query.prepare(queryString);
-    query.addBindValue(path);
-
-    if(!query.exec()) {
-        qWarning() << "audiobook retrieve currentTime null state failed: "
-                   << query.lastError().driverText()
-                   << ", " << query.lastError().databaseText();
-        return true;
-    }
-
-    if(query.next())  {
-        auto result = query.record();
-        return result.value("seek_position").isNull();
-    } else {
-        qWarning() << "audiobook retrieve currentTime null state failed: (no result)";
-        return true;
-    }
+    return this->currentFileSetting->value("currentTime").isNull();
 }
 
 bool AudiobookFileProxy::hasNextFile() {
@@ -224,36 +186,9 @@ QSqlRecord AudiobookFileProxy::getRecord() {
 }
 
 int AudiobookFileProxy::getCompleteness() {
-    int audiobookId = this->record.value("audiobook_id").toInt();
-
-    QString queryString = "SELECT completeness FROM audiobook_file WHERE full_path=?";
-    QSqlQuery query;
-    query.prepare(queryString);
-    query.addBindValue(audiobookId);
-    if(!query.exec()) {
-        qWarning() << "audiobook retrieve completeness failed: "
-                   << query.lastError().driverText()
-                   << ", " << query.lastError().databaseText();
-        return -1;
-    }
-
-    if(query.next()) {
-        return query.record().value("completeness").toInt();
-    } else {
-        return -1;
-    }
+    return this->currentFileSetting->value("completeness").toInt();
 }
 
 void AudiobookFileProxy::setAsComplete() {
-    auto path = this->record.value("full_path").toString();
-
-    QString queryString = "UPDATE audiobook_file SET completeness=100 WHERE full_path=?";
-    QSqlQuery query;
-    query.prepare(queryString);
-    query.addBindValue(path);
-    if(!query.exec()) {
-        qWarning() << "set as complete query failed: "
-                   << query.lastError().driverText()
-                   << ", " << query.lastError().databaseText();
-    }
+    this->currentFileSetting->setValue("completeness", 100);
 }
