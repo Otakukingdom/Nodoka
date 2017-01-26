@@ -23,15 +23,15 @@ namespace Core {
 
     signals:
         // when the play state of the media player changes
-        void notifyPlayerState(AudiobookFileProxy file, bool isPlaying);
+        void notifyPlayerState(std::shared_ptr<AudiobookFileProxy> file, bool isPlaying);
 
         // when there is progression with the current media file
-        void notifyPlayerTime(AudiobookFileProxy file, double currentTime);
+        void notifyPlayerTime(std::shared_ptr<AudiobookFileProxy> file, double currentTime);
 
         // when media is parsed
-        void notifyMediaParsed(AudiobookFileProxy file);
+        void notifyMediaParsed(std::shared_ptr<AudiobookFileProxy> file);
 
-        void notifyPlayerFinished(AudiobookFileProxy file);
+        void notifyPlayerFinished(std::shared_ptr<AudiobookFileProxy> file);
     };
 
 }

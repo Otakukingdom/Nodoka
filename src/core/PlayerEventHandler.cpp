@@ -19,20 +19,20 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
         if (libvlc_Playing == newState) {
             abFile->setAsCurrent();
 
-            notifyPlayerState(*abFile, true);
+            notifyPlayerState(abFile, true);
         } else if (libvlc_Stopped == newState || libvlc_Paused == newState) {
             abFile->saveCurrentTime(this->concretePlayer->getCurrentTime());
 
-            notifyPlayerState(*abFile, false);
+            notifyPlayerState(abFile, false);
         } else if (libvlc_Ended == newState) {
             concretePlayer->releaseMedia();
         } else {
-            notifyPlayerState(*abFile, false);
+            notifyPlayerState(abFile, false);
         }
     });
 
     connect(this->concretePlayer, &ConcretePlayer::timeProgressed, [this](libvlc_time_t time) {
-        notifyPlayerTime(*this->concretePlayer->getAudiobookFile(), time);
+        notifyPlayerTime(this->concretePlayer->getAudiobookFile(), time);
 
         this->concretePlayer->getAudiobookFile()->saveCurrentTime(time);
     });
@@ -45,7 +45,7 @@ void Core::PlayerEventHandler::setupPlayerCallbacks() {
             auto abFile = this->concretePlayer->getAudiobookFile();
             abFile->setProperty(property);
 
-            notifyMediaParsed(*abFile);
+            notifyMediaParsed(abFile);
         }
     });
 }

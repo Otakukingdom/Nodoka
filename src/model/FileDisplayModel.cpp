@@ -18,7 +18,6 @@ FileDisplayModel::FileDisplayModel(std::shared_ptr<ProxyManager> manager, QObjec
     key.setCursorName("full_path");
     this->setPrimaryKey(key);
     this->hasFilter = false;
-
 }
 
 void FileDisplayModel::setSelectedAudiobook(int audiobookId) {

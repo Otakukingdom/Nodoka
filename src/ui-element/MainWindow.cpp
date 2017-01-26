@@ -27,6 +27,9 @@ MainWindow::MainWindow(Directory* directoryModel,
     this->directoryModel = directoryModel;
     this->audiobookModel = audiobookModel;
 
+    // set up a null file
+    this->currentlyPlayingFile = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy());
+
     this->fileDisplayModel = new FileDisplayModel(manager, this);
 
     // initialize the settings form
@@ -239,35 +242,36 @@ void MainWindow::setIsPlaying(bool isPlaying) {
     }
 }
 
-void MainWindow::playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying) {
+void MainWindow::playerStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile, bool isPlaying) {
     this->setCurrentlyPlayingFile(abFile);
     this->setIsPlaying(isPlaying);
 }
 
-void MainWindow::playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime) {
+void MainWindow::playerTimeUpdated(std::shared_ptr<AudiobookFileProxy> abFile, long long currentTime) {
     this->setCurrentTime(currentTime);
 }
 
-void MainWindow::setCurrentlyPlayingFile(AudiobookFileProxy file) {
+void MainWindow::setCurrentlyPlayingFile(std::shared_ptr<AudiobookFileProxy> file) {
+
     this->currentlyPlayingFile = file;
 
-    this->setSelectedFile(file.path());
+    this->setSelectedFile(file->path());
 
-    if(this->currentlyPlayingFile.getNullState() == false) {
+    if(this->currentlyPlayingFile->getNullState() == false) {
         setLabel(this->ui->currentlyPlayingLabel, this->currentlyPlayingFile);
     }
 
     // set the slider max value if we have a parsed duration
-    if(this->currentlyPlayingFile.isPropertyParsed()) {
-        long long totalDuration = this->currentlyPlayingFile.getMediaDuration();
+    if(this->currentlyPlayingFile->isPropertyParsed()) {
+        long long totalDuration = this->currentlyPlayingFile->getMediaDuration();
         this->ui->progressSlider->setMaximum(static_cast<int>(totalDuration));
 
         // enable the slider
         this->ui->progressSlider->setEnabled(true);
 
         // init the slider with the saved current time
-        if(!file.currentTimeNull()) {
-            this->setCurrentTime(file.getCurrentTime());
+        if(!file->currentTimeNull()) {
+            this->setCurrentTime(file->getCurrentTime());
         }
     }
 }
@@ -282,7 +286,7 @@ void MainWindow::setCurrentTime(long long currentTime) {
 }
 
 // if there is an update with the AudiobookFile state, the Proxy file will be updated
-void MainWindow::audiobookFileStateUpdated(AudiobookFileProxy abFile) {
+void MainWindow::audiobookFileStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile) {
     this->setCurrentlyPlayingFile(abFile);
 }
 
@@ -362,12 +366,12 @@ void MainWindow::setSpeed(QString speed) {
     }
 }
 
-void MainWindow::setLabel(QLabel *pLabel, AudiobookFileProxy proxy, long long currentTime) {
+void MainWindow::setLabel(QLabel *pLabel, std::shared_ptr<AudiobookFileProxy> proxy, long long currentTime) {
     QString text = "<div id=\"playing-label\">";
-    if(proxy.getNullState()) {
+    if(proxy->getNullState()) {
         text += "<span style=\"font-size: 15px; font-style: italic;\">No File Loaded</span>";
     } else {
-        text += "<span style=\"font-size: 15px; font-weight: bold;\">" + proxy.name() +"</span>";
+        text += "<span style=\"font-size: 15px; font-weight: bold;\">" + proxy->name() +"</span>";
     }
 
     text += "<br>";

@@ -11,8 +11,6 @@
 #include "AudiobookFileProxy.h"
 
 
-// ProxyManager is used to create proxy files on the fly
-// this is intended to be used by the GUI
 class ProxyManager {
     Core::Setting* settings;
     QHash<QString, std::shared_ptr<AudiobookFileProxy>> audiobookProxyCache;

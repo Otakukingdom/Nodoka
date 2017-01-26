@@ -62,7 +62,7 @@ void Core::NodokaApp::setup() {
 
 
     // we need to register this metatype before using it in signal/slot pattern
-    qRegisterMetaType<AudiobookFileProxy>("AudiobookFileProxy");
+    qRegisterMetaType<std::shared_ptr<AudiobookFileProxy>>("std::shared_ptr<AudiobookFileProxy>");
     qRegisterMetaType<QItemSelection>("QItemSelection");
 
     // set up the events between playerEvents and mainWindow

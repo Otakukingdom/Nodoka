@@ -46,6 +46,4 @@ public:
 
 };
 
-Q_DECLARE_METATYPE(AudiobookFileProxy);
-
 #endif //NODOKANATIVE_AUDIOBOOKRECORDPROXY_H

@@ -42,9 +42,9 @@ private:
 
     // logical states
     bool isPlaying;
-    AudiobookFileProxy currentlyPlayingFile;
+    std::shared_ptr<AudiobookFileProxy> currentlyPlayingFile;
     double currentTime;
-    void setCurrentlyPlayingFile(AudiobookFileProxy file);
+    void setCurrentlyPlayingFile(std::shared_ptr<AudiobookFileProxy> file);
 
 
 
@@ -75,12 +75,12 @@ public:
 
 
 public slots:
-    void audiobookFileStateUpdated(AudiobookFileProxy abFile);
-    void playerStateUpdated(AudiobookFileProxy abFile, bool isPlaying);
-    void playerTimeUpdated(AudiobookFileProxy abFile, long long currentTime);
+    void audiobookFileStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile);
+    void playerStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile, bool isPlaying);
+    void playerTimeUpdated(std::shared_ptr<AudiobookFileProxy> abFile, long long currentTime);
 
     void setLabel(QLabel *pLabel,
-                  AudiobookFileProxy proxy = AudiobookFileProxy(),
+                  std::shared_ptr<AudiobookFileProxy> proxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy()),
                   long long currentTime = -1);
 };
 

@@ -113,7 +113,6 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
     this->currentFileSetting->setValue("currentTime", currentTime);
     if(completeness) {
         this->currentFileSetting->setValue("completeness", calcCompleteness);
-        qDebug() << "Completeness set as " << calcCompleteness;
     }
 }
 
@@ -187,7 +186,7 @@ QSqlRecord AudiobookFileProxy::getRecord() {
 }
 
 int AudiobookFileProxy::getCompleteness() {
-    return this->currentFileSetting->value("completeness").toInt();
+    return (int)round(this->currentFileSetting->value("completeness").toDouble());
 }
 
 void AudiobookFileProxy::setAsComplete() {
