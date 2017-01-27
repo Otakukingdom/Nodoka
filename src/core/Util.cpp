@@ -33,8 +33,6 @@ QString Core::getUniqueSettingPath(QString stringToHash) {
     createPathIfNotExists(pathToCreate);
 
     auto resultPath = QDir(pathToCreate + "/" + rest).absolutePath();
-
-    qDebug() << "settings opened: " << resultPath;
     return resultPath;
 }
 
