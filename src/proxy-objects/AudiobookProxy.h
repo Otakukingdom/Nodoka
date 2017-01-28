@@ -36,6 +36,9 @@ class AudiobookProxy : public QObject {
     QString id;
     QString directory;
 
+    // callback functions
+    std::vector<std::function<void ()>> removeFunction;
+
 public:
     AudiobookProxy(QSqlRecord record, Core::Setting* settings);
     QAction* getRemoveAction();
@@ -45,8 +48,6 @@ public slots:
     void rescan();
 
 
-signals:
-    void removed();
 };
 
 

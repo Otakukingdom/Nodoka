@@ -2,7 +2,9 @@
 // Created by mistlight on 1/27/2017.
 //
 
+#include <QDebug>
 #include <QtSql/QSqlTableModel>
+#include <src/model/Audiobook.h>
 #include "AudiobookListViewHandler.h"
 
 AudiobookListViewHandler::AudiobookListViewHandler(QMainWindow *window,
@@ -27,7 +29,7 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
     // we first want to check if user clicked on an audiobook item
     auto modelIndex = this->audiobookListView->indexAt(position);
     if(modelIndex.isValid()) {
-        auto model = dynamic_cast<QSqlTableModel*>(this->audiobookListView->model());
+        auto model = dynamic_cast<Audiobook*>(this->audiobookListView->model());
         auto record = model->record(modelIndex.row());
         auto audiobookProxy = this->proxyManager->getAudiobookProxy(record);
 
@@ -39,6 +41,7 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
         menu->addAction("Rescan this Audiobook");
         menu->addAction(removeAction);
         menu->exec(this->audiobookListView->mapToGlobal(position));
+
 
     } else {
         // if the user clicked somewhere other than the audiobook item, there is nothing to show...

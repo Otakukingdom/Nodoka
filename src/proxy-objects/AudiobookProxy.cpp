@@ -4,6 +4,7 @@
 
 #include "AudiobookProxy.h"
 #include <QDebug>
+#include <src/model/AudiobookFile.h>
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record, Core::Setting *settings) {
     this->record = record;
@@ -35,8 +36,9 @@ void AudiobookProxy::remove() {
     query.addBindValue(this->id);
     if(query.exec()) {
         QFile::remove(this->currentFileSetting->fileName());
+        int idAsInt = this->id.toInt();
+        AudiobookFile::removeAudiobook(idAsInt);
 
-        emit this->removed();
         qDebug() << "Audiobook Removed";
     } else {
         qDebug() << "Audiobook Failed to be Removed";
