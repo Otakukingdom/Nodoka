@@ -19,16 +19,23 @@
  *
  */
 class ProxyManager {
+private:
     Core::Setting* settings;
-    QHash<QString, std::shared_ptr<AudiobookFileProxy>> audiobookProxyCache;
 
+    // keep a record of files
+    QHash<QString, std::shared_ptr<AudiobookFileProxy>> abFileCache;
 
-    // we load AudiobookProxy objects on demand
+    // stores the current audiobook records
+    QHash<QString, std::shared_ptr<AudiobookProxy>> loadedAudiobooks;
+
+    // mapping between audiobook and file records (this is only populated on an as needed basis)
+    QHash<std::shared_ptr<AudiobookProxy>, std::vector<std::shared_ptr<AudiobookFileProxy> >> bookFileMap;
 
 
 public:
     void clearCache();
     std::shared_ptr<AudiobookFileProxy> getAudiobookFileProxy(QSqlRecord);
+    std::shared_ptr<AudiobookProxy> getAudiobookProxy(QSqlRecord);
     ProxyManager(Core::Setting* settings);
 };
 

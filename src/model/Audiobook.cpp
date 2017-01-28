@@ -6,9 +6,12 @@
 #include <QtWidgets/QMessageBox>
 #include "Audiobook.h"
 
-Audiobook::Audiobook(AudiobookFile* audiobookFileModel, QObject *parent) : QSqlTableModel(parent) {
+Audiobook::Audiobook(AudiobookFile* audiobookFileModel,
+                     std::shared_ptr<ProxyManager> proxyManager,
+                     QObject *parent) : QSqlTableModel(parent) {
     this->setTable("audiobooks");
     this->setEditStrategy(EditStrategy::OnManualSubmit);
+    this->proxyManager = proxyManager;
 
     this->audiobookFile = audiobookFileModel;
 
