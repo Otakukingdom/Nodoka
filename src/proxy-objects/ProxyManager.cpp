@@ -4,6 +4,7 @@
 
 #include "ProxyManager.h"
 #include <QDebug>
+#include <QDebug>
 
 static const int CACHE_SIZE_MAX = 1000;
 
@@ -20,6 +21,8 @@ std::shared_ptr<AudiobookProxy> ProxyManager::getAudiobookProxy(QSqlRecord recor
     } else {
         auto audiobookEntry = std::shared_ptr<AudiobookProxy>(new AudiobookProxy(record, this->settings));
         this->loadedAudiobooks.insert(key, audiobookEntry);
+
+        return audiobookEntry;
     }
 }
 

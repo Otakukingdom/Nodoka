@@ -28,7 +28,9 @@ MainWindow::MainWindow(Directory* directoryModel,
     this->audiobookModel = audiobookModel;
 
     // set up the event handlers
-    this->abListHandler = new AudiobookListViewHandler(this, this->ui->audiobookView);
+    this->abListHandler = new AudiobookListViewHandler(this,
+                                                       this->ui->audiobookView,
+                                                       manager);
 
     // set up a null file
     this->currentlyPlayingFile = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy());

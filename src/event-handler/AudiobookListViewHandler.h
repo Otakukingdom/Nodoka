@@ -8,6 +8,7 @@
 #include <QObject>
 #include <memory>
 #include <src/proxy-objects/AudiobookProxy.h>
+#include <src/proxy-objects/ProxyManager.h>
 #include <QListView>
 #include <QMenu>
 #include <QMainWindow>
@@ -18,9 +19,13 @@ class AudiobookListViewHandler: public QObject {
 
     QMainWindow* mainWindow;
     QListView* audiobookListView;
+    std::shared_ptr<ProxyManager> proxyManager;
 
 public:
-    AudiobookListViewHandler(QMainWindow* window, QListView *audiobookListView);
+    AudiobookListViewHandler(QMainWindow* window,
+                             QListView *audiobookListView,
+                             std::shared_ptr<ProxyManager> proxyManager
+    );
 
 public slots:
     void handleResetAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
