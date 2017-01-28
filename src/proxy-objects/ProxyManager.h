@@ -9,6 +9,7 @@
 #include <QSettings>
 #include <QSqlRecord>
 #include "AudiobookFileProxy.h"
+#include "src/proxy-objects/AudiobookProxy.h"
 
 
 class ProxyManager {

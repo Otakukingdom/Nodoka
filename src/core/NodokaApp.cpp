@@ -4,7 +4,7 @@
 
 #include "NodokaApp.h"
 #include <QItemSelection>
-#include "PlayerEventHandler.h"
+#include "src/event-handler/PlayerEventHandler.h"
 
 Core::NodokaApp::NodokaApp() {
     // load fonts

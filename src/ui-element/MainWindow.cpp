@@ -3,7 +3,7 @@
 //
 
 #include <src/model/AudiobookListDelegate.h>
-#include <src/model/ProxyManager.h>
+#include <src/proxy-objects/ProxyManager.h>
 #include "MainWindow.h"
 
 const static int MAXIMUM_VOLUME = 150;

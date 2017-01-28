@@ -7,12 +7,12 @@
 
 #include <memory>
 #include <QObject>
-#include <src/model/AudiobookFileProxy.h>
+#include <src/proxy-objects/AudiobookFileProxy.h>
 #include <src/simple-lib/ThreadPool.h>
 #include "vlc/vlc.h"
 #include "Setting.h"
 #include <QFile>
-#include <src/model/ProxyManager.h>
+#include <src/proxy-objects/ProxyManager.h>
 
 namespace Core {
     class ConcretePlayer : public QObject {

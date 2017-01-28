@@ -8,7 +8,7 @@
 
 #include <QSqlTableModel>
 #include <QtCore/QItemSelection>
-#include "ProxyManager.h"
+#include "src/proxy-objects/ProxyManager.h"
 
 class FileDisplayModel : public QSqlTableModel {
 

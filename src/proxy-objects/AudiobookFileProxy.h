@@ -12,7 +12,7 @@
 #include <QHash>
 #include <QSharedPointer>
 #include <src/core/Setting.h>
-#include "MediaProperty.h"
+#include "src/model/MediaProperty.h"
 #include <QSettings>
 #include <memory>
 

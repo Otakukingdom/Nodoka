@@ -7,7 +7,7 @@
 
 
 #include <src/ui-element/MainWindow.h>
-#include "ConcretePlayer.h"
+#include "src/core/ConcretePlayer.h"
 
 namespace Core {
     class PlayerEventHandler : public QObject {

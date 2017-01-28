@@ -7,7 +7,7 @@
 
 
 #include "ConcretePlayer.h"
-#include "PlayerEventHandler.h"
+#include "src/event-handler/PlayerEventHandler.h"
 #include "Setting.h"
 #include <QFontDatabase>
 #include <src/model/Directory.h>
