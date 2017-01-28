@@ -3,3 +3,15 @@
 //
 
 #include "AudiobookListViewHandler.h"
+
+AudiobookListViewHandler::AudiobookListViewHandler() {
+
+}
+
+void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
+
+}
+
+void AudiobookListViewHandler::handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
+
+}

@@ -12,9 +12,19 @@
 #include "src/proxy-objects/AudiobookProxy.h"
 
 
+/**
+ * ProxyManager is responsible for querying various Proxy objects
+ *
+ * AudiobookProxy is the proxy object that is a representation of an Audiobook Record.
+ *
+ */
 class ProxyManager {
     Core::Setting* settings;
     QHash<QString, std::shared_ptr<AudiobookFileProxy>> audiobookProxyCache;
+
+
+    // we load AudiobookProxy objects on demand
+
 
 public:
     void clearCache();

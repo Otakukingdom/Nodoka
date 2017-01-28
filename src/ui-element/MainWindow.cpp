@@ -27,6 +27,9 @@ MainWindow::MainWindow(Directory* directoryModel,
     this->directoryModel = directoryModel;
     this->audiobookModel = audiobookModel;
 
+    // set up the event handlers
+    this->abListHandler = new AudiobookListViewHandler();
+
     // set up a null file
     this->currentlyPlayingFile = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy());
 
@@ -34,6 +37,7 @@ MainWindow::MainWindow(Directory* directoryModel,
 
     // initialize the settings form
     this->settingsForm = new SettingsForm(this->directoryModel);
+
 
     this->menuSetup();
     this->setup();

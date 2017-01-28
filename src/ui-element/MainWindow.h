@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QTreeWidget>
 #include <QStandardItemModel>
+#include <src/event-handler/AudiobookListViewHandler.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -39,6 +40,9 @@ private:
 
     //menus
     QMenu* audiobookMenu;
+
+    // event handlers
+    AudiobookListViewHandler *abListHandler;
 
     // logical states
     bool isPlaying;
