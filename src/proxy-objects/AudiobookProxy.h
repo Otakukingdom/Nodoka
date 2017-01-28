@@ -5,11 +5,16 @@
 #ifndef NODOKANATIVE_AUDIOBOOKPROXY_H
 #define NODOKANATIVE_AUDIOBOOKPROXY_H
 
+#include <QFile>
 #include <QSqlRecord>
+#include <QSqlQuery>
+#include <memory>
 #include <src/core/Setting.h>
 #include <src/core/Util.h>
 #include <QSharedPointer>
 #include <QSettings>
+
+#include <QAction>
 
 
 /**
@@ -19,17 +24,29 @@
  *
  * The hash object is stored in a very similar fashion on how git objects are stored on the database.
  */
-class AudiobookProxy {
+class AudiobookProxy : public QObject {
+    Q_OBJECT
+
     QSharedPointer<QSettings> currentFileSetting;
     Core::Setting* settings;
     QSqlRecord record;
     bool isNull;
 
+    // attribute
+    QString id;
+    QString directory;
 
 public:
     AudiobookProxy(QSqlRecord record, Core::Setting* settings);
+    QAction* getRemoveAction();
+
+public slots:
     void remove();
     void rescan();
+
+
+signals:
+    void removed();
 };
 
 

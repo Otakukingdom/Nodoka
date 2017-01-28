@@ -4,9 +4,11 @@
 
 #include "AudiobookListViewHandler.h"
 
-AudiobookListViewHandler::AudiobookListViewHandler() {
-
+AudiobookListViewHandler::AudiobookListViewHandler(QMainWindow *window, QListView *audiobookListView) {
+    this->mainWindow = window;
+    this->audiobookListView = audiobookListView;
 }
+
 
 void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
 
@@ -15,3 +17,21 @@ void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookPro
 void AudiobookListViewHandler::handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
 
 }
+
+void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
+    // we first want to check if user clicked on an audiobook item
+    auto modelIndex = this->audiobookListView->indexAt(position);
+    if(modelIndex.isValid()) {
+        QMenu menu(this->mainWindow);
+        menu.addAction("Reset read state");
+        menu.addAction("Mark as read");
+        menu.addAction("Rescan this Audiobook");
+        menu.addAction("Remove this Audiobook");
+        menu.exec(this->audiobookListView->mapToGlobal(position));
+
+    } else {
+        // if the user clicked somewhere other than the audiobook item, there is nothing to show...
+        return;
+    }
+}
+

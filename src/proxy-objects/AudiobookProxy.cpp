@@ -3,6 +3,7 @@
 //
 
 #include "AudiobookProxy.h"
+#include <QDebug>
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record, Core::Setting *settings) {
     this->record = record;
@@ -16,21 +17,39 @@ AudiobookProxy::AudiobookProxy(QSqlRecord record, Core::Setting *settings) {
     } else {
         this->isNull = false;
 
-        auto idStrValue = idValue.toString();
-        auto directoryStrValue = directoryValue.toString();
-        auto stringToHash = "Audiobook:" + idStrValue + directoryStrValue;
+        this->id = idValue.toString();
+        this->directory = directoryValue.toString();
+
+        auto stringToHash = "Audiobook:" + this->id + ":" + this->directory;
 
         auto path = Core::getUniqueSettingPath(stringToHash);
-        this->currentFileSetting = QSharedPointer<QSettings>(new QSettings(path));
+        this->currentFileSetting = QSharedPointer<QSettings>(new QSettings(path, QSettings::IniFormat));
     }
 }
 
 
 void AudiobookProxy::remove() {
+    QString queryString = "DELETE FROM audiobooks WHERE id = ?";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.addBindValue(this->id);
+    if(query.exec()) {
+        QFile::remove(this->currentFileSetting->fileName());
 
+        emit this->removed();
+        qDebug() << "Audiobook Removed";
+    } else {
+        qDebug() << "Audiobook Failed to be Removed";
+    }
 }
 
 void AudiobookProxy::rescan() {
 
+}
+
+QAction* AudiobookProxy::getRemoveAction() {
+    auto action = new QAction("Remove Audiobook");
+    connect(action, &QAction::triggered, this, &AudiobookProxy::remove);
+    return action;
 }
 
