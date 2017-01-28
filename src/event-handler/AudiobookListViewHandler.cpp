@@ -22,7 +22,9 @@ void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookPro
 }
 
 void AudiobookListViewHandler::handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
-
+    qDebug() << "handleDeleteAudiobook() called";
+    auto model = dynamic_cast<Audiobook*>(this->audiobookListView->model());
+    model->select();
 }
 
 void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
@@ -32,6 +34,12 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
         auto model = dynamic_cast<Audiobook*>(this->audiobookListView->model());
         auto record = model->record(modelIndex.row());
         auto audiobookProxy = this->proxyManager->getAudiobookProxy(record);
+
+        audiobookProxy->addCallback(AudiobookEvent::Removed,
+                                    "viewHandlerRemoved",
+                                    [this, audiobookProxy]() {
+            this->handleDeleteAudiobook(audiobookProxy);
+        });
 
         auto removeAction = audiobookProxy->getRemoveAction();
 
