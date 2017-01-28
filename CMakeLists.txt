@@ -49,7 +49,9 @@ set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/model/FileDisplayModel.h src/proxy-objects/AudiobookFileProxy.cpp src/proxy-objects/AudiobookFileProxy.h src/event-handler/PlayerEventHandler.cpp
         src/event-handler/PlayerEventHandler.h src/model/MediaProperty.cpp src/model/MediaProperty.h src/core/Setting.cpp src/core/Setting.h
         src/simple-lib/RunGuard.cpp src/simple-lib/RunGuard.h src/model/AudiobookListDelegate.cpp src/model/AudiobookListDelegate.h
-        src/core/Util.cpp src/core/Util.h src/proxy-objects/ProxyManager.cpp src/proxy-objects/ProxyManager.h src/proxy-objects/AudiobookProxy.cpp src/proxy-objects/AudiobookProxy.h)
+        src/core/Util.cpp src/core/Util.h src/proxy-objects/ProxyManager.cpp src/proxy-objects/ProxyManager.h
+        src/proxy-objects/AudiobookProxy.cpp src/proxy-objects/AudiobookProxy.h src/event-handler/AudiobookListViewHandler.cpp
+        src/event-handler/AudiobookListViewHandler.h)
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set(WIN32_ENABLED WIN32)
 endif()
