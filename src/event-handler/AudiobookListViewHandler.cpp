@@ -22,7 +22,6 @@ void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookPro
 }
 
 void AudiobookListViewHandler::handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
-    qDebug() << "handleDeleteAudiobook() called";
     auto model = dynamic_cast<Audiobook*>(this->audiobookListView->model());
     model->select();
 }
