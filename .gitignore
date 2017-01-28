@@ -16,6 +16,9 @@ libvlccore.dll
 .idea/dynamic.xml
 .idea/uiDesigner.xml
 
+# visual studio
+.vs/
+
 # Gradle:
 .idea/gradle.xml
 .idea/libraries
