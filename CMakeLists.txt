@@ -62,9 +62,11 @@ set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/simple-lib/RunGuard.cpp src/simple-lib/RunGuard.h src/model/AudiobookListDelegate.cpp src/model/AudiobookListDelegate.h
         src/core/Util.cpp src/core/Util.h src/proxy-objects/ProxyManager.cpp src/proxy-objects/ProxyManager.h
         src/proxy-objects/AudiobookProxy.cpp src/proxy-objects/AudiobookProxy.h src/event-handler/AudiobookListViewHandler.cpp
-        src/event-handler/AudiobookListViewHandler.h src/core/ScanPlayer.cpp src/core/ScanPlayer.h)
+        src/event-handler/AudiobookListViewHandler.h src/core/ScanPlayer.cpp src/core/ScanPlayer.h
+        src/core/tasks/ScanDirectoryTask.cpp src/core/tasks/ScanDirectoryTask.h
+        src/core/tasks/PlayerScanTask.cpp src/core/tasks/PlayerScanTask.h)
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
-    set(WIN32_ENABLED WIN32)
+    set(WIN32_ENABLED WIN32 )
 endif()
 
 add_executable(NodokaNative ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})

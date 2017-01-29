@@ -21,6 +21,8 @@ namespace Core {
 
     public:
         ScanPlayer();
+
+        void performScan();
         void addAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
         void addAudiobookFile(std::shared_ptr<AudiobookFileProxy> file);
     };

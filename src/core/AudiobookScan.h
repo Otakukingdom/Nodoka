@@ -20,14 +20,4 @@ namespace Core {
     QList<QString> getAllFiles(std::shared_ptr<QDir> directory);
 
 
-    class ScanDirectoryTask : public QRunnable {
-        QSqlRecord record;
-        Audiobook* audiobook;
-
-    public:
-        ScanDirectoryTask(QSqlRecord directoryRecord, Audiobook* audiobook);
-
-        void run();
-    };
-
 }

@@ -23,6 +23,7 @@ void Core::ScanPlayer::addAudiobookFile(std::shared_ptr<AudiobookFileProxy> file
     this->mutex.unlock();
 }
 
-void scanFile() {
+void Core::ScanPlayer::performScan() {
 
 }
+
