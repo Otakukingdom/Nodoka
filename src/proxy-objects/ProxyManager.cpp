@@ -19,7 +19,7 @@ std::shared_ptr<AudiobookProxy> ProxyManager::getAudiobookProxy(QSqlRecord recor
     if(this->loadedAudiobooks.contains(key)) {
         return this->loadedAudiobooks.value(key);
     } else {
-        auto audiobookEntry = std::shared_ptr<AudiobookProxy>(new AudiobookProxy(record, this->settings));
+        auto audiobookEntry = std::shared_ptr<AudiobookProxy>(new AudiobookProxy(record, this->settings, this));
         this->loadedAudiobooks.insert(key, audiobookEntry);
 
         return audiobookEntry;

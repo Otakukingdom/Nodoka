@@ -6,9 +6,12 @@
 #include <QDebug>
 #include <src/model/AudiobookFile.h>
 
-AudiobookProxy::AudiobookProxy(QSqlRecord record, Core::Setting *settings) {
+AudiobookProxy::AudiobookProxy(QSqlRecord record,
+                               Core::Setting *settings,
+                               std::shared_ptr<ProxyManager> manager) {
     this->record = record;
     this->settings = settings;
+    this->manager = manager;
 
     auto idValue = record.value("id");
     auto directoryValue = record.value("directory");
@@ -97,5 +100,24 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
             callbackFunction();
         }
     }
+}
+
+std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
+    QString queryString = "SELECT * FROM audiobook_file WHERE audiobook_id = ?";
+    QSqlQuery query;
+    std::vector<std::shared_ptr<AudiobookFileProxy>> fileList;
+
+
+    auto audiobookId = this->record.value("id").toString();
+    query.prepare(queryString);
+    query.addBindValue(audiobookId);
+
+    while(query.next()) {
+        auto record = query.record();
+        auto fileProxy = this->manager->getAudiobookFileProxy(record);
+        fileList.push_back(fileProxy);
+    }
+
+    return fileList;
 }
 

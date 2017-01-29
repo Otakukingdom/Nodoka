@@ -16,6 +16,8 @@
 #include <QSettings>
 
 #include <QAction>
+#include "AudiobookFileProxy.h"
+#include "ProxyManager.h"
 
 
 /**
@@ -40,6 +42,7 @@ class AudiobookProxy : public QObject {
     Core::Setting* settings;
     QSqlRecord record;
     bool isNull;
+    std::shared_ptr<ProxyManager> manager;
 
     // attribute
     QString id;
@@ -55,8 +58,11 @@ class AudiobookProxy : public QObject {
 
 
 public:
-    AudiobookProxy(QSqlRecord record, Core::Setting* settings);
+    AudiobookProxy(QSqlRecord record,
+                   Core::Setting* settings,
+                   std::shared_ptr<ProxyManager> manager);
     QAction* getRemoveAction();
+    std::vector<std::shared_ptr<AudiobookFileProxy>> getFilesForAudiobook();
 
     /**
      *
