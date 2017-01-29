@@ -1,5 +1,6 @@
 
 
+#include <QTime>
 #include <QString>
 #include <QStandardPaths>
 
@@ -10,5 +11,7 @@ namespace Core {
 
     QString getSettingPath();
     QString getUniqueSettingPath(QString stringToHash);
+
+    QString convertTimeToString(long long time);
 
 }

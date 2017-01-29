@@ -42,9 +42,16 @@ QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
                 value("name").toString();
         auto comepleteness = proxyEntry->getCompleteness();
         auto completenessString = QString::number(comepleteness);
+        auto length = Core::convertTimeToString(proxyEntry->getMediaDuration());
+
+        QString lengthDisplayString = "";
+        if(proxyEntry->getMediaDuration() > 0) {
+            lengthDisplayString += "<span style=\"font-weight: bold;\">" + length + "</span>  ";
+        }
 
         QString label = "<div class=\"file-item\"><span class=\"name\">" +
                 name + "</span><br />" +
+                lengthDisplayString +
                 "<span>" + completenessString +"% Completed </span>" +
                 "</div>";
 

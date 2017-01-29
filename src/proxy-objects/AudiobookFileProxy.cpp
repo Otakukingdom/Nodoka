@@ -58,6 +58,13 @@ void AudiobookFileProxy::setProperty(MediaProperty property) {
 }
 
 long long AudiobookFileProxy::getMediaDuration() {
+    auto durationFromFile = this->currentFileSetting->value("duration").toLongLong();
+
+    if(durationFromFile > 0) {
+        return durationFromFile;
+    }
+
+
     // if we have a null object, then we shouldn't return a valid
     // duration
     if(this->mediaProperty.isNullObject()) {

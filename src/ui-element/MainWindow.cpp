@@ -372,11 +372,8 @@ void MainWindow::setLabel(QLabel *pLabel, std::shared_ptr<AudiobookFileProxy> pr
 
     if(currentTime >= 0) {
         // update the label
-        QTime time(0, 0);
-        time = time.addMSecs(static_cast<int>(currentTime));
-        QString timeInFormat = time.toString("hh:mm:ss");
         text += "<span>";
-        text += timeInFormat;
+        text += Core::convertTimeToString(currentTime);
         text += "</span>";
     }
 

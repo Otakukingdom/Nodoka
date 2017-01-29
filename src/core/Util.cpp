@@ -36,6 +36,14 @@ QString Core::getUniqueSettingPath(QString stringToHash) {
     return resultPath;
 }
 
+QString Core::convertTimeToString(long long timeToAdd) {
+    // update the label
+    QTime time(0, 0);
+    time = time.addMSecs(static_cast<int>(timeToAdd));
+    QString timeInFormat = time.toString("hh:mm:ss");
+    return timeInFormat;
+}
+
 void Core::createPathIfNotExists(QString path) {
     QDir dir(path);
 
