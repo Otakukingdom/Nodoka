@@ -7,7 +7,8 @@
 #include <src/model/AudiobookFile.h>
 
 // helper function for retrieving files form the database
-static std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(QString audiobookId);
+static std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(QString audiobookId,
+                                                                              std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction);
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record,
                                Core::Setting *settings,
@@ -107,6 +108,7 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
 
 std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
     auto fileList = filesForAudiobookByDb(this->id, this->retrieveFileProxyFunction);
+    qDebug() << "fileList length is: " << fileList.size() << " id is:" << this->id.toInt();
     return fileList;
 }
 
@@ -143,7 +145,8 @@ std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(
     QString queryString = "SELECT * FROM audiobook_file WHERE audiobook_id = ?";
     QSqlQuery query;
     query.prepare(queryString);
-    query.addBindValue(audiobookId);
+    query.addBindValue(audiobookId.toInt());
+    query.exec();
 
     while(query.next()) {
         auto record = query.record();

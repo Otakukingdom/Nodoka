@@ -4,16 +4,19 @@
 
 #include <QtSql>
 #include <QtWidgets/QMessageBox>
+#include <QDebug>
 #include "Audiobook.h"
 
 Audiobook::Audiobook(AudiobookFile* audiobookFileModel,
                      std::shared_ptr<ProxyManager> proxyManager,
+                     Core::ScanPlayer* scanPlayer,
                      QObject *parent) : QSqlTableModel(parent) {
     this->setTable("audiobooks");
     this->setEditStrategy(EditStrategy::OnManualSubmit);
     this->proxyManager = proxyManager;
 
     this->audiobookFile = audiobookFileModel;
+    this->scanPlayer = scanPlayer;
 
     this->select();
 }
@@ -85,12 +88,21 @@ void Audiobook::removeAudiobook(QSqlRecord record) {
 QVariant Audiobook::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
         auto currentRecord = this->record(index.row());
+        auto proxyRecord = this->proxyManager->getAudiobookProxy(currentRecord);
+
+
         auto name = currentRecord.value("name").toString();
         auto progress = currentRecord.value("completeness").toString();
 
+        auto length = Core::convertTimeToString(proxyRecord->getDuration());
+        QString lengthDisplayString = "";
+        if(proxyRecord->getDuration() > 0) {
+            lengthDisplayString += "<span style=\"font-weight: bold;\">" + length + "</span>  ";
+        }
+
         auto label = "<div class=\"item\"><span class=\"name\">" +
                 name +
-                "</span><br>" +
+                "</span><br>" + lengthDisplayString +
                 "<span class=\"progress\">Progress: " + progress + "% </span>" +
                 "</div>"
         ;

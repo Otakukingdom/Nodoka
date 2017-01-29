@@ -38,6 +38,8 @@ namespace Core {
         //private helper function, used to set up the event listeners
         void setup();
 
+        QThreadPool* scanThread;
+
     public:
         NodokaApp();
         ~NodokaApp();

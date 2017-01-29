@@ -12,6 +12,7 @@
 #include <src/proxy-objects/AudiobookProxy.h>
 #include <src/proxy-objects/AudiobookFileProxy.h>
 #include <include/vlc/vlc.h>
+#include <src/simple-lib/ThreadPool.h>
 
 namespace Core {
     class ScanPlayer {
@@ -19,6 +20,11 @@ namespace Core {
         QThreadPool scanThread;
         QMutex mutex;
         std::queue<std::shared_ptr<AudiobookFileProxy>> fileQueue;
+        std::shared_ptr<AudiobookFileProxy> currentlyScanning;
+        std::unique_ptr<ThreadPool> threadPool;
+
+        // status variables
+        bool hasScanFinished;
 
         // internal function to start the scan task in another thread
         void startScanTask(std::shared_ptr<AudiobookProxy> audiobook = nullptr);
@@ -32,6 +38,7 @@ namespace Core {
         ScanPlayer();
 
         void performScan();
+        void retrieveScanResults();
         void addAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
         void addAudiobookFile(std::shared_ptr<AudiobookFileProxy> file);
     };

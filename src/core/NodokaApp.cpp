@@ -4,6 +4,7 @@
 
 #include "NodokaApp.h"
 #include <QItemSelection>
+#include <src/core/tasks/InitialScanTask.h>
 #include "src/event-handler/PlayerEventHandler.h"
 #include "ScanPlayer.h"
 
@@ -24,14 +25,17 @@ Core::NodokaApp::NodokaApp() {
 
     this->proxyManager = std::shared_ptr<ProxyManager>(new ProxyManager(this->setting));
 
+
+    // we will need this to scan stuff
+    this->scanPlayer = new Core::ScanPlayer();
+
     // initialize db backed models
     this->directoryModel = new Directory();
     this->audiobookFileModel = new AudiobookFile();
-    this->audiobookModel = new Audiobook(this->audiobookFileModel, this->proxyManager);
+    this->audiobookModel = new Audiobook(this->audiobookFileModel, this->proxyManager, this->scanPlayer);
 
     // initialize player, which will initialize vlc backend related items
     this->player = new Core::ConcretePlayer(this->setting, this->proxyManager);
-    this->scanPlayer = new Core::ScanPlayer();
 
     // initialize the ui
     this->mainWindow = new MainWindow(this->directoryModel,
@@ -75,6 +79,17 @@ void Core::NodokaApp::setup() {
             this->mainWindow, &MainWindow::playerTimeUpdated);
     connect(this->playerEventHandler, &PlayerEventHandler::notifyMediaParsed,
             this->mainWindow, &MainWindow::audiobookFileStateUpdated);
+
+    this->scanThread = new QThreadPool();
+
+    std::vector<std::shared_ptr<AudiobookProxy>> list;
+    for(int i = 0; i < this->audiobookModel->rowCount(); i++) {
+        auto record = this->audiobookModel->record(i);
+        auto proxyObject = this->proxyManager->getAudiobookProxy(record);
+        list.push_back(proxyObject);
+    }
+
+    this->scanThread->start(new InitialScanTask(this->scanPlayer, list));
 }
 
 Core::NodokaApp::~NodokaApp() {
