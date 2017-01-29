@@ -42,7 +42,7 @@ public:
     QSqlRecord getRecord();
 
     void setProperty(MediaProperty property);
-    void setMediaDuration(long long duration);
+    void setMediaDuration(const long long duration);
     long long getMediaDuration();
 
 };

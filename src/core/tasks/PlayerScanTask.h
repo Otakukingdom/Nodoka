@@ -12,9 +12,10 @@
 namespace Core {
     class PlayerScanTask : public QRunnable {
         ScanPlayer* player;
+        std::shared_ptr<AudiobookProxy> audiobook;
 
     public:
-        PlayerScanTask(ScanPlayer* player);
+        PlayerScanTask(ScanPlayer* player, std::shared_ptr<AudiobookProxy> audiobook);
 
         void run();
     };

@@ -11,6 +11,7 @@ const static int MAXIMUM_VOLUME = 150;
 MainWindow::MainWindow(Directory* directoryModel,
                        Audiobook* audiobookModel,
                        Core::ConcretePlayer* player,
+                       Core::ScanPlayer* scanPlayer,
                        Core::Setting* setting,
                        std::shared_ptr<ProxyManager> manager,
                        QWidget *parent) :
@@ -22,6 +23,7 @@ MainWindow::MainWindow(Directory* directoryModel,
 
     // we will need this reference so FileList can make direct reference to it
     this->concretePlayer = player;
+    this->scanPlayer = scanPlayer;
 
     // set the model
     this->directoryModel = directoryModel;

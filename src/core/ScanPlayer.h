@@ -21,7 +21,7 @@ namespace Core {
         std::queue<std::shared_ptr<AudiobookFileProxy>> fileQueue;
 
         // internal function to start the scan task in another thread
-        void startScanTask();
+        void startScanTask(std::shared_ptr<AudiobookProxy> audiobook = nullptr);
 
         // stuff we need from libvlc
         libvlc_instance_t* inst;

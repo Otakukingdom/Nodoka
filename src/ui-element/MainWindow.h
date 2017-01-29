@@ -19,6 +19,7 @@
 #include <QTreeWidget>
 #include <QStandardItemModel>
 #include <src/event-handler/AudiobookListViewHandler.h>
+#include <src/core/ScanPlayer.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -32,6 +33,7 @@ private:
     Audiobook* audiobookModel;
     FileDisplayModel* fileDisplayModel;
     Core::ConcretePlayer* concretePlayer;
+    Core::ScanPlayer* scanPlayer;
     Directory* directoryModel;
     Ui::MainWindow *ui;
     SettingsForm* settingsForm;
@@ -56,6 +58,7 @@ public:
     MainWindow(Directory* directoryModel,
                Audiobook* audiobookModel,
                Core::ConcretePlayer* concretePlayer,
+               Core::ScanPlayer* scanPlayer,
                Core::Setting* setting,
                std::shared_ptr<ProxyManager> manager,
                QWidget *parent = 0);

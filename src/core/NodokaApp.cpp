@@ -5,6 +5,7 @@
 #include "NodokaApp.h"
 #include <QItemSelection>
 #include "src/event-handler/PlayerEventHandler.h"
+#include "ScanPlayer.h"
 
 Core::NodokaApp::NodokaApp() {
     // load fonts
@@ -30,11 +31,13 @@ Core::NodokaApp::NodokaApp() {
 
     // initialize player, which will initialize vlc backend related items
     this->player = new Core::ConcretePlayer(this->setting, this->proxyManager);
+    this->scanPlayer = new Core::ScanPlayer();
 
     // initialize the ui
     this->mainWindow = new MainWindow(this->directoryModel,
                                       this->audiobookModel,
                                       this->player,
+                                      this->scanPlayer,
                                       this->setting,
                                       this->proxyManager);
 

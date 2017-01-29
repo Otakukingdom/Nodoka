@@ -9,6 +9,7 @@
 #include "ConcretePlayer.h"
 #include "src/event-handler/PlayerEventHandler.h"
 #include "Setting.h"
+#include "ScanPlayer.h"
 #include <QFontDatabase>
 #include <src/model/Directory.h>
 #include <src/model/Audiobook.h>
@@ -22,6 +23,8 @@ namespace Core {
     Q_OBJECT
     private:
         ConcretePlayer *player;
+        ScanPlayer *scanPlayer;
+
         Directory* directoryModel;
         MainWindow* mainWindow;
         DirectoryHandler* directoryHandler;

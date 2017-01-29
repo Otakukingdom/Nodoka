@@ -4,6 +4,7 @@
 
 #include <QtWidgets/QMessageBox>
 #include <src/core/AudiobookScan.h>
+#include <src/core/tasks/ScanDirectoryTask.h>
 #include "DirectoryHandler.h"
 
 DirectoryHandler::DirectoryHandler(Audiobook* audiobookModel, AudiobookFile* audiobookFileModel) {

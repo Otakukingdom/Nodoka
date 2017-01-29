@@ -3,6 +3,7 @@
 //
 
 #include <src/core/tasks/PlayerScanTask.h>
+#include <QDebug>
 #include "ScanPlayer.h"
 
 Core::ScanPlayer::ScanPlayer() {
@@ -27,10 +28,15 @@ void Core::ScanPlayer::addAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
     }
     this->mutex.unlock();
 
-    this->startScanTask();
+    this->startScanTask(audiobook);
 }
 
 void Core::ScanPlayer::addAudiobookFile(std::shared_ptr<AudiobookFileProxy> file) {
+    // don't need to call this function on already scanned items
+    if(file->getMediaDuration() > 0) {
+        return;
+    }
+
     this->mutex.lock();
     this->fileQueue.push(file);
     this->mutex.unlock();
@@ -38,8 +44,8 @@ void Core::ScanPlayer::addAudiobookFile(std::shared_ptr<AudiobookFileProxy> file
     this->startScanTask();
 }
 
-void Core::ScanPlayer::startScanTask() {
-    auto scanTask = new PlayerScanTask(this);
+void Core::ScanPlayer::startScanTask(std::shared_ptr<AudiobookProxy> audiobook = nullptr) {
+    auto scanTask = new PlayerScanTask(this, audiobook);
     this->scanThread.start(scanTask);
 }
 
@@ -70,6 +76,8 @@ void Core::ScanPlayer::performScan() {
         long long duration = libvlc_media_get_duration(this->mediaItem);
         if(duration == -1) {
             element->setMediaDuration(duration);
+        } else {
+            qWarning() << "performScan() failed for: " << element->path();
         }
 
         this->fileQueue.pop();

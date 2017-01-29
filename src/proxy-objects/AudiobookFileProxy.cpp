@@ -57,7 +57,7 @@ void AudiobookFileProxy::setProperty(MediaProperty property) {
     }
 }
 
-void AudiobookFileProxy::setMediaDuration(long long duration) {
+void AudiobookFileProxy::setMediaDuration(const long long duration) {
     this->currentFileSetting->setValue("duration", duration);
 }
 

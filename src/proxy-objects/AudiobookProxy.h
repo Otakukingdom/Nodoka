@@ -42,7 +42,7 @@ class AudiobookProxy : public QObject {
     Core::Setting* settings;
     QSqlRecord record;
     bool isNull;
-    std::shared_ptr<ProxyManager> manager;
+    std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction;
 
     // attribute
     QString id;
@@ -60,7 +60,7 @@ class AudiobookProxy : public QObject {
 public:
     AudiobookProxy(QSqlRecord record,
                    Core::Setting* settings,
-                   std::shared_ptr<ProxyManager> manager);
+                   std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction);
     QAction* getRemoveAction();
     std::vector<std::shared_ptr<AudiobookFileProxy>> getFilesForAudiobook();
 
@@ -73,6 +73,12 @@ public:
     void addCallback(AudiobookEvent callbackType,
                      std::string callbackName,
                      std::function<void ()> callbackFunction);
+
+    bool hasDuration();
+    long long getDuration();
+    void setDuration(const long long duration);
+
+    void handlePropertyScanFinished();
 
 public slots:
     void remove();

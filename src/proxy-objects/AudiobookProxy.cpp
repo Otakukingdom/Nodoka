@@ -5,14 +5,16 @@
 #include "AudiobookProxy.h"
 #include <QDebug>
 #include <src/model/AudiobookFile.h>
-#include "ProxyManager.h"
+
+// helper function for retrieving files form the database
+static std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(QString audiobookId);
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record,
                                Core::Setting *settings,
-                               std::shared_ptr<ProxyManager> manager) {
+                               std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction) {
     this->record = record;
     this->settings = settings;
-    this->manager = manager;
+    this->retrieveFileProxyFunction = retrieveFileProxyFunction;
 
     auto idValue = record.value("id");
     auto directoryValue = record.value("directory");
@@ -104,21 +106,52 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
 }
 
 std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
-    QString queryString = "SELECT * FROM audiobook_file WHERE audiobook_id = ?";
-    QSqlQuery query;
+    auto fileList = filesForAudiobookByDb(this->id, this->retrieveFileProxyFunction);
+    return fileList;
+}
+
+
+
+long long AudiobookProxy::getDuration() {
+    return this->currentFileSetting->value("duration").toLongLong();
+}
+
+void AudiobookProxy::setDuration(const long long duration) {
+    this->currentFileSetting->setValue("duration", duration);
+}
+
+void AudiobookProxy::handlePropertyScanFinished() {
+    auto fileList = this->getFilesForAudiobook();
+    long long duration = 0;
+
+    for(auto &fileEntry : fileList) {
+        duration += fileEntry->getMediaDuration();
+    }
+
+    this->setDuration(duration);
+}
+
+bool AudiobookProxy::hasDuration() {
+    return !this->currentFileSetting->value("duration").isNull();
+}
+
+std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(
+        QString audiobookId,
+        std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction) {
     std::vector<std::shared_ptr<AudiobookFileProxy>> fileList;
 
-
-    auto audiobookId = this->record.value("id").toString();
+    QString queryString = "SELECT * FROM audiobook_file WHERE audiobook_id = ?";
+    QSqlQuery query;
     query.prepare(queryString);
     query.addBindValue(audiobookId);
 
     while(query.next()) {
         auto record = query.record();
-        auto fileProxy = this->manager->getAudiobookFileProxy(record);
+        auto fileProxy = retrieveFileProxyFunction(record);
         fileList.push_back(fileProxy);
     }
 
     return fileList;
 }
+
 
