@@ -11,6 +11,7 @@
 #include <memory>
 #include <src/proxy-objects/AudiobookProxy.h>
 #include <src/proxy-objects/AudiobookFileProxy.h>
+#include <include/vlc/vlc.h>
 
 namespace Core {
     class ScanPlayer {
@@ -18,6 +19,14 @@ namespace Core {
         QThreadPool scanThread;
         QMutex mutex;
         std::queue<std::shared_ptr<AudiobookFileProxy>> fileQueue;
+
+        // internal function to start the scan task in another thread
+        void startScanTask();
+
+        // stuff we need from libvlc
+        libvlc_instance_t* inst;
+        libvlc_media_player_t* mediaPlayer;
+        libvlc_media_t* mediaItem;
 
     public:
         ScanPlayer();

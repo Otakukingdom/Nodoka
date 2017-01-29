@@ -5,6 +5,7 @@
 #include "AudiobookProxy.h"
 #include <QDebug>
 #include <src/model/AudiobookFile.h>
+#include "ProxyManager.h"
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record,
                                Core::Setting *settings,

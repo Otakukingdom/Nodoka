@@ -17,8 +17,8 @@
 
 #include <QAction>
 #include "AudiobookFileProxy.h"
-#include "ProxyManager.h"
 
+class ProxyManager;
 
 /**
  * AudiobookEvent are events that can potentially be initiated from this

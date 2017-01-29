@@ -4,7 +4,6 @@
 
 #include "ProxyManager.h"
 #include <QDebug>
-#include <QDebug>
 
 static const int CACHE_SIZE_MAX = 1000;
 
