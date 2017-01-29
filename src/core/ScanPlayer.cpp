@@ -87,25 +87,22 @@ void Core::ScanPlayer::performScan() {
         libvlc_event_manager_t* eventManager = libvlc_media_event_manager(this->mediaItem);
 
         libvlc_event_attach(eventManager,
-                            libvlc_MediaStateChanged,
+                            libvlc_MediaParsedChanged,
                             (libvlc_callback_t) [](const struct libvlc_event_t * event, void *data) {
-                                auto newState = event->u.media_state_changed.new_state;
-                                if(newState == libvlc_Playing) {
-                                    auto player = reinterpret_cast<ScanPlayer*>(data);
+                                auto player = reinterpret_cast<ScanPlayer*>(data);
+                                int parsedStatus = libvlc_media_is_parsed(player->mediaItem);
 
+                                if(parsedStatus) {
                                     player->threadPool->enqueue([player]() {
                                         long long duration = libvlc_media_get_duration(player->mediaItem);
-                                        if(duration == -1) {
+                                        if(duration > 0) {
                                             player->currentlyScanning->setMediaDuration(duration);
+                                            qDebug() << "performScan() SUCCESS: " << player->currentlyScanning->path();
                                         } else {
                                             qWarning() << "performScan() failed for: " << player->currentlyScanning->path();
                                         }
 
-
-                                        libvlc_media_player_stop(player->mediaPlayer);
-
                                         player->hasScanFinished = true;
-                                        qDebug() << "scan finisehd for file: " << player->currentlyScanning->path();
                                     });
                                 }
                             },
@@ -115,6 +112,8 @@ void Core::ScanPlayer::performScan() {
         while(!hasScanFinished) {
             QThread::msleep(10);
         }
+
+        libvlc_media_player_stop(this->mediaPlayer);
 
         this->fileQueue.pop();
     }
