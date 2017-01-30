@@ -6,10 +6,6 @@
 #include <QDebug>
 #include <src/model/AudiobookFile.h>
 
-// helper function for retrieving files form the database
-static std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(QString audiobookId,
-                                                                              std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction);
-
 AudiobookProxy::AudiobookProxy(QSqlRecord record,
                                Core::Setting *settings,
                                std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction) {
@@ -107,8 +103,12 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
 }
 
 std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
-    auto fileList = filesForAudiobookByDb(this->id, this->retrieveFileProxyFunction);
-    qDebug() << "fileList length is: " << fileList.size() << " id is:" << this->id.toInt();
+    // look into the cache to see if we already have a record of this
+    if(this->fileListCache.size() > 0) {
+        return this->fileListCache.toStdVector();
+    }
+
+    auto fileList = this->filesForAudiobookByDb(this->id, this->retrieveFileProxyFunction);
     return fileList;
 }
 
@@ -137,7 +137,19 @@ bool AudiobookProxy::hasDuration() {
     return !this->currentFileSetting->value("duration").isNull();
 }
 
-std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(
+bool AudiobookProxy::allFileDurationScanned() {
+    auto fileList = this->getFilesForAudiobook();
+    auto scanned = true;
+    for(auto &audiobookFile : fileList) {
+        if(audiobookFile->getMediaDuration() <= 0) {
+            scanned = false;
+        }
+    }
+
+    return scanned;
+}
+
+std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::filesForAudiobookByDb(
         QString audiobookId,
         std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction) {
     std::vector<std::shared_ptr<AudiobookFileProxy>> fileList;
@@ -152,9 +164,12 @@ std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(
         auto record = query.record();
         auto fileProxy = retrieveFileProxyFunction(record);
         fileList.push_back(fileProxy);
+
+        this->fileListCache.push_back(fileProxy);
     }
 
     return fileList;
 }
+
 
 

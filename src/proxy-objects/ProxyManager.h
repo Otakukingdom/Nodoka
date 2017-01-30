@@ -28,9 +28,6 @@ private:
     // stores the current audiobook records
     QHash<QString, std::shared_ptr<AudiobookProxy>> loadedAudiobooks;
 
-    // mapping between audiobook and file records (this is only populated on an as needed basis)
-    QHash<std::shared_ptr<AudiobookProxy>, std::vector<std::shared_ptr<AudiobookFileProxy> >> bookFileMap;
-
 
 public:
     void clearCache();

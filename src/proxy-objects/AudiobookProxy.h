@@ -43,6 +43,7 @@ class AudiobookProxy : public QObject {
     QSqlRecord record;
     bool isNull;
     std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction;
+    QVector<std::shared_ptr<AudiobookFileProxy>> fileListCache;
 
     // attribute
     QString id;
@@ -56,6 +57,10 @@ class AudiobookProxy : public QObject {
 
     void notifyCallbacks(AudiobookEvent event);
 
+    // internal function to load AudiobookFileProxy objects from database
+    std::vector<std::shared_ptr<AudiobookFileProxy>> filesForAudiobookByDb(QString audiobookId,
+                                                                           std::function<std::shared_ptr<AudiobookFileProxy>(QSqlRecord)>
+                                                                           retrieveFileProxyFunction);
 
 public:
     AudiobookProxy(QSqlRecord record,
@@ -75,6 +80,7 @@ public:
                      std::function<void ()> callbackFunction);
 
     bool hasDuration();
+    bool allFileDurationScanned();
     long long getDuration();
     void setDuration(const long long duration);
 
