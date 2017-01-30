@@ -125,6 +125,7 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
     this->currentFileSetting->setValue("currentTime", currentTime);
     if(completeness) {
         this->currentFileSetting->setValue("completeness", calcCompleteness);
+        this->totalDurationUpdateFunction();
     }
 }
 
@@ -203,4 +204,8 @@ int AudiobookFileProxy::getCompleteness() {
 
 void AudiobookFileProxy::setAsComplete() {
     this->currentFileSetting->setValue("completeness", 100);
+}
+
+void AudiobookFileProxy::setTotalDurationUpdateFunction(std::function<void()> audiobookProxyUpdateFunction) {
+    this->totalDurationUpdateFunction = audiobookProxyUpdateFunction;
 }

@@ -103,12 +103,18 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
 }
 
 std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
+    // we place a mutex on here so that this function does NOT get called on multiple times
+    // by different threads when the fileListCache is still building at the same time
+    this->mutex.lock();
+
     // look into the cache to see if we already have a record of this
     if(this->fileListCache.size() > 0) {
+        this->mutex.unlock();
         return this->fileListCache.toStdVector();
     }
 
     auto fileList = this->filesForAudiobookByDb(this->id, this->retrieveFileProxyFunction);
+    this->mutex.unlock();
     return fileList;
 }
 
@@ -120,6 +126,7 @@ long long AudiobookProxy::getDuration() {
 
 void AudiobookProxy::setDuration(const long long duration) {
     this->currentFileSetting->setValue("duration", duration);
+    this->currentFileSetting->sync();
 }
 
 void AudiobookProxy::handlePropertyScanFinished() {
@@ -166,6 +173,23 @@ std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::filesForAudiobo
         fileList.push_back(fileProxy);
 
         this->fileListCache.push_back(fileProxy);
+
+        fileProxy->setTotalDurationUpdateFunction([this]() {
+            auto funcFileList = this->getFilesForAudiobook();
+            std::vector<long long> durationList;
+
+            std::transform(funcFileList.begin(), funcFileList.end(), durationList.begin(),
+                           [](std::shared_ptr<AudiobookFileProxy> currentFile) -> long long {
+                               if(currentFile->getMediaDuration() > 0) {
+                                   return currentFile->getMediaDuration();
+                               }
+
+                               return 0;
+            });
+
+            long long totalDuration = std::accumulate(durationList.begin(), durationList.end(), 0);
+            this->setDuration(totalDuration);
+        });
     }
 
     return fileList;

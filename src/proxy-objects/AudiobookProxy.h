@@ -14,6 +14,7 @@
 #include <src/core/Util.h>
 #include <QSharedPointer>
 #include <QSettings>
+#include <QMutex>
 
 #include <QAction>
 #include "AudiobookFileProxy.h"
@@ -44,6 +45,7 @@ class AudiobookProxy : public QObject {
     bool isNull;
     std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction;
     QVector<std::shared_ptr<AudiobookFileProxy>> fileListCache;
+    QMutex mutex;
 
     // attribute
     QString id;
