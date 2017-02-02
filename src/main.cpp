@@ -6,6 +6,7 @@
 #include <src/core/NodokaApp.h>
 #include <src/simple-lib/RunGuard.h>
 
+
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     app.setOrganizationName("Otakukingdom Co");
@@ -14,7 +15,6 @@ int main(int argc, char *argv[]) {
 
     RunGuard guard("Z0DWjf33Am1YeCUdIW7h0vSxjU2RJjZcUqzgG ver0.0.2a");
 
-    qDebug() << "Starting in debug mode";
 
     if(!guard.tryToRun()) {
         QMessageBox *messageBox = new QMessageBox();

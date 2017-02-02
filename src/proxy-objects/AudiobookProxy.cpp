@@ -175,24 +175,32 @@ std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::filesForAudiobo
         this->fileListCache.push_back(fileProxy);
 
         fileProxy->setTotalDurationUpdateFunction([this]() {
-            auto funcFileList = this->getFilesForAudiobook();
-            std::vector<long long> durationList;
-
-            std::transform(funcFileList.begin(), funcFileList.end(), durationList.begin(),
-                           [](std::shared_ptr<AudiobookFileProxy> currentFile) -> long long {
-                               if(currentFile->getMediaDuration() > 0) {
-                                   return currentFile->getMediaDuration();
-                               }
-
-                               return 0;
-            });
-
-            long long totalDuration = std::accumulate(durationList.begin(), durationList.end(), 0);
-            this->setDuration(totalDuration);
+            this->updateTotalDuration();
         });
     }
 
     return fileList;
+}
+
+void AudiobookProxy::updateTotalDuration() {
+    auto funcFileList = this->getFilesForAudiobook();
+    std::vector<long long> *durationList = new std::vector<long long>();
+
+
+    std::for_each(funcFileList.begin(), funcFileList.end(),
+                  [durationList](std::shared_ptr<AudiobookFileProxy> currentFile) -> long long {
+                      auto currentDuration = currentFile->getMediaDuration();
+                      if(currentDuration > 0) {
+                          durationList->push_back(currentDuration);
+                      }
+
+                      return 0;
+                  });
+
+    long long totalDuration = std::accumulate(durationList->begin(), durationList->end(), 0);
+
+    delete durationList;
+    this->setDuration(totalDuration);
 }
 
 

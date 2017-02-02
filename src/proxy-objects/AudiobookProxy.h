@@ -88,6 +88,8 @@ public:
 
     void handlePropertyScanFinished();
 
+    void updateTotalDuration();
+
 public slots:
     void remove();
     void rescan();
