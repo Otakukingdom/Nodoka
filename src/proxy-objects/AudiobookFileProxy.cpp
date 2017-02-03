@@ -8,7 +8,6 @@
 #include <src/core/Util.h>
 
 AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting) {
-    qDebug() << "file proxy opened";
     this->record = record;
     this->setting = setting;
     this->isNull = false;
@@ -109,7 +108,6 @@ void AudiobookFileProxy::setAsCurrent() {
 }
 
 void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
-    qDebug() << "TIME SET CALLED";
     auto path = this->record.value("full_path").toString();
 
     bool completeness = false;

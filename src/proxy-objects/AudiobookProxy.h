@@ -89,6 +89,7 @@ public:
     void handlePropertyScanFinished();
 
     void updateTotalDuration();
+    void updateCompletionStatus();
 
 public slots:
     void remove();

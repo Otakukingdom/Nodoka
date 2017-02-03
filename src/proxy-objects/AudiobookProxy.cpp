@@ -203,5 +203,11 @@ void AudiobookProxy::updateTotalDuration() {
     this->setDuration(totalDuration);
 }
 
+void AudiobookProxy::updateCompletionStatus() {
+    auto funcFileList = this->getFilesForAudiobook();
+
+    for(int i = 0; i < funcFileList.size(); i++) {
+    }
+}
 
 
