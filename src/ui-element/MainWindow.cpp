@@ -34,7 +34,12 @@ MainWindow::MainWindow(Directory* directoryModel,
     // set up the event handlers
     this->abListHandler = new AudiobookListViewHandler(this,
                                                        this->ui->audiobookView,
-                                                       manager);
+                                                       manager,
+                                                       this);
+    this->fileListHandler = new FileListViewHandler(this,
+                                                    this->ui->fileView,
+                                                    manager,
+                                                    this);
     this->collectionHandler = handler;
 
     // set up a null file
@@ -44,6 +49,7 @@ MainWindow::MainWindow(Directory* directoryModel,
 
     // initialize the settings form
     this->settingsForm = new SettingsForm(this->directoryModel);
+    this->settingsForm->hide();
 
 
     this->menuSetup();
@@ -79,6 +85,12 @@ void MainWindow::menuSetup() {
     this->ui->audiobookView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this->ui->audiobookView, &QWidget::customContextMenuRequested,
             this->abListHandler, &AudiobookListViewHandler::contextMenuRequested);
+
+    // the same for file list view
+    this->ui->fileView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this->ui->fileView, &QWidget::customContextMenuRequested,
+            this->fileListHandler, &FileListViewHandler::contextMenuRequested
+    );
 }
 
 

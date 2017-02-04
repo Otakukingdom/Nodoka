@@ -9,8 +9,9 @@
 
 AudiobookListViewHandler::AudiobookListViewHandler(QMainWindow *window,
                                                    QListView *audiobookListView,
-                                                   std::shared_ptr<ProxyManager> proxyManager
-) {
+                                                   std::shared_ptr<ProxyManager> proxyManager,
+                                                   QObject *parent
+): QObject(parent) {
     this->mainWindow = window;
     this->audiobookListView = audiobookListView;
     this->proxyManager = proxyManager;

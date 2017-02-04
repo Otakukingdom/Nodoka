@@ -24,7 +24,8 @@ class AudiobookListViewHandler: public QObject {
 public:
     AudiobookListViewHandler(QMainWindow* window,
                              QListView *audiobookListView,
-                             std::shared_ptr<ProxyManager> proxyManager
+                             std::shared_ptr<ProxyManager> proxyManager,
+                             QObject* parent = 0
     );
 
 public slots:

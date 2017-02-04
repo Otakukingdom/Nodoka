@@ -21,6 +21,7 @@
 #include <src/event-handler/AudiobookListViewHandler.h>
 #include <src/core/ScanPlayer.h>
 #include <src/event-handler/AudiobookCollectionHandler.h>
+#include <src/event-handler/FileListViewHandler.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -46,6 +47,7 @@ private:
 
     // event handlers
     AudiobookListViewHandler *abListHandler;
+    FileListViewHandler *fileListHandler;
     std::shared_ptr<AudiobookCollectionHandler> collectionHandler;
 
     // logical states
