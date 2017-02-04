@@ -72,7 +72,6 @@ void AudiobookProxy::addCallback(AudiobookEvent callbackType,
             // there is already a callback inplace, we have to append the new one
             // at the end of the vector
 
-            qDebug() << "Function inserted";
             auto &callbackFunctionVector = lookupTableResult->second;
             callbackFunctionVector.push_back(callbackFunction);
         } else {
@@ -81,7 +80,6 @@ void AudiobookProxy::addCallback(AudiobookEvent callbackType,
             callbackFunctionVector.push_back(callbackFunction);
             std::pair<AudiobookEvent, std::vector<std::function<void ()>>> currentPair(callbackType, callbackFunctionVector);
 
-            qDebug() << "Function vector init and inserted";
             this->callbackLookupTable.insert(currentPair);
         }
 
@@ -205,9 +203,21 @@ void AudiobookProxy::updateTotalDuration() {
 
 void AudiobookProxy::updateCompletionStatus() {
     auto funcFileList = this->getFilesForAudiobook();
+    auto totalProgress = 0;
 
     for(int i = 0; i < funcFileList.size(); i++) {
+        auto currentFile = funcFileList[i];
+        totalProgress += currentFile->getCurrentTime();
     }
+
+    double completeness = totalProgress / this->getDuration();
+    int percentage = (int)round(completeness * 100);
+
+    this->currentFileSetting->setValue("completeness", percentage);
+}
+
+int AudiobookProxy::getCompleteness() {
+    return this->currentFileSetting->value("completeness").toInt();
 }
 
 

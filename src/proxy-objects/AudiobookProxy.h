@@ -91,6 +91,8 @@ public:
     void updateTotalDuration();
     void updateCompletionStatus();
 
+    int getCompleteness();
+
 public slots:
     void remove();
     void rescan();

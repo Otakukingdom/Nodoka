@@ -6,6 +6,8 @@
 #include <QSqlError>
 #include <QDebug>
 #include <src/core/Util.h>
+#include <QFile>
+#include <QtCore/QCryptographicHash>
 
 AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting) {
     this->record = record;
@@ -207,4 +209,31 @@ void AudiobookFileProxy::setAsComplete() {
 
 void AudiobookFileProxy::setTotalDurationUpdateFunction(std::function<void()> audiobookProxyUpdateFunction) {
     this->totalDurationUpdateFunction = audiobookProxyUpdateFunction;
+}
+
+QString AudiobookFileProxy::calcCheckSum() {
+    QByteArray byteArray;
+    QFile f(this->path());
+    if (f.open(QFile::ReadOnly)) {
+        QCryptographicHash hash(QCryptographicHash::Sha1);
+        if (hash.addData(&f)) {
+            byteArray = hash.result();
+        }
+    }
+
+    if(!byteArray.isNull()) {
+        auto sha1Hash = byteArray.toHex();
+
+        return QString::fromLocal8Bit(sha1Hash);
+    } else {
+        return QString();
+    }
+}
+
+void AudiobookFileProxy::calcAndWriteCheckSum(bool forced) {
+    if(forced || !this->currentFileSetting->contains("checkSum")) {
+        auto checkSum = calcCheckSum();
+        this->currentFileSetting->setValue("checkSum", checkSum);
+        this->currentFileSetting->sync();
+    }
 }

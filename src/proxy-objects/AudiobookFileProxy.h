@@ -24,10 +24,15 @@ class AudiobookFileProxy {
     MediaProperty mediaProperty;
 
     std::function<void ()> totalDurationUpdateFunction;
+    std::function<void ()> totalCompletenessUpdateFunction;
+
+    // calculate the hashsum for the current file and save it
+    QString calcCheckSum();
 
 public:
     AudiobookFileProxy(QSqlRecord record, Core::Setting* setting);
     AudiobookFileProxy();
+    void calcAndWriteCheckSum(bool forced = false);
     QString path();
     QString name();
     bool getNullState();
