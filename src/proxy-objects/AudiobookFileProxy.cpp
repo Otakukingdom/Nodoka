@@ -262,3 +262,8 @@ void AudiobookFileProxy::resetReadStatus() {
     this->currentFileSetting->setValue("currentTime", 0);
     this->currentFileSetting->setValue("completeness", 0);
 }
+
+void AudiobookFileProxy::markAsRead() {
+    this->setAsComplete();
+    this->saveCurrentTime(this->getMediaDuration());
+}

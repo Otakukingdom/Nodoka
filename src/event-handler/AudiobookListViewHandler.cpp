@@ -46,9 +46,14 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
             this->handleResetAudiobook(audiobookProxy);
         });
 
+        auto markAsReadAction = new QAction("Mark as Read");
+        connect(markAsReadAction, &QAction::triggered, [this, audiobookProxy] () {
+            this->handleMarkAsReadAudiobook(audiobookProxy);
+        });
+
         QMenu *menu = new QMenu(this->mainWindow);
         menu->addAction(resetAction);
-        menu->addAction("Mark as read");
+        menu->addAction(markAsReadAction);
         menu->addAction("Rescan this Audiobook");
         menu->addAction(removeAction);
         menu->exec(this->audiobookListView->mapToGlobal(position));
@@ -58,5 +63,9 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
         // if the user clicked somewhere other than the audiobook item, there is nothing to show...
         return;
     }
+}
+
+void AudiobookListViewHandler::handleMarkAsReadAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
+    audiobook->markAsRead();
 }
 

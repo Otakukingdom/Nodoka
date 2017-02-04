@@ -86,13 +86,16 @@ public:
     long long getDuration();
     void setDuration(const long long duration);
 
-    void handlePropertyScanFinished();
 
+
+    int getCompleteness();
+    void handlePropertyScanFinished();
     void updateTotalDuration();
     void updateCompletionStatus();
 
-    int getCompleteness();
+    // direct user actions
     void resetReadStatus();
+    void markAsRead();
 
 public slots:
     void remove();

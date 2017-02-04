@@ -55,7 +55,10 @@ public:
     void setProperty(MediaProperty property);
     void setMediaDuration(const long long duration);
     long long getMediaDuration();
+
+    // direct user actions
     void resetReadStatus();
+    void markAsRead();
 
 };
 

@@ -19,5 +19,4 @@ void AudiobookCollectionHandler::directoryAdded(QString path) {
 }
 
 void AudiobookCollectionHandler::resetAllReadStatus() {
-
 }

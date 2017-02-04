@@ -232,6 +232,16 @@ void AudiobookProxy::resetReadStatus() {
     for(auto &fileProxy: this->getFilesForAudiobook()) {
         fileProxy->resetReadStatus();
     }
+
+    this->updateCompletionStatus();
+}
+
+void AudiobookProxy::markAsRead() {
+    for(auto &fileProxy: this->getFilesForAudiobook()) {
+        fileProxy->markAsRead();
+    }
+
+    this->updateCompletionStatus();
 }
 
 
