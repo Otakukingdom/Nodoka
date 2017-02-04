@@ -54,9 +54,11 @@ void AudiobookProxy::rescan() {
 }
 
 QAction* AudiobookProxy::getRemoveAction() {
-    auto action = new QAction("Remove Audiobook");
-    connect(action, &QAction::triggered, this, &AudiobookProxy::remove);
-    return action;
+    // we do not need to worry about deallocation since we are assuming something else
+    // is going to take ownership of this
+    auto removeAction = new QAction("Remove Audiobook", this);
+    connect(removeAction, &QAction::triggered, this, &AudiobookProxy::remove);
+    return removeAction;
 }
 
 void AudiobookProxy::addCallback(AudiobookEvent callbackType,
@@ -224,6 +226,12 @@ void AudiobookProxy::updateCompletionStatus() {
 
 int AudiobookProxy::getCompleteness() {
     return this->currentFileSetting->value("completeness").toInt();
+}
+
+void AudiobookProxy::resetReadStatus() {
+    for(auto &fileProxy: this->getFilesForAudiobook()) {
+        fileProxy->resetReadStatus();
+    }
 }
 
 

@@ -17,3 +17,7 @@ void AudiobookCollectionHandler::directoryAdded(QString path) {
         this->audiobookModel->registerAudiobook(QSqlRecord(), directoryObject);
     }
 }
+
+void AudiobookCollectionHandler::resetAllReadStatus() {
+
+}

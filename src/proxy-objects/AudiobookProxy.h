@@ -92,6 +92,7 @@ public:
     void updateCompletionStatus();
 
     int getCompleteness();
+    void resetReadStatus();
 
 public slots:
     void remove();

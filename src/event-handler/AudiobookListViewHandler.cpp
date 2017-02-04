@@ -18,7 +18,7 @@ AudiobookListViewHandler::AudiobookListViewHandler(QMainWindow *window,
 
 
 void AudiobookListViewHandler::handleResetAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
-
+    audiobook->resetReadStatus();
 }
 
 void AudiobookListViewHandler::handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
@@ -41,9 +41,13 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
         });
 
         auto removeAction = audiobookProxy->getRemoveAction();
+        auto resetAction = new QAction("Reset Read State");
+        connect(resetAction, &QAction::triggered, [this, audiobookProxy] () {
+            this->handleResetAudiobook(audiobookProxy);
+        });
 
         QMenu *menu = new QMenu(this->mainWindow);
-        menu->addAction("Reset read state");
+        menu->addAction(resetAction);
         menu->addAction("Mark as read");
         menu->addAction("Rescan this Audiobook");
         menu->addAction(removeAction);

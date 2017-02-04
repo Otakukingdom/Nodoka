@@ -257,3 +257,8 @@ void AudiobookFileProxy::setCompletenessUpdateFunction(std::function<void()> fun
     this->completenssFunctionSet = true;
     this->totalCompletenessUpdateFunction = func;
 }
+
+void AudiobookFileProxy::resetReadStatus() {
+    this->currentFileSetting->setValue("currentTime", 0);
+    this->currentFileSetting->setValue("completeness", 0);
+}
