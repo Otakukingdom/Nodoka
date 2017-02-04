@@ -62,6 +62,11 @@ void AudiobookProxy::rescan() {
 
     // get the scanned paths
     QDir dir(this->directory);
+    // if we can't even read the directory, we should just skip this altogether
+    if(!dir.isReadable()) {
+        return;
+    }
+
     std::vector<QString> fileToInsert;
     if(dir.isReadable()) {
         QDirIterator it(dir, QDirIterator::NoIteratorFlags);
