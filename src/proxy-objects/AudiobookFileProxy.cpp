@@ -8,6 +8,7 @@
 #include <src/core/Util.h>
 #include <QFile>
 #include <QtCore/QCryptographicHash>
+#include <src/core/tasks/ChecksumTask.h>
 
 AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting) {
     this->record = record;
@@ -24,6 +25,12 @@ AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting
     auto pathToSettings = Core::getUniqueSettingPath(path);
 
     this->currentFileSetting = QSharedPointer<QSettings>(new QSettings(pathToSettings, QSettings::IniFormat));
+
+    // load checksum if nessesary
+    if(!this->currentFileSetting->contains("checkSum")) {
+        auto task = new ChecksumTask(this);
+        ChecksumTask::threadPoolInstance.start(task);
+    }
 }
 
 AudiobookFileProxy::AudiobookFileProxy() {
@@ -241,6 +248,8 @@ void AudiobookFileProxy::calcAndWriteCheckSum(bool forced) {
         auto checkSum = calcCheckSum();
         this->currentFileSetting->setValue("checkSum", checkSum);
         this->currentFileSetting->sync();
+
+        qDebug() << "checkSum set to " << checkSum;
     }
 }
 
