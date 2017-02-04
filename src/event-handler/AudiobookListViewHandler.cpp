@@ -5,15 +5,18 @@
 #include <QDebug>
 #include <QtSql/QSqlTableModel>
 #include <src/model/Audiobook.h>
+#include <src/model/FileDisplayModel.h>
 #include "AudiobookListViewHandler.h"
 
 AudiobookListViewHandler::AudiobookListViewHandler(QMainWindow *window,
                                                    QListView *audiobookListView,
+                                                   QListView *fileListView,
                                                    std::shared_ptr<ProxyManager> proxyManager,
                                                    QObject *parent
 ): QObject(parent) {
     this->mainWindow = window;
     this->audiobookListView = audiobookListView;
+    this->fileListView = fileListView;
     this->proxyManager = proxyManager;
 }
 
@@ -77,5 +80,14 @@ void AudiobookListViewHandler::handleMarkAsReadAudiobook(std::shared_ptr<Audiobo
 
 void AudiobookListViewHandler::handleRescan(std::shared_ptr<AudiobookProxy> audiobook) {
     audiobook->rescan();
+
+    // we should update the audiobook list view as well as the file list view
+    auto fileModel = static_cast<FileDisplayModel*>(this->fileListView->model());
+    fileModel->select();
+    this->fileListView->update();
+
+    auto abModel = static_cast<Audiobook*>(this->audiobookListView->model());
+    abModel->select();
+    this->audiobookListView->update();
 }
 

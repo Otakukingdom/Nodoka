@@ -24,7 +24,7 @@ void FileDisplayModel::setSelectedAudiobook(int audiobookId) {
     this->selectedAudiobookId = audiobookId;
 
     this->hasFilter = true;
-    this->setFilter("audiobook_id=\'" + QString::number(this->selectedAudiobookId) + "\'");
+    this->setFilter("audiobook_id=\'" + QString::number(this->selectedAudiobookId) + "\' ORDER BY position ASC");
 
     // update the selection
     auto res = this->select();
@@ -49,7 +49,14 @@ QVariant FileDisplayModel::data(const QModelIndex &index, int role) const {
             lengthDisplayString += "<span style=\"font-weight: bold;\">" + length + "</span>  ";
         }
 
+        QString message = "";
+
+        if(!proxyEntry->fileExists()) {
+            message += "(FILE NOT FOUND) ";
+        }
+
         QString label = "<div class=\"file-item\"><span class=\"name\">" +
+                message +
                 name + "</span><br />" +
                 lengthDisplayString +
                 "<span>" + completenessString +"% Completed </span>" +

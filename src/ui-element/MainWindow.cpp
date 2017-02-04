@@ -34,6 +34,7 @@ MainWindow::MainWindow(Directory* directoryModel,
     // set up the event handlers
     this->abListHandler = new AudiobookListViewHandler(this,
                                                        this->ui->audiobookView,
+                                                       this->ui->fileView,
                                                        manager,
                                                        this);
     this->fileListHandler = new FileListViewHandler(this,
@@ -176,12 +177,13 @@ void MainWindow::setup() {
             [this] (const QModelIndex &index) {
                 QSqlTableModel* model = (QSqlTableModel *) this->ui->fileView->model();
                 auto row = index.row();
-
                 auto currentRecord = model->record(row);
 
-                this->concretePlayer->releaseMedia();
-                this->concretePlayer->loadMedia(currentRecord);
-                this->concretePlayer->play();
+                if(this->concretePlayer->canLoadMedia(currentRecord)) {
+                    this->concretePlayer->releaseMedia();
+                    this->concretePlayer->loadMedia(currentRecord);
+                    this->concretePlayer->play();
+                }
     });
 
     // prevent editing of audiobook and file list view

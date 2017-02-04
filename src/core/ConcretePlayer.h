@@ -74,6 +74,8 @@ namespace Core {
         double getDurationInSeconds();
         float getRate();
 
+        bool canLoadMedia(QSqlRecord record);
+
     signals:
         void stateChanged(libvlc_state_t newState);
         void timeProgressed(libvlc_time_t time);

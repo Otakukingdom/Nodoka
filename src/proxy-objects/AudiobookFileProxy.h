@@ -30,6 +30,7 @@ class AudiobookFileProxy {
 
     // calculate the hashsum for the current file and save it
     QString calcCheckSum();
+    bool fileExistFlag;
 
 public:
     AudiobookFileProxy(QSqlRecord record, Core::Setting* setting);
@@ -45,6 +46,7 @@ public:
     long long getCurrentTime();
     bool currentTimeNull();
     int getCompleteness();
+    bool fileExists();
 
     bool hasNextFile();
     AudiobookFileProxy getNextFile();

@@ -50,12 +50,28 @@ Core::ConcretePlayer::ConcretePlayer(Setting* setting, std::shared_ptr<ProxyMana
     this->hasSeekTo = false;
 }
 
+bool Core::ConcretePlayer::canLoadMedia(QSqlRecord record) {
+    this->audiobookFileProxy = this->proxyManager->getAudiobookFileProxy(record);
+
+    // if the file doesn't even exist, the media is assumed to be unloadable
+    if(!this->audiobookFileProxy->fileExists()) {
+        return false;
+    }
+
+    return true;
+}
+
 void Core::ConcretePlayer::loadMedia(QSqlRecord record) {
     if(this->mediaLoaded) {
         return;
     }
 
     this->audiobookFileProxy = this->proxyManager->getAudiobookFileProxy(record);
+    // if the file doesn't even exist, do not continue;
+    if(!this->audiobookFileProxy->fileExists()) {
+        return;
+    }
+
     this->currentPath = audiobookFileProxy->path();
 
     auto path =  this->currentPath;
@@ -271,3 +287,4 @@ void Core::ConcretePlayer::setSpeed(QString speed) {
 float Core::ConcretePlayer::getRate() {
     return this->speed.toFloat();
 }
+

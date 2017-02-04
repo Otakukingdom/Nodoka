@@ -19,11 +19,13 @@ class AudiobookListViewHandler: public QObject {
 
     QMainWindow* mainWindow;
     QListView* audiobookListView;
+    QListView* fileListView;
     std::shared_ptr<ProxyManager> proxyManager;
 
 public:
     AudiobookListViewHandler(QMainWindow* window,
                              QListView *audiobookListView,
+                             QListView *fileListView,
                              std::shared_ptr<ProxyManager> proxyManager,
                              QObject* parent = 0
     );

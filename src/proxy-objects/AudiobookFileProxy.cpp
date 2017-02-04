@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <src/core/Util.h>
 #include <QFile>
+#include <QFileInfo>
 #include <QtCore/QCryptographicHash>
 #include <src/core/tasks/ChecksumTask.h>
 
@@ -14,6 +15,7 @@ AudiobookFileProxy::AudiobookFileProxy(QSqlRecord record, Core::Setting* setting
     this->record = record;
     this->setting = setting;
     this->isNull = false;
+    this->fileExistFlag = true;
 
     auto path = this->path();
     // if we have an empty path, it's not a valid AudiobookFile record...
@@ -278,4 +280,11 @@ void AudiobookFileProxy::remove() {
     query.addBindValue(this->record.value("audiobook_id").toInt());
     query.addBindValue(this->record.value("full_path").toString());
     query.exec();
+}
+
+bool AudiobookFileProxy::fileExists() {
+    QFileInfo checkFile(this->path());
+
+    this->fileExistFlag = checkFile.exists() && checkFile.isFile();
+    return this->fileExistFlag;
 }
