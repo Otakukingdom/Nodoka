@@ -14,6 +14,7 @@ class AudiobookCollectionHandler {
     std::shared_ptr<ProxyManager> manager;
 
 public:
+    void directoryAdded(QString path);
     AudiobookCollectionHandler(Audiobook* audiobookModel,
                                std::shared_ptr<ProxyManager> manager);
 };

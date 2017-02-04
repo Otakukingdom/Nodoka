@@ -14,7 +14,7 @@ AudiobookProxy::AudiobookProxy(QSqlRecord record,
     this->retrieveFileProxyFunction = retrieveFileProxyFunction;
 
     auto idValue = record.value("id");
-    auto directoryValue = record.value("directory");
+    auto directoryValue = record.value("full_path");
 
     if(idValue.isNull() || directoryValue.isNull()) {
         this->isNull = true;

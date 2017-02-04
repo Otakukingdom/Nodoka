@@ -15,6 +15,7 @@ MainWindow::MainWindow(Directory* directoryModel,
                        Core::ScanPlayer* scanPlayer,
                        Core::Setting* setting,
                        std::shared_ptr<ProxyManager> manager,
+                       std::shared_ptr<AudiobookCollectionHandler> handler,
                        QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow()) {
     ui->setupUi( this );
@@ -34,6 +35,7 @@ MainWindow::MainWindow(Directory* directoryModel,
     this->abListHandler = new AudiobookListViewHandler(this,
                                                        this->ui->audiobookView,
                                                        manager);
+    this->collectionHandler = handler;
 
     // set up a null file
     this->currentlyPlayingFile = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy());
@@ -396,7 +398,7 @@ void MainWindow::performAudiobookAdd() {
 
     // only perform this when user has actually selected something
     if(!target.isEmpty()) {
-
+        this->collectionHandler->directoryAdded(target);
     }
 }
 

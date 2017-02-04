@@ -9,3 +9,11 @@ AudiobookCollectionHandler::AudiobookCollectionHandler(Audiobook *audiobookModel
     this->manager = manager;
     this->audiobookModel = audiobookModel;
 }
+
+void AudiobookCollectionHandler::directoryAdded(QString path) {
+    std::shared_ptr<QDir> directoryObject(new QDir(path));
+
+    if(directoryObject->isReadable()) {
+        this->audiobookModel->registerAudiobook(QSqlRecord(), directoryObject);
+    }
+}

@@ -20,6 +20,7 @@
 #include <QStandardItemModel>
 #include <src/event-handler/AudiobookListViewHandler.h>
 #include <src/core/ScanPlayer.h>
+#include <src/event-handler/AudiobookCollectionHandler.h>
 #include "ui_MainWindow.h"
 #include "SettingsForm.h"
 
@@ -45,6 +46,7 @@ private:
 
     // event handlers
     AudiobookListViewHandler *abListHandler;
+    std::shared_ptr<AudiobookCollectionHandler> collectionHandler;
 
     // logical states
     bool isPlaying;
@@ -61,6 +63,7 @@ public:
                Core::ScanPlayer* scanPlayer,
                Core::Setting* setting,
                std::shared_ptr<ProxyManager> manager,
+               std::shared_ptr<AudiobookCollectionHandler> handler,
                QWidget *parent = 0);
     virtual ~MainWindow();
 

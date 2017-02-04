@@ -47,7 +47,9 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
                                       this->player,
                                       this->scanPlayer,
                                       this->setting,
-                                      this->proxyManager);
+                                      this->proxyManager,
+                                      this->audiobookCollectionHandler
+    );
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);
