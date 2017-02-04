@@ -29,6 +29,8 @@ AudiobookProxy::AudiobookProxy(QSqlRecord record,
         auto path = Core::getUniqueSettingPath(stringToHash);
         this->currentFileSetting = QSharedPointer<QSettings>(new QSettings(path, QSettings::IniFormat));
     }
+
+    this->getFilesForAudiobook();
 }
 
 void AudiobookProxy::remove() {
@@ -175,6 +177,10 @@ std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::filesForAudiobo
         fileProxy->setTotalDurationUpdateFunction([this]() {
             this->updateTotalDuration();
         });
+
+        fileProxy->setCompletenessUpdateFunction([this]() {
+            this->updateCompletionStatus();
+        });
     }
 
     return fileList;
@@ -210,7 +216,7 @@ void AudiobookProxy::updateCompletionStatus() {
         totalProgress += currentFile->getCurrentTime();
     }
 
-    double completeness = totalProgress / this->getDuration();
+    double completeness = static_cast<double>(totalProgress) / static_cast<double>(this->getDuration());
     int percentage = (int)round(completeness * 100);
 
     this->currentFileSetting->setValue("completeness", percentage);

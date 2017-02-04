@@ -23,6 +23,8 @@ class AudiobookFileProxy {
     bool isNull;
     MediaProperty mediaProperty;
 
+    bool durationFunctionSet = false;
+    bool completenssFunctionSet = false;
     std::function<void ()> totalDurationUpdateFunction;
     std::function<void ()> totalCompletenessUpdateFunction;
 
@@ -48,6 +50,7 @@ public:
     AudiobookFileProxy getNextFile();
     QSqlRecord getRecord();
     void setTotalDurationUpdateFunction(std::function<void()> audiobookProxyUpdateFunction);
+    void setCompletenessUpdateFunction(std::function<void()> func) ;
 
     void setProperty(MediaProperty property);
     void setMediaDuration(const long long duration);

@@ -92,7 +92,7 @@ QVariant Audiobook::data(const QModelIndex &index, int role) const {
 
 
         auto name = currentRecord.value("name").toString();
-        auto progress = currentRecord.value("completeness").toString();
+        auto progress = QString::number(proxyRecord->getCompleteness());
 
         auto length = Core::convertTimeToString(proxyRecord->getDuration());
         QString lengthDisplayString = "";

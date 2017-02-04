@@ -127,6 +127,10 @@ void AudiobookFileProxy::saveCurrentTime(long long currentTime) {
     this->currentFileSetting->setValue("currentTime", currentTime);
     if(completeness) {
         this->currentFileSetting->setValue("completeness", calcCompleteness);
+
+        if(this->completenssFunctionSet) {
+            this->totalCompletenessUpdateFunction();
+        }
     }
 }
 
@@ -208,8 +212,10 @@ void AudiobookFileProxy::setAsComplete() {
 }
 
 void AudiobookFileProxy::setTotalDurationUpdateFunction(std::function<void()> audiobookProxyUpdateFunction) {
+    this->durationFunctionSet = true;
     this->totalDurationUpdateFunction = audiobookProxyUpdateFunction;
 }
+
 
 QString AudiobookFileProxy::calcCheckSum() {
     QByteArray byteArray;
@@ -236,4 +242,9 @@ void AudiobookFileProxy::calcAndWriteCheckSum(bool forced) {
         this->currentFileSetting->setValue("checkSum", checkSum);
         this->currentFileSetting->sync();
     }
+}
+
+void AudiobookFileProxy::setCompletenessUpdateFunction(std::function<void()> func) {
+    this->completenssFunctionSet = true;
+    this->totalCompletenessUpdateFunction = func;
 }
