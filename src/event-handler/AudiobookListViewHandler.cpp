@@ -52,10 +52,15 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
             this->handleMarkAsReadAudiobook(audiobookProxy);
         });
 
+        auto rescanAction = new QAction("Rescan this Audiobook");
+        connect(rescanAction, &QAction::triggered, [this, audiobookProxy] () {
+            this->handleRescan(audiobookProxy);
+        });
+
         QMenu *menu = new QMenu(this->mainWindow);
         menu->addAction(resetAction);
         menu->addAction(markAsReadAction);
-        menu->addAction("Rescan this Audiobook");
+        menu->addAction(rescanAction);
         menu->addAction(removeAction);
         menu->exec(this->audiobookListView->mapToGlobal(position));
 
@@ -68,5 +73,9 @@ void AudiobookListViewHandler::contextMenuRequested(const QPoint &position) {
 
 void AudiobookListViewHandler::handleMarkAsReadAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
     audiobook->markAsRead();
+}
+
+void AudiobookListViewHandler::handleRescan(std::shared_ptr<AudiobookProxy> audiobook) {
+    audiobook->rescan();
 }
 

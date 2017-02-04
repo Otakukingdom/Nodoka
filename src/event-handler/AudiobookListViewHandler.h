@@ -32,6 +32,7 @@ public slots:
     void handleResetAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
     void handleDeleteAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
     void handleMarkAsReadAudiobook(std::shared_ptr<AudiobookProxy> audiobook);
+    void handleRescan(std::shared_ptr<AudiobookProxy> audiobook);
 
     void contextMenuRequested(const QPoint &position);
 

@@ -40,7 +40,7 @@ void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> curr
 
             loadedDirectories.push_back(potentialDir);
         } else if(potentialFile->exists()) {
-            if(Core::isAudiobookFile(currentPath, potentialFile)) {
+            if(Core::isAudiobookFile(potentialFile, currentPath)) {
                 loadedAudioFiles.push_back(potentialFile);
             }
         }
@@ -75,24 +75,31 @@ bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> dirList) {
     return false;
 }
 
-bool Core::isAudiobookFile(QString path, std::shared_ptr<QFile> file) {
+bool Core::isAudiobookFile(std::shared_ptr<QFile> file, QString path) {
     // by default, non-existing file is not considered to be an audiobook file
     if(!file->exists()) {
         return false;
     }
 
-    if(isAudioBookFileCache.contains(path)) {
-        return isAudioBookFileCache[path];
+    // if this is called with a null path, then don't bother
+    if(!path.isNull()) {
+        if(isAudioBookFileCache.contains(path)) {
+            return isAudioBookFileCache[path];
+        }
     }
 
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForFile(*file);
 
     if(type.name().startsWith("audio") || type.name().startsWith("video")) {
-        isAudioBookFileCache[path] = true;
+        if(!path.isNull()) {
+            isAudioBookFileCache[path] = true;
+        }
         return true;
     } else {
-        isAudioBookFileCache[path] = false;
+        if(!path.isNull()) {
+            isAudioBookFileCache[path] = false;
+        }
         return false;
     }
 
@@ -111,7 +118,7 @@ QList<QString> Core::getAllFiles(std::shared_ptr<QDir> directory) {
         if(currentFileInfo.isFile()) {
             std::shared_ptr<QFile> currentFile(new QFile(currentPath));
 
-            if(Core::isAudiobookFile(currentPath, currentFile)) {
+            if(Core::isAudiobookFile(currentFile, currentPath)) {
                 filePaths.push_back(currentPath);
             }
 

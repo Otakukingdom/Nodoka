@@ -267,3 +267,15 @@ void AudiobookFileProxy::markAsRead() {
     this->setAsComplete();
     this->saveCurrentTime(this->getMediaDuration());
 }
+
+void AudiobookFileProxy::remove() {
+    if(this->isNull) {
+        return;
+    }
+
+    QSqlQuery query;
+    query.prepare("DELETE FROM audiobook_file WHERE audiobook_id = ? AND full_path = ?");
+    query.addBindValue(this->record.value("audiobook_id").toInt());
+    query.addBindValue(this->record.value("full_path").toString());
+    query.exec();
+}

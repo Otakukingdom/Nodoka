@@ -59,6 +59,7 @@ public:
     // direct user actions
     void resetReadStatus();
     void markAsRead();
+    void remove();
 
 };
 

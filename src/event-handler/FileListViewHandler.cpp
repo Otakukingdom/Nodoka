@@ -33,9 +33,15 @@ void FileListViewHandler::contextMenuRequested(const QPoint &position) {
             this->handleMarkAsRead(fileProxy);
         });
 
+        QAction *removeAction = new QAction("Remove");
+        connect(removeAction, &QAction::triggered, [this, fileProxy]() {
+            this->handleRemove(fileProxy);
+        });
+
         QMenu *menu = new QMenu(this->window);
         menu->addAction(resetAction);
         menu->addAction(markAsReadAction);
+        menu->addAction(removeAction);
         menu->exec(this->fileListView->mapToGlobal(position));
     }
 }
@@ -49,3 +55,13 @@ void FileListViewHandler::handleMarkAsRead(std::shared_ptr<AudiobookFileProxy> f
     file->markAsRead();
     fileListView->update();
 }
+
+void FileListViewHandler::handleRemove(std::shared_ptr<AudiobookFileProxy> file) {
+    file->remove();
+
+    // update the view
+    auto model = static_cast<FileDisplayModel*>(fileListView->model());
+    model->select();
+    fileListView->update();
+}
+

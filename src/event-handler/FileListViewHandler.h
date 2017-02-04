@@ -33,6 +33,7 @@ public:
 public slots:
     void handleReset(std::shared_ptr<AudiobookFileProxy> file);
     void handleMarkAsRead(std::shared_ptr<AudiobookFileProxy> file);
+    void handleRemove(std::shared_ptr<AudiobookFileProxy> file);
 };
 
 

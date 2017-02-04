@@ -4,7 +4,10 @@
 
 #include "AudiobookProxy.h"
 #include <QDebug>
+#include <QDir>
+#include <QDirIterator>
 #include <src/model/AudiobookFile.h>
+#include <src/core/AudiobookScan.h>
 
 AudiobookProxy::AudiobookProxy(QSqlRecord record,
                                Core::Setting *settings,
@@ -50,8 +53,40 @@ void AudiobookProxy::remove() {
 }
 
 void AudiobookProxy::rescan() {
+    // get the current paths
+    auto fileList = this->getFilesForAudiobook();
+    std::set<QString> currentFilePaths;
+    std::for_each(fileList.begin(), fileList.end(), [&currentFilePaths](std::shared_ptr<AudiobookFileProxy> f) {
+        currentFilePaths.insert(f->path());
+    });
 
+    // get the scanned paths
+    QDir dir(this->directory);
+    std::vector<QString> fileToInsert;
+    if(dir.isReadable()) {
+        QDirIterator it(dir, QDirIterator::NoIteratorFlags);
+        while(it.hasNext()) {
+            QString currentPath = it.next();
+            QFileInfo currentFileInfo(currentPath);
+            if(currentFileInfo.isFile()) {
+                std::shared_ptr<QFile> currentFile(new QFile(currentPath));
+
+                if (Core::isAudiobookFile(currentFile)) {
+                    // see if we have the file on record
+                    auto search = currentFilePaths.find(currentPath);
+                    if(search == currentFilePaths.end()) {
+                        // we do not have the current file on record, we should insert it
+                        fileToInsert.push_back(currentPath);
+                    }
+                }
+            }
+        }
+    }
+
+    // this will insert new files into the list, if no new files are found, then it will simply rearrange the files
+    this->insertFiles(fileToInsert);
 }
+
 
 QAction* AudiobookProxy::getRemoveAction() {
     // we do not need to worry about deallocation since we are assuming something else
@@ -104,7 +139,12 @@ void AudiobookProxy::notifyCallbacks(AudiobookEvent event) {
     }
 }
 
-std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook() {
+/**
+ *
+ * @param forced If set, this will force the audiobook to perform rescan
+ * @return
+ */
+std::vector<std::shared_ptr<AudiobookFileProxy>> AudiobookProxy::getFilesForAudiobook(bool forced) {
     // we place a mutex on here so that this function does NOT get called on multiple times
     // by different threads when the fileListCache is still building at the same time
     this->mutex.lock();
@@ -242,6 +282,64 @@ void AudiobookProxy::markAsRead() {
     }
 
     this->updateCompletionStatus();
+}
+
+void AudiobookProxy::insertFiles(std::vector<QString> filePathList) {
+    auto fileList = this->getFilesForAudiobook();
+    std::vector<QString> currentFilePaths;
+    std::for_each(fileList.begin(), fileList.end(), [&currentFilePaths](std::shared_ptr<AudiobookFileProxy> f) {
+        currentFilePaths.push_back(f->path());
+    });
+
+    currentFilePaths.insert(currentFilePaths.end(), filePathList.begin(), filePathList.end());
+    std::sort(currentFilePaths.begin(), currentFilePaths.end());
+
+    for(int i = 0; i < currentFilePaths.size(); i++) {
+        int position = i + 1;
+        auto currentPath = currentFilePaths[i];
+        auto result = std::find(std::begin(filePathList), std::end(filePathList), currentPath);
+
+        auto fileObject = this->getFileForPath(currentPath);
+
+        // if fileObject is a null pointer, it means the record need to be created and inserted into the db
+        if(fileObject == nullptr) {
+            QString queryString = "INSERT INTO audiobook_file(audiobook_id, position, full_path, name) VALUES(?, ?, ?, ?)";
+            QSqlQuery queryObject;
+            queryObject.prepare(queryString);
+            queryObject.addBindValue(this->id);
+            queryObject.addBindValue(position);
+            queryObject.addBindValue(currentPath);
+            queryObject.addBindValue(QFileInfo(currentPath).fileName());
+            queryObject.exec();
+
+        } else {
+            // otherwise, we need to update the position
+            QString queryString = "UPDATE audiobook_file SET position = ? WHERE full_path = ? AND audiobook_id = ?";
+            QSqlQuery queryObject;
+            queryObject.prepare(queryString);
+            queryObject.addBindValue(position);
+            queryObject.addBindValue(currentPath);
+            queryObject.addBindValue(this->id);
+            queryObject.exec();
+        }
+    }
+
+    // force this object to update the audiobook listing
+    this->getFilesForAudiobook(true);
+}
+
+std::shared_ptr<AudiobookFileProxy> AudiobookProxy::getFileForPath(QString path) {
+    auto fileList = this->getFilesForAudiobook();
+    std::shared_ptr<AudiobookFileProxy> fileContainer = nullptr;
+
+    std::for_each(fileList.begin(), fileList.end(), [&fileContainer, path](std::shared_ptr<AudiobookFileProxy> f) {
+        if(f->path() == path) {
+            fileContainer = f;
+            return;
+        }
+    });
+
+    return fileContainer;
 }
 
 

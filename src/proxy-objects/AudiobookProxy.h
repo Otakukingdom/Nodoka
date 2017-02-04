@@ -69,7 +69,7 @@ public:
                    Core::Setting* settings,
                    std::function<std::shared_ptr<AudiobookFileProxy> (QSqlRecord record)> retrieveFileProxyFunction);
     QAction* getRemoveAction();
-    std::vector<std::shared_ptr<AudiobookFileProxy>> getFilesForAudiobook();
+    std::vector<std::shared_ptr<AudiobookFileProxy>> getFilesForAudiobook(bool forced = true);
 
     /**
      *
@@ -85,7 +85,8 @@ public:
     bool allFileDurationScanned();
     long long getDuration();
     void setDuration(const long long duration);
-
+    void insertFiles(std::vector<QString> vector);
+    std::shared_ptr<AudiobookFileProxy> getFileForPath(QString path);
 
 
     int getCompleteness();
