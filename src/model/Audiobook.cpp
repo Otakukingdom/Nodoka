@@ -23,7 +23,13 @@ Audiobook::Audiobook(AudiobookFile* audiobookFileModel,
 
 void Audiobook::registerAudiobook(QSqlRecord baseDirectoryRecord, std::shared_ptr<QDir> directory) {
     AudiobookRecord record(directory->path(), false);
-    record.setValue("directory", baseDirectoryRecord.value("full_path").toString());
+
+    // since baseDirectoryRecord could be empty... we only set the directory field conditionally
+    if(!baseDirectoryRecord.isEmpty()) {
+        record.setValue("directory", baseDirectoryRecord.value("full_path").toString());
+    }
+
+    // completeness is deprecated
     record.setValue("completeness", 0);
     record.setValue("default_order", 0);
     record.setNull("selected_file");

@@ -16,6 +16,7 @@
 #include <src/model/AudiobookFile.h>
 #include <src/ui-element/MainWindow.h>
 #include <src/event-handler/DirectoryHandler.h>
+#include <src/event-handler/AudiobookCollectionHandler.h>
 
 namespace Core {
 
@@ -31,9 +32,10 @@ namespace Core {
         Audiobook* audiobookModel;
         AudiobookFile* audiobookFileModel;
         Setting* setting;
-        std::shared_ptr<ProxyManager> proxyManager;
-
         PlayerEventHandler* playerEventHandler;
+
+        std::shared_ptr<ProxyManager> proxyManager;
+        std::shared_ptr<AudiobookCollectionHandler> audiobookCollectionHandler;
 
         //private helper function, used to set up the event listeners
         void setup();
@@ -41,7 +43,7 @@ namespace Core {
         QThreadPool* scanThread;
 
     public:
-        NodokaApp();
+        NodokaApp(QObject *parent = 0);
         ~NodokaApp();
         void start();
     };

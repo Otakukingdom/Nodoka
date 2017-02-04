@@ -85,6 +85,7 @@ public slots:
     void audiobookFileStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile);
     void playerStateUpdated(std::shared_ptr<AudiobookFileProxy> abFile, bool isPlaying);
     void playerTimeUpdated(std::shared_ptr<AudiobookFileProxy> abFile, long long currentTime);
+    void performAudiobookAdd();
 
     void setLabel(QLabel *pLabel,
                   std::shared_ptr<AudiobookFileProxy> proxy = std::shared_ptr<AudiobookFileProxy>(new AudiobookFileProxy()),

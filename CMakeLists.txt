@@ -64,7 +64,7 @@ set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/proxy-objects/AudiobookProxy.cpp src/proxy-objects/AudiobookProxy.h src/event-handler/AudiobookListViewHandler.cpp
         src/event-handler/AudiobookListViewHandler.h src/core/ScanPlayer.cpp src/core/ScanPlayer.h
         src/core/tasks/ScanDirectoryTask.cpp src/core/tasks/ScanDirectoryTask.h
-        src/core/tasks/PlayerScanTask.cpp src/core/tasks/PlayerScanTask.h src/core/tasks/InitialScanTask.cpp src/core/tasks/InitialScanTask.h src/core/tasks/ChecksumTask.cpp src/core/tasks/ChecksumTask.h)
+        src/core/tasks/PlayerScanTask.cpp src/core/tasks/PlayerScanTask.h src/core/tasks/InitialScanTask.cpp src/core/tasks/InitialScanTask.h src/core/tasks/ChecksumTask.cpp src/core/tasks/ChecksumTask.h src/event-handler/AudiobookCollectionHandler.cpp src/event-handler/AudiobookCollectionHandler.h)
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set(WIN32_ENABLED WIN32 )
 endif()

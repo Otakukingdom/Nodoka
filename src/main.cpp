@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
         // since we failed to load the db, we shouldn't continue
         return EXIT_FAILURE;
     } else {
-        Core::NodokaApp app;
+        Core::NodokaApp nodokaApp(&app);
 
-        app.start();
+        nodokaApp.start();
     }
 
     return app.exec();

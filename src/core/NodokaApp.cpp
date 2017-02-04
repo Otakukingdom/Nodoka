@@ -8,7 +8,7 @@
 #include "src/event-handler/PlayerEventHandler.h"
 #include "ScanPlayer.h"
 
-Core::NodokaApp::NodokaApp() {
+Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     // load fonts
     QFontDatabase::addApplicationFont(":RobotoM.ttf");
     QFontDatabase::addApplicationFont(":RobotoB.ttf");
@@ -33,6 +33,10 @@ Core::NodokaApp::NodokaApp() {
     this->directoryModel = new Directory();
     this->audiobookFileModel = new AudiobookFile();
     this->audiobookModel = new Audiobook(this->audiobookFileModel, this->proxyManager, this->scanPlayer);
+
+    // model event handlers
+    this->audiobookCollectionHandler = std::shared_ptr<AudiobookCollectionHandler>(
+            new AudiobookCollectionHandler(this->audiobookModel, this->proxyManager));
 
     // initialize player, which will initialize vlc backend related items
     this->player = new Core::ConcretePlayer(this->setting, this->proxyManager);

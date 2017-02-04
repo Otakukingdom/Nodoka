@@ -4,6 +4,7 @@
 
 #include <src/model/AudiobookListDelegate.h>
 #include <src/proxy-objects/ProxyManager.h>
+#include <QFileDialog>
 #include "MainWindow.h"
 
 const static int MAXIMUM_VOLUME = 150;
@@ -56,6 +57,7 @@ void MainWindow::menuSetup() {
     // connect the actions to specific functions that will trigger its functionality
     connect(settings, &QAction::triggered, this, &MainWindow::performSettings);
     connect(rescan, &QAction::triggered, this, &MainWindow::performRescan);
+    connect(audiobookAdd, &QAction::triggered, this, &MainWindow::performAudiobookAdd);
 
     // create the menu and add all of the actions
     this->audiobookMenu = new QMenu("Audiobook Menu", this->ui->abToolButton);
@@ -387,5 +389,14 @@ void MainWindow::setLabel(QLabel *pLabel, std::shared_ptr<AudiobookFileProxy> pr
 // TODO perform rescan of audiobooks
 void MainWindow::performRescan() {
 
+}
+
+void MainWindow::performAudiobookAdd() {
+    auto target = QFileDialog::getExistingDirectory(this, "Select Folder", "", QFileDialog::ShowDirsOnly);
+
+    // only perform this when user has actually selected something
+    if(!target.isEmpty()) {
+
+    }
 }
 
