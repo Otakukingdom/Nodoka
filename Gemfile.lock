@@ -1,0 +1,12 @@
+GEM
+  specs:
+    rake (12.0.0)
+
+PLATFORMS
+  x64-mingw32
+
+DEPENDENCIES
+  rake
+
+BUNDLED WITH
+   1.13.6
