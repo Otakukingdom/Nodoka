@@ -18,7 +18,9 @@ task :build do
         system("move Nodoka.exe #{BIN_DIRECTORY}/Nodoka.exe")
 
         Dir.chdir(BIN_DIRECTORY) do
-            system("windeployqt Nodoka.exe --release --libdir=./../../libs/libvlc/win32 --plugindir=./../../plugins")
+            system("windeployqt Nodoka.exe --release")
+            system('Xcopy /F /E /I /Y "./../../libs/libvlc/win32" "./"')
+            system('Xcopy /F /E /I /Y "./../../plugins" "./plugins"')
         end
     end
 end
