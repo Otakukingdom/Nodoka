@@ -27,7 +27,6 @@ Core::ScanPlayer::ScanPlayer() {
 }
 
 void Core::ScanPlayer::addAudiobook(std::shared_ptr<AudiobookProxy> audiobook) {
-    qDebug() << "Scan audiobook called";
     auto fileList = audiobook->getFilesForAudiobook();
     this->mutex.lock();
     for(int i = 0; i < fileList.size(); i++) {
@@ -61,12 +60,10 @@ void Core::ScanPlayer::performScan() {
     this->mutex.lock();
 
     qDebug() << "Scan task started";
-
     while(!this->fileQueue.empty()) {
         this->hasScanFinished = false;
         std::shared_ptr<AudiobookFileProxy> & element = this->fileQueue.front();
         this->currentlyScanning = element;
-        qDebug() << "Currently scanning file: " << element->path();
 
         auto path =  element->path();
         auto currentFile = std::unique_ptr<QFile>(new QFile(path));
@@ -97,7 +94,6 @@ void Core::ScanPlayer::performScan() {
                                         long long duration = libvlc_media_get_duration(player->mediaItem);
                                         if(duration > 0) {
                                             player->currentlyScanning->setMediaDuration(duration);
-                                            qDebug() << "performScan() SUCCESS: " << player->currentlyScanning->path();
                                         } else {
                                             qWarning() << "performScan() failed for: " << player->currentlyScanning->path();
                                         }
