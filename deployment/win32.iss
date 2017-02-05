@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Nodoka"
-#define MyAppVersion "0.0.1"
+#define MyAppVersion "0.0.2a"
 #define MyAppPublisher "Otakukingdom"
 #define MyAppURL "http://nodoka.otakukingdom.com"
-#define MyAppExeName "NodokaNative.exe"
+#define MyAppExeName "Nodoka.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -34,8 +34,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\NativeProjects\NodokaNative\Nodoka.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\NativeProjects\NodokaNative\deployment\win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "..\Nodoka.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\cmake-build-release\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
