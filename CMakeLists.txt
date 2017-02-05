@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(NodokaNative)
+project(Nodoka)
 
 set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
@@ -72,6 +72,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set(WIN32_ENABLED WIN32 )
 endif()
 
-add_executable(NodokaNative ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
+add_executable(Nodoka ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
 
-target_link_libraries(NodokaNative Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib)
+target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib)
