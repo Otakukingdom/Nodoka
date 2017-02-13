@@ -8,7 +8,7 @@
 #include <QtWidgets/QMessageBox>
 #include "DatabaseConnect.h"
 #include "Util.h"
-#include <Qdir>
+#include <QtCore/QDir>
 #include <QDebug>
 
 bool ::Core::openDb() {

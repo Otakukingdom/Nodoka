@@ -2,6 +2,7 @@
 // Created by mistlight on 1/7/17.
 //
 
+#include <cmath>
 #include "AudiobookFileProxy.h"
 #include <QSqlError>
 #include <QDebug>
