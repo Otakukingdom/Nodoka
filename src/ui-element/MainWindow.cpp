@@ -113,6 +113,7 @@ void MainWindow::setup() {
     this->ui->audiobookView->setItemDelegate(audiobookListDelegate);
     this->ui->audiobookViewVertical->setStyleSheet(LIST_VIEW_STYLESHEET);
     this->ui->audiobookView->setFocusPolicy(Qt::NoFocus);
+    this->ui->audiobookView->setSelectionMode(QAbstractItemView::SingleSelection);
 
 
     // connect the audiobook view events to the file selector view
