@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.6)
 project(Nodoka)
 
+set(PROJECT_VERSION_MAJOR 0)
+set(PROJECT_VERSION_MINOR 1)
+set(PROJECT_VERSION_PATCH 2)
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_BINARY_DEB "ON")
+SET(CPACK_DEBIAN_PACKAGE_NAME "nodoka") #required
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Mistlight Oriroris") #required
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+
 set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/libs/quazip-0.7.2/")
@@ -75,3 +86,9 @@ endif()
 add_executable(Nodoka ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
 
 target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib)
+
+install(TARGETS Nodoka DESTINATION bin)
+include(CPack)
+
+
+

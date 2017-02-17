@@ -15,6 +15,8 @@ class AudiobookListDelegate: public QStyledItemDelegate {
 private:
     QString styleSheet;
     int extraPadding;
+    int width = -1;
+    int height = -1;
 
 public:
     AudiobookListDelegate();

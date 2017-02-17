@@ -2,6 +2,7 @@
 // http://stackoverflow.com/a/2039745/596065
 
 #include "AudiobookListDelegate.h"
+#include <QDebug>
 
 // We need to set this manually because we can't easily set the QColor from stylesheets
 // when the item is selected in the ListView
@@ -37,7 +38,6 @@ void AudiobookListDelegate::paint(QPainter *painter,
 
     QAbstractTextDocumentLayout::PaintContext ctx;
 
-
     // Highlighting text if item is selected
     if (optionV4.state & QStyle::State_Selected) {
         ctx.palette.setColor(QPalette::Text, HIGHLIGHTED_FOREGROUND);
@@ -60,12 +60,18 @@ QSize AudiobookListDelegate::sizeHint(const QStyleOptionViewItem &option,
     initStyleOption(&optionV4, index);
 
     QTextDocument doc;
-    if(this->styleSheet != "") {
-        doc.setDefaultStyleSheet(this->styleSheet);
-    }
+    doc.setDefaultStyleSheet(this->styleSheet);
     doc.setHtml(optionV4.text);
+
+    // this causes the highlight problem on linux systems
+#ifdef _WIN32
     doc.setTextWidth(optionV4.rect.width());
-    return QSize(doc.idealWidth(), doc.size().height() + this->extraPadding);
+#endif
+
+    auto width = doc.idealWidth();
+    auto height = doc.size().rheight() + this->extraPadding;
+
+    return QSize(width, height);
 }
 
 AudiobookListDelegate::AudiobookListDelegate(QString styleSheet, int extraPadding) {
