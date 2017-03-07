@@ -6,9 +6,9 @@
 #define NODOKANATIVE_DATABASECONNECT_H
 
 #include <Qt>
+#include <QMutexLocker>
 
 namespace Core {
-
     // Open a connection to the database, if it fails, it will return false
     bool openDb();
 }
