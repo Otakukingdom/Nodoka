@@ -13,8 +13,8 @@ class AbstractElementScanner {
 
 public:
 
-    virtual void accept(QDir) = 0;
-    virtual void accept(QFile) = 0;
+    virtual void accept(const QDir&) = 0;
+    virtual void accept(const QFile&) = 0;
     virtual void accept(QString directory) = 0;
 
 };

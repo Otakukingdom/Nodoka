@@ -10,7 +10,7 @@ AddRemoveVisitor::AddRemoveVisitor(Audiobook *audiobookModel, QDir baseDirectory
     this->baseDirectory = baseDirectory;
 }
 
-void AddRemoveVisitor::accept(QDir directory) {
+void AddRemoveVisitor::accept(const QDir& directory) {
     QDirIterator it(directory, QDirIterator::NoIteratorFlags);
     std::vector<QDir> loadedDirectories;
     std::vector<QFile> loadedAudioFiles;
@@ -33,7 +33,7 @@ void AddRemoveVisitor::accept(QDir directory) {
             loadedDirectories.push_back(potentialDir);
         } else if(potentialFile.exists()) {
             if(Core::isAudiobookFile(potentialFile, currentPath)) {
-                loadedAudioFiles.push_back(potentialFile);
+                // loadedAudioFiles.push_back(potentialFile);
             }
         }
     }
@@ -43,7 +43,7 @@ void AddRemoveVisitor::accept(QDir directory) {
         // if all of the directories are similar, then simply make a call
         // to register this audiobook right away, if not already registered
         if(Core::checkDirectorysimilarity(loadedDirectories)) {
-            this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
+            // this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
         } else {
             for(auto &dir : loadedDirectories) {
                 this->accept(dir);
@@ -51,13 +51,13 @@ void AddRemoveVisitor::accept(QDir directory) {
         }
     } else {
         if(loadedAudioFiles.size() > 0) {
-            this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
+            // this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
         }
     }
 }
 
 // TODO: placeholder for zip/archive support
-void AddRemoveVisitor::accept(QFile file) {
+void AddRemoveVisitor::accept(const QFile& file) {
 }
 
 void AddRemoveVisitor::accept(QString directory) {

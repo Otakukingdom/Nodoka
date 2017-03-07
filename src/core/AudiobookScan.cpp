@@ -75,7 +75,7 @@ bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> dirList) {
     return false;
 }
 
-bool Core::isAudiobookFile(QFile file, QString path) {
+bool Core::isAudiobookFile(const QFile& file, QString path) {
     // by default, non-existing file is not considered to be an audiobook file
     if(!file.exists()) {
         return false;
@@ -89,7 +89,8 @@ bool Core::isAudiobookFile(QFile file, QString path) {
     }
 
     QMimeDatabase db;
-    QMimeType type = db.mimeTypeForFile(*file);
+    /*
+    QMimeType type = db.mimeTypeForFile(&file);
 
     if(type.name().startsWith("audio") || type.name().startsWith("video")) {
         if(!path.isNull()) {
@@ -102,6 +103,8 @@ bool Core::isAudiobookFile(QFile file, QString path) {
         }
         return false;
     }
+     */
+    return true;
 }
 
 bool Core::isAudiobookFile(std::shared_ptr<QFile> file, QString path) {

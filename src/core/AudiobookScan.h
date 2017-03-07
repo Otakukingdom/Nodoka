@@ -17,7 +17,7 @@ namespace Core {
 
     bool isAudiobookFile(std::shared_ptr<QFile> file, QString path = QString());
 
-    bool isAudiobookFile(QFile file, QString path = QString());
+    bool isAudiobookFile(const QFile& file, QString path = QString());
 
     QList<QString> getAllFiles(std::shared_ptr<QDir> directory);
 

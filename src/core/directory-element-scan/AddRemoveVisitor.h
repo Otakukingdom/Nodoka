@@ -22,8 +22,8 @@ public:
     AddRemoveVisitor(Audiobook* audiobookModel,
                      QDir baseDirectory);
 
-    void accept(QDir);
-    void accept(QFile);
+    void accept(const QDir& dir);
+    void accept(const QFile& file);
     void accept(QString directory);
 
     void addRemoveAudiobook(QDir directory, std::vector<QDir> subdirectories, std::vector<QFile> files);

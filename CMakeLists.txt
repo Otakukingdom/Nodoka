@@ -49,6 +49,12 @@ file(GLOB zlib
         )
 add_library(zlib)
 
+file(GLOB lmdb
+        "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.h"
+        "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.c"
+        )
+add_library(lmdb)
+
 
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
@@ -60,6 +66,7 @@ FILE(GLOB_RECURSE LibFiles "src/*.h")
 add_custom_target(headers SOURCES ${LibFiles})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/liblmdb)
 
 set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h src/ui-element/SettingsForm.cpp
@@ -85,7 +92,7 @@ endif()
 
 add_executable(Nodoka ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
 
-target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib)
+target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib lmdb)
 
 install(TARGETS Nodoka DESTINATION bin)
 include(CPack)
