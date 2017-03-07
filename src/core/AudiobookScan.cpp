@@ -4,7 +4,7 @@
 
 // helper functions
 
-// do the actual recusrive scan directory
+// do the actual recusrive directory-element-scan directory
 static void performScanDirectory(QSqlRecord directoryRecord, std::shared_ptr<QDir> currentDirectory, Audiobook* audiobook);
 static bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> vector);
 static QMap<QString, bool> isAudioBookFileCache;
@@ -75,6 +75,35 @@ bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> dirList) {
     return false;
 }
 
+bool Core::isAudiobookFile(QFile file, QString path) {
+    // by default, non-existing file is not considered to be an audiobook file
+    if(!file.exists()) {
+        return false;
+    }
+
+    // if this is called with a null path, then don't bother
+    if(!path.isNull()) {
+        if(isAudioBookFileCache.contains(path)) {
+            return isAudioBookFileCache[path];
+        }
+    }
+
+    QMimeDatabase db;
+    QMimeType type = db.mimeTypeForFile(*file);
+
+    if(type.name().startsWith("audio") || type.name().startsWith("video")) {
+        if(!path.isNull()) {
+            isAudioBookFileCache[path] = true;
+        }
+        return true;
+    } else {
+        if(!path.isNull()) {
+            isAudioBookFileCache[path] = false;
+        }
+        return false;
+    }
+}
+
 bool Core::isAudiobookFile(std::shared_ptr<QFile> file, QString path) {
     // by default, non-existing file is not considered to be an audiobook file
     if(!file->exists()) {
@@ -137,5 +166,9 @@ QList<QString> Core::getAllFiles(std::shared_ptr<QDir> directory) {
     filePaths.sort();
 
     return filePaths;
+}
+
+bool ::Core::checkDirectorysimilarity(std::vector<QDir> directoryList) {
+    return false;
 }
 

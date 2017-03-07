@@ -3,10 +3,15 @@
 //
 
 #include <src/core/AudiobookScan.h>
+#include <src/core/directory-element-scan/AddRemoveVisitor.h>
 #include "ScanDirectoryTask.h"
 
 void Core::ScanDirectoryTask::run() {
-    scanDirectory(this->record, this->audiobook);
+    QString path = this->record.value("full_path").toString();
+    AddRemoveVisitor scanner(this->audiobook, path);
+
+    // start scanning from the base directory path
+    scanner.accept(path);
 }
 
 Core::ScanDirectoryTask::ScanDirectoryTask(QSqlRecord directoryRecord, Audiobook *audiobook) {

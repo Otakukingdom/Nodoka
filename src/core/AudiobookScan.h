@@ -12,12 +12,16 @@
  */
 namespace Core {
 
-    // function to scan a directory
+    // function to directory-element-scan a directory
     void scanDirectory(QSqlRecord directoryRecord, Audiobook* audiobook);
 
     bool isAudiobookFile(std::shared_ptr<QFile> file, QString path = QString());
 
+    bool isAudiobookFile(QFile file, QString path = QString());
+
     QList<QString> getAllFiles(std::shared_ptr<QDir> directory);
+
+    bool checkDirectorysimilarity(std::vector<QDir> directoryList);
 
 
 }

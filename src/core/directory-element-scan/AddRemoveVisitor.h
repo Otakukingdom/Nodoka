@@ -16,13 +16,17 @@ class AddRemoveVisitor : public AbstractElementScanner {
 private:
     Audiobook* audiobookModel;
 
+    QDir baseDirectory;
+
 public:
-    AddRemoveVisitor(Audiobook* audiobookModel);
+    AddRemoveVisitor(Audiobook* audiobookModel,
+                     QDir baseDirectory);
 
     void accept(QDir);
     void accept(QFile);
     void accept(QString directory);
 
+    void addRemoveAudiobook(QDir directory, std::vector<QDir> subdirectories, std::vector<QFile> files);
 };
 
 

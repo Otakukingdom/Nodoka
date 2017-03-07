@@ -78,7 +78,7 @@ set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/core/tasks/PlayerScanTask.cpp src/core/tasks/PlayerScanTask.h src/core/tasks/InitialScanTask.cpp
         src/core/tasks/InitialScanTask.h src/core/tasks/ChecksumTask.cpp src/core/tasks/ChecksumTask.h
         src/event-handler/AudiobookCollectionHandler.cpp src/event-handler/AudiobookCollectionHandler.h src/event-handler/FileListViewHandler.cpp
-        src/event-handler/FileListViewHandler.h src/core/scan/AbstractElementScanner.cpp src/core/scan/AbstractElementScanner.h src/core/scan/AddRemoveVisitor.cpp src/core/scan/AddRemoveVisitor.h)
+        src/event-handler/FileListViewHandler.h src/core/directory-element-scan/AbstractElementScanner.cpp src/core/directory-element-scan/AbstractElementScanner.h src/core/directory-element-scan/AddRemoveVisitor.cpp src/core/directory-element-scan/AddRemoveVisitor.h)
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set(WIN32_ENABLED WIN32 )
 endif()
