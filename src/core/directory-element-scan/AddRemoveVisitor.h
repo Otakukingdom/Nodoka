@@ -28,7 +28,9 @@ public:
     void accept(const std::shared_ptr<QFile>& file);
     void accept(const QString directory);
 
-    void addRemoveAudiobook(QDir directory, std::vector<QDir> subdirectories, std::vector<QFile> files);
+    void addRemoveAudiobook(const std::shared_ptr<QDir>& directory,
+                            const std::vector<std::shared_ptr<QDir>>& subdirectories,
+                            const std::vector<std::shared_ptr<QFile>>& files);
 };
 
 

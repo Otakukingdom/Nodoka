@@ -33,7 +33,7 @@ void AddRemoveVisitor::accept(const std::shared_ptr<QDir>& directory) {
             loadedDirectories.push_back(potentialDir);
         } else if(potentialFile->exists()) {
             if(Core::isAudiobookFile(potentialFile, currentPath)) {
-                // loadedAudioFiles.push_back(potentialFile);
+                loadedAudioFiles.push_back(potentialFile);
             }
         }
     }
@@ -43,7 +43,7 @@ void AddRemoveVisitor::accept(const std::shared_ptr<QDir>& directory) {
         // if all of the directories are similar, then simply make a call
         // to register this audiobook right away, if not already registered
         if(Core::checkDirectorysimilarity(loadedDirectories)) {
-            // this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
+            this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
         } else {
             for(auto &dir : loadedDirectories) {
                 this->accept(dir);
@@ -51,7 +51,7 @@ void AddRemoveVisitor::accept(const std::shared_ptr<QDir>& directory) {
         }
     } else {
         if(loadedAudioFiles.size() > 0) {
-            // this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
+            this->addRemoveAudiobook(directory, loadedDirectories, loadedAudioFiles);
         }
     }
 }
@@ -68,6 +68,7 @@ void AddRemoveVisitor::accept(const QString directory) {
     }
 }
 
-void AddRemoveVisitor::addRemoveAudiobook(QDir directory, std::vector<QDir> subdirectories, std::vector<QFile> files) {
-
+void AddRemoveVisitor::addRemoveAudiobook(const std::shared_ptr<QDir>& directory,
+                                          const std::vector<std::shared_ptr<QDir>>& subdirectories,
+                                          const std::vector<std::shared_ptr<QFile>>& files) {
 }
