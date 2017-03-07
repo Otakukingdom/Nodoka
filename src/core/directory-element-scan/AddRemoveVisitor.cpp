@@ -10,28 +10,28 @@ AddRemoveVisitor::AddRemoveVisitor(Audiobook *audiobookModel, QDir baseDirectory
     this->baseDirectory = baseDirectory;
 }
 
-void AddRemoveVisitor::accept(const QDir& directory) {
-    QDirIterator it(directory, QDirIterator::NoIteratorFlags);
-    std::vector<QDir> loadedDirectories;
-    std::vector<QFile> loadedAudioFiles;
+void AddRemoveVisitor::accept(const std::shared_ptr<QDir>& directory) {
+    QDirIterator it(*directory, QDirIterator::NoIteratorFlags);
+    std::vector<std::shared_ptr<QDir>> loadedDirectories;
+    std::vector<std::shared_ptr<QFile>> loadedAudioFiles;
 
     while(it.hasNext()) {
         QString currentPath = it.next();
 
         // check if the path is a directory or a file
-        QDir potentialDir(currentPath);
-        QFile potentialFile(currentPath);
+        auto potentialDir(std::shared_ptr<QDir>(new QDir(currentPath)));
+        auto potentialFile(std::shared_ptr<QFile>(new QFile(currentPath)));
 
 
         // if it is a directory, then we
-        if(potentialDir.exists()) {
+        if(potentialDir->exists()) {
             // don't bother with these..
-            if(potentialDir.dirName() == "." || potentialDir.dirName() == "..") {
+            if(potentialDir->dirName() == "." || potentialDir->dirName() == "..") {
                 continue;
             }
 
             loadedDirectories.push_back(potentialDir);
-        } else if(potentialFile.exists()) {
+        } else if(potentialFile->exists()) {
             if(Core::isAudiobookFile(potentialFile, currentPath)) {
                 // loadedAudioFiles.push_back(potentialFile);
             }
@@ -57,10 +57,10 @@ void AddRemoveVisitor::accept(const QDir& directory) {
 }
 
 // TODO: placeholder for zip/archive support
-void AddRemoveVisitor::accept(const QFile& file) {
+void AddRemoveVisitor::accept(const std::shared_ptr<QFile>& file) {
 }
 
-void AddRemoveVisitor::accept(QString directory) {
+void AddRemoveVisitor::accept(const QString directory) {
     QDir currentDirectory(directory);
 
     if(currentDirectory.exists()) {

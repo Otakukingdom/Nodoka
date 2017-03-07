@@ -21,7 +21,5 @@ namespace Core {
 
     QList<QString> getAllFiles(std::shared_ptr<QDir> directory);
 
-    bool checkDirectorysimilarity(std::vector<QDir> directoryList);
-
-
+    bool checkDirectorysimilarity(std::vector<std::shared_ptr<QDir>> directoryList);
 }

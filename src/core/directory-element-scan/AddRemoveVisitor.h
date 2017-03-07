@@ -8,6 +8,8 @@
 
 #include <src/model/Audiobook.h>
 #include "AbstractElementScanner.h"
+#include <QDir>
+#include <QFile>
 
 /**
  * AddRemoveVisitor is called whenever a directory is scanned, or re-scanned
@@ -22,9 +24,9 @@ public:
     AddRemoveVisitor(Audiobook* audiobookModel,
                      QDir baseDirectory);
 
-    void accept(const QDir& dir);
-    void accept(const QFile& file);
-    void accept(QString directory);
+    void accept(const std::shared_ptr<QDir>& dir);
+    void accept(const std::shared_ptr<QFile>& file);
+    void accept(const QString directory);
 
     void addRemoveAudiobook(QDir directory, std::vector<QDir> subdirectories, std::vector<QFile> files);
 };
