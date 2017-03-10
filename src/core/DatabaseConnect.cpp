@@ -105,3 +105,12 @@ Core::DatabaseInstance::~DatabaseInstance() {
 
 }
 
+lmdb::env Core::DatabaseInstance::getDbEnv() {
+    auto env = lmdb::env::create();
+    env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL); /* 1 GiB */
+    auto pathByteArray = this->dbFilePath.toLocal8Bit();
+    env.open(pathByteArray.data(), 0, 0664);
+
+    return env;
+}
+

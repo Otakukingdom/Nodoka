@@ -17,7 +17,7 @@ namespace Core {
         QString dbFilePath;
 
     public:
-
+        lmdb::env getDbEnv();
 
         DatabaseInstance();
         ~DatabaseInstance();
