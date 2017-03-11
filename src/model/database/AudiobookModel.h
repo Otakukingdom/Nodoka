@@ -7,7 +7,13 @@
 
 #include "DatabaseModel.h"
 
-class AudiobookModel : DatabaseModel {
+class AudiobookModel : public DatabaseModel {
+
+public:
+    void save();
+    void load();
+
+    AudiobookModel(const std::shared_ptr<Core::DatabaseInstance> &dbInstance);
 
 };
 

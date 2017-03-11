@@ -42,24 +42,25 @@ find_package(Qt5Sql REQUIRED)
 find_package(Threads REQUIRED)
 find_package(QuaZip REQUIRED)
 
-file(GLOB zlib
+file(GLOB zlib_SOURCES
         "${CMAKE_SOURCE_DIR}/libs/zlib123/*.h"
         "${CMAKE_SOURCE_DIR}/libs/zlib123/*.cpp"
         "${CMAKE_SOURCE_DIR}/libs/zlib123/*.c"
         )
-add_library(zlib)
+add_library(zlib ${zlib_SOURCES})
 
-file(GLOB lmdb
+file(GLOB lmdb_SOURCES
         "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.h"
         "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.c"
         )
-add_library(lmdb)
+add_library(lmdb ${lmdb_SOURCES})
 
 
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
 elseif(WIN32)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/win32)
+    set(PLATFORM_LINKS "ntdll")
 endif()
 
 FILE(GLOB_RECURSE LibFiles "src/*.h")
@@ -96,7 +97,7 @@ endif()
 
 add_executable(Nodoka ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
 
-target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib lmdb)
+target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib lmdb ${PLATFORM_LINKS})
 
 install(TARGETS Nodoka DESTINATION bin)
 include(CPack)
