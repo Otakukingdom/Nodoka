@@ -11,20 +11,22 @@
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 
-class DatabaseModel {
+namespace Database {
+    class DatabaseModel {
 
-protected:
-    std::shared_ptr<Core::DatabaseInstance> dbInstance;
-    void writeArray(QString key, QJsonArray value);
-    void writeObject(QString key, QJsonObject value);
+    protected:
+        std::shared_ptr<Core::DatabaseInstance> dbInstance;
+        void writeArray(QString key, QJsonArray value);
+        void writeObject(QString key, QJsonObject value);
 
-public:
-    DatabaseModel(std::shared_ptr<Core::DatabaseInstance> dbInstance);
+    public:
+        DatabaseModel(std::shared_ptr<Core::DatabaseInstance> dbInstance);
 
 
-    virtual void save() = 0;
-    virtual void load() = 0;
-};
+        virtual void save() = 0;
+        virtual void load() = 0;
+    };
+}
 
 
 #endif //NODOKA_DATABASEMODEL_H

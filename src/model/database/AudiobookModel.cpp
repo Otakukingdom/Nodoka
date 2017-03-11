@@ -4,6 +4,8 @@
 
 #include "AudiobookModel.h"
 
+using namespace Database;
+
 AudiobookModel::AudiobookModel(const std::shared_ptr<Core::DatabaseInstance> &dbInstance) : DatabaseModel(dbInstance) {}
 
 void AudiobookModel::save() {

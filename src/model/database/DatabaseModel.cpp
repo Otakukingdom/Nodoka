@@ -4,6 +4,8 @@
 
 #include "DatabaseModel.h"
 
+using namespace Database;
+
 DatabaseModel::DatabaseModel(std::shared_ptr<Core::DatabaseInstance> dbInstance) {
     this->dbInstance = dbInstance;
 }

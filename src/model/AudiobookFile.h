@@ -21,7 +21,6 @@ public:
     static void removeAudiobook(int audiobookId);
     void addAudiobookFile(int audiobookId, int position, QString path);
 
-
 };
 
 

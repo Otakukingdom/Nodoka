@@ -7,15 +7,17 @@
 
 #include "DatabaseModel.h"
 
-class AudiobookModel : public DatabaseModel {
+namespace Database {
+    class AudiobookModel : public DatabaseModel {
 
-public:
-    void save();
-    void load();
+    public:
+        void save();
+        void load();
 
-    AudiobookModel(const std::shared_ptr<Core::DatabaseInstance> &dbInstance);
+        AudiobookModel(const std::shared_ptr<Core::DatabaseInstance> &dbInstance);
 
-};
+    };
+}
 
 
 #endif //NODOKA_AUDIOBOOKMODEL_H
