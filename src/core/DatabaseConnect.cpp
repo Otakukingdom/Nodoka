@@ -12,6 +12,7 @@
 #include <QDebug>
 
 bool ::Core::openDb() {
+    /*
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
 
     // ensure the path gets created for settings, if not already exists
@@ -84,20 +85,19 @@ bool ::Core::openDb() {
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_full_path_index ON audiobooks(full_path)");
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_ab_id_index ON audiobook_file(audiobook_id)");
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path)");
+     */
 
     return true;
 }
 
 Core::DatabaseInstance::DatabaseInstance() {
-    this->dbFilePath = QDir(getSettingPath() + "/nodoka_lmdb.db").absolutePath();
+    this->dbFilePath = QDir(getSettingPath() + "/lmdb").absolutePath();
 
     // attempt to create the file, if db file doesn't exist, since lmdb doesn't create the file
     // for us
-    QFile file(this->dbFilePath);
-    if(!file.exists()) {
-        file.open(QIODevice::WriteOnly);
+    if(!QDir(this->dbFilePath).exists()) {
+        QDir().mkdir(this->dbFilePath);
     }
-    file.close();
 }
 
 
@@ -108,8 +108,12 @@ Core::DatabaseInstance::~DatabaseInstance() {
 lmdb::env Core::DatabaseInstance::getDbEnv() {
     auto env = lmdb::env::create();
     env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL); /* 1 GiB */
-    auto pathByteArray = this->dbFilePath.toLocal8Bit();
-    env.open(pathByteArray.data(), 0, 0664);
+    qDebug() << "path is " << this->dbFilePath;
+    auto pathByteArray = this->dbFilePath.toUtf8();
+    char* pathCharArray = pathByteArray.data();
+
+    qDebug() << "path in char array is " << pathCharArray;
+    env.open(pathCharArray, 0, 0664);
 
     return env;
 }

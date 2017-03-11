@@ -5,8 +5,11 @@
 #include "NodokaApp.h"
 #include <QItemSelection>
 #include <src/core/tasks/InitialScanTask.h>
+#include <src/model/database/DatabaseModel.h>
+#include <src/model/database/AudiobookModel.h>
 #include "src/event-handler/PlayerEventHandler.h"
 #include "ScanPlayer.h"
+#include "DatabaseConnect.h"
 
 Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     // load fonts
@@ -19,6 +22,16 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     QFontDatabase::addApplicationFont(":SourceR.ttf");
 
     QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
+
+    // load the db
+    auto dbInstance = std::shared_ptr<DatabaseInstance>(new Core::DatabaseInstance());
+    auto dbModel = Database::AudiobookModel(dbInstance);
+    dbModel.writeObject("test", QJsonObject {
+            {"testProperty", 1},
+            {"anotherProperty", 2}
+    });
+
+    dbModel.getObject("test");
 
     // we need this to read settings
     this->setting = new Setting();
