@@ -89,15 +89,13 @@ bool ::Core::openDb() {
 }
 
 Core::DatabaseInstance::DatabaseInstance() {
-    this->dbFilePath = QDir(getSettingPath() + "/nodoka_lmdb.db").absolutePath();
+    this->dbFilePath = QDir(getSettingPath() + "/lmdb/").absolutePath();
 
-    // attempt to create the file, if db file doesn't exist, since lmdb doesn't create the file
-    // for us
-    QFile file(this->dbFilePath);
-    if(!file.exists()) {
-        file.open(QIODevice::WriteOnly);
+    // ensure that this directory exists
+    QDir dbFileDir(this->dbFilePath);
+    if(!dbFileDir.exists()) {
+        dbFileDir.mkdir(this->dbFilePath);
     }
-    file.close();
 }
 
 

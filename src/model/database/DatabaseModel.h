@@ -16,10 +16,12 @@ namespace Database {
 
     protected:
         std::shared_ptr<Core::DatabaseInstance> dbInstance;
-        void writeArray(QString key, QJsonArray value);
-        void writeObject(QString key, QJsonObject value);
 
     public:
+        void writeObject(QString key, QJsonObject value);
+        void writeArray(QString key, QJsonArray value);
+        void printData();
+
         DatabaseModel(std::shared_ptr<Core::DatabaseInstance> dbInstance);
 
 

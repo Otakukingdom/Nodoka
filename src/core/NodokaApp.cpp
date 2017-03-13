@@ -5,8 +5,11 @@
 #include "NodokaApp.h"
 #include <QItemSelection>
 #include <src/core/tasks/InitialScanTask.h>
+#include <src/model/database/AudiobookModel.h>
 #include "src/event-handler/PlayerEventHandler.h"
 #include "ScanPlayer.h"
+#include "DatabaseConnect.h"
+#include <memory>
 
 Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     // load fonts
@@ -17,6 +20,15 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     QFontDatabase::addApplicationFont(":RobotoMonoR.ttf");
     QFontDatabase::addApplicationFont(":SourceB.ttf");
     QFontDatabase::addApplicationFont(":SourceR.ttf");
+
+    auto dbInstance = std::shared_ptr<Core::DatabaseInstance>(new Core::DatabaseInstance());
+    auto testModel = new Database::AudiobookModel(dbInstance);
+
+    QJsonObject testObject {
+            {"messageType", "test message"}
+    };
+    testModel->writeObject("hello world", testObject);
+    testModel->printData();
 
     QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
 
@@ -42,6 +54,7 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     this->player = new Core::ConcretePlayer(this->setting, this->proxyManager);
 
     // initialize the ui
+    /*
     this->mainWindow = new MainWindow(this->directoryModel,
                                       this->audiobookModel,
                                       this->player,
@@ -50,6 +63,7 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
                                       this->proxyManager,
                                       this->audiobookCollectionHandler
     );
+     */
 
     // initialize event handlers
     this->directoryHandler = new DirectoryHandler(this->audiobookModel, this->audiobookFileModel);
@@ -60,7 +74,7 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
 }
 
 void Core::NodokaApp::start() {
-    mainWindow->show();
+    // mainWindow->show();
 }
 
 void Core::NodokaApp::setup() {
