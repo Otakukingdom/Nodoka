@@ -55,3 +55,4 @@ void Core::createPathIfNotExists(QString path) {
 void Core::createSettingPathIfNotExists() {
     createPathIfNotExists(getSettingPath());
 }
+

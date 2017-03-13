@@ -8,6 +8,7 @@
 #include <memory>
 #include <QJsonObject>
 #include <src/core/DatabaseConnect.h>
+#include <src/core/Util.h>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 

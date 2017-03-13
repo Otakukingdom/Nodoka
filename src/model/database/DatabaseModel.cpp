@@ -20,15 +20,14 @@ void DatabaseModel::writeObject(QString key, QJsonObject value) {
 
     QJsonDocument currentDoc(value);
 
-    auto keyData = key.toStdString().c_str();
+    QByteArray ba = key.toLocal8Bit();
+    const char *keyData = ba.data();
 
     QString strJson(currentDoc.toJson());
-    QByteArray ba = strJson.toLocal8Bit();
-    const char *c_str2 = ba.data();
+    QByteArray vBa = strJson.toLocal8Bit();
+    const char *valueData = vBa.data();
 
-    qDebug() << "Written to db: " << keyData << " with value of " << c_str2;
-
-    dbi.put(wtxn, keyData, c_str2);
+    dbi.put(wtxn, keyData, valueData);
     wtxn.commit();
 }
 
