@@ -24,23 +24,17 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
     auto dbInstance = std::shared_ptr<Core::DatabaseInstance>(new Core::DatabaseInstance());
     auto testModel = new Database::AudiobookModel(dbInstance);
 
+    // START DEBUGGING
     QJsonObject testObject {
             {"messageType", "test message"}
     };
     testModel->writeObject("hello world", testObject);
     testModel->printValue("hello world");
 
+    QApplication::quit();
+    // END DEBUGGING
+
     QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
-
-    // load the db
-    auto dbInstance = std::shared_ptr<DatabaseInstance>(new Core::DatabaseInstance());
-    auto dbModel = Database::AudiobookModel(dbInstance);
-    dbModel.writeObject("test", QJsonObject {
-            {"testProperty", 1},
-            {"anotherProperty", 2}
-    });
-
-    dbModel.getObject("test");
 
     // we need this to read settings
     this->setting = new Setting();
