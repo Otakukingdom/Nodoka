@@ -28,7 +28,7 @@ Core::NodokaApp::NodokaApp(QObject* parent) : QObject(parent) {
             {"messageType", "test message"}
     };
     testModel->writeObject("hello world", testObject);
-    testModel->printData();
+    testModel->printValue("hello world");
 
     QCoreApplication::setAttribute(Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
 

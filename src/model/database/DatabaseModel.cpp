@@ -27,6 +27,7 @@ void DatabaseModel::writeObject(QString key, QJsonObject value) {
     QByteArray vBa = strJson.toLocal8Bit();
     const char *valueData = vBa.data();
 
+    qDebug() << "value set to be " << valueData;
     dbi.put(wtxn, keyData, valueData);
     wtxn.commit();
 }
@@ -60,4 +61,25 @@ void DatabaseModel::printData() {
     }
     cursor.close();
     rtxn.abort();
+}
+
+
+void DatabaseModel::printValue(QString key) {
+    auto env = this->dbInstance->getDbEnv();
+    auto rtxn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
+    auto dbi = lmdb::dbi::open(rtxn, nullptr);
+
+    QByteArray ba = key.toLocal8Bit();
+    const char *keyData = ba.data();
+
+    char valueData[2048];
+    MDB_val keyVal = {sizeof(keyData), (void*) keyData};
+    MDB_val value = {sizeof(valueData), (void*) valueData};
+
+    lmdb::dbi_get(rtxn, dbi, &keyVal, &value);
+    auto valueBa = QByteArray::fromRawData((const char*) value.mv_data, value.mv_size);
+    auto valueInQString = QString::fromLocal8Bit(valueBa);
+
+    qDebug() << "value read to be ";
+    qDebug() << valueInQString;
 }
