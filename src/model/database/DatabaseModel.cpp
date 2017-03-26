@@ -19,9 +19,18 @@ void DatabaseModel::writeObject(QString key, QJsonObject value) {
 
     auto wtxn = lmdb::txn::begin(env);
     auto dbi = lmdb::dbi::open(wtxn, nullptr);
-    qDebug() << "key saved to as " << key.toUtf8().data();
-    qDebug() << "value saved to as " << jsonDocument.toJson().data();
-    dbi.put(wtxn, key.toUtf8().data(), jsonDocument.toJson().data());
+
+    QJsonDocument currentDoc(value);
+
+    QByteArray ba = key.toLocal8Bit();
+    const char *keyData = ba.data();
+
+    QString strJson(currentDoc.toJson());
+    QByteArray vBa = strJson.toLocal8Bit();
+    const char *valueData = vBa.data();
+
+    qDebug() << "value set to be " << valueData;
+    dbi.put(wtxn, keyData, valueData);
     wtxn.commit();
 }
 
@@ -36,18 +45,45 @@ void DatabaseModel::writeArray(QString key, QJsonArray value) {
     wtxn.commit();
 }
 
-QJsonObject DatabaseModel::getObject(QString key) {
-    auto env = this->dbInstance->getDbEnv();
 
+void DatabaseModel::printData() {
+    auto env = this->dbInstance->getDbEnv();
     auto rtxn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
     auto dbi = lmdb::dbi::open(rtxn, nullptr);
 
     auto cursor = lmdb::cursor::open(rtxn, dbi);
-    std::string valueStr;
-    dbi.get(rtxn, key.toStdString(), valueStr);
 
-    qDebug() << "value is " << valueStr.c_str();
+    char keyData[2048];
+    char valueData[2048];
+    MDB_val key = {sizeof(keyData), keyData};
+    MDB_val value = {sizeof(valueData), valueData};
+
+    while (cursor.get(&key, &value, MDB_NEXT)) {
+        auto keyStr = QString::fromUtf8((char*) key.mv_data, key.mv_size);
+        auto valueStr = QString::fromUtf8((char*) value.mv_data, value.mv_size);
+        qDebug() << "Key is " << keyStr << " value is " << valueStr;
+    }
+    cursor.close();
+    rtxn.abort();
+}
 
 
-    return QJsonObject();
+void DatabaseModel::printValue(QString key) {
+    auto env = this->dbInstance->getDbEnv();
+    auto rtxn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
+    auto dbi = lmdb::dbi::open(rtxn, nullptr);
+
+    QByteArray ba = key.toLocal8Bit();
+    const char *keyData = ba.data();
+
+    char valueData[2048];
+    MDB_val keyVal = {sizeof(keyData), (void*) keyData};
+    MDB_val value = {sizeof(valueData), (void*) valueData};
+
+    lmdb::dbi_get(rtxn, dbi, &keyVal, &value);
+    auto valueBa = QByteArray::fromRawData((const char*) value.mv_data, value.mv_size);
+    auto valueInQString = QString::fromLocal8Bit(valueBa);
+
+    qDebug() << "value read to be ";
+    qDebug() << valueInQString;
 }

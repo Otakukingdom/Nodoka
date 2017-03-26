@@ -91,12 +91,12 @@ bool ::Core::openDb() {
 }
 
 Core::DatabaseInstance::DatabaseInstance() {
-    this->dbFilePath = QDir(getSettingPath() + "/lmdb").absolutePath();
+    this->dbFilePath = QDir(getSettingPath() + "/lmdb/").absolutePath();
 
-    // attempt to create the file, if db file doesn't exist, since lmdb doesn't create the file
-    // for us
-    if(!QDir(this->dbFilePath).exists()) {
-        QDir().mkdir(this->dbFilePath);
+    // ensure that this directory exists
+    QDir dbFileDir(this->dbFilePath);
+    if(!dbFileDir.exists()) {
+        dbFileDir.mkdir(this->dbFilePath);
     }
 }
 

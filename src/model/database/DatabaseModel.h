@@ -8,20 +8,20 @@
 #include <memory>
 #include <QJsonObject>
 #include <src/core/DatabaseConnect.h>
+#include <src/core/Util.h>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
 
 namespace Database {
     class DatabaseModel {
-
     protected:
         std::shared_ptr<Core::DatabaseInstance> dbInstance;
 
     public:
-        void writeArray(QString key, QJsonArray value);
         void writeObject(QString key, QJsonObject value);
-        QJsonObject getObject(QString key);
-
+        void writeArray(QString key, QJsonArray value);
+        void printData();
+        void printValue(QString key);
 
         DatabaseModel(std::shared_ptr<Core::DatabaseInstance> dbInstance);
 
