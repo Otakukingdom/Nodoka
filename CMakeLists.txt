@@ -49,12 +49,6 @@ file(GLOB zlib_SOURCES
         )
 add_library(zlib ${zlib_SOURCES})
 
-file(GLOB lmdb_SOURCES
-        "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.h"
-        "${CMAKE_SOURCE_DIR}/libs/liblmdb/*.c"
-        )
-add_library(lmdb ${lmdb_SOURCES})
-
 
 if(APPLE)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/libvlc/mac)
@@ -67,7 +61,6 @@ FILE(GLOB_RECURSE LibFiles "src/*.h")
 add_custom_target(headers SOURCES ${LibFiles})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/liblmdb)
 
 set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/core/ConcretePlayer.h src/ui-element/MainWindow.cpp src/ui-element/MainWindow.h src/ui-element/SettingsForm.cpp
@@ -89,15 +82,14 @@ set(SOURCE_FILES src/main.cpp src/core/ConcretePlayer.cpp
         src/event-handler/FileListViewHandler.h src/core/directory-element-scan/AbstractElementScanner.cpp
         src/core/directory-element-scan/AbstractElementScanner.h
         src/core/directory-element-scan/AddRemoveVisitor.cpp src/core/directory-element-scan/AddRemoveVisitor.h
-        src/model/database/AudiobookModel.cpp src/model/database/AudiobookModel.h
-        src/model/database/DatabaseModel.cpp src/model/database/DatabaseModel.h)
+        )
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set(WIN32_ENABLED WIN32 )
 endif()
 
 add_executable(Nodoka ${WIN32_ENABLED} ${SOURCE_FILES} ${RESOURCES})
 
-target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib lmdb ${PLATFORM_LINKS})
+target_link_libraries(Nodoka Qt5::Widgets Qt5::Sql vlc vlccore Threads::Threads zlib ${PLATFORM_LINKS})
 
 install(TARGETS Nodoka DESTINATION bin)
 include(CPack)

@@ -11,12 +11,16 @@ AddRemoveVisitor::AddRemoveVisitor(Audiobook *audiobookModel, QDir baseDirectory
 }
 
 void AddRemoveVisitor::accept(const std::shared_ptr<QDir>& directory) {
+    qDebug() << "start accept";
+
     QDirIterator it(*directory, QDirIterator::NoIteratorFlags);
     std::vector<std::shared_ptr<QDir>> loadedDirectories;
     std::vector<std::shared_ptr<QFile>> loadedAudioFiles;
 
     while(it.hasNext()) {
         QString currentPath = it.next();
+
+        qDebug() << "current path is " << currentPath;
 
         // check if the path is a directory or a file
         auto potentialDir(std::shared_ptr<QDir>(new QDir(currentPath)));

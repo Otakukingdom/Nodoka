@@ -12,7 +12,6 @@
 #include <QDebug>
 
 bool ::Core::openDb() {
-    /*
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
 
     // ensure the path gets created for settings, if not already exists
@@ -28,6 +27,14 @@ bool ::Core::openDb() {
     }
 
     QSqlQuery query;
+    bool pragmaResponse = false;
+    pragmaResponse = query.exec("PRAGMA journal_mode=WAL;");
+
+    if(!pragmaResponse) {
+        return false;
+    }
+
+
     bool response = false;
     response = query.exec("CREATE TABLE IF NOT EXISTS metadata ("
                        "key text PRIMARY KEY,"
@@ -85,36 +92,6 @@ bool ::Core::openDb() {
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_full_path_index ON audiobooks(full_path)");
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_ab_id_index ON audiobook_file(audiobook_id)");
     query.exec("CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path)");
-     */
 
     return true;
 }
-
-Core::DatabaseInstance::DatabaseInstance() {
-    this->dbFilePath = QDir(getSettingPath() + "/lmdb/").absolutePath();
-
-    // ensure that this directory exists
-    QDir dbFileDir(this->dbFilePath);
-    if(!dbFileDir.exists()) {
-        dbFileDir.mkdir(this->dbFilePath);
-    }
-}
-
-
-Core::DatabaseInstance::~DatabaseInstance() {
-
-}
-
-lmdb::env Core::DatabaseInstance::getDbEnv() {
-    auto env = lmdb::env::create();
-    env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL); /* 1 GiB */
-    qDebug() << "path is " << this->dbFilePath;
-    auto pathByteArray = this->dbFilePath.toUtf8();
-    char* pathCharArray = pathByteArray.data();
-
-    qDebug() << "path in char array is " << pathCharArray;
-    env.open(pathCharArray, 0, 0664);
-
-    return env;
-}
-
