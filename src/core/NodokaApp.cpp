@@ -74,6 +74,8 @@ void Core::NodokaApp::setup() {
             this->directoryHandler, &DirectoryHandler::handleDirectoryAdded);
     connect(this->directoryModel, &Directory::directoryRemove,
             this->directoryHandler, &DirectoryHandler::handleDirectoryRemoved);
+    connect(this->directoryModel, &Directory::directoryRescan,
+            this->directoryHandler, &DirectoryHandler::handleDirectoryRescan);
 
 
     // we need to register this metatype before using it in signal/slot pattern

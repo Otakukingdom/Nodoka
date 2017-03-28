@@ -17,6 +17,13 @@ void DirectoryHandler::handleDirectoryAdded(QSqlRecord record) {
     QThreadPool::globalInstance()->start(task);
 }
 
+
+
 void DirectoryHandler::handleDirectoryRemoved(QSqlRecord record) {
     this->audiobookModel->removeAudiobook(record);
+}
+
+void DirectoryHandler::handleDirectoryRescan(QSqlRecord record) {
+    auto task = new Core::ScanDirectoryTask(record, this->audiobookModel);
+    QThreadPool::globalInstance()->start(task);
 }

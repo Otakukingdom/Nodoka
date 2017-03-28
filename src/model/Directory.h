@@ -30,7 +30,7 @@ public:
 signals:
     void directoryAdded(QSqlRecord);
     void directoryRemove(QSqlRecord);
-
+    void directoryRescan(QSqlRecord);
 };
 
 

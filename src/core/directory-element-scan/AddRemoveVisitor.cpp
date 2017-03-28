@@ -65,10 +65,12 @@ void AddRemoveVisitor::accept(const std::shared_ptr<QFile>& file) {
 }
 
 void AddRemoveVisitor::accept(const QString directory) {
-    QDir currentDirectory(directory);
+    qDebug() << "start accept on dir string";
+    std::shared_ptr<QDir> currentDirectory = std::shared_ptr<QDir>(new QDir(directory));
 
-    if(currentDirectory.exists()) {
-        this->accept(directory);
+    if(currentDirectory->exists()) {
+        qDebug() << "dir exists, start on the dir now...";
+        this->accept(currentDirectory);
     }
 }
 

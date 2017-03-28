@@ -18,6 +18,7 @@ public:
     DirectoryHandler(Audiobook* audiobookModel, AudiobookFile* audiobookFileModel);
     void handleDirectoryAdded(QSqlRecord record);
     void handleDirectoryRemoved(QSqlRecord record);
+    void handleDirectoryRescan(QSqlRecord record);
 
 };
 

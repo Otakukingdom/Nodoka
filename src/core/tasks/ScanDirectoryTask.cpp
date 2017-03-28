@@ -10,6 +10,8 @@ void Core::ScanDirectoryTask::run() {
     QString path = this->record.value("full_path").toString();
     AddRemoveVisitor scanner(this->audiobook, path);
 
+    qDebug() << "scanner accept called";
+
     // start scanning from the base directory path
     scanner.accept(path);
 }

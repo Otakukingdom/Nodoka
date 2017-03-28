@@ -24,6 +24,7 @@ private:
     void performAddDirectory();
     void performRemoveDirectory();
     void performClose();
+    void performRescan();
 
     Ui::SettingsForm *ui;
     void setup();

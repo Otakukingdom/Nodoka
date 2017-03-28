@@ -26,6 +26,7 @@ void SettingsForm::setup() {
     connect(this->ui->addDirectoryButton, &QPushButton::clicked, this, &SettingsForm::performAddDirectory);
     connect(this->ui->removeDirectoryButton, &QPushButton::clicked, this, &SettingsForm::performRemoveDirectory);
     connect(this->ui->closeButton, &QPushButton::clicked, this, &SettingsForm::performClose);
+    connect(this->ui->rescanButton, &QPushButton::clicked, this, &SettingsForm::performRescan);
 }
 
 void SettingsForm::performAddDirectory() {
@@ -51,4 +52,16 @@ void SettingsForm::performRemoveDirectory() {
 
 void SettingsForm::performClose() {
     this->close();
+}
+
+void SettingsForm::performRescan() {
+    auto indexes = this->ui->listView->selectionModel()->selectedIndexes();
+    if(indexes.size() == 0) {
+        QMessageBox *messageBox = new QMessageBox();
+        messageBox->critical(0, "Error", "You must select a directory to rescan");
+    } else {
+        QModelIndex index = this->ui->listView->selectionModel()->selectedIndexes().first();
+        auto directoryRecord = this->directoryModel->record(index.row());
+        emit this->directoryModel->directoryRescan(directoryRecord);
+    }
 }
