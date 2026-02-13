@@ -1,0 +1,263 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install VLC dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vlc libvlc-dev libvlccore-dev
+      
+      - name: Check formatting
+        run: cargo fmt -- --check
+      
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install VLC (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vlc libvlc-dev libvlccore-dev
+      
+      - name: Install VLC (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install --cask vlc
+      
+      - name: Install VLC (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install vlc
+      
+      - name: Run tests
+        run: cargo test --verbose
+
+  build:
+    name: Build
+    needs: [lint, test]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: nodoka
+            asset_name: nodoka-linux-amd64
+          - os: windows-latest
+            artifact_name: nodoka.exe
+            asset_name: nodoka-windows-amd64.exe
+          - os: macos-latest
+            artifact_name: nodoka
+            asset_name: nodoka-macos-amd64
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install VLC (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vlc libvlc-dev libvlccore-dev
+      
+      - name: Install VLC (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install --cask vlc
+      
+      - name: Install VLC (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install vlc
+      
+      - name: Build release
+        run: cargo build --release --verbose
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: target/release/${{ matrix.artifact_name }}
+
+  package-windows:
+    name: Package Windows MSI
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: nodoka-windows-amd64.exe
+          path: target/release/
+      
+      - name: Install WiX
+        run: |
+          dotnet tool install --global wix
+      
+      - name: Build MSI
+        run: |
+          wix build packaging/windows/nodoka.wxs -o Nodoka-0.2.0.msi
+      
+      - name: Upload MSI to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./Nodoka-0.2.0.msi
+          asset_name: Nodoka-0.2.0.msi
+          asset_content_type: application/octet-stream
+
+  package-macos:
+    name: Package macOS DMG
+    needs: build
+    runs-on: macos-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: nodoka-macos-amd64
+          path: target/release/
+      
+      - name: Make binary executable
+        run: chmod +x target/release/nodoka
+      
+      - name: Create DMG
+        run: |
+          cd packaging/macos
+          ./create-dmg.sh
+      
+      - name: Upload DMG to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./packaging/macos/Nodoka-0.2.0.dmg
+          asset_name: Nodoka-0.2.0.dmg
+          asset_content_type: application/octet-stream
+
+  package-linux:
+    name: Package Linux DEB
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: nodoka-linux-amd64
+          path: target/release/
+      
+      - name: Make binary executable
+        run: chmod +x target/release/nodoka
+      
+      - name: Build DEB package
+        run: |
+          cd packaging/linux
+          ./build-deb.sh
+      
+      - name: Upload DEB to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./packaging/linux/nodoka_0.2.0_amd64.deb
+          asset_name: nodoka_0.2.0_amd64.deb
+          asset_content_type: application/vnd.debian.binary-package

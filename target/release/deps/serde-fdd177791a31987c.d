@@ -1,0 +1,14 @@
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/libserde-fdd177791a31987c.rmeta: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/build/serde-7c31b24974547e7a/out/private.rs
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/libserde-fdd177791a31987c.rlib: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/build/serde-7c31b24974547e7a/out/private.rs
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/serde-fdd177791a31987c.d: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/build/serde-7c31b24974547e7a/out/private.rs
+
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs:
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/build/serde-7c31b24974547e7a/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/build/serde-7c31b24974547e7a/out

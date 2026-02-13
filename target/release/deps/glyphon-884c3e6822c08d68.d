@@ -1,0 +1,11 @@
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/libglyphon-884c3e6822c08d68.rmeta: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/error.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_atlas.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_render.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/shader.wgsl
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/libglyphon-884c3e6822c08d68.rlib: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/error.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_atlas.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_render.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/shader.wgsl
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/release/deps/glyphon-884c3e6822c08d68.d: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/error.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_atlas.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_render.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/shader.wgsl
+
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/lib.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/error.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_atlas.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/text_render.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/glyphon-0.5.0/src/shader.wgsl:

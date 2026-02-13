@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nodoka Audiobook Reader
+GenericName=Audiobook Player
+Comment=A free and open source cross-platform audiobook reader
+Exec=nodoka %U
+Icon=nodoka
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+MimeType=audio/mpeg;audio/mp4;audio/x-m4a;audio/x-m4b;audio/ogg;audio/flac;audio/opus;
+Keywords=audiobook;audio;player;media;
+StartupNotify=true
+StartupWMClass=nodoka

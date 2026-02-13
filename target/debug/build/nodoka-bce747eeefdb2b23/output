@@ -1,0 +1,2 @@
+cargo:rustc-link-search=/Applications/VLC.app/Contents/MacOS/lib
+cargo:rustc-link-lib=dylib=vlc

@@ -1,0 +1,52 @@
+[package]
+name = "nodoka"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.82"
+authors = ["Mistlight Oriroris"]
+description = "A free and open source cross-platform audiobook reader"
+license = "MIT"
+
+[dependencies]
+iced = { version = "0.12", features = ["tokio", "advanced"] }
+vlc-rs = "0.3"
+rusqlite = { version = "0.31", features = ["bundled"] }
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+thiserror = "1.0"
+directories = "5.0"
+walkdir = "2.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rfd = "0.14"
+
+[dev-dependencies]
+tempfile = "3.5"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = { level = "deny", priority = 0 }
+expect_used = { level = "deny", priority = 0 }
+panic = { level = "deny", priority = 0 }
+indexing_slicing = { level = "deny", priority = 0 }
+missing_errors_doc = { level = "deny", priority = 0 }
+missing_panics_doc = { level = "deny", priority = 0 }
+# Allow some pedantic lints that are stylistic rather than correctness
+module_name_repetitions = { level = "allow", priority = 1 }
+
+[lints.rust]
+unsafe_code = { level = "deny", priority = -1 }
+dead_code = { level = "deny", priority = -1 }
+unused_imports = { level = "deny", priority = -1 }
+unused_variables = { level = "deny", priority = -1 }

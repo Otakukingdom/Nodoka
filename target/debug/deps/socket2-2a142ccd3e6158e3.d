@@ -1,0 +1,9 @@
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/libsocket2-2a142ccd3e6158e3.rmeta: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockaddr.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/socket.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockref.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sys/unix.rs
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/socket2-2a142ccd3e6158e3.d: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockaddr.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/socket.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockref.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sys/unix.rs
+
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/lib.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockaddr.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/socket.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sockref.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.6.2/src/sys/unix.rs:

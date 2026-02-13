@@ -66,3 +66,9 @@ plugins/plugins.dat
 *.db-journal
 *.ini
 *.iml
+
+wt-*
+
+# Ralph-workflow artifacts (auto-generated)
+/PROMPT*
+.agent/

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="Nodoka Audiobook Reader" 
+           Language="1033" 
+           Version="0.2.0" 
+           Manufacturer="Otakukingdom Co" 
+           UpgradeCode="E7A8C9B1-2D4F-4A3E-9F6C-8D5B4E3A2C1F">
+    
+    <Package InstallerVersion="500" 
+             Compressed="yes" 
+             InstallScope="perMachine"
+             Description="Nodoka Audiobook Reader Installer"
+             Comments="A free and open source cross-platform audiobook reader" />
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <MediaTemplate EmbedCab="yes" />
+    
+    <Feature Id="ProductFeature" Title="Nodoka Audiobook Reader" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+    
+    <Icon Id="NodokaIcon" SourceFile="../../icons/app/Entypo_d83d(0)_256.png" />
+    <Property Id="ARPPRODUCTICON" Value="NodokaIcon" />
+    
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="WixUI_InstallDir" />
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Nodoka">
+          <Component Id="ProductComponent" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+            <File Id="NodokaExe" 
+                  Name="nodoka.exe" 
+                  Source="../../target/release/nodoka.exe" 
+                  KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Nodoka Audiobook Reader">
+          <Component Id="ApplicationShortcut" Guid="B2C3D4E5-F678-90AB-CDEF-123456789ABC">
+            <Shortcut Id="ApplicationStartMenuShortcut"
+                      Name="Nodoka Audiobook Reader"
+                      Description="A free and open source cross-platform audiobook reader"
+                      Target="[INSTALLFOLDER]nodoka.exe"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="NodokaIcon" />
+            <RemoveFolder Id="CleanUpShortCut" On="uninstall" />
+            <RegistryValue Root="HKCU" 
+                          Key="Software\Otakukingdom\Nodoka" 
+                          Name="installed" 
+                          Type="integer" 
+                          Value="1" 
+                          KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <ComponentRef Id="ProductComponent" />
+    </ComponentGroup>
+  </Product>
+</Wix>

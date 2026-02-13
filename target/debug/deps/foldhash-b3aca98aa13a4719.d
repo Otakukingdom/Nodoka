@@ -1,0 +1,10 @@
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/libfoldhash-b3aca98aa13a4719.rmeta: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/fast.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/quality.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/seed.rs
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/libfoldhash-b3aca98aa13a4719.rlib: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/fast.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/quality.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/seed.rs
+
+/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/foldhash-b3aca98aa13a4719.d: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/fast.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/quality.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/seed.rs
+
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/lib.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/fast.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/quality.rs:
+/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.5/src/seed.rs:
