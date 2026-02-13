@@ -25,9 +25,9 @@ impl Vlc {
     /// Returns an error if VLC instance or media player cannot be created
     pub fn new() -> Result<Self> {
         let instance = vlc_env::create_vlc_instance().ok_or_else(|| {
-            let plugin_path_info = std::env::var("VLC_PLUGIN_PATH").map_or_else(
-                |_| "VLC_PLUGIN_PATH not set".to_string(),
-                |p| format!("VLC_PLUGIN_PATH={p}"),
+            let plugin_path_info = std::env::var_os("VLC_PLUGIN_PATH").map_or_else(
+                || "VLC_PLUGIN_PATH not set".to_string(),
+                |p| format!("VLC_PLUGIN_PATH={}", p.to_string_lossy()),
             );
 
             tracing::error!(

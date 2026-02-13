@@ -1,24 +1,7 @@
-use nodoka::player::{
-    __set_vlc_init_observer_for_tests, __set_vlc_instance_factory_for_tests, setup_vlc_environment,
-    VlcInitEvent,
-};
+use nodoka::player::setup_vlc_environment;
 mod test_support;
 use std::env;
-use std::sync::Mutex;
 use test_support::{env_lock, EnvVarGuard};
-
-static INIT_EVENTS: Mutex<Vec<VlcInitEvent>> = Mutex::new(Vec::new());
-
-fn record_init_event(event: VlcInitEvent) {
-    let mut events = INIT_EVENTS
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    events.push(event);
-}
-
-const fn always_fail_instance_creation() -> Option<vlc::Instance> {
-    None
-}
 
 #[test]
 fn test_vlc_environment_setup_before_player_creation() {
@@ -82,41 +65,6 @@ fn test_app_initializes_vlc_before_player() {
             );
         }
     }
-}
-
-#[test]
-fn test_vlc_setup_runs_before_first_instance_creation_regression() {
-    let _lock = env_lock();
-    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
-
-    env::remove_var("VLC_PLUGIN_PATH");
-
-    {
-        let mut events = INIT_EVENTS
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        events.clear();
-    }
-
-    let _observer_guard = __set_vlc_init_observer_for_tests(Some(record_init_event));
-    let _factory_guard = __set_vlc_instance_factory_for_tests(always_fail_instance_creation);
-
-    let result = nodoka::player::Vlc::new();
-    assert!(
-        matches!(result, Err(nodoka::error::Error::Vlc(_))),
-        "Expected deterministic VLC error when instance creation is forced to fail"
-    );
-
-    let events = INIT_EVENTS
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .clone();
-
-    assert_eq!(
-        events,
-        vec![VlcInitEvent::SetupCalled, VlcInitEvent::BeforeInstanceNew],
-        "setup_vlc_environment must run before attempting VLC instance creation"
-    );
 }
 
 #[test]

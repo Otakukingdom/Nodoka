@@ -1,15 +1,9 @@
-use nodoka::player::{
-    __set_vlc_instance_factory_for_tests, setup_vlc_environment, verify_vlc_available, Vlc,
-};
+use nodoka::player::{setup_vlc_environment, verify_vlc_available, Vlc};
 mod test_support;
 use std::env;
 use std::ffi::OsString;
 use temp_dir::TempDir;
 use test_support::{env_lock, EnvVarGuard};
-
-const fn always_fail_instance_creation() -> Option<vlc::Instance> {
-    None
-}
 
 #[test]
 fn test_setup_vlc_environment_respects_existing_plugin_path(
@@ -88,35 +82,6 @@ fn test_vlc_player_new_smoke_when_vlc_available() {
             matches!(other, nodoka::error::Error::Vlc(_)),
             "Unexpected error creating Vlc player: {other:?}"
         ),
-    }
-}
-
-#[test]
-fn test_vlc_player_fails_gracefully_when_vlc_unavailable() {
-    let _lock = env_lock();
-    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
-
-    let _factory_guard = __set_vlc_instance_factory_for_tests(always_fail_instance_creation);
-
-    // Remove VLC_PLUGIN_PATH to simulate a fresh environment.
-    env::remove_var("VLC_PLUGIN_PATH");
-
-    // Call the normal startup sequence. Even with correct setup,
-    // instance creation is deterministically forced to fail.
-    setup_vlc_environment();
-
-    let result = Vlc::new();
-
-    match &result {
-        Err(nodoka::error::Error::Vlc(msg)) => {
-            assert!(msg.contains("Failed to create VLC instance"));
-        }
-        _ => {
-            assert!(
-                matches!(&result, Err(nodoka::error::Error::Vlc(_))),
-                "Expected deterministic VLC error when instance creation is forced to fail"
-            );
-        }
     }
 }
 

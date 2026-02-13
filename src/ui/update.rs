@@ -1,10 +1,36 @@
 use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
+use crate::error::Result;
 use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, State};
 use iced::Command;
 use std::path::Path;
+
+trait MediaControl {
+    fn load_media(&mut self, path: &Path) -> Result<()>;
+    fn set_time(&self, time_ms: i64) -> Result<()>;
+    fn get_length(&self) -> Result<i64>;
+    fn play(&self) -> Result<()>;
+}
+
+impl MediaControl for Vlc {
+    fn load_media(&mut self, path: &Path) -> Result<()> {
+        Self::load_media(self, path)
+    }
+
+    fn set_time(&self, time_ms: i64) -> Result<()> {
+        Self::set_time(self, time_ms)
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Self::get_length(self)
+    }
+
+    fn play(&self) -> Result<()> {
+        Self::play(self)
+    }
+}
 
 pub fn update(
     state: &mut State,
@@ -232,63 +258,81 @@ fn handle_audiobook_selected(
     Command::none()
 }
 
-fn handle_file_selected(
+fn handle_file_selected<P: MediaControl>(
     state: &mut State,
-    player: &mut Option<Vlc>,
+    player: &mut Option<P>,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
-    state.selected_file = Some(path.to_string());
+    fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
+        state.selected_file = Some(path.to_string());
 
-    if let Some(id) = state.selected_audiobook {
-        if let Err(e) =
-            crate::db::queries::update_audiobook_selected_file(db.connection(), id, Some(path))
-        {
-            tracing::error!("Failed to save selected file: {e}");
+        if let Some(id) = state.selected_audiobook {
+            if let Err(e) =
+                crate::db::queries::update_audiobook_selected_file(db.connection(), id, Some(path))
+            {
+                tracing::error!("Failed to save selected file: {e}");
+            }
+            return;
         }
-    } else if let Ok(Some(file)) =
-        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-    {
-        if let Err(e) = crate::db::queries::update_audiobook_selected_file(
-            db.connection(),
-            file.audiobook_id,
-            Some(path),
-        ) {
-            tracing::error!("Failed to save selected file: {e}");
+
+        if let Ok(Some(file)) =
+            crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+        {
+            if let Err(e) = crate::db::queries::update_audiobook_selected_file(
+                db.connection(),
+                file.audiobook_id,
+                Some(path),
+            ) {
+                tracing::error!("Failed to save selected file: {e}");
+            }
         }
     }
 
-    if let Some(ref mut p) = player {
-        if let Err(e) = p.load_media(Path::new(&path)) {
-            tracing::error!("Failed to load media: {e}");
-        } else {
-            if let Ok(Some(file)) =
-                crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-            {
-                if let Some(length_ms) = file.length_of_file {
-                    if let Ok(duration_f64) = ms_to_f64(length_ms) {
-                        state.total_duration = duration_f64;
-                    }
-                }
-
-                if let Some(seek_position) = file.seek_position {
-                    if let Err(e) = p.set_time(seek_position) {
-                        tracing::error!("Failed to restore seek position: {e}");
-                    } else if let Ok(position_f64) = ms_to_f64(seek_position) {
-                        state.current_time = position_f64;
-                    }
-                } else {
-                    state.current_time = 0.0;
+    fn restore_progress_and_duration<P: MediaControl>(
+        state: &mut State,
+        player: &P,
+        db: &Database,
+        path: &str,
+    ) {
+        if let Ok(Some(file)) =
+            crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+        {
+            if let Some(length_ms) = file.length_of_file {
+                if let Ok(duration_f64) = ms_to_f64(length_ms) {
+                    state.total_duration = duration_f64;
                 }
             }
 
-            if let Ok(duration) = p.get_length() {
-                if duration > 0 {
-                    if let Ok(duration_f64) = ms_to_f64(duration) {
-                        state.total_duration = duration_f64;
-                    }
+            if let Some(seek_position) = file.seek_position {
+                if let Err(e) = player.set_time(seek_position) {
+                    tracing::error!("Failed to restore seek position: {e}");
+                } else if let Ok(position_f64) = ms_to_f64(seek_position) {
+                    state.current_time = position_f64;
+                }
+            } else {
+                state.current_time = 0.0;
+            }
+        }
+
+        if let Ok(duration) = player.get_length() {
+            if duration > 0 {
+                if let Ok(duration_f64) = ms_to_f64(duration) {
+                    state.total_duration = duration_f64;
                 }
             }
+        }
+    }
+
+    match player.as_mut() {
+        Some(p) => {
+            if let Err(e) = p.load_media(Path::new(path)) {
+                tracing::error!("Failed to load media: {e}");
+                return Command::none();
+            }
+
+            persist_selected_file(state, db, path);
+            restore_progress_and_duration(state, p, db, path);
 
             if let Err(e) = p.play() {
                 tracing::error!("Failed to auto-play: {e}");
@@ -296,9 +340,90 @@ fn handle_file_selected(
                 state.is_playing = true;
             }
         }
+        None => {
+            persist_selected_file(state, db, path);
+        }
     }
 
     Command::none()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+    use crate::error::Error;
+    use crate::models::{Audiobook, AudiobookFile};
+
+    #[derive(Default)]
+    struct FailingLoadPlayer;
+
+    impl MediaControl for FailingLoadPlayer {
+        fn load_media(&mut self, _path: &Path) -> Result<()> {
+            Err(Error::Vlc("load failed".to_string()))
+        }
+
+        fn set_time(&self, _time_ms: i64) -> Result<()> {
+            Ok(())
+        }
+
+        fn get_length(&self) -> Result<i64> {
+            Ok(0)
+        }
+
+        fn play(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure() {
+        let db = Database::new_in_memory().expect("db in-memory");
+        db::initialize(db.connection()).expect("db schema init");
+
+        let mut audiobook = Audiobook::new(
+            "/dir".to_string(),
+            "Test".to_string(),
+            "/dir/book".to_string(),
+            0,
+        );
+        let old_path = "/dir/book/old.mp3";
+        audiobook.selected_file = Some(old_path.to_string());
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)
+            .expect("insert audiobook");
+
+        let old_file = AudiobookFile::new(audiobook_id, "old".to_string(), old_path.to_string(), 0);
+        crate::db::queries::insert_audiobook_file(db.connection(), &old_file)
+            .expect("insert old file");
+
+        let new_path = "/dir/book/new.mp3";
+        let new_file = AudiobookFile::new(audiobook_id, "new".to_string(), new_path.to_string(), 1);
+        crate::db::queries::insert_audiobook_file(db.connection(), &new_file)
+            .expect("insert new file");
+
+        let mut state = State::default();
+        state.selected_audiobook = Some(audiobook_id);
+        state.selected_file = Some(old_path.to_string());
+
+        let mut player = Some(FailingLoadPlayer::default());
+
+        let _cmd = handle_file_selected(&mut state, &mut player, &db, new_path);
+
+        assert_eq!(
+            state.selected_file.as_deref(),
+            Some(old_path),
+            "selection should remain unchanged when load fails"
+        );
+
+        let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
+            .expect("get audiobook")
+            .expect("audiobook exists");
+        assert_eq!(
+            saved.selected_file.as_deref(),
+            Some(old_path),
+            "db selected_file should not change when load fails"
+        );
+    }
 }
 
 fn handle_directory_add() -> Command<Message> {

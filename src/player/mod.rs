@@ -80,9 +80,3 @@ pub use concrete_player::Vlc;
 pub use events::{PlaybackEvent, PlaybackState};
 pub use scan_player::Scanner;
 pub use vlc_env::{setup_vlc_environment, verify_vlc_available};
-
-#[doc(hidden)]
-pub use vlc_env::{
-    VlcInitEvent, VlcTestHookGuard, __set_vlc_init_observer_for_tests,
-    __set_vlc_instance_factory_for_tests,
-};
