@@ -1,7 +1,6 @@
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use chrono::Utc;
 use nodoka::models::{Audiobook, AudiobookFile};
+use std::error::Error;
 
 #[test]
 fn test_audiobook_is_complete() {
@@ -41,7 +40,6 @@ fn test_audiobook_file_completeness_calculation() {
 
     // Calculate completeness manually
     if let (Some(length), Some(seek)) = (file.length_of_file, file.seek_position) {
-        #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
         let calculated = ((seek as f64 / length as f64) * 100.0) as i32;
         assert_eq!(calculated, 50);
     }
@@ -83,7 +81,7 @@ fn test_audiobook_file_complete() {
 }
 
 #[test]
-fn test_audiobook_serialization() {
+fn test_audiobook_serialization() -> Result<(), Box<dyn Error>> {
     let audiobook = Audiobook {
         id: Some(1),
         directory: "/test".to_string(),
@@ -96,17 +94,18 @@ fn test_audiobook_serialization() {
     };
 
     // Test JSON serialization
-    let json = serde_json::to_string(&audiobook).expect("Failed to serialize");
-    let deserialized: Audiobook = serde_json::from_str(&json).expect("Failed to deserialize");
+    let json = serde_json::to_string(&audiobook)?;
+    let deserialized: Audiobook = serde_json::from_str(&json)?;
 
     assert_eq!(deserialized.id, audiobook.id);
     assert_eq!(deserialized.name, audiobook.name);
     assert_eq!(deserialized.completeness, audiobook.completeness);
     assert_eq!(deserialized.selected_file, audiobook.selected_file);
+    Ok(())
 }
 
 #[test]
-fn test_audiobook_file_serialization() {
+fn test_audiobook_file_serialization() -> Result<(), Box<dyn Error>> {
     let file = AudiobookFile {
         audiobook_id: 1,
         name: "Chapter 1.mp3".to_string(),
@@ -119,12 +118,13 @@ fn test_audiobook_file_serialization() {
         created_at: Utc::now(),
     };
 
-    let json = serde_json::to_string(&file).expect("Failed to serialize");
-    let deserialized: AudiobookFile = serde_json::from_str(&json).expect("Failed to deserialize");
+    let json = serde_json::to_string(&file)?;
+    let deserialized: AudiobookFile = serde_json::from_str(&json)?;
 
     assert_eq!(deserialized.audiobook_id, file.audiobook_id);
     assert_eq!(deserialized.name, file.name);
     assert_eq!(deserialized.length_of_file, file.length_of_file);
     assert_eq!(deserialized.seek_position, file.seek_position);
     assert_eq!(deserialized.completeness, file.completeness);
+    Ok(())
 }

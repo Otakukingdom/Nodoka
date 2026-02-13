@@ -64,9 +64,9 @@ Download the latest release for your platform from the [Releases](../../releases
    ```
 
    **Windows**:
-   - Download VLC from [videolan.org](https://www.videolan.org/vlc/)
-   - Install to `C:\Program Files\VideoLAN\VLC`
-   - Or set `VLC_LIB_PATH` environment variable to your VLC installation directory
+   - Install the **VLC SDK** (not just the player) from [videolan.org](https://www.videolan.org/vlc/)
+   - Set `VLC_SDK_PATH` to the SDK root (or `VLC_LIB_PATH` to the SDK `lib` directory)
+   - Install the VLC player separately for runtime playback
 
 3. **Clone the Repository**
    ```bash
@@ -108,13 +108,15 @@ export VLC_LIB_PATH=/Applications/VLC.app/Contents/MacOS/lib
 export VLC_LIB_PATH=/usr/lib/x86_64-linux-gnu
 
 # Windows (PowerShell)
-$env:VLC_LIB_PATH = "C:\Program Files\VideoLAN\VLC"
+$env:VLC_SDK_PATH = "C:\path\to\vlc-sdk"
+# Or point directly to the SDK lib folder:
+# $env:VLC_LIB_PATH = "C:\path\to\vlc-sdk\lib"
 ```
 
 The `build.rs` script automatically detects VLC using:
 1. `pkg-config` (Linux/macOS)
-2. Standard installation paths
-3. `VLC_LIB_PATH` environment variable override
+2. Standard installation paths (macOS only)
+3. `VLC_LIB_PATH` or `VLC_SDK_PATH` environment variable override
 
 ## Linting Configuration
 

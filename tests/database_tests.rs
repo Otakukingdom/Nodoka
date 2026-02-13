@@ -1,19 +1,23 @@
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use chrono::Utc;
 use nodoka::db::{queries, Database};
 use nodoka::models::{Audiobook, AudiobookFile, Directory};
+use std::error::Error;
+use std::io::{Error as IoError, ErrorKind};
 
-fn create_test_db() -> Database {
+fn create_test_db() -> Result<Database, Box<dyn Error>> {
     // Create in-memory database for testing
-    let db = Database::new_in_memory().expect("Failed to create test database");
-    nodoka::db::initialize_schema(db.connection()).expect("Failed to initialize schema");
-    db
+    let db = Database::new_in_memory()?;
+    nodoka::db::initialize_schema(db.connection())?;
+    Ok(db)
+}
+
+fn missing(message: &'static str) -> IoError {
+    IoError::new(ErrorKind::Other, message)
 }
 
 #[test]
-fn test_directory_crud_operations() {
-    let db = create_test_db();
+fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Insert directory
@@ -22,29 +26,31 @@ fn test_directory_crud_operations() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     // Get all directories
-    let dirs = queries::get_all_directories(conn).expect("Failed to get directories");
+    let dirs = queries::get_all_directories(conn)?;
     assert_eq!(dirs.len(), 1);
-    assert_eq!(dirs[0].full_path, "/test/audiobooks");
+    let first_dir = dirs.get(0).ok_or_else(|| missing("Expected directory"))?;
+    assert_eq!(first_dir.full_path, "/test/audiobooks");
 
     // Update last scanned
-    queries::update_directory_last_scanned(conn, "/test/audiobooks")
-        .expect("Failed to update last scanned");
+    queries::update_directory_last_scanned(conn, "/test/audiobooks")?;
 
-    let dirs = queries::get_all_directories(conn).expect("Failed to get directories");
-    assert!(dirs[0].last_scanned.is_some());
+    let dirs = queries::get_all_directories(conn)?;
+    let updated_dir = dirs.get(0).ok_or_else(|| missing("Expected directory"))?;
+    assert!(updated_dir.last_scanned.is_some());
 
     // Delete directory
-    queries::delete_directory(conn, "/test/audiobooks").expect("Failed to delete directory");
-    let dirs = queries::get_all_directories(conn).expect("Failed to get directories");
+    queries::delete_directory(conn, "/test/audiobooks")?;
+    let dirs = queries::get_all_directories(conn)?;
     assert_eq!(dirs.len(), 0);
+    Ok(())
 }
 
 #[test]
-fn test_audiobook_crud_operations() {
-    let db = create_test_db();
+fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Insert directory first
@@ -53,7 +59,7 @@ fn test_audiobook_crud_operations() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     // Insert audiobook
     let audiobook = Audiobook {
@@ -66,55 +72,50 @@ fn test_audiobook_crud_operations() {
         selected_file: None,
         created_at: Utc::now(),
     };
-    let id = queries::insert_audiobook(conn, &audiobook).expect("Failed to insert audiobook");
+    let id = queries::insert_audiobook(conn, &audiobook)?;
     assert!(id > 0);
 
     // Get audiobook by ID
-    let retrieved = queries::get_audiobook_by_id(conn, id)
-        .expect("Failed to get audiobook")
-        .expect("Audiobook not found");
+    let retrieved = queries::get_audiobook_by_id(conn, id)?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(retrieved.name, "Test Audiobook");
     assert_eq!(retrieved.completeness, 0);
 
     // Get audiobook by path
-    let by_path = queries::get_audiobook_by_path(conn, "/test/audiobooks/test")
-        .expect("Failed to get audiobook by path")
-        .expect("Audiobook not found");
+    let by_path = queries::get_audiobook_by_path(conn, "/test/audiobooks/test")?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(by_path.name, "Test Audiobook");
 
     // Update completeness
-    queries::update_audiobook_completeness(conn, id, 50).expect("Failed to update completeness");
-    let updated = queries::get_audiobook_by_id(conn, id)
-        .expect("Failed to get audiobook")
-        .expect("Audiobook not found");
+    queries::update_audiobook_completeness(conn, id, 50)?;
+    let updated = queries::get_audiobook_by_id(conn, id)?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(updated.completeness, 50);
 
     // Update selected file
-    queries::update_audiobook_selected_file(conn, id, Some("/test/file.mp3"))
-        .expect("Failed to update selected file");
-    let updated = queries::get_audiobook_by_id(conn, id)
-        .expect("Failed to get audiobook")
-        .expect("Audiobook not found");
+    queries::update_audiobook_selected_file(conn, id, Some("/test/file.mp3"))?;
+    let updated = queries::get_audiobook_by_id(conn, id)?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(updated.selected_file, Some("/test/file.mp3".to_string()));
 
     // Get all audiobooks
-    let all = queries::get_all_audiobooks(conn).expect("Failed to get all audiobooks");
+    let all = queries::get_all_audiobooks(conn)?;
     assert_eq!(all.len(), 1);
 
     // Get audiobooks by directory
-    let by_dir = queries::get_audiobooks_by_directory(conn, "/test/audiobooks")
-        .expect("Failed to get audiobooks by directory");
+    let by_dir = queries::get_audiobooks_by_directory(conn, "/test/audiobooks")?;
     assert_eq!(by_dir.len(), 1);
 
     // Delete audiobook
-    queries::delete_audiobook(conn, id).expect("Failed to delete audiobook");
-    let deleted = queries::get_audiobook_by_id(conn, id).expect("Failed to query");
+    queries::delete_audiobook(conn, id)?;
+    let deleted = queries::get_audiobook_by_id(conn, id)?;
     assert!(deleted.is_none());
+    Ok(())
 }
 
 #[test]
-fn test_audiobook_file_crud_operations() {
-    let db = create_test_db();
+fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Insert directory and audiobook first
@@ -123,7 +124,7 @@ fn test_audiobook_file_crud_operations() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     let audiobook = Audiobook {
         id: None,
@@ -135,8 +136,7 @@ fn test_audiobook_file_crud_operations() {
         selected_file: None,
         created_at: Utc::now(),
     };
-    let audiobook_id =
-        queries::insert_audiobook(conn, &audiobook).expect("Failed to insert audiobook");
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
     // Insert file
     let file = AudiobookFile {
@@ -150,58 +150,55 @@ fn test_audiobook_file_crud_operations() {
         file_exists: true,
         created_at: Utc::now(),
     };
-    queries::insert_audiobook_file(conn, &file).expect("Failed to insert file");
+    queries::insert_audiobook_file(conn, &file)?;
 
     // Get files for audiobook
-    let files =
-        queries::get_audiobook_files(conn, audiobook_id).expect("Failed to get audiobook files");
+    let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert_eq!(files.len(), 1);
-    assert_eq!(files[0].name, "Chapter 1.mp3");
-    assert_eq!(files[0].length_of_file, Some(300_000));
+    let first_file = files.get(0).ok_or_else(|| missing("Expected file"))?;
+    assert_eq!(first_file.name, "Chapter 1.mp3");
+    assert_eq!(first_file.length_of_file, Some(300_000));
 
     // Get file by path
-    let by_path = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
-        .expect("Failed to get file by path")
-        .expect("File not found");
+    let by_path =
+        queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+            .ok_or_else(|| missing("File not found"))?;
     assert_eq!(by_path.name, "Chapter 1.mp3");
 
     // Update progress
-    queries::update_file_progress(conn, "/test/audiobooks/test/Chapter 1.mp3", 150_000.0, 50)
-        .expect("Failed to update progress");
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
-        .expect("Failed to get file")
-        .expect("File not found");
+    queries::update_file_progress(conn, "/test/audiobooks/test/Chapter 1.mp3", 150_000.0, 50)?;
+    let updated =
+        queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+            .ok_or_else(|| missing("File not found"))?;
     assert_eq!(updated.seek_position, Some(150_000));
     assert_eq!(updated.completeness, 50);
 
     // Update file length
-    queries::update_file_length(conn, "/test/audiobooks/test/Chapter 1.mp3", 350_000)
-        .expect("Failed to update file length");
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
-        .expect("Failed to get file")
-        .expect("File not found");
+    queries::update_file_length(conn, "/test/audiobooks/test/Chapter 1.mp3", 350_000)?;
+    let updated =
+        queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+            .ok_or_else(|| missing("File not found"))?;
     assert_eq!(updated.length_of_file, Some(350_000));
 
     // Mark file as missing
-    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", false)
-        .expect("Failed to mark file missing");
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
-        .expect("Failed to get file")
-        .expect("File not found");
+    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", false)?;
+    let updated =
+        queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+            .ok_or_else(|| missing("File not found"))?;
     assert!(!updated.file_exists);
 
     // Mark file as existing
-    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", true)
-        .expect("Failed to mark file existing");
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
-        .expect("Failed to get file")
-        .expect("File not found");
+    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", true)?;
+    let updated =
+        queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+            .ok_or_else(|| missing("File not found"))?;
     assert!(updated.file_exists);
+    Ok(())
 }
 
 #[test]
-fn test_audiobook_progress_operations() {
-    let db = create_test_db();
+fn test_audiobook_progress_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Setup
@@ -210,7 +207,7 @@ fn test_audiobook_progress_operations() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     let audiobook = Audiobook {
         id: None,
@@ -222,8 +219,7 @@ fn test_audiobook_progress_operations() {
         selected_file: None,
         created_at: Utc::now(),
     };
-    let audiobook_id =
-        queries::insert_audiobook(conn, &audiobook).expect("Failed to insert audiobook");
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
     // Add multiple files
     for i in 0..3 {
@@ -238,77 +234,69 @@ fn test_audiobook_progress_operations() {
             file_exists: true,
             created_at: Utc::now(),
         };
-        queries::insert_audiobook_file(conn, &file).expect("Failed to insert file");
+        queries::insert_audiobook_file(conn, &file)?;
     }
 
     // Mark audiobook complete
-    queries::mark_audiobook_complete(conn, audiobook_id)
-        .expect("Failed to mark audiobook complete");
+    queries::mark_audiobook_complete(conn, audiobook_id)?;
 
-    let audiobook = queries::get_audiobook_by_id(conn, audiobook_id)
-        .expect("Failed to get audiobook")
-        .expect("Audiobook not found");
+    let audiobook = queries::get_audiobook_by_id(conn, audiobook_id)?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(audiobook.completeness, 100);
 
-    let files =
-        queries::get_audiobook_files(conn, audiobook_id).expect("Failed to get audiobook files");
+    let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert!(files.iter().all(|f| f.completeness == 100));
 
     // Reset progress
-    queries::reset_audiobook_progress(conn, audiobook_id)
-        .expect("Failed to reset audiobook progress");
+    queries::reset_audiobook_progress(conn, audiobook_id)?;
 
-    let audiobook = queries::get_audiobook_by_id(conn, audiobook_id)
-        .expect("Failed to get audiobook")
-        .expect("Audiobook not found");
+    let audiobook = queries::get_audiobook_by_id(conn, audiobook_id)?
+        .ok_or_else(|| missing("Audiobook not found"))?;
     assert_eq!(audiobook.completeness, 0);
     assert_eq!(audiobook.selected_file, None);
 
-    let files =
-        queries::get_audiobook_files(conn, audiobook_id).expect("Failed to get audiobook files");
+    let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert!(files.iter().all(|f| f.completeness == 0));
     assert!(files.iter().all(|f| f.seek_position.is_none()));
+    Ok(())
 }
 
 #[test]
-fn test_metadata_operations() {
-    let db = create_test_db();
+fn test_metadata_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Set metadata
-    queries::set_metadata(conn, "volume", "75").expect("Failed to set volume");
-    queries::set_metadata(conn, "speed", "1.5").expect("Failed to set speed");
+    queries::set_metadata(conn, "volume", "75")?;
+    queries::set_metadata(conn, "speed", "1.5")?;
 
     // Get metadata
-    let volume = queries::get_metadata(conn, "volume")
-        .expect("Failed to get volume")
-        .expect("Volume not found");
+    let volume =
+        queries::get_metadata(conn, "volume")?.ok_or_else(|| missing("Volume not found"))?;
     assert_eq!(volume, "75");
 
-    let speed = queries::get_metadata(conn, "speed")
-        .expect("Failed to get speed")
-        .expect("Speed not found");
+    let speed = queries::get_metadata(conn, "speed")?.ok_or_else(|| missing("Speed not found"))?;
     assert_eq!(speed, "1.5");
 
     // Update metadata
-    queries::set_metadata(conn, "volume", "100").expect("Failed to update volume");
-    let volume = queries::get_metadata(conn, "volume")
-        .expect("Failed to get volume")
-        .expect("Volume not found");
+    queries::set_metadata(conn, "volume", "100")?;
+    let volume =
+        queries::get_metadata(conn, "volume")?.ok_or_else(|| missing("Volume not found"))?;
     assert_eq!(volume, "100");
 
     // Non-existent key
-    let result = queries::get_metadata(conn, "nonexistent").expect("Query failed");
+    let result = queries::get_metadata(conn, "nonexistent")?;
     assert!(result.is_none());
+    Ok(())
 }
 
 #[test]
-fn test_count_operations() {
-    let db = create_test_db();
+fn test_count_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Initially zero
-    let count = queries::count_audiobooks(conn).expect("Failed to count audiobooks");
+    let count = queries::count_audiobooks(conn)?;
     assert_eq!(count, 0);
 
     // Add directory and audiobooks
@@ -317,7 +305,7 @@ fn test_count_operations() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     for i in 0..5 {
         let audiobook = Audiobook {
@@ -330,15 +318,18 @@ fn test_count_operations() {
             selected_file: None,
             created_at: Utc::now(),
         };
-        queries::insert_audiobook(conn, &audiobook).expect("Failed to insert audiobook");
+        queries::insert_audiobook(conn, &audiobook)?;
     }
 
-    let count = queries::count_audiobooks(conn).expect("Failed to count audiobooks");
+    let count = queries::count_audiobooks(conn)?;
     assert_eq!(count, 5);
 
     // Add files to first audiobook
-    let audiobooks = queries::get_all_audiobooks(conn).expect("Failed to get audiobooks");
-    let first_id = audiobooks[0].id.expect("Audiobook has no ID");
+    let audiobooks = queries::get_all_audiobooks(conn)?;
+    let first = audiobooks
+        .get(0)
+        .ok_or_else(|| missing("Expected audiobook"))?;
+    let first_id = first.id.ok_or_else(|| missing("Audiobook has no ID"))?;
 
     for i in 0..3 {
         let file = AudiobookFile {
@@ -352,16 +343,17 @@ fn test_count_operations() {
             file_exists: true,
             created_at: Utc::now(),
         };
-        queries::insert_audiobook_file(conn, &file).expect("Failed to insert file");
+        queries::insert_audiobook_file(conn, &file)?;
     }
 
-    let file_count = queries::count_audiobook_files(conn, first_id).expect("Failed to count files");
+    let file_count = queries::count_audiobook_files(conn, first_id)?;
     assert_eq!(file_count, 3);
+    Ok(())
 }
 
 #[test]
-fn test_cascade_delete_directory() {
-    let db = create_test_db();
+fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let conn = db.connection();
 
     // Setup directory with audiobooks and files
@@ -370,7 +362,7 @@ fn test_cascade_delete_directory() {
         created_at: Utc::now(),
         last_scanned: None,
     };
-    queries::insert_directory(conn, &dir).expect("Failed to insert directory");
+    queries::insert_directory(conn, &dir)?;
 
     let audiobook = Audiobook {
         id: None,
@@ -382,8 +374,7 @@ fn test_cascade_delete_directory() {
         selected_file: None,
         created_at: Utc::now(),
     };
-    let audiobook_id =
-        queries::insert_audiobook(conn, &audiobook).expect("Failed to insert audiobook");
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
     let file = AudiobookFile {
         audiobook_id,
@@ -396,19 +387,19 @@ fn test_cascade_delete_directory() {
         file_exists: true,
         created_at: Utc::now(),
     };
-    queries::insert_audiobook_file(conn, &file).expect("Failed to insert file");
+    queries::insert_audiobook_file(conn, &file)?;
 
     // Delete directory should cascade
-    queries::delete_directory(conn, "/test/audiobooks").expect("Failed to delete directory");
+    queries::delete_directory(conn, "/test/audiobooks")?;
 
     // Verify everything is deleted
-    let dirs = queries::get_all_directories(conn).expect("Failed to get directories");
+    let dirs = queries::get_all_directories(conn)?;
     assert_eq!(dirs.len(), 0);
 
-    let audiobooks = queries::get_all_audiobooks(conn).expect("Failed to get audiobooks");
+    let audiobooks = queries::get_all_audiobooks(conn)?;
     assert_eq!(audiobooks.len(), 0);
 
-    let files =
-        queries::get_audiobook_files(conn, audiobook_id).expect("Failed to get audiobook files");
+    let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert_eq!(files.len(), 0);
+    Ok(())
 }

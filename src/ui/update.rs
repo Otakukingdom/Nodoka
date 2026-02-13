@@ -349,40 +349,35 @@ fn handle_scan_complete(
 
     for (idx, disc) in discovered.into_iter().enumerate() {
         let disc_path = disc.path.display().to_string();
+        let mut resolved_audiobook = audiobooks
+            .get(idx)
+            .cloned()
+            .unwrap_or_else(|| crate::models::Audiobook::new(
+                directory.to_string(),
+                disc.name.clone(),
+                disc_path.clone(),
+                i32::try_from(idx).unwrap_or(i32::MAX),
+            ));
         let existing = crate::db::queries::get_audiobook_by_path(db.connection(), &disc_path)
             .unwrap_or(None);
 
         let audiobook_id = if let Some(existing_ab) = existing {
-            existing_ab.id.unwrap_or_else(|| {
-                let mut new_ab = audiobooks
-                    .get(idx)
-                    .cloned()
-                    .unwrap_or_else(|| crate::models::Audiobook::new(
-                        directory.to_string(),
-                        disc.name.clone(),
-                        disc_path.clone(),
-                        i32::try_from(idx).unwrap_or(i32::MAX),
-                    ));
-                if let Ok(id) = crate::db::queries::insert_audiobook(db.connection(), &new_ab) {
-                    new_ab.id = Some(id);
-                    id
-                } else {
-                    0
-                }
-            })
+            if let Some(id) = existing_ab.id {
+                resolved_audiobook.id = Some(id);
+                id
+            } else if let Ok(id) = crate::db::queries::insert_audiobook(
+                db.connection(),
+                &resolved_audiobook,
+            ) {
+                resolved_audiobook.id = Some(id);
+                id
+            } else {
+                0
+            }
         } else {
-            let mut new_ab = audiobooks
-                .get(idx)
-                .cloned()
-                .unwrap_or_else(|| crate::models::Audiobook::new(
-                    directory.to_string(),
-                    disc.name.clone(),
-                    disc_path.clone(),
-                    i32::try_from(idx).unwrap_or(i32::MAX),
-                ));
-            match crate::db::queries::insert_audiobook(db.connection(), &new_ab) {
+            match crate::db::queries::insert_audiobook(db.connection(), &resolved_audiobook) {
                 Ok(id) => {
-                    new_ab.id = Some(id);
+                    resolved_audiobook.id = Some(id);
                     id
                 }
                 Err(e) => {
@@ -394,6 +389,17 @@ fn handle_scan_complete(
 
         if audiobook_id == 0 {
             continue;
+        }
+
+        if let Some(entry) = state
+            .audiobooks
+            .iter_mut()
+            .find(|a| a.full_path == resolved_audiobook.full_path)
+        {
+            entry.id = Some(audiobook_id);
+        } else {
+            resolved_audiobook.id = Some(audiobook_id);
+            state.audiobooks.push(resolved_audiobook);
         }
 
         let mut files = disc.files;
