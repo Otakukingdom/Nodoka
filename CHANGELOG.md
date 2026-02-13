@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Comprehensive unit tests for player module (10 tests in concrete_player.rs, 4 tests in scan_player.rs)
+- Comprehensive unit tests for settings module (8 tests in storage.rs)
+- Comprehensive unit tests for proxy layer (12 tests across audiobook_proxy.rs, audiobook_file_proxy.rs, manager.rs)
+- Comprehensive unit tests for UI state module (6 tests in state.rs)
+- Integration tests for player with VLC (8 tests in player_tests.rs)
+- Integration tests for settings persistence (6 tests in settings_tests.rs)
+- Integration tests for scanning workflow (7 tests in scanning_integration_tests.rs)
+- Integration tests for proxy layer (7 tests in proxy_integration_tests.rs)
+- End-to-end integration tests for user workflows (5 tests in e2e_tests.rs)
+- Project goals and acceptance criteria documentation in rustdoc (`nodoka::project_goals`)
+
 ### Changed
 - **BREAKING**: Removed all Cargo.toml-level lint exceptions for strict compliance
 - Renamed `NodokaApp` to `App` (following Rust naming conventions)
@@ -16,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `ScanPlayer` to `Scanner` (removes module name repetition)
 - Renamed `initialize_schema` to `initialize` (in schema module)
 - Moved cast allows from `Cargo.toml` to function-level with explicit safety documentation
+- Consolidated PROMPT.md into rustdoc as `nodoka::project_goals` module
+- Enhanced AGENTS.md with explicit exception justification comment
 
 ### Improved
 - Fixed all 6 rustdoc warnings (unresolved links and redundant targets)
@@ -23,10 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All documentation now in rustdoc (compliance with AGENTS.md)
 - README.md reduced to minimal entry point (~97 lines)
 - Function-level `#[allow]` attributes now require inline justification
+- Test coverage increased to 113 total tests (48 unit + 40 integration + 15 doc + 10 existing tests)
+- All tests passing with zero clippy warnings
+- Test-driven development compliance achieved
 
 ### Documentation
 - Moved CONTRIBUTING.md into `nodoka::contributing` rustdoc module
 - Moved SECURITY.md into `nodoka::security` rustdoc module
+- Moved PROMPT.md into `nodoka::project_goals` rustdoc module
 - Contributing and security policies now accessible via `cargo doc`
 - All external documentation consolidated into rustdoc
 

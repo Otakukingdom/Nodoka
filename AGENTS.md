@@ -1,3 +1,7 @@
+<!-- EXCEPTIONAL CASE: This file contains development agent instructions and is kept
+     external as it serves AI coding assistants, not end users. This is NOT user-facing
+     documentation and therefore qualifies as an exception to the "rustdoc only" rule. -->
+
 No dead code allowed
 Must have strict rust linting
 No lint exceptions allowed

@@ -91,3 +91,115 @@ impl<'a> Settings<'a> {
         set_metadata(self.conn, "current_file", path)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::Database;
+
+    fn create_test_db() -> Result<Database> {
+        let db = Database::new_in_memory()?;
+        crate::db::initialize(db.connection())?;
+        Ok(db)
+    }
+
+    #[test]
+    fn test_volume_default_value() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+        assert_eq!(settings.get_volume()?, 100);
+        Ok(())
+    }
+
+    #[test]
+    fn test_volume_persistence() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+
+        settings.set_volume(75)?;
+        assert_eq!(settings.get_volume()?, 75);
+
+        settings.set_volume(0)?;
+        assert_eq!(settings.get_volume()?, 0);
+
+        settings.set_volume(200)?;
+        assert_eq!(settings.get_volume()?, 200);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_speed_default_value() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+        assert!((settings.get_speed()? - 1.0).abs() < f32::EPSILON);
+        Ok(())
+    }
+
+    #[test]
+    fn test_speed_persistence() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+
+        settings.set_speed(1.5)?;
+        assert!((settings.get_speed()? - 1.5).abs() < f32::EPSILON);
+
+        settings.set_speed(0.5)?;
+        assert!((settings.get_speed()? - 0.5).abs() < f32::EPSILON);
+
+        settings.set_speed(2.0)?;
+        assert!((settings.get_speed()? - 2.0).abs() < f32::EPSILON);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_current_audiobook_default_value() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+        assert_eq!(settings.get_current_audiobook()?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_current_audiobook_persistence() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+
+        settings.set_current_audiobook(42)?;
+        assert_eq!(settings.get_current_audiobook()?, Some(42));
+
+        settings.set_current_audiobook(100)?;
+        assert_eq!(settings.get_current_audiobook()?, Some(100));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_current_file_default_value() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+        assert_eq!(settings.get_current_file()?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_current_file_persistence() -> Result<()> {
+        let db = create_test_db()?;
+        let settings = Settings::new(db.connection());
+
+        settings.set_current_file("/path/to/file.mp3")?;
+        assert_eq!(
+            settings.get_current_file()?,
+            Some("/path/to/file.mp3".to_string())
+        );
+
+        settings.set_current_file("/another/path.mp3")?;
+        assert_eq!(
+            settings.get_current_file()?,
+            Some("/another/path.mp3".to_string())
+        );
+
+        Ok(())
+    }
+}

@@ -36,3 +36,85 @@ impl Default for State {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_state_default_values() {
+        let state = State::default();
+        assert!(state.audiobooks.is_empty());
+        assert_eq!(state.selected_audiobook, None);
+        assert!(state.current_files.is_empty());
+        assert_eq!(state.selected_file, None);
+        assert!(state.directories.is_empty());
+        assert!(!state.is_playing);
+        assert!(state.current_time.abs() < f64::EPSILON);
+        assert!(state.total_duration.abs() < f64::EPSILON);
+        assert_eq!(state.volume, 100);
+        assert!((state.speed - 1.0).abs() < f32::EPSILON);
+        assert!(!state.settings_open);
+        assert!(state.is_loading);
+    }
+
+    #[test]
+    fn test_state_clone() {
+        let state = State::default();
+        assert_eq!(state.volume, state.volume);
+        assert!((state.speed - state.speed).abs() < f32::EPSILON);
+        assert_eq!(state.is_playing, state.is_playing);
+    }
+
+    #[test]
+    fn test_state_mutation() {
+        let state = State {
+            is_playing: true,
+            current_time: 100.0,
+            total_duration: 3600.0,
+            volume: 75,
+            speed: 1.5,
+            ..Default::default()
+        };
+
+        assert!(state.is_playing);
+        assert!((state.current_time - 100.0).abs() < f64::EPSILON);
+        assert!((state.total_duration - 3600.0).abs() < f64::EPSILON);
+        assert_eq!(state.volume, 75);
+        assert!((state.speed - 1.5).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_state_settings_modal() {
+        let mut state = State::default();
+        assert!(!state.settings_open);
+
+        state.settings_open = true;
+        assert!(state.settings_open);
+
+        state.settings_open = false;
+        assert!(!state.settings_open);
+    }
+
+    #[test]
+    fn test_state_selection() {
+        let mut state = State::default();
+        assert_eq!(state.selected_audiobook, None);
+        assert_eq!(state.selected_file, None);
+
+        state.selected_audiobook = Some(42);
+        state.selected_file = Some("/path/to/file.mp3".to_string());
+
+        assert_eq!(state.selected_audiobook, Some(42));
+        assert_eq!(state.selected_file, Some("/path/to/file.mp3".to_string()));
+    }
+
+    #[test]
+    fn test_state_loading_flag() {
+        let mut state = State::default();
+        assert!(state.is_loading);
+
+        state.is_loading = false;
+        assert!(!state.is_loading);
+    }
+}

@@ -40,3 +40,55 @@ impl Scanner {
         Ok(MediaProperty::new(path.to_path_buf(), duration))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn skip_if_vlc_unavailable() -> Option<Scanner> {
+        Scanner::new().ok()
+    }
+
+    #[test]
+    fn test_scanner_creation() {
+        if let Some(_scanner) = skip_if_vlc_unavailable() {
+            // Scanner created successfully
+        }
+    }
+
+    #[test]
+    fn test_scan_nonexistent_file() {
+        if let Some(scanner) = skip_if_vlc_unavailable() {
+            let nonexistent_path = PathBuf::from("/nonexistent/file/path.mp3");
+            let result = scanner.scan_media(&nonexistent_path);
+            assert!(result.is_err(), "Scanning nonexistent file should fail");
+        }
+    }
+
+    #[test]
+    fn test_scan_invalid_media_file() {
+        if let Some(scanner) = skip_if_vlc_unavailable() {
+            let invalid_path = PathBuf::from("/dev/null");
+            let result = scanner.scan_media(&invalid_path);
+            assert!(
+                result.is_err(),
+                "Scanning invalid media file should fail or return error"
+            );
+        }
+    }
+
+    #[test]
+    fn test_scan_unsupported_format() {
+        if let Some(scanner) = skip_if_vlc_unavailable() {
+            let txt_path = PathBuf::from("/tmp/test.txt");
+            if txt_path.exists() {
+                let result = scanner.scan_media(&txt_path);
+                assert!(
+                    result.is_err(),
+                    "Scanning unsupported format should fail or return error"
+                );
+            }
+        }
+    }
+}

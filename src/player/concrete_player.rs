@@ -203,3 +203,127 @@ const fn convert_vlc_state(state: State) -> PlayerState {
         State::Error => PlayerState::Error,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn skip_if_vlc_unavailable() -> Option<VlcPlayer> {
+        VlcPlayer::new().ok()
+    }
+
+    #[test]
+    fn test_player_creation() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            assert_eq!(player.get_volume(), 100);
+            assert!((player.get_rate() - 1.0).abs() < f32::EPSILON);
+            assert!(!player.is_playing());
+        }
+    }
+
+    #[test]
+    fn test_initial_state() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            let state = player.get_state();
+            assert!(
+                matches!(
+                    state,
+                    PlayerState::NothingSpecial | PlayerState::Stopped | PlayerState::Opening
+                ),
+                "Initial state should be NothingSpecial, Stopped, or Opening"
+            );
+        }
+    }
+
+    #[test]
+    fn test_volume_setting() {
+        if let Some(mut player) = skip_if_vlc_unavailable() {
+            assert!(player.set_volume(75).is_ok());
+            assert_eq!(player.get_volume(), 75);
+
+            assert!(player.set_volume(0).is_ok());
+            assert_eq!(player.get_volume(), 0);
+
+            assert!(player.set_volume(200).is_ok());
+            assert_eq!(player.get_volume(), 200);
+        }
+    }
+
+    #[test]
+    fn test_rate_setting() {
+        if let Some(mut player) = skip_if_vlc_unavailable() {
+            assert!(player.set_rate(1.5).is_ok());
+            assert!((player.get_rate() - 1.5).abs() < f32::EPSILON);
+
+            assert!(player.set_rate(0.5).is_ok());
+            assert!((player.get_rate() - 0.5).abs() < f32::EPSILON);
+
+            assert!(player.set_rate(2.0).is_ok());
+            assert!((player.get_rate() - 2.0).abs() < f32::EPSILON);
+        }
+    }
+
+    #[test]
+    fn test_time_retrieval_without_media() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            let time = player.get_time();
+            assert!(time.is_ok());
+            if let Ok(t) = time {
+                assert!(t.abs() < f64::EPSILON);
+            }
+        }
+    }
+
+    #[test]
+    fn test_length_without_media() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            let length = player.get_length();
+            assert!(length.is_ok());
+            if let Ok(l) = length {
+                assert_eq!(l, 0);
+            }
+        }
+    }
+
+    #[test]
+    fn test_set_time_without_media() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            assert!(player.set_time(5000).is_ok());
+        }
+    }
+
+    #[test]
+    fn test_load_nonexistent_media() {
+        if let Some(mut player) = skip_if_vlc_unavailable() {
+            let nonexistent_path = PathBuf::from("/nonexistent/file/path.mp3");
+            let result = player.load_media(&nonexistent_path);
+            assert!(
+                result.is_err(),
+                "Loading nonexistent media should fail or return error state"
+            );
+        }
+    }
+
+    #[test]
+    fn test_vlc_state_conversion() {
+        assert_eq!(
+            convert_vlc_state(State::NothingSpecial),
+            PlayerState::NothingSpecial
+        );
+        assert_eq!(convert_vlc_state(State::Opening), PlayerState::Opening);
+        assert_eq!(convert_vlc_state(State::Buffering), PlayerState::Buffering);
+        assert_eq!(convert_vlc_state(State::Playing), PlayerState::Playing);
+        assert_eq!(convert_vlc_state(State::Paused), PlayerState::Paused);
+        assert_eq!(convert_vlc_state(State::Stopped), PlayerState::Stopped);
+        assert_eq!(convert_vlc_state(State::Ended), PlayerState::Ended);
+        assert_eq!(convert_vlc_state(State::Error), PlayerState::Error);
+    }
+
+    #[test]
+    fn test_stop_without_media() {
+        if let Some(player) = skip_if_vlc_unavailable() {
+            assert!(player.stop().is_ok());
+        }
+    }
+}

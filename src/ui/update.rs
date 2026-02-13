@@ -1,6 +1,6 @@
 use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
-use crate::player::{VlcPlayer, PlayerState};
+use crate::player::{PlayerState, VlcPlayer};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, State};
 use iced::Command;
@@ -50,10 +50,7 @@ pub fn update(
     }
 }
 
-fn handle_play_pause(
-    state: &mut State,
-    player: &mut Option<VlcPlayer>,
-) -> Command<Message> {
+fn handle_play_pause(state: &mut State, player: &mut Option<VlcPlayer>) -> Command<Message> {
     if let Some(ref mut p) = player {
         if state.is_playing {
             if let Err(e) = p.pause() {
@@ -224,17 +221,14 @@ fn handle_file_selected(
     state.selected_file = Some(path.to_string());
 
     if let Some(id) = state.selected_audiobook {
-        if let Err(e) = crate::db::queries::update_audiobook_selected_file(
-            db.connection(),
-            id,
-            Some(path),
-        ) {
+        if let Err(e) =
+            crate::db::queries::update_audiobook_selected_file(db.connection(), id, Some(path))
+        {
             tracing::error!("Failed to save selected file: {e}");
         }
-    } else if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(
-        db.connection(),
-        path,
-    ) {
+    } else if let Ok(Some(file)) =
+        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+    {
         if let Err(e) = crate::db::queries::update_audiobook_selected_file(
             db.connection(),
             file.audiobook_id,
@@ -248,10 +242,9 @@ fn handle_file_selected(
         if let Err(e) = p.load_media(Path::new(&path)) {
             tracing::error!("Failed to load media: {e}");
         } else {
-            if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(
-                db.connection(),
-                path,
-            ) {
+            if let Ok(Some(file)) =
+                crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+            {
                 if let Some(length_ms) = file.length_of_file {
                     if let Ok(duration_f64) = ms_to_f64(length_ms) {
                         state.total_duration = duration_f64;
@@ -334,9 +327,10 @@ fn handle_directory_remove(
         .and_then(|id| state.audiobooks.iter().find(|a| a.id == Some(id)))
         .is_some_and(|audiobook| audiobook.directory == path);
 
-    let selected_file_in_directory = state.selected_file.as_ref().is_some_and(|file_path| {
-        std::path::Path::new(file_path).starts_with(path)
-    });
+    let selected_file_in_directory = state
+        .selected_file
+        .as_ref()
+        .is_some_and(|file_path| std::path::Path::new(file_path).starts_with(path));
 
     let current_files_in_directory = state
         .current_files
@@ -366,14 +360,9 @@ fn handle_directory_remove(
     Command::none()
 }
 
-fn handle_directory_rescan(
-    _state: &mut State,
-    db: &Database,
-    path: &str,
-) -> Command<Message> {
+fn handle_directory_rescan(_state: &mut State, db: &Database, path: &str) -> Command<Message> {
     tracing::info!("Directory rescan requested: {path}");
-    if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path)
-    {
+    if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path) {
         for audiobook in audiobooks {
             if let Some(id) = audiobook.id {
                 if let Err(e) =
@@ -404,15 +393,15 @@ fn handle_scan_complete(
     discovered: Vec<DiscoveredAudiobook>,
 ) -> Command<Message> {
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
-    
+
     update_state_with_discovered_audiobooks(state, &audiobooks);
-    
+
     for (idx, disc) in discovered.into_iter().enumerate() {
         process_discovered_audiobook(state, db, directory, &audiobooks, idx, disc);
     }
-    
+
     finalize_directory_scan(state, db, directory);
-    
+
     Command::none()
 }
 
@@ -441,20 +430,19 @@ fn process_discovered_audiobook(
     disc: DiscoveredAudiobook,
 ) {
     let disc_path = disc.path.display().to_string();
-    let mut resolved_audiobook = audiobooks
-        .get(idx)
-        .cloned()
-        .unwrap_or_else(|| crate::models::Audiobook::new(
+    let mut resolved_audiobook = audiobooks.get(idx).cloned().unwrap_or_else(|| {
+        crate::models::Audiobook::new(
             directory.to_string(),
             disc.name.clone(),
             disc_path.clone(),
             i32::try_from(idx).unwrap_or(i32::MAX),
-        ));
-    
+        )
+    });
+
     let Some(audiobook_id) = resolve_audiobook_id(db, &disc_path, &mut resolved_audiobook) else {
         return;
     };
-    
+
     update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
     process_audiobook_files(db, audiobook_id, disc.files);
 }
@@ -464,10 +452,7 @@ fn resolve_audiobook_id(
     disc_path: &str,
     resolved_audiobook: &mut crate::models::Audiobook,
 ) -> Option<i64> {
-    let existing = match crate::db::queries::get_audiobook_by_path(
-        db.connection(),
-        disc_path,
-    ) {
+    let existing = match crate::db::queries::get_audiobook_by_path(db.connection(), disc_path) {
         Ok(existing) => existing,
         Err(e) => {
             tracing::error!("Failed to lookup audiobook by path {disc_path}: {e}");
@@ -479,10 +464,9 @@ fn resolve_audiobook_id(
         if let Some(id) = existing_ab.id {
             resolved_audiobook.id = Some(id);
             id
-        } else if let Ok(id) = crate::db::queries::insert_audiobook(
-            db.connection(),
-            resolved_audiobook,
-        ) {
+        } else if let Ok(id) =
+            crate::db::queries::insert_audiobook(db.connection(), resolved_audiobook)
+        {
             resolved_audiobook.id = Some(id);
             id
         } else {
@@ -535,12 +519,7 @@ fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<std::pat
     }
 }
 
-fn process_single_file(
-    db: &Database,
-    audiobook_id: i64,
-    pos: usize,
-    file_path: &std::path::Path,
-) {
+fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, file_path: &std::path::Path) {
     let name = file_path
         .file_name()
         .and_then(|n| n.to_str())
@@ -597,7 +576,7 @@ fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Command<M
 
     if let Some(ref file_path) = state.selected_file {
         let file_path_owned = file_path.clone();
-        
+
         if state.total_duration > 0.0 {
             let percentage = (time * 100.0) / state.total_duration;
             let completeness = percentage_to_i32(percentage);
@@ -675,7 +654,8 @@ fn mark_current_file_complete(state: &mut State, db: &Database, file_path: &str)
         state.current_time
     };
 
-    if let Err(e) = crate::db::queries::update_file_progress(db.connection(), file_path, final_time, 100)
+    if let Err(e) =
+        crate::db::queries::update_file_progress(db.connection(), file_path, final_time, 100)
     {
         tracing::error!("Failed to mark file complete: {e}");
     }
@@ -737,7 +717,11 @@ fn recompute_audiobook_completeness(state: &mut State, db: &Database, audiobook_
     let (total, count) = if state.selected_audiobook == Some(audiobook_id)
         && !state.current_files.is_empty()
     {
-        let total: i32 = state.current_files.iter().map(|file| file.completeness).sum();
+        let total: i32 = state
+            .current_files
+            .iter()
+            .map(|file| file.completeness)
+            .sum();
         let Ok(count) = i32::try_from(state.current_files.len()) else {
             tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
             return;

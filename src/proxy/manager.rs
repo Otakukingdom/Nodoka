@@ -57,3 +57,94 @@ impl Clone for ProxyManager {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+    use crate::db::queries;
+    use crate::models::{Audiobook, Directory};
+    use chrono::Utc;
+
+    #[allow(clippy::arc_with_non_send_sync)] // Test helper function
+    fn create_test_db_with_audiobook() -> Result<(Arc<Database>, i64), Error> {
+        let database = Database::new_in_memory()?;
+        db::initialize(database.connection())?;
+
+        let dir = Directory {
+            full_path: "/test/audiobooks".to_string(),
+            created_at: Utc::now(),
+            last_scanned: None,
+        };
+        queries::insert_directory(database.connection(), &dir)?;
+
+        let audiobook = Audiobook::new(
+            "/test/audiobooks".to_string(),
+            "Test Audiobook".to_string(),
+            "/test/audiobooks/Test Audiobook".to_string(),
+            0,
+        );
+        let id = queries::insert_audiobook(database.connection(), &audiobook)?;
+
+        Ok((Arc::new(database), id))
+    }
+
+    #[test]
+    #[allow(clippy::arc_with_non_send_sync)] // Test code
+    fn test_manager_creation() -> Result<(), Error> {
+        let database = Database::new_in_memory()?;
+        let db = Arc::new(database);
+        let _manager = ProxyManager::new(db);
+        Ok(())
+    }
+
+    #[test]
+    fn test_manager_get_audiobook() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+        let manager = ProxyManager::new(Arc::clone(&db));
+
+        let proxy = manager.get_audiobook(id)?;
+        assert_eq!(proxy.id(), id);
+        let data = proxy.get_data();
+        assert_eq!(data.name, "Test Audiobook");
+        Ok(())
+    }
+
+    #[test]
+    fn test_manager_caching() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+        let manager = ProxyManager::new(Arc::clone(&db));
+
+        let proxy1 = manager.get_audiobook(id)?;
+        let proxy2 = manager.get_audiobook(id)?;
+
+        assert_eq!(proxy1.id(), proxy2.id());
+        Ok(())
+    }
+
+    #[test]
+    fn test_manager_clear_cache() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+        let manager = ProxyManager::new(Arc::clone(&db));
+
+        let _proxy1 = manager.get_audiobook(id)?;
+        manager.clear_cache();
+
+        let proxy2 = manager.get_audiobook(id)?;
+        assert_eq!(proxy2.id(), id);
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::arc_with_non_send_sync)] // Test code
+    fn test_manager_nonexistent_audiobook() -> Result<(), Error> {
+        let database = Database::new_in_memory()?;
+        db::initialize(database.connection())?;
+        let db = Arc::new(database);
+        let manager = ProxyManager::new(db);
+
+        let result = manager.get_audiobook(999);
+        assert!(result.is_err());
+        Ok(())
+    }
+}

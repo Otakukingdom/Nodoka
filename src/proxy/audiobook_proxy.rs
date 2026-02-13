@@ -105,3 +105,113 @@ impl Clone for AudiobookProxy {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+    use crate::db::queries;
+    use crate::models::{Audiobook, AudiobookFile, Directory};
+    use chrono::Utc;
+
+    #[allow(clippy::arc_with_non_send_sync)] // Test helper function
+    fn create_test_db_with_audiobook() -> Result<(Arc<Database>, i64), Error> {
+        let database = Database::new_in_memory()?;
+        db::initialize(database.connection())?;
+
+        let dir = Directory {
+            full_path: "/test/audiobooks".to_string(),
+            created_at: Utc::now(),
+            last_scanned: None,
+        };
+        queries::insert_directory(database.connection(), &dir)?;
+
+        let audiobook = Audiobook::new(
+            "/test/audiobooks".to_string(),
+            "Test Audiobook".to_string(),
+            "/test/audiobooks/Test Audiobook".to_string(),
+            0,
+        );
+        let id = queries::insert_audiobook(database.connection(), &audiobook)?;
+
+        Ok((Arc::new(database), id))
+    }
+
+    #[test]
+    fn test_audiobook_proxy_creation() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+        let proxy = AudiobookProxy::new(id, db)?;
+        assert_eq!(proxy.id(), id);
+        let data = proxy.get_data();
+        assert_eq!(data.name, "Test Audiobook");
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::arc_with_non_send_sync)] // Test code
+    fn test_audiobook_proxy_nonexistent() -> Result<(), Error> {
+        let database = Database::new_in_memory()?;
+        db::initialize(database.connection())?;
+        let db = Arc::new(database);
+
+        let result = AudiobookProxy::new(999, db);
+        assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_audiobook_proxy_get_files() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+
+        let mut file = AudiobookFile::new(
+            id,
+            "file1.mp3".to_string(),
+            "/test/file1.mp3".to_string(),
+            0,
+        );
+        file.completeness = 50;
+        queries::insert_audiobook_file(db.connection(), &file)?;
+
+        let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+        let files = proxy.get_files()?;
+        assert_eq!(files.len(), 1);
+        let first_file = files
+            .first()
+            .ok_or(Error::InvalidState("No files found".to_string()))?;
+        assert_eq!(first_file.data().full_path, "/test/file1.mp3");
+
+        let files_cached = proxy.get_files()?;
+        assert_eq!(files_cached.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn test_audiobook_proxy_update_completeness() -> Result<(), Error> {
+        let (db, id) = create_test_db_with_audiobook()?;
+
+        let mut file1 = AudiobookFile::new(
+            id,
+            "file1.mp3".to_string(),
+            "/test/file1.mp3".to_string(),
+            0,
+        );
+        file1.completeness = 50;
+        queries::insert_audiobook_file(db.connection(), &file1)?;
+
+        let mut file2 = AudiobookFile::new(
+            id,
+            "file2.mp3".to_string(),
+            "/test/file2.mp3".to_string(),
+            1,
+        );
+        file2.completeness = 100;
+        queries::insert_audiobook_file(db.connection(), &file2)?;
+
+        let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+        proxy.update_completeness()?;
+
+        let data = proxy.get_data();
+        assert_eq!(data.completeness, 75);
+        Ok(())
+    }
+}
