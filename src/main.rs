@@ -11,6 +11,10 @@ fn main() {
     // Initialize tracing
     init_logging();
 
+    // Setup VLC environment early, before any VLC instances are created
+    // This must happen before Database::open() and app initialization
+    nodoka::player::setup_vlc_environment();
+
     // Single instance guard
     let _instance_guard = match check_single_instance() {
         Ok(guard) => guard,

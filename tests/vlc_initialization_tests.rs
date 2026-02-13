@@ -125,7 +125,7 @@ fn test_vlc_player_fails_gracefully_when_vlc_unavailable() {
             // VLC was found anyway, skip test
         }
         Err(other) => {
-            panic!("Expected VLC error, got: {:?}", other);
+            unreachable!("Expected VLC error, got: {other:?}");
         }
     }
 }

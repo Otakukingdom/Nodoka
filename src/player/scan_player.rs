@@ -17,6 +17,8 @@ impl Scanner {
     /// Returns an error if VLC instance cannot be created
     pub fn new() -> Result<Self> {
         // Setup VLC environment before creating instance
+        // Note: The main application calls this at startup, but we call it here
+        // too for safety when the player module is used as a library
         vlc_env::setup_vlc_environment();
 
         // Log current VLC environment for debugging
@@ -27,9 +29,10 @@ impl Scanner {
         }
 
         let instance = Instance::new().ok_or_else(|| {
-            let plugin_path_info = std::env::var("VLC_PLUGIN_PATH")
-                .map(|p| format!("VLC_PLUGIN_PATH={}", p))
-                .unwrap_or_else(|_| "VLC_PLUGIN_PATH not set".to_string());
+            let plugin_path_info = std::env::var("VLC_PLUGIN_PATH").map_or_else(
+                |_| "VLC_PLUGIN_PATH not set".to_string(),
+                |p| format!("VLC_PLUGIN_PATH={p}"),
+            );
 
             tracing::error!(
                 "Failed to create VLC instance for scanner. Environment: {}",
@@ -37,10 +40,9 @@ impl Scanner {
             );
 
             Error::Vlc(format!(
-                "Failed to create VLC instance for media scanning. {}\n\
+                "Failed to create VLC instance for media scanning. {plugin_path_info}\n\
                  Please ensure VLC media player is installed. \
-                 See VLC installation instructions in error documentation.",
-                plugin_path_info
+                 See VLC installation instructions in error documentation."
             ))
         })?;
 

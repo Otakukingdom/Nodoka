@@ -101,12 +101,33 @@
 //! - [`tasks`]: Async operations for directory scanning and file processing
 //! - [`models`]: Domain types for audiobooks, files, and directories
 //!
+//! ## VLC Initialization
+//!
+//! This application uses VLC media player for audio playback. When using Nodoka
+//! as a library, you should call [`player::setup_vlc_environment()`] early in
+//! your application, before creating any player instances:
+//!
+//! ```no_run
+//! use nodoka::player::setup_vlc_environment;
+//!
+//! setup_vlc_environment();
+//! // ... rest of your application
+//! ```
+//!
+//! Player constructors ([`player::VlcPlayer::new()`] and [`player::Scanner::new()`])
+//! call this automatically for convenience, but calling it explicitly at startup
+//! provides more reliable initialization.
+//!
 //! ## Usage Example
 //!
 //! ```no_run
 //! use nodoka::Database;
+//! use nodoka::player::setup_vlc_environment;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! // Setup VLC environment first
+//! setup_vlc_environment();
+//!
 //! // Open database
 //! let db = Database::open()?;
 //!

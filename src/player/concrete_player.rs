@@ -25,6 +25,8 @@ impl VlcPlayer {
     /// Returns an error if VLC instance or media player cannot be created
     pub fn new() -> Result<Self> {
         // Setup VLC environment before creating instance
+        // Note: The main application calls this at startup, but we call it here
+        // too for safety when the player module is used as a library
         vlc_env::setup_vlc_environment();
 
         // Log current VLC environment for debugging
@@ -35,9 +37,10 @@ impl VlcPlayer {
         }
 
         let instance = Instance::new().ok_or_else(|| {
-            let plugin_path_info = std::env::var("VLC_PLUGIN_PATH")
-                .map(|p| format!("VLC_PLUGIN_PATH={}", p))
-                .unwrap_or_else(|_| "VLC_PLUGIN_PATH not set".to_string());
+            let plugin_path_info = std::env::var("VLC_PLUGIN_PATH").map_or_else(
+                |_| "VLC_PLUGIN_PATH not set".to_string(),
+                |p| format!("VLC_PLUGIN_PATH={p}"),
+            );
 
             tracing::error!(
                 "Failed to create VLC instance. Environment: {}. \
@@ -46,13 +49,12 @@ impl VlcPlayer {
             );
 
             Error::Vlc(format!(
-                "Failed to create VLC instance. {}\n\
+                "Failed to create VLC instance. {plugin_path_info}\n\
                  Please ensure VLC media player is installed:\n\
                  - macOS: brew install --cask vlc\n\
                  - Linux: sudo apt install vlc libvlc-dev (Ubuntu/Debian)\n\
                  - Windows: Download from https://www.videolan.org/vlc/\n\
-                 For more details, see the VLC error documentation in the error module.",
-                plugin_path_info
+                 For more details, see the VLC error documentation in the error module."
             ))
         })?;
 

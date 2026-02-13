@@ -32,10 +32,17 @@ use std::path::{Path, PathBuf};
 /// - **Linux**: Assumes system-wide installation (no action needed)
 /// - **Windows**: Checks common VLC installation paths
 ///
-/// ## Notes
+/// ## Idempotency
 ///
-/// This function is idempotent - it only sets the environment variable
-/// if it's not already configured.
+/// This function is safe to call multiple times. It only sets the environment
+/// variable if it's not already configured. Subsequent calls will detect the
+/// existing configuration and return early.
+///
+/// ## Usage
+///
+/// In application code, call this once at startup before creating any VLC instances.
+/// When using the player module as a library, player constructors will call this
+/// automatically, but calling it explicitly at startup is recommended for reliability.
 pub fn setup_vlc_environment() {
     // Check if already configured
     if let Ok(existing_path) = env::var("VLC_PLUGIN_PATH") {
@@ -43,14 +50,14 @@ pub fn setup_vlc_environment() {
 
         // Validate that the path exists
         let path = Path::new(&existing_path);
-        if !path.exists() {
+        if path.exists() {
+            tracing::info!("Using existing VLC_PLUGIN_PATH: {}", existing_path);
+        } else {
             tracing::warn!(
                 "VLC_PLUGIN_PATH is set to '{}' but directory does not exist. \
                  VLC initialization may fail.",
                 existing_path
             );
-        } else {
-            tracing::info!("Using existing VLC_PLUGIN_PATH: {}", existing_path);
         }
         return;
     }
@@ -102,16 +109,16 @@ pub fn verify_vlc_available() -> bool {
 
     tracing::debug!("Verifying VLC availability...");
 
-    match Instance::new() {
-        Some(_instance) => {
-            tracing::info!("VLC instance created successfully");
-            true
-        }
-        None => {
+    Instance::new().map_or_else(
+        || {
             tracing::error!("Failed to create VLC instance");
             false
-        }
-    }
+        },
+        |_instance| {
+            tracing::info!("VLC instance created successfully");
+            true
+        },
+    )
 }
 
 /// Detects the VLC plugin directory path based on the operating system.
