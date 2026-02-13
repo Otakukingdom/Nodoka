@@ -25,7 +25,6 @@ impl Database {
     /// # Errors
     ///
     /// Returns an error if the in-memory database cannot be created
-    #[cfg(test)]
     pub fn new_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
         Ok(Self { conn })

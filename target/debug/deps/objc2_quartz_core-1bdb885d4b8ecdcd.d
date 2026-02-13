@@ -1,8 +1,0 @@
-/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/libobjc2_quartz_core-1bdb885d4b8ecdcd.rmeta: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/mod.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CALayer.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CATransaction.rs
-
-/Users/mistlight/Projects/Nodoka/wt-001-convert-rust/target/debug/deps/objc2_quartz_core-1bdb885d4b8ecdcd.d: /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/lib.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/mod.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CALayer.rs /Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CATransaction.rs
-
-/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/lib.rs:
-/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/mod.rs:
-/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CALayer.rs:
-/Users/mistlight/.cargo/registry/src/index.crates.io-6f17d22bba15001f/objc2-quartz-core-0.3.2/src/generated/CATransaction.rs:

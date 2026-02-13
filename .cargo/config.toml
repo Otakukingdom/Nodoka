@@ -2,7 +2,10 @@
 rustflags = ["-D", "warnings"]
 
 [target.x86_64-apple-darwin]
-rustflags = ["-C", "link-args=-Wl,-rpath,@executable_path/../Frameworks"]
+rustflags = ["-C", "link-args=-Wl,-rpath,@executable_path/../Frameworks,-rpath,/Applications/VLC.app/Contents/MacOS/lib"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-args=-Wl,-rpath,@executable_path/../Frameworks,-rpath,/Applications/VLC.app/Contents/MacOS/lib"]
 
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "link-args=/SUBSYSTEM:WINDOWS"]

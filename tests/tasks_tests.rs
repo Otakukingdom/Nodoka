@@ -1,7 +1,7 @@
-use nodoka::tasks::checksum;
+use nodoka::tasks::calculate_checksum;
 use std::fs;
 use std::io::Write;
-use tempfile::TempDir;
+use temp_dir::TempDir;
 
 #[tokio::test]
 async fn test_checksum_calculation() {
@@ -14,7 +14,7 @@ async fn test_checksum_calculation() {
     drop(file);
 
     // Calculate checksum
-    let checksum = checksum::calculate_sha256(&file_path)
+    let checksum = calculate_checksum(&file_path)
         .await
         .expect("Failed to calculate checksum");
 
@@ -27,7 +27,7 @@ async fn test_checksum_calculation() {
 
 #[tokio::test]
 async fn test_checksum_nonexistent_file() {
-    let result = checksum::calculate_sha256(&std::path::PathBuf::from("/nonexistent/file.txt")).await;
+    let result = calculate_checksum(&std::path::PathBuf::from("/nonexistent/file.txt")).await;
     assert!(result.is_err());
 }
 
@@ -38,7 +38,7 @@ async fn test_checksum_empty_file() {
     
     fs::File::create(&file_path).expect("Failed to create file");
 
-    let checksum = checksum::calculate_sha256(&file_path)
+    let checksum = calculate_checksum(&file_path)
         .await
         .expect("Failed to calculate checksum");
 
@@ -60,7 +60,7 @@ async fn test_checksum_large_file() {
     file.write_all(&data).expect("Failed to write to file");
     drop(file);
 
-    let checksum = checksum::calculate_sha256(&file_path)
+    let checksum = calculate_checksum(&file_path)
         .await
         .expect("Failed to calculate checksum");
 

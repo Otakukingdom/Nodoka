@@ -117,7 +117,7 @@ impl Application for NodokaApp {
     }
 
     fn theme(&self) -> Self::Theme {
-        Theme::Light
+        crate::ui::nodoka_theme()
     }
 }
 
@@ -140,9 +140,13 @@ pub fn run(db: Database) -> iced::Result {
             .into(),
     ];
 
-    // Load application icon (temporarily commented out due to API incompatibility)
-    // Will be added back once iced API is updated
-    let icon = None;
+    // Load application icon
+    let icon_data = include_bytes!("../assets/icons/Entypo_d83d(0)_256.png");
+    let icon = image::load_from_memory(icon_data).ok().and_then(|img| {
+        let rgba = img.to_rgba8();
+        let (width, height) = rgba.dimensions();
+        iced::window::icon::from_rgba(rgba.into_raw(), width, height).ok()
+    });
 
     NodokaApp::run(Settings {
         window: iced::window::Settings {

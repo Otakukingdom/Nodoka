@@ -22,9 +22,13 @@ walkdir = "2.4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 rfd = "0.14"
+image = "0.24"
 
 [dev-dependencies]
-tempfile = "3.5"
+temp-dir = "0.1"
+
+[build-dependencies]
+pkg-config = "0.3"
 
 [profile.release]
 strip = true

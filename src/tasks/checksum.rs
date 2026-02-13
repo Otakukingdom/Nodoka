@@ -18,7 +18,9 @@ pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
         if n == 0 {
             break;
         }
-        hasher.update(&buffer[..n]);
+        if let Some(slice) = buffer.get(..n) {
+            hasher.update(slice);
+        }
     }
     
     let result = hasher.finalize();
