@@ -27,7 +27,7 @@ Welcome to Nodoka Audiobook Reader! This guide will help you get started with ma
 ### Installing Nodoka
 
 #### Windows
-1. Download `Nodoka-0.2.0.msi` from the releases page
+1. Download `nodoka-0.2.0-x64.msi` from the releases page
 2. Double-click the MSI file
 3. Follow the installation wizard
 4. Launch Nodoka from the Start Menu
@@ -215,9 +215,9 @@ Planned settings for future releases:
 ### Backup Your Progress
 
 Your progress is stored in:
-- **Windows**: `%APPDATA%\Nodoka\nodoka.db`
-- **macOS**: `~/.nodoka/nodoka.db`
-- **Linux**: `~/.nodoka/nodoka.db`
+- **Windows**: `%APPDATA%\Otakukingdom\Nodoka\nodoka.db`
+- **macOS**: `~/Library/Application Support/com.Otakukingdom.Nodoka/nodoka.db`
+- **Linux**: `~/.local/share/com/Otakukingdom/Nodoka/nodoka.db`
 
 Back up this file to preserve your progress if reinstalling!
 

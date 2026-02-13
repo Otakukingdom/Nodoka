@@ -13,6 +13,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  VLC_SDK_VERSION: 3.0.20
 
 jobs:
   lint:
@@ -100,6 +101,23 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           choco install vlc
+
+      - name: Install VLC SDK (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $vlcVersion = "${{ env.VLC_SDK_VERSION }}"
+          $sdkUrl = "https://get.videolan.org/vlc/$vlcVersion/win64/vlc-$vlcVersion-sdk.7z"
+          $sdkDir = "$env:RUNNER_TEMP\\vlc-sdk"
+          New-Item -ItemType Directory -Force -Path $sdkDir | Out-Null
+          $archive = "$sdkDir\\vlc-sdk.7z"
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $archive
+          7z x $archive -o"$sdkDir" | Out-Null
+          $extracted = Join-Path $sdkDir "vlc-$vlcVersion"
+          if (!(Test-Path $extracted)) {
+            $extracted = Get-ChildItem -Path $sdkDir -Directory | Select-Object -First 1 | ForEach-Object { $_.FullName }
+          }
+          "VLC_SDK_PATH=$extracted" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
       - name: Run tests
         run: cargo test --verbose
@@ -159,6 +177,23 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           choco install vlc
+
+      - name: Install VLC SDK (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $vlcVersion = "${{ env.VLC_SDK_VERSION }}"
+          $sdkUrl = "https://get.videolan.org/vlc/$vlcVersion/win64/vlc-$vlcVersion-sdk.7z"
+          $sdkDir = "$env:RUNNER_TEMP\\vlc-sdk"
+          New-Item -ItemType Directory -Force -Path $sdkDir | Out-Null
+          $archive = "$sdkDir\\vlc-sdk.7z"
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $archive
+          7z x $archive -o"$sdkDir" | Out-Null
+          $extracted = Join-Path $sdkDir "vlc-$vlcVersion"
+          if (!(Test-Path $extracted)) {
+            $extracted = Get-ChildItem -Path $sdkDir -Directory | Select-Object -First 1 | ForEach-Object { $_.FullName }
+          }
+          "VLC_SDK_PATH=$extracted" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
       - name: Add macOS targets
         if: matrix.os == 'macos-latest'

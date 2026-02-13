@@ -346,6 +346,16 @@ pub fn set_metadata(conn: &Connection, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
+/// Deletes a metadata value
+///
+/// # Errors
+///
+/// Returns an error if the database delete fails
+pub fn delete_metadata(conn: &Connection, key: &str) -> Result<()> {
+    conn.execute("DELETE FROM metadata WHERE key = ?1", [key])?;
+    Ok(())
+}
+
 /// Updates the last scanned timestamp for a directory
 ///
 /// # Errors

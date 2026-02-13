@@ -22,13 +22,13 @@ pub fn update(
         Message::PlayerTick => handle_player_tick(state, player, db),
 
         // Selection messages
-        Message::AudiobookSelected(id) => handle_audiobook_selected(state, db, id),
+        Message::AudiobookSelected(id) => handle_audiobook_selected(state, player, db, id),
         Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
 
         // Directory management messages
         Message::DirectoryAdd => handle_directory_add(),
         Message::DirectoryAdded(path) => handle_directory_added(state, db, &path),
-        Message::DirectoryRemove(path) => handle_directory_remove(state, db, &path),
+        Message::DirectoryRemove(path) => handle_directory_remove(state, player, db, &path),
         Message::DirectoryRescan(path) => handle_directory_rescan(state, db, &path),
 
         // Settings messages
@@ -75,6 +75,17 @@ fn handle_stop(state: &mut NodokaState, player: &mut Option<ConcretePlayer>) -> 
         state.current_time = 0.0;
     }
     Command::none()
+}
+
+fn reset_playback_state(state: &mut NodokaState, player: &mut Option<ConcretePlayer>) {
+    if let Some(ref mut p) = player {
+        if let Err(e) = p.stop() {
+            tracing::error!("Failed to stop: {e}");
+        }
+    }
+    state.is_playing = false;
+    state.current_time = 0.0;
+    state.total_duration = 0.0;
 }
 
 fn handle_seek_to(
@@ -162,7 +173,19 @@ fn handle_speed_changed(
     Command::none()
 }
 
-fn handle_audiobook_selected(state: &mut NodokaState, db: &Database, id: i64) -> Command<Message> {
+fn handle_audiobook_selected(
+    state: &mut NodokaState,
+    player: &mut Option<ConcretePlayer>,
+    db: &Database,
+    id: i64,
+) -> Command<Message> {
+    let is_new_selection = state.selected_audiobook != Some(id);
+    if is_new_selection {
+        reset_playback_state(state, player);
+        state.selected_file = None;
+        state.current_files.clear();
+    }
+
     state.selected_audiobook = Some(id);
 
     match crate::db::queries::get_audiobook_files(db.connection(), id) {
@@ -287,12 +310,45 @@ fn handle_directory_added(state: &mut NodokaState, db: &Database, path: &str) ->
     start_directory_scan(path.to_string())
 }
 
-fn handle_directory_remove(state: &mut NodokaState, db: &Database, path: &str) -> Command<Message> {
+fn handle_directory_remove(
+    state: &mut NodokaState,
+    player: &mut Option<ConcretePlayer>,
+    db: &Database,
+    path: &str,
+) -> Command<Message> {
+    let selected_audiobook_in_directory = state
+        .selected_audiobook
+        .and_then(|id| state.audiobooks.iter().find(|a| a.id == Some(id)))
+        .is_some_and(|audiobook| audiobook.directory == path);
+
+    let selected_file_in_directory = state.selected_file.as_ref().is_some_and(|file_path| {
+        std::path::Path::new(file_path).starts_with(path)
+    });
+
+    let current_files_in_directory = state
+        .current_files
+        .iter()
+        .any(|file| std::path::Path::new(&file.full_path).starts_with(path));
+
+    let should_clear_selection =
+        selected_audiobook_in_directory || selected_file_in_directory || current_files_in_directory;
+
     if let Err(e) = crate::db::queries::delete_directory(db.connection(), path) {
         tracing::error!("Failed to delete directory: {e}");
     } else {
         state.directories.retain(|d| d.full_path != path);
         state.audiobooks.retain(|a| a.directory != path);
+        if should_clear_selection {
+            reset_playback_state(state, player);
+            state.selected_audiobook = None;
+            state.selected_file = None;
+            state.current_files.clear();
+            if let Err(e) =
+                crate::db::queries::delete_metadata(db.connection(), "current_audiobook_id")
+            {
+                tracing::error!("Failed to clear current audiobook metadata: {e}");
+            }
+        }
     }
     Command::none()
 }

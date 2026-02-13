@@ -203,8 +203,9 @@ ffmpeg -i input.mp3 -codec:a libmp3lame -b:a 128k output.mp3
    - **macOS**: Activity Monitor → Quit `Nodoka`
    - **Linux**: `killall nodoka`
 3. Delete lock file:
-   - **Windows**: `del %APPDATA%\Nodoka\instance.lock`
-   - **macOS/Linux**: `rm ~/.nodoka/instance.lock`
+   - **Windows**: `del "%APPDATA%\Otakukingdom\Nodoka\.nodoka.lock"`
+   - **macOS**: `rm ~/Library/Application\ Support/com.Otakukingdom.Nodoka/.nodoka.lock`
+   - **Linux**: `rm ~/.local/share/com/Otakukingdom/Nodoka/.nodoka.lock`
 4. Restart Nodoka
 
 ### "Unable to open database file" error
@@ -213,20 +214,28 @@ ffmpeg -i input.mp3 -codec:a libmp3lame -b:a 128k output.mp3
 
 **Check Permissions**:
 ```bash
-# macOS/Linux
-ls -la ~/.nodoka/
-chmod 600 ~/.nodoka/nodoka.db
+# macOS
+ls -la ~/Library/Application\ Support/com.Otakukingdom.Nodoka/
+chmod 600 ~/Library/Application\ Support/com.Otakukingdom.Nodoka/nodoka.db
+
+# Linux
+ls -la ~/.local/share/com/Otakukingdom/Nodoka/
+chmod 600 ~/.local/share/com/Otakukingdom/Nodoka/nodoka.db
 ```
 
-**Windows**: Right-click `%APPDATA%\Nodoka` → Properties → Security → Grant full control to your user.
+**Windows**: Right-click `%APPDATA%\Otakukingdom\Nodoka` → Properties → Security → Grant full control to your user.
 
 **Nuclear Option - Reset Database** (⚠️ Loses all progress):
 ```bash
-# Backup first!
-cp ~/.nodoka/nodoka.db ~/.nodoka/nodoka.db.backup
+# macOS (backup first!)
+cp ~/Library/Application\ Support/com.Otakukingdom.Nodoka/nodoka.db \
+  ~/Library/Application\ Support/com.Otakukingdom.Nodoka/nodoka.db.backup
+rm ~/Library/Application\ Support/com.Otakukingdom.Nodoka/nodoka.db
 
-# Delete database
-rm ~/.nodoka/nodoka.db
+# Linux (backup first!)
+cp ~/.local/share/com/Otakukingdom/Nodoka/nodoka.db \
+  ~/.local/share/com/Otakukingdom/Nodoka/nodoka.db.backup
+rm ~/.local/share/com/Otakukingdom/Nodoka/nodoka.db
 
 # Restart Nodoka (will create new database)
 ```
@@ -237,11 +246,16 @@ rm ~/.nodoka/nodoka.db
 
 **Recovery**:
 ```bash
-# macOS/Linux
-cd ~/.nodoka
+# macOS
+cd ~/Library/Application\ Support/com.Otakukingdom.Nodoka
 sqlite3 nodoka.db "PRAGMA integrity_check;"
+sqlite3 nodoka.db ".recover" | sqlite3 recovered.db
+mv nodoka.db nodoka.db.broken
+mv recovered.db nodoka.db
 
-# If corrupted, try to recover
+# Linux
+cd ~/.local/share/com/Otakukingdom/Nodoka
+sqlite3 nodoka.db "PRAGMA integrity_check;"
 sqlite3 nodoka.db ".recover" | sqlite3 recovered.db
 mv nodoka.db nodoka.db.broken
 mv recovered.db nodoka.db
@@ -306,7 +320,7 @@ mv recovered.db nodoka.db
 
 **Solution**:
 1. Add exception for `nodoka.exe`
-2. Add exception for `%APPDATA%\Nodoka` directory
+2. Add exception for `%APPDATA%\Otakukingdom\Nodoka` directory
 3. Download from official GitHub releases only
 
 ### macOS: Application freezes on launch
@@ -321,7 +335,7 @@ mv recovered.db nodoka.db
 **Solution**:
 1. Wait 30 seconds - may be one-time verification
 2. Check Console.app for crash logs
-3. Delete `~/.nodoka/instance.lock` and retry
+3. Delete `~/Library/Application Support/com.Otakukingdom.Nodoka/.nodoka.lock` and retry
 4. Reset database as last resort
 
 ### Linux: Missing system fonts
@@ -374,8 +388,9 @@ RUST_LOG=debug nodoka
 ```
 
 **Log locations**:
-- **Windows**: `%APPDATA%\Nodoka\logs\`
-- **macOS/Linux**: `~/.nodoka/logs/`
+- **Windows**: `%APPDATA%\Otakukingdom\Nodoka\logs\`
+- **macOS**: `~/Library/Application Support/com.Otakukingdom.Nodoka/logs/`
+- **Linux**: `~/.local/share/com/Otakukingdom/Nodoka/logs/`
 
 ### Reporting Bugs
 
@@ -397,7 +412,10 @@ If none of these solutions work:
 
 1. Try a clean install:
    - Uninstall Nodoka
-   - Delete `~/.nodoka` directory
+   - Delete data directory:
+     - **Windows**: `%APPDATA%\Otakukingdom\Nodoka`
+     - **macOS**: `~/Library/Application Support/com.Otakukingdom.Nodoka`
+     - **Linux**: `~/.local/share/com/Otakukingdom/Nodoka`
    - Reinstall from latest release
 2. Test on a different machine to isolate the issue
 3. File a detailed bug report with all diagnostic info
