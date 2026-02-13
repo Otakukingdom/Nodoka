@@ -128,6 +128,23 @@ impl Application for App {
             }
             Err(e) => {
                 tracing::error!("Failed to initialize player: {e}");
+                tracing::error!(
+                    "The application will start but audio playback will not work. \
+                     Please install VLC media player and restart the application."
+                );
+
+                // Log platform-specific installation instructions
+                #[cfg(target_os = "macos")]
+                tracing::info!("macOS: Install VLC with 'brew install --cask vlc'");
+
+                #[cfg(target_os = "linux")]
+                tracing::info!(
+                    "Linux: Install with 'sudo apt install vlc libvlc-dev' (Ubuntu/Debian)"
+                );
+
+                #[cfg(target_os = "windows")]
+                tracing::info!("Windows: Download VLC from https://www.videolan.org/vlc/");
+
                 None
             }
         };

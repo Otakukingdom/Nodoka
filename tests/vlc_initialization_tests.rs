@@ -1,4 +1,4 @@
-use nodoka::player::{setup_vlc_environment, VlcPlayer};
+use nodoka::player::{setup_vlc_environment, verify_vlc_available, VlcPlayer};
 use std::env;
 use std::ffi::OsString;
 use std::sync::{Mutex, MutexGuard};
@@ -104,4 +104,64 @@ fn test_vlc_player_new_smoke_when_vlc_available() {
         result.is_ok(),
         "VlcPlayer::new should succeed when a VLC instance can be created"
     );
+}
+
+#[test]
+fn test_vlc_player_fails_gracefully_when_vlc_unavailable() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    // Remove VLC_PLUGIN_PATH to simulate missing VLC
+    env::remove_var("VLC_PLUGIN_PATH");
+
+    // Don't call setup_vlc_environment to simulate a broken environment
+    let result = VlcPlayer::new();
+
+    match result {
+        Err(nodoka::error::Error::Vlc(msg)) => {
+            assert!(msg.contains("Failed to create VLC instance"));
+        }
+        Ok(_) => {
+            // VLC was found anyway, skip test
+        }
+        Err(other) => {
+            panic!("Expected VLC error, got: {:?}", other);
+        }
+    }
+}
+
+#[test]
+fn test_vlc_initialization_with_invalid_plugin_path() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    // Set an invalid plugin path
+    env::set_var("VLC_PLUGIN_PATH", "/nonexistent/invalid/path");
+
+    let result = VlcPlayer::new();
+
+    // Should either succeed (if VLC can find plugins elsewhere) or fail gracefully
+    if let Err(e) = result {
+        assert!(matches!(e, nodoka::error::Error::Vlc(_)));
+    }
+}
+
+#[test]
+fn test_verify_vlc_available() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    // Setup environment first
+    setup_vlc_environment();
+
+    // Check if VLC is available
+    let is_available = verify_vlc_available();
+
+    // The test passes regardless of whether VLC is installed
+    // We're just testing that the function doesn't panic
+    if is_available {
+        println!("VLC is available on this system");
+    } else {
+        println!("VLC is not available on this system");
+    }
 }

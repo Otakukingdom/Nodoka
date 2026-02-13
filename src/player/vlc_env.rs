@@ -37,20 +37,80 @@ use std::path::{Path, PathBuf};
 /// This function is idempotent - it only sets the environment variable
 /// if it's not already configured.
 pub fn setup_vlc_environment() {
-    // Only set if not already configured
-    if env::var("VLC_PLUGIN_PATH").is_ok() {
-        tracing::debug!("VLC_PLUGIN_PATH already set");
+    // Check if already configured
+    if let Ok(existing_path) = env::var("VLC_PLUGIN_PATH") {
+        tracing::debug!("VLC_PLUGIN_PATH already set to: {}", existing_path);
+
+        // Validate that the path exists
+        let path = Path::new(&existing_path);
+        if !path.exists() {
+            tracing::warn!(
+                "VLC_PLUGIN_PATH is set to '{}' but directory does not exist. \
+                 VLC initialization may fail.",
+                existing_path
+            );
+        } else {
+            tracing::info!("Using existing VLC_PLUGIN_PATH: {}", existing_path);
+        }
         return;
     }
 
-    if let Some(plugin_path) = detect_vlc_plugin_path() {
-        tracing::info!("Setting VLC_PLUGIN_PATH to: {}", plugin_path.display());
-        env::set_var("VLC_PLUGIN_PATH", plugin_path);
-    } else {
-        tracing::warn!(
-            "Could not detect VLC plugin path. VLC initialization may fail. \
-             Please install VLC or set VLC_PLUGIN_PATH manually."
-        );
+    // Try to detect VLC plugin path
+    match detect_vlc_plugin_path() {
+        Some(plugin_path) => {
+            // Verify the detected path exists
+            if plugin_path.exists() {
+                tracing::info!("Auto-detected VLC plugin path: {}", plugin_path.display());
+                env::set_var("VLC_PLUGIN_PATH", &plugin_path);
+            } else {
+                tracing::error!(
+                    "Detected VLC plugin path '{}' does not exist. \
+                     VLC initialization will likely fail.",
+                    plugin_path.display()
+                );
+            }
+        }
+        None => {
+            tracing::warn!(
+                "Could not auto-detect VLC plugin path. VLC initialization may fail. \n\
+                 Troubleshooting:\n\
+                 - macOS: Install VLC.app to /Applications or ~/Applications\n\
+                 - Linux: Install vlc and libvlc-dev via package manager\n\
+                 - Windows: Install VLC to C:\\Program Files\\VideoLAN\\VLC\n\
+                 - Or set VLC_PLUGIN_PATH environment variable manually"
+            );
+        }
+    }
+}
+
+/// Tests if VLC can be initialized with current environment settings.
+///
+/// Returns `true` if a VLC instance can be successfully created.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use nodoka::player::verify_vlc_available;
+/// if verify_vlc_available() {
+///     println!("VLC is available");
+/// } else {
+///     println!("VLC is not available");
+/// }
+/// ```
+pub fn verify_vlc_available() -> bool {
+    use vlc::Instance;
+
+    tracing::debug!("Verifying VLC availability...");
+
+    match Instance::new() {
+        Some(_instance) => {
+            tracing::info!("VLC instance created successfully");
+            true
+        }
+        None => {
+            tracing::error!("Failed to create VLC instance");
+            false
+        }
     }
 }
 

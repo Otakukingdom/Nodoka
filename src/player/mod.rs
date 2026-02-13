@@ -82,4 +82,4 @@ pub use concrete_player::VlcPlayer;
 // PlayerEvent and PlayerState are idiomatic event/state patterns
 pub use events::{PlayerEvent, PlayerState};
 pub use scan_player::Scanner;
-pub use vlc_env::setup_vlc_environment;
+pub use vlc_env::{setup_vlc_environment, verify_vlc_available};
