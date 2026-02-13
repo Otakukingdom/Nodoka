@@ -233,9 +233,10 @@ pub fn update_file_progress(
     completeness: i32,
 ) -> Result<()> {
     let position_ms = seek_position.round() as i64;
+    let position_text = position_ms.to_string();
     conn.execute(
         "UPDATE audiobook_file SET seek_position = ?1, completeness = ?2 WHERE full_path = ?3",
-        params![position_ms, completeness, full_path],
+        params![position_text, completeness, full_path],
     )?;
     Ok(())
 }

@@ -553,6 +553,9 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
                 completeness,
             ) {
                 tracing::error!("Failed to update file progress: {e}");
+            } else {
+                update_current_file_progress(state, file_path, time, completeness);
+                update_audiobook_completeness_after_file_change(state, db, file_path);
             }
         }
     }
@@ -621,14 +624,8 @@ fn mark_current_file_complete(state: &mut NodokaState, db: &Database, file_path:
         tracing::error!("Failed to mark file complete: {e}");
     }
 
-    if let Some(file) = state
-        .current_files
-        .iter_mut()
-        .find(|file| file.full_path == file_path)
-    {
-        file.completeness = 100;
-        file.seek_position = Some(final_time.round() as i64);
-    }
+    update_current_file_progress(state, file_path, final_time, 100);
+    update_audiobook_completeness_after_file_change(state, db, file_path);
 }
 
 fn start_directory_scan(path: String) -> Command<Message> {
@@ -643,4 +640,97 @@ fn start_directory_scan(path: String) -> Command<Message> {
             Err(error) => Message::ScanError(error.to_string()),
         },
     )
+}
+
+fn update_current_file_progress(
+    state: &mut NodokaState,
+    file_path: &str,
+    seek_position: f64,
+    completeness: i32,
+) {
+    if let Some(file) = state
+        .current_files
+        .iter_mut()
+        .find(|file| file.full_path == file_path)
+    {
+        file.completeness = completeness;
+        file.seek_position = Some(seek_position.round() as i64);
+    }
+}
+
+fn update_audiobook_completeness_after_file_change(
+    state: &mut NodokaState,
+    db: &Database,
+    file_path: &str,
+) {
+    let audiobook_id = if let Some(id) = state.selected_audiobook {
+        Some(id)
+    } else if let Ok(Some(file)) =
+        crate::db::queries::get_audiobook_file_by_path(db.connection(), file_path)
+    {
+        Some(file.audiobook_id)
+    } else {
+        None
+    };
+
+    if let Some(id) = audiobook_id {
+        recompute_audiobook_completeness(state, db, id);
+    }
+}
+
+fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audiobook_id: i64) {
+    let (total, count) = if state.selected_audiobook == Some(audiobook_id)
+        && !state.current_files.is_empty()
+    {
+        let total = state.current_files.iter().map(|file| file.completeness).sum();
+        let count = match i32::try_from(state.current_files.len()) {
+            Ok(value) => value,
+            Err(_) => {
+                tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
+                return;
+            }
+        };
+        (total, count)
+    } else {
+        match crate::db::queries::get_audiobook_files(db.connection(), audiobook_id) {
+            Ok(files) => {
+                if files.is_empty() {
+                    return;
+                }
+                let total = files.iter().map(|file| file.completeness).sum();
+                let count = match i32::try_from(files.len()) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
+                        return;
+                    }
+                };
+                (total, count)
+            }
+            Err(e) => {
+                tracing::error!("Failed to load audiobook files for completeness: {e}");
+                return;
+            }
+        }
+    };
+
+    if count <= 0 {
+        return;
+    }
+
+    let avg = total / count;
+
+    if let Some(entry) = state
+        .audiobooks
+        .iter_mut()
+        .find(|audiobook| audiobook.id == Some(audiobook_id))
+    {
+        entry.completeness = avg;
+    }
+
+    if let Err(e) =
+        crate::db::queries::update_audiobook_completeness(db.connection(), audiobook_id, avg)
+    {
+        tracing::error!("Failed to update audiobook completeness: {e}");
+    }
 }
