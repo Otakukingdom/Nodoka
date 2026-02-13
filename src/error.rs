@@ -55,6 +55,7 @@ pub enum Error {
     /// - VLC version is incompatible (requires 3.x or later)
     /// - VLC library path not in system PATH (Windows)
     /// - Missing VLC plugins directory
+    /// - VLC plugins cannot be automatically detected
     ///
     /// ## Troubleshooting
     ///
@@ -66,17 +67,17 @@ pub enum Error {
     /// **Windows**:
     /// 1. Install VLC from [videolan.org](https://www.videolan.org/vlc/)
     /// 2. Install to default location: `C:\Program Files\VideoLAN\VLC`
-    /// 3. If needed, set environment variable:
+    /// 3. If automatic detection fails, set environment variable:
     ///    ```cmd
-    ///    setx VLC_LIB_PATH "C:\Program Files\VideoLAN\VLC"
+    ///    setx VLC_PLUGIN_PATH "C:\Program Files\VideoLAN\VLC\plugins"
     ///    ```
     ///
     /// **macOS**:
     /// ```sh
     /// brew install --cask vlc
     ///
-    /// # If VLC is installed but not found:
-    /// export VLC_LIB_PATH=/Applications/VLC.app/Contents/MacOS/lib
+    /// # If automatic detection fails:
+    /// export VLC_PLUGIN_PATH=/Applications/VLC.app/Contents/MacOS/plugins
     /// ```
     ///
     /// **Linux**:
@@ -91,10 +92,14 @@ pub enum Error {
     /// # Arch
     /// sudo pacman -S vlc
     ///
-    /// # Find library location if needed:
-    /// find /usr -name "libvlc.so*"
-    /// export VLC_LIB_PATH=/usr/lib/x86_64-linux-gnu
+    /// # If automatic detection fails, find and set plugin path:
+    /// find /usr -name "vlc" -type d 2>/dev/null | grep plugins
+    /// export VLC_PLUGIN_PATH=/usr/lib/vlc/plugins
     /// ```
+    ///
+    /// **Note**: Nodoka automatically detects and configures VLC plugin paths
+    /// on most systems. Manual configuration is only needed if automatic
+    /// detection fails or VLC is installed in a non-standard location.
     #[error("VLC error: {0}")]
     Vlc(String),
 

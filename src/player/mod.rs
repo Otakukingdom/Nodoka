@@ -73,6 +73,7 @@
 mod concrete_player;
 mod events;
 mod scan_player;
+mod vlc_env;
 
 #[allow(clippy::module_name_repetitions)]
 // VlcPlayer is descriptive - VLC is the implementation detail
@@ -81,3 +82,4 @@ pub use concrete_player::VlcPlayer;
 // PlayerEvent and PlayerState are idiomatic event/state patterns
 pub use events::{PlayerEvent, PlayerState};
 pub use scan_player::Scanner;
+pub use vlc_env::setup_vlc_environment;
