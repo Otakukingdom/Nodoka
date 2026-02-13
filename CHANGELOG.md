@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All tests passing with zero clippy warnings
 - Test-driven development compliance achieved
 
+### Fixed
+- Improved error reporting when database initialization fails. The application
+  now displays the actual error message with troubleshooting guidance instead
+  of the generic "Failed to load the config file" message.
+
 ### Documentation
 - Moved CONTRIBUTING.md into `nodoka::contributing` rustdoc module
 - Moved SECURITY.md into `nodoka::security` rustdoc module

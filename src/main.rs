@@ -25,9 +25,13 @@ fn main() {
     };
 
     // Initialize database
-    let Ok(db) = Database::open() else {
-        eprintln!("Error: Failed to load the config file");
-        process::exit(1);
+    let db = match Database::open() {
+        Ok(db) => db,
+        Err(e) => {
+            eprintln!("Error: Failed to initialize database: {e}");
+            eprintln!("See the error message above for details on how to resolve this issue.");
+            process::exit(1);
+        }
     };
 
     if let Err(e) = nodoka::db::initialize(db.connection()) {
