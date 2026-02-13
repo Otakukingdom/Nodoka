@@ -1,3 +1,4 @@
+use crate::conversions::f64_to_ms;
 use crate::ui::{Message, NodokaState};
 use iced::widget::{button, column, container, horizontal_space, row, slider, text};
 use iced::{Element, Length};
@@ -72,9 +73,7 @@ pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
 
 fn format_time(ms: f64) -> String {
     // Convert f64 milliseconds to i64 for time calculations
-    // Safe: Audiobook durations are typically <100 hours (<360,000,000 ms),
-    // well within i64 range (±9.2×10^18). Rounding ensures no fractional loss.
-    let ms_i64 = ms.round() as i64;
+    let ms_i64 = f64_to_ms(ms).unwrap_or(0);
     let seconds = ms_i64 / 1000;
     let minutes = seconds / 60;
     let hours = minutes / 60;

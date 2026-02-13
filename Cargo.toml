@@ -47,17 +47,16 @@ panic = { level = "deny", priority = 0 }
 indexing_slicing = { level = "deny", priority = 0 }
 missing_errors_doc = { level = "deny", priority = 0 }
 missing_panics_doc = { level = "deny", priority = 0 }
-# Framework interop: VLC uses i64 milliseconds, iced uses f64 for sliders/time
+
+# Strategic allows for VLC/iced interoperability numeric conversions
+# These casts are necessary and safe when properly validated (see src/conversions.rs)
 cast_precision_loss = { level = "allow", priority = 1 }
 cast_possible_truncation = { level = "allow", priority = 1 }
-# Common Rust naming pattern: module-scoped types often repeat module name
+
+# Module name repetitions are idiomatic when the type is the primary export
+# Examples: app::NodokaApp, error::NodokaError, player::ConcretePlayer
 module_name_repetitions = { level = "allow", priority = 1 }
-# Allow longer functions when business logic requires it
-too_many_lines = { level = "allow", priority = 1 }
-# Style preferences: allow if-let patterns over map_or_else for readability
-option_if_let_else = { level = "allow", priority = 1 }
-manual_let_else = { level = "allow", priority = 1 }
-single_match_else = { level = "allow", priority = 1 }
+
 
 [lints.rust]
 unsafe_code = { level = "deny", priority = -1 }

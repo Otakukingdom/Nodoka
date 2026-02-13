@@ -1,4 +1,5 @@
 use super::events::{PlayerEvent, PlayerState};
+use crate::conversions::ms_to_f64;
 use crate::error::{NodokaError, Result};
 use std::path::Path;
 use std::sync::atomic::{AtomicI32, Ordering};
@@ -131,15 +132,12 @@ impl ConcretePlayer {
 
     /// Gets the current playback time in milliseconds as f64
     ///
-    /// # Precision
+    /// # Errors
     ///
-    /// VLC internally uses i64 for time values. This function converts to f64
-    /// for UI consistency. For practical media durations (< 285 million years),
-    /// the conversion is exact within f64's 53-bit mantissa precision.
-    #[must_use]
-    pub fn get_time(&self) -> f64 {
+    /// Returns an error if the time value exceeds safe f64 precision range
+    pub fn get_time(&self) -> Result<f64> {
         let time_ms = self.player.get_time().unwrap_or(0);
-        time_ms as f64
+        ms_to_f64(time_ms)
     }
 
     /// Gets the total duration in milliseconds

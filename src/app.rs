@@ -1,3 +1,29 @@
+//! Application entry point and iced integration.
+//!
+//! This module contains the main [`NodokaApp`] struct which implements
+//! the [`iced::Application`] trait, integrating the UI, player, and database.
+//!
+//! ## Architecture
+//!
+//! Nodoka follows the Elm architecture pattern:
+//!
+//! - **Model**: Application state in [`NodokaState`](crate::ui::NodokaState)
+//! - **Update**: Message handling in [`update()`](crate::ui::update)
+//! - **View**: UI rendering in [`main_window::view()`](crate::ui::main_window::view)
+//!
+//! ## Usage
+//!
+//! ```no_run
+//! use nodoka::{Database, app};
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let db = Database::open()?;
+//! nodoka::db::initialize_schema(db.connection())?;
+//! app::run(db)?;
+//! # Ok(())
+//! # }
+//! ```
+
 use crate::db::Database;
 use crate::player::ConcretePlayer;
 use crate::ui::{main_window, update, Message, NodokaState};
@@ -8,6 +34,11 @@ use std::time::Duration;
 ///
 /// This struct implements the [`iced::Application`] trait and manages
 /// the UI state, VLC player instance, and database connection.
+///
+/// The application runs in an event loop where:
+/// 1. User interactions generate [`Message`](crate::ui::Message) events
+/// 2. Messages are processed by [`update()`](crate::ui::update) to modify state
+/// 3. UI is re-rendered via [`view()`](crate::ui::main_window::view)
 pub struct NodokaApp {
     state: NodokaState,
     player: Option<ConcretePlayer>,
@@ -17,6 +48,7 @@ pub struct NodokaApp {
 /// Initialization flags passed to [`NodokaApp`] on startup.
 ///
 /// Contains the database connection and any other startup configuration.
+/// Passed to [`Application::new()`] during application initialization.
 pub struct Flags {
     pub db: Database,
 }

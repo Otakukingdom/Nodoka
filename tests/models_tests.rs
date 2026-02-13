@@ -1,4 +1,5 @@
 use chrono::Utc;
+use nodoka::conversions::{calculate_percentage, percentage_to_i32};
 use nodoka::models::{Audiobook, AudiobookFile};
 use std::error::Error;
 
@@ -40,8 +41,10 @@ fn test_audiobook_file_completeness_calculation() {
 
     // Calculate completeness manually
     if let (Some(length), Some(seek)) = (file.length_of_file, file.seek_position) {
-        let calculated = ((seek as f64 / length as f64) * 100.0) as i32;
-        assert_eq!(calculated, 50);
+        if let Ok(percentage) = calculate_percentage(seek, length) {
+            let calculated = percentage_to_i32(percentage);
+            assert_eq!(calculated, 50);
+        }
     }
 }
 

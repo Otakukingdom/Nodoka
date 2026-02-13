@@ -1,3 +1,4 @@
+use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
 use crate::player::{ConcretePlayer, PlayerState};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
@@ -97,15 +98,17 @@ fn handle_seek_to(
     position: f64,
 ) -> Command<Message> {
     if let Some(ref mut p) = player {
-        // Convert f64 to i64 for VLC API
-        // Framework requirement: iced slider uses f64, VLC requires i64 milliseconds
-        // Safe: Audiobook durations are typically <100 hours (<360,000,000 ms),
-        // well within i64 range (±9.2×10^18). Rounding ensures no fractional loss.
-        let position_ms = position.round() as i64;
-        if let Err(e) = p.set_time(position_ms) {
-            tracing::error!("Failed to seek: {e}");
-        } else {
-            state.current_time = position;
+        match f64_to_ms(position) {
+            Ok(position_ms) => {
+                if let Err(e) = p.set_time(position_ms) {
+                    tracing::error!("Failed to seek: {e}");
+                } else {
+                    state.current_time = position;
+                }
+            }
+            Err(e) => {
+                tracing::error!("Invalid seek position: {e}");
+            }
         }
     }
     Command::none()
@@ -121,7 +124,10 @@ fn handle_player_tick(
     }
 
     let (time, player_state) = match player.as_ref() {
-        Some(p) => (p.get_time(), p.get_state()),
+        Some(p) => {
+            let time = p.get_time().unwrap_or(0.0);
+            (time, p.get_state())
+        }
         None => return Command::none(),
     };
 
@@ -247,14 +253,16 @@ fn handle_file_selected(
                 path,
             ) {
                 if let Some(length_ms) = file.length_of_file {
-                    state.total_duration = length_ms as f64;
+                    if let Ok(duration_f64) = ms_to_f64(length_ms) {
+                        state.total_duration = duration_f64;
+                    }
                 }
 
                 if let Some(seek_position) = file.seek_position {
                     if let Err(e) = p.set_time(seek_position) {
                         tracing::error!("Failed to restore seek position: {e}");
-                    } else {
-                        state.current_time = seek_position as f64;
+                    } else if let Ok(position_f64) = ms_to_f64(seek_position) {
+                        state.current_time = position_f64;
                     }
                 } else {
                     state.current_time = 0.0;
@@ -262,13 +270,10 @@ fn handle_file_selected(
             }
 
             if let Ok(duration) = p.get_length() {
-                // Convert i64 to f64 for iced slider widget
-                // Framework requirement: iced slider API requires f64 values
-                // Safe: i64→f64 cast may lose precision for values >2^53,
-                // but audiobook durations are typically <100 hours (<360,000,000 ms),
-                // well within f64's precise integer range (2^53 ≈ 9×10^15)
                 if duration > 0 {
-                    state.total_duration = duration as f64;
+                    if let Ok(duration_f64) = ms_to_f64(duration) {
+                        state.total_duration = duration_f64;
+                    }
                 }
             }
 
@@ -399,8 +404,23 @@ fn handle_scan_complete(
     discovered: Vec<DiscoveredAudiobook>,
 ) -> Command<Message> {
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
+    
+    update_state_with_discovered_audiobooks(state, &audiobooks);
+    
+    for (idx, disc) in discovered.into_iter().enumerate() {
+        process_discovered_audiobook(state, db, directory, &audiobooks, idx, disc);
+    }
+    
+    finalize_directory_scan(state, db, directory);
+    
+    Command::none()
+}
 
-    for audiobook in &audiobooks {
+fn update_state_with_discovered_audiobooks(
+    state: &mut NodokaState,
+    audiobooks: &[crate::models::Audiobook],
+) {
+    for audiobook in audiobooks {
         let exists = state
             .audiobooks
             .iter()
@@ -410,106 +430,145 @@ fn handle_scan_complete(
             state.audiobooks.push(audiobook.clone());
         }
     }
+}
 
-    for (idx, disc) in discovered.into_iter().enumerate() {
-        let disc_path = disc.path.display().to_string();
-        let mut resolved_audiobook = audiobooks
-            .get(idx)
-            .cloned()
-            .unwrap_or_else(|| crate::models::Audiobook::new(
-                directory.to_string(),
-                disc.name.clone(),
-                disc_path.clone(),
-                i32::try_from(idx).unwrap_or(i32::MAX),
-            ));
-        let existing = match crate::db::queries::get_audiobook_by_path(
+fn process_discovered_audiobook(
+    state: &mut NodokaState,
+    db: &Database,
+    directory: &str,
+    audiobooks: &[crate::models::Audiobook],
+    idx: usize,
+    disc: DiscoveredAudiobook,
+) {
+    let disc_path = disc.path.display().to_string();
+    let mut resolved_audiobook = audiobooks
+        .get(idx)
+        .cloned()
+        .unwrap_or_else(|| crate::models::Audiobook::new(
+            directory.to_string(),
+            disc.name.clone(),
+            disc_path.clone(),
+            i32::try_from(idx).unwrap_or(i32::MAX),
+        ));
+    
+    let Some(audiobook_id) = resolve_audiobook_id(db, &disc_path, &mut resolved_audiobook) else {
+        return;
+    };
+    
+    update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
+    process_audiobook_files(db, audiobook_id, disc.files);
+}
+
+fn resolve_audiobook_id(
+    db: &Database,
+    disc_path: &str,
+    resolved_audiobook: &mut crate::models::Audiobook,
+) -> Option<i64> {
+    let existing = match crate::db::queries::get_audiobook_by_path(
+        db.connection(),
+        disc_path,
+    ) {
+        Ok(existing) => existing,
+        Err(e) => {
+            tracing::error!("Failed to lookup audiobook by path {disc_path}: {e}");
+            return None;
+        }
+    };
+
+    let audiobook_id = if let Some(existing_ab) = existing {
+        if let Some(id) = existing_ab.id {
+            resolved_audiobook.id = Some(id);
+            id
+        } else if let Ok(id) = crate::db::queries::insert_audiobook(
             db.connection(),
-            &disc_path,
+            resolved_audiobook,
         ) {
-            Ok(existing) => existing,
+            resolved_audiobook.id = Some(id);
+            id
+        } else {
+            return None;
+        }
+    } else {
+        match crate::db::queries::insert_audiobook(db.connection(), resolved_audiobook) {
+            Ok(id) => {
+                resolved_audiobook.id = Some(id);
+                id
+            }
             Err(e) => {
-                tracing::error!("Failed to lookup audiobook by path {disc_path}: {e}");
-                continue;
-            }
-        };
-
-        let audiobook_id = if let Some(existing_ab) = existing {
-            if let Some(id) = existing_ab.id {
-                resolved_audiobook.id = Some(id);
-                id
-            } else if let Ok(id) = crate::db::queries::insert_audiobook(
-                db.connection(),
-                &resolved_audiobook,
-            ) {
-                resolved_audiobook.id = Some(id);
-                id
-            } else {
-                0
-            }
-        } else {
-            match crate::db::queries::insert_audiobook(db.connection(), &resolved_audiobook) {
-                Ok(id) => {
-                    resolved_audiobook.id = Some(id);
-                    id
-                }
-                Err(e) => {
-                    tracing::error!("Failed to insert audiobook: {e}");
-                    0
-                }
-            }
-        };
-
-        if audiobook_id == 0 {
-            continue;
-        }
-
-        if let Some(entry) = state
-            .audiobooks
-            .iter_mut()
-            .find(|a| a.full_path == resolved_audiobook.full_path)
-        {
-            entry.id = Some(audiobook_id);
-        } else {
-            resolved_audiobook.id = Some(audiobook_id);
-            state.audiobooks.push(resolved_audiobook);
-        }
-
-        let mut files = disc.files;
-        files.sort_by(|a, b| {
-            a.file_name()
-                .and_then(|n| n.to_str())
-                .cmp(&b.file_name().and_then(|n| n.to_str()))
-        });
-
-        for (pos, file_path) in files.into_iter().enumerate() {
-            let name = file_path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("Unknown")
-                .to_string();
-            let full_path = file_path.display().to_string();
-            let mut file = crate::models::AudiobookFile::new(
-                audiobook_id,
-                name,
-                full_path.clone(),
-                i32::try_from(pos).unwrap_or(i32::MAX),
-            );
-
-            if let Ok(Some(existing_file)) =
-                crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)
-            {
-                file.length_of_file = existing_file.length_of_file;
-                file.seek_position = existing_file.seek_position;
-                file.completeness = existing_file.completeness;
-                file.file_exists = true;
-            }
-
-            if let Err(e) = crate::db::queries::insert_audiobook_file(db.connection(), &file) {
-                tracing::error!("Failed to insert audiobook file: {e}");
+                tracing::error!("Failed to insert audiobook: {e}");
+                return None;
             }
         }
+    };
+
+    Some(audiobook_id)
+}
+
+fn update_state_audiobook_id(
+    state: &mut NodokaState,
+    resolved_audiobook: &crate::models::Audiobook,
+    audiobook_id: i64,
+) {
+    if let Some(entry) = state
+        .audiobooks
+        .iter_mut()
+        .find(|a| a.full_path == resolved_audiobook.full_path)
+    {
+        entry.id = Some(audiobook_id);
+    } else {
+        let mut ab = resolved_audiobook.clone();
+        ab.id = Some(audiobook_id);
+        state.audiobooks.push(ab);
+    }
+}
+
+fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<std::path::PathBuf>) {
+    let mut sorted_files = files;
+    sorted_files.sort_by(|a, b| {
+        a.file_name()
+            .and_then(|n| n.to_str())
+            .cmp(&b.file_name().and_then(|n| n.to_str()))
+    });
+
+    for (pos, file_path) in sorted_files.iter().enumerate() {
+        process_single_file(db, audiobook_id, pos, file_path);
+    }
+}
+
+fn process_single_file(
+    db: &Database,
+    audiobook_id: i64,
+    pos: usize,
+    file_path: &std::path::Path,
+) {
+    let name = file_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("Unknown")
+        .to_string();
+    let full_path = file_path.display().to_string();
+    let mut file = crate::models::AudiobookFile::new(
+        audiobook_id,
+        name,
+        full_path.clone(),
+        i32::try_from(pos).unwrap_or(i32::MAX),
+    );
+
+    if let Ok(Some(existing_file)) =
+        crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)
+    {
+        file.length_of_file = existing_file.length_of_file;
+        file.seek_position = existing_file.seek_position;
+        file.completeness = existing_file.completeness;
+        file.file_exists = true;
     }
 
+    if let Err(e) = crate::db::queries::insert_audiobook_file(db.connection(), &file) {
+        tracing::error!("Failed to insert audiobook file: {e}");
+    }
+}
+
+fn finalize_directory_scan(state: &mut NodokaState, db: &Database, directory: &str) {
     if let Err(e) = crate::db::queries::update_directory_last_scanned(db.connection(), directory) {
         tracing::error!("Failed to update directory scan timestamp: {e}");
     }
@@ -521,8 +580,6 @@ fn handle_scan_complete(
     {
         dir.last_scanned = Some(chrono::Utc::now());
     }
-
-    Command::none()
 }
 
 fn handle_scan_error(error: &str) -> Command<Message> {
@@ -543,10 +600,7 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
         
         if state.total_duration > 0.0 {
             let percentage = (time * 100.0) / state.total_duration;
-            // Convert f64 percentage to i32 for database storage
-            // Safe: percentage is clamped to 0.0-100.0 range before conversion,
-            // so result is always in valid i32 range (0-100)
-            let completeness = percentage.round().clamp(0.0, 100.0) as i32;
+            let completeness = percentage_to_i32(percentage);
 
             if let Err(e) = crate::db::queries::update_file_progress(
                 db.connection(),
@@ -656,7 +710,9 @@ fn update_current_file_progress(
         .find(|file| file.full_path == file_path)
     {
         file.completeness = completeness;
-        file.seek_position = Some(seek_position.round() as i64);
+        if let Ok(position_ms) = f64_to_ms(seek_position) {
+            file.seek_position = Some(position_ms);
+        }
     }
 }
 
@@ -665,15 +721,12 @@ fn update_audiobook_completeness_after_file_change(
     db: &Database,
     file_path: &str,
 ) {
-    let audiobook_id = if let Some(id) = state.selected_audiobook {
-        Some(id)
-    } else if let Ok(Some(file)) =
+    let audiobook_id = state.selected_audiobook.or_else(|| {
         crate::db::queries::get_audiobook_file_by_path(db.connection(), file_path)
-    {
-        Some(file.audiobook_id)
-    } else {
-        None
-    };
+            .ok()
+            .flatten()
+            .map(|file| file.audiobook_id)
+    });
 
     if let Some(id) = audiobook_id {
         recompute_audiobook_completeness(state, db, id);
@@ -685,12 +738,9 @@ fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audi
         && !state.current_files.is_empty()
     {
         let total: i32 = state.current_files.iter().map(|file| file.completeness).sum();
-        let count = match i32::try_from(state.current_files.len()) {
-            Ok(value) => value,
-            Err(_) => {
-                tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
-                return;
-            }
+        let Ok(count) = i32::try_from(state.current_files.len()) else {
+            tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
+            return;
         };
         (total, count)
     } else {
@@ -700,12 +750,9 @@ fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audi
                     return;
                 }
                 let total: i32 = files.iter().map(|file| file.completeness).sum();
-                let count = match i32::try_from(files.len()) {
-                    Ok(value) => value,
-                    Err(_) => {
-                        tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
-                        return;
-                    }
+                let Ok(count) = i32::try_from(files.len()) else {
+                    tracing::error!("Failed to convert file count for audiobook {audiobook_id}");
+                    return;
                 };
                 (total, count)
             }

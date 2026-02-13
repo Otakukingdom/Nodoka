@@ -1,3 +1,4 @@
+use crate::conversions::f64_to_ms;
 use crate::error::Result;
 use crate::models::{Audiobook, AudiobookFile, Directory};
 use chrono::{DateTime, Utc};
@@ -232,7 +233,7 @@ pub fn update_file_progress(
     seek_position: f64,
     completeness: i32,
 ) -> Result<()> {
-    let position_ms = seek_position.round() as i64;
+    let position_ms = f64_to_ms(seek_position)?;
     let position_text = position_ms.to_string();
     conn.execute(
         "UPDATE audiobook_file SET seek_position = ?1, completeness = ?2 WHERE full_path = ?3",
