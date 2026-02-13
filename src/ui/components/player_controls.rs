@@ -21,6 +21,12 @@ pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
             state.current_time.min(state.total_duration),
             Message::SeekTo
         ),
+        row![
+            text(format_time(state.current_time)),
+            horizontal_space(),
+            text(format_time(state.total_duration)),
+        ]
+        .padding(5),
         // Control buttons and volume
         row![
             // Play/pause button
@@ -64,7 +70,7 @@ pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
     .into()
 }
 
-fn _format_time(ms: f64) -> String {
+fn format_time(ms: f64) -> String {
     // Convert f64 milliseconds to i64 for time calculations
     // Safe: Audiobook durations are typically <100 hours (<360,000,000 ms),
     // well within i64 range (±9.2×10^18). Rounding ensures no fractional loss.
