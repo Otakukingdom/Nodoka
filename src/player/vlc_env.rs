@@ -52,22 +52,22 @@ pub fn setup_vlc_environment() {
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
 
-    // Check if already configured
+    // Check if already configured.
+    // If the value is stale (directory missing), clear it and attempt auto-detection.
     if let Ok(existing_path) = env::var("VLC_PLUGIN_PATH") {
         tracing::debug!("VLC_PLUGIN_PATH already set to: {}", existing_path);
 
-        // Validate that the path exists
         let path = Path::new(&existing_path);
         if path.exists() {
             tracing::info!("Using existing VLC_PLUGIN_PATH: {}", existing_path);
-        } else {
-            tracing::warn!(
-                "VLC_PLUGIN_PATH is set to '{}' but directory does not exist. \
-                 VLC initialization may fail.",
-                existing_path
-            );
+            return;
         }
-        return;
+
+        tracing::debug!(
+            "VLC_PLUGIN_PATH is set to '{}' but directory does not exist; attempting auto-detection",
+            existing_path
+        );
+        env::remove_var("VLC_PLUGIN_PATH");
     }
 
     // Try to detect VLC plugin path
@@ -86,14 +86,23 @@ pub fn setup_vlc_environment() {
             }
         }
         None => {
-            tracing::warn!(
-                "Could not auto-detect VLC plugin path. VLC initialization may fail. \n\
-                 Troubleshooting:\n\
-                 - macOS: Install VLC.app to /Applications or ~/Applications\n\
-                 - Linux: Install vlc and libvlc-dev via package manager\n\
-                 - Windows: Install VLC to C:\\Program Files\\VideoLAN\\VLC\n\
-                 - Or set VLC_PLUGIN_PATH environment variable manually"
-            );
+            #[cfg(target_os = "linux")]
+            {
+                tracing::debug!(
+                    "VLC plugin path auto-detection not required on Linux; relying on system defaults"
+                );
+            }
+
+            #[cfg(not(target_os = "linux"))]
+            {
+                tracing::warn!(
+                    "Could not auto-detect VLC plugin path. VLC initialization may fail. \n\
+                     Troubleshooting:\n\
+                     - macOS: Install VLC.app to /Applications or ~/Applications\n\
+                     - Windows: Install VLC to C:\\Program Files\\VideoLAN\\VLC\n\
+                     - Or set VLC_PLUGIN_PATH environment variable manually"
+                );
+            }
         }
     }
 }
@@ -115,6 +124,7 @@ pub fn setup_vlc_environment() {
 pub fn verify_vlc_available() -> bool {
     use vlc::Instance;
 
+    setup_vlc_environment();
     tracing::debug!("Verifying VLC availability...");
 
     Instance::new().map_or_else(
@@ -197,24 +207,28 @@ fn detect_windows_vlc_plugin_path() -> Option<PathBuf> {
 mod tests {
     use super::*;
     use crate::test_support::{env_lock, EnvVarGuard};
+    use temp_dir::TempDir;
 
     #[test]
-    fn test_setup_vlc_environment_idempotent() {
+    fn test_setup_vlc_environment_idempotent() -> Result<(), Box<dyn std::error::Error>> {
         let _lock = env_lock();
         let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
-        // Set a test value
-        env::set_var("VLC_PLUGIN_PATH", "/test/path");
+        let temp_dir = TempDir::new()?;
+        let temp_path = temp_dir.path().to_owned();
+
+        // Set a valid, existing path
+        env::set_var("VLC_PLUGIN_PATH", &temp_path);
 
         // Call setup - should not override
         setup_vlc_environment();
 
         // Verify it wasn't changed
-        let path = env::var("VLC_PLUGIN_PATH");
-        assert!(path.is_ok(), "VLC_PLUGIN_PATH should be set");
-        assert_eq!(path.as_ref().map(String::as_str), Ok("/test/path"));
+        let path = env::var_os("VLC_PLUGIN_PATH");
+        assert_eq!(path, Some(temp_path.into_os_string()));
 
         // Restored by EnvVarGuard
+        Ok(())
     }
 
     #[test]
@@ -242,6 +256,30 @@ mod tests {
 
         // Should not panic even if VLC is not installed
         // The function should log a warning but continue
+    }
+
+    #[test]
+    fn test_setup_vlc_environment_does_not_keep_stale_plugin_path(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+        let temp_dir = TempDir::new()?;
+        let missing_path = temp_dir.path().join("missing_vlc_plugins_dir");
+        assert!(!missing_path.exists());
+
+        env::set_var("VLC_PLUGIN_PATH", &missing_path);
+
+        setup_vlc_environment();
+
+        if let Ok(path) = env::var("VLC_PLUGIN_PATH") {
+            assert!(
+                Path::new(&path).exists(),
+                "VLC_PLUGIN_PATH must not point to a non-existent directory after setup: {path}"
+            );
+        }
+
+        Ok(())
     }
 
     #[test]

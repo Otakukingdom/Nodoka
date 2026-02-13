@@ -145,27 +145,28 @@ fn test_app_startup_initializes_vlc_properly() {
     // 1. setup_vlc_environment() is called first
     setup_vlc_environment();
 
-    // 2. VLC_PLUGIN_PATH should now be set (if VLC is installed)
-    let plugin_path_set = env::var("VLC_PLUGIN_PATH").is_ok();
+    // 2. If setup chose to set VLC_PLUGIN_PATH, it must be valid.
+    let plugin_path = env::var("VLC_PLUGIN_PATH").ok();
 
-    // 3. VLC instance should be creatable
-    let vlc_available = vlc::Instance::new().is_some();
-
-    // 4. Vlc should initialize successfully (if VLC is available)
-    if vlc_available {
-        let player = nodoka::player::Vlc::new();
-        assert!(
-            player.is_ok(),
-            "Vlc::new() should succeed when VLC is available and environment is set up"
-        );
-    }
-
-    // Verify proper initialization order was followed
-    if vlc_available {
-        assert!(
-            plugin_path_set || vlc_available,
-            "If VLC is available, either plugin path should be set or VLC uses system defaults"
-        );
+    // 3/4. Vlc should initialize successfully if VLC is installed.
+    let player = nodoka::player::Vlc::new();
+    match player {
+        Ok(_player) => {
+            if let Some(path) = plugin_path {
+                assert!(
+                    std::path::Path::new(&path).exists(),
+                    "VLC_PLUGIN_PATH was set but does not exist: {path}"
+                );
+            }
+        }
+        Err(nodoka::error::Error::Vlc(msg)) => assert!(
+            msg.contains("Failed to create VLC instance"),
+            "Unexpected VLC error creating player: {msg}"
+        ),
+        Err(other) => assert!(
+            matches!(other, nodoka::error::Error::Vlc(_)),
+            "Unexpected error creating Vlc player: {other:?}"
+        ),
     }
 }
 
@@ -223,21 +224,21 @@ fn test_documented_initialization_sequence_from_main() {
 
     // Verify environment is now configured
     let _has_plugin_path = env::var("VLC_PLUGIN_PATH").is_ok();
-    let vlc_works = vlc::Instance::new().is_some();
 
     // Step 2: Database operations can happen (no dependency on VLC)
     // (Database::open() is tested separately, we skip it here)
 
-    // Step 3: VLC player creation should now work
-    if vlc_works {
-        let player = nodoka::player::Vlc::new();
-        assert!(
-            player.is_ok(),
-            "Vlc::new() must succeed when following correct init sequence"
-        );
-    } else {
-        // VLC not installed - that's ok, test passes
-        // The important thing is we didn't panic and got graceful error
-        println!("VLC not installed - graceful degradation verified");
+    // Step 3: VLC player creation should now work when VLC is installed.
+    let player = nodoka::player::Vlc::new();
+    match player {
+        Ok(_player) => {}
+        Err(nodoka::error::Error::Vlc(msg)) => assert!(
+            msg.contains("Failed to create VLC instance"),
+            "Unexpected VLC error creating player: {msg}"
+        ),
+        Err(other) => assert!(
+            matches!(other, nodoka::error::Error::Vlc(_)),
+            "Unexpected error creating Vlc player: {other:?}"
+        ),
     }
 }

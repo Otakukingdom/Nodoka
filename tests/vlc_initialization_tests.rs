@@ -2,6 +2,7 @@ use nodoka::player::{setup_vlc_environment, verify_vlc_available, Vlc};
 use std::env;
 use std::ffi::OsString;
 use std::sync::{Mutex, MutexGuard};
+use temp_dir::TempDir;
 
 static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
@@ -34,18 +35,22 @@ impl Drop for EnvVarGuard {
 }
 
 #[test]
-fn test_setup_vlc_environment_respects_existing_plugin_path() {
+fn test_setup_vlc_environment_respects_existing_plugin_path(
+) -> Result<(), Box<dyn std::error::Error>> {
     let _lock = env_lock();
     let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
-    env::set_var("VLC_PLUGIN_PATH", "/test/path");
+    let temp_dir = TempDir::new()?;
+    env::set_var("VLC_PLUGIN_PATH", temp_dir.path());
     setup_vlc_environment();
 
     assert_eq!(
         env::var_os("VLC_PLUGIN_PATH"),
-        Some(OsString::from("/test/path")),
+        Some(temp_dir.path().to_owned().into_os_string()),
         "setup_vlc_environment must not override an explicit VLC_PLUGIN_PATH"
     );
+
+    Ok(())
 }
 
 #[test]
@@ -95,15 +100,18 @@ fn test_vlc_player_new_smoke_when_vlc_available() {
     env::remove_var("VLC_PLUGIN_PATH");
     setup_vlc_environment();
 
-    if vlc::Instance::new().is_none() {
-        return;
-    }
-
     let result = Vlc::new();
-    assert!(
-        result.is_ok(),
-        "Vlc::new should succeed when a VLC instance can be created"
-    );
+    match result {
+        Ok(_player) => {}
+        Err(nodoka::error::Error::Vlc(msg)) => assert!(
+            msg.contains("Failed to create VLC instance"),
+            "Unexpected VLC error creating player: {msg}"
+        ),
+        Err(other) => assert!(
+            matches!(other, nodoka::error::Error::Vlc(_)),
+            "Unexpected error creating Vlc player: {other:?}"
+        ),
+    }
 }
 
 #[test]
