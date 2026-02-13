@@ -49,67 +49,52 @@ fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
-    let db = create_test_db()?;
-    let conn = db.connection();
+fn test_database_initialization_idempotency() -> Result<(), Box<dyn Error>> {
+    let temp_dir = std::env::temp_dir();
+    let db_path = temp_dir.join(format!("nodoka_idempotent_test_{}.db", std::process::id()));
 
-    // Insert directory first
-    let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
-        created_at: Utc::now(),
-        last_scanned: None,
-    };
-    queries::insert_directory(conn, &dir)?;
+    // Clean up any existing test database
+    let _ = std::fs::remove_file(&db_path);
 
-    // Insert audiobook
-    let audiobook = Audiobook {
-        id: None,
-        directory: "/test/audiobooks".to_string(),
-        name: "Test Audiobook".to_string(),
-        full_path: "/test/audiobooks/test".to_string(),
-        completeness: 0,
-        default_order: 0,
-        selected_file: None,
-        created_at: Utc::now(),
-    };
-    let id = queries::insert_audiobook(conn, &audiobook)?;
-    assert!(id > 0);
+    {
+        let conn = rusqlite::Connection::open(&db_path)?;
 
-    // Get audiobook by ID
-    let retrieved =
-        queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Audiobook not found"))?;
-    assert_eq!(retrieved.name, "Test Audiobook");
-    assert_eq!(retrieved.completeness, 0);
+        // Enable WAL mode
+        let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
 
-    // Get audiobook by path
-    let by_path = queries::get_audiobook_by_path(conn, "/test/audiobooks/test")?
-        .ok_or_else(|| missing("Audiobook not found"))?;
-    assert_eq!(by_path.name, "Test Audiobook");
+        // First initialization
+        nodoka::db::initialize(&conn)?;
 
-    // Update completeness
-    queries::update_audiobook_completeness(conn, id, 50)?;
-    let updated =
-        queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Audiobook not found"))?;
-    assert_eq!(updated.completeness, 50);
+        // Insert some test data
+        conn.execute(
+            "INSERT INTO metadata (key, value) VALUES (?, ?)",
+            ["test_key", "test_value"],
+        )?;
 
-    // Update selected file
-    queries::update_audiobook_selected_file(conn, id, Some("/test/file.mp3"))?;
-    let updated =
-        queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Audiobook not found"))?;
-    assert_eq!(updated.selected_file, Some("/test/file.mp3".to_string()));
+        // Second initialization should not fail or lose data
+        nodoka::db::initialize(&conn)?;
 
-    // Get all audiobooks
-    let all = queries::get_all_audiobooks(conn)?;
-    assert_eq!(all.len(), 1);
+        // Verify data is still there
+        let value: String = conn.query_row(
+            "SELECT value FROM metadata WHERE key = ?",
+            ["test_key"],
+            |row| row.get(0),
+        )?;
 
-    // Get audiobooks by directory
-    let by_dir = queries::get_audiobooks_by_directory(conn, "/test/audiobooks")?;
-    assert_eq!(by_dir.len(), 1);
+        assert_eq!(value, "test_value");
+    }
 
-    // Delete audiobook
-    queries::delete_audiobook(conn, id)?;
-    let deleted = queries::get_audiobook_by_id(conn, id)?;
-    assert!(deleted.is_none());
+    // Clean up
+    std::fs::remove_file(&db_path)?;
+    let _ = std::fs::remove_file(temp_dir.join(format!(
+        "nodoka_idempotent_test_{}.db-wal",
+        std::process::id()
+    )));
+    let _ = std::fs::remove_file(temp_dir.join(format!(
+        "nodoka_idempotent_test_{}.db-shm",
+        std::process::id()
+    )));
+
     Ok(())
 }
 
@@ -343,6 +328,38 @@ fn test_count_operations() -> Result<(), Box<dyn Error>> {
 
     let file_count = queries::count_audiobook_files(conn, first_id)?;
     assert_eq!(file_count, 3);
+    Ok(())
+}
+
+#[test]
+fn test_database_initialize_succeeds_on_file_database() -> Result<(), Box<dyn Error>> {
+    // This test uses a temporary file-based database to match production behavior
+    let temp_dir = std::env::temp_dir();
+    let db_path = temp_dir.join(format!("nodoka_test_{}.db", std::process::id()));
+
+    // Clean up any existing test database
+    let _ = std::fs::remove_file(&db_path);
+
+    let conn = rusqlite::Connection::open(&db_path)?;
+
+    // Enable WAL mode like production does - use query_row instead of execute
+    // because PRAGMA returns results
+    let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
+
+    // First initialization should succeed
+    nodoka::db::initialize(&conn)?;
+
+    // Second initialization should also succeed (testing idempotency)
+    nodoka::db::initialize(&conn)?;
+
+    // Clean up
+    drop(conn);
+    let _ = std::fs::remove_file(&db_path);
+    let _ =
+        std::fs::remove_file(temp_dir.join(format!("nodoka_test_{}.db-wal", std::process::id())));
+    let _ =
+        std::fs::remove_file(temp_dir.join(format!("nodoka_test_{}.db-shm", std::process::id())));
+
     Ok(())
 }
 

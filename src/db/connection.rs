@@ -42,7 +42,8 @@ impl Database {
     pub fn open() -> Result<Self> {
         let db_path = Self::get_db_path()?;
         let conn = Connection::open(db_path)?;
-        conn.execute("PRAGMA journal_mode=WAL", [])?;
+        // PRAGMA journal_mode returns a result, so we must use query_row instead of execute
+        let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
         Ok(Self { conn })
     }
 
