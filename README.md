@@ -499,7 +499,7 @@ Workflow runs on every push and pull request to `main` and `develop` branches.
 
 ### Code Quality Metrics
 
-- **Tests:** 17/17 passing (database, models, tasks)
+- **Tests:** 18/18 passing (database, models, tasks)
 - **Clippy Warnings:** 0 (strict mode with -D warnings passes)
 - **Unsafe Code:** 0 blocks
 - **Dead Code:** 0 instances

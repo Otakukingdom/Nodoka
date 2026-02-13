@@ -12,7 +12,7 @@ This release represents a complete rewrite of Nodoka from C++/Qt to Rust/iced, b
 
 ### macOS
 - **DMG**: `Nodoka-0.2.0.dmg` (4 MB)
-- SHA256: `82a8c3d1233dffbf38c82b5ffd4ba9b31f7a0c3498ca913130194962f2a7c9f9`
+- SHA256: `31bee7a4509572ea58c33d486bdf83eb177256dddfcb685efc721f1711daf50f`
 - Install VLC: `brew install --cask vlc`
 
 If you see a "damaged app" warning:
@@ -35,7 +35,7 @@ xattr -cr /Applications/Nodoka.app
 
 ### Features Added
 - ✅ Strict linting rules enforced at compile time (no unwrap/expect/panic)
-- ✅ Comprehensive test suite (17 integration tests)
+- ✅ Comprehensive test suite (18 integration tests)
 - ✅ Cross-platform installers (Windows MSI, macOS DMG, Linux DEB)
 - ✅ CI/CD pipeline with GitHub Actions for all three platforms
 - ✅ Async directory scanning with tokio

@@ -183,28 +183,38 @@ jobs:
           name: nodoka-windows-amd64.exe
           path: target/release/
       
+      - name: Rename artifact
+        run: |
+          Move-Item target/release/nodoka target/release/nodoka.exe -ErrorAction SilentlyContinue
+      
       - name: Install WiX Toolset
         run: |
           choco install wixtoolset -y
+          refreshenv
       
       - name: Build MSI
+        shell: pwsh
         run: |
+          $env:PATH = "C:\Program Files (x86)\WiX Toolset v3.11\bin;$env:PATH"
           cd packaging/windows
-          & "C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe" nodoka.wxs
-          & "C:\Program Files (x86)\WiX Toolset v3.11\bin\light.exe" -ext WixUIExtension -out nodoka-0.2.0-x64.msi nodoka.wixobj
-          Move-Item nodoka-0.2.0-x64.msi ../../Nodoka-0.2.0.msi
+          candle.exe nodoka.wxs -out nodoka.wixobj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          light.exe -ext WixUIExtension -sw1076 -out nodoka-0.2.0-x64.msi nodoka.wixobj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Move-Item nodoka-0.2.0-x64.msi ../../nodoka-0.2.0-x64.msi
       
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi
-          path: Nodoka-0.2.0.msi
+          path: nodoka-0.2.0-x64.msi
       
       - name: Upload MSI to release
         if: github.event_name == 'release'
+        shell: bash
         run: |
           gh release upload ${{ github.event.release.tag_name }} \
-            Nodoka-0.2.0.msi \
+            nodoka-0.2.0-x64.msi \
             --repo ${{ github.repository }} \
             --clobber
         env:
@@ -292,12 +302,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Download installer artifacts
+      - name: Download Windows MSI
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-msi'
+          name: windows-msi
           path: installers
-          merge-multiple: true
       
       - name: Download macOS DMG
         uses: actions/download-artifact@v4
@@ -314,7 +323,7 @@ jobs:
       - name: Generate checksums
         run: |
           cd installers
-          sha256sum * > ../SHA256SUMS.txt
+          sha256sum *.msi *.dmg *.deb | sort -k2 > ../SHA256SUMS.txt
           cd ..
           echo "Generated checksums:"
           cat SHA256SUMS.txt
