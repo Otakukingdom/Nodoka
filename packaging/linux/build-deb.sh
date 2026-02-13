@@ -96,7 +96,7 @@ License: MIT
 EOF
 
 # Create changelog
-cat > "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian.gz" << EOF
+cat > "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian" << EOF
 nodoka (${VERSION}) unstable; urgency=medium
 
   * Initial Rust release
@@ -105,7 +105,8 @@ nodoka (${VERSION}) unstable; urgency=medium
 
  -- Mistlight Oriroris <mistlight@otakukingdom.com>  $(date -R)
 EOF
-gzip -9 "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian.gz"
+gzip -9 -c "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian" > "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian.gz"
+rm -f "${PKG_DIR}/usr/share/doc/${APP_NAME}/changelog.Debian"
 
 # Create postinst script
 cat > "${PKG_DIR}/DEBIAN/postinst" << EOF

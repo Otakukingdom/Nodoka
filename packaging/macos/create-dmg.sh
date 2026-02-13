@@ -37,13 +37,38 @@ cp "${BINARY_PATH}" "${BUNDLE_DIR}/Contents/MacOS/nodoka"
 chmod +x "${BUNDLE_DIR}/Contents/MacOS/nodoka"
 
 # Copy icon
-if [ -f "../../assets/icons/Entypo_d83d(0)_256.png" ]; then
-    # Convert PNG to ICNS (requires iconutil on macOS)
-    mkdir -p AppIcon.iconset
-    cp "../../assets/icons/Entypo_d83d(0)_256.png" AppIcon.iconset/icon_256x256.png
-    cp "../../assets/icons/Entypo_d83d(0)_512.png" AppIcon.iconset/icon_512x512.png
-    iconutil -c icns AppIcon.iconset -o "${BUNDLE_DIR}/Contents/Resources/AppIcon.icns"
-    rm -rf AppIcon.iconset
+ICON_SOURCE_512="../../assets/icons/Entypo_d83d(0)_512.png"
+ICON_SOURCE_256="../../assets/icons/Entypo_d83d(0)_256.png"
+
+if command -v iconutil >/dev/null 2>&1 && command -v sips >/dev/null 2>&1; then
+    if [ -f "${ICON_SOURCE_512}" ]; then
+        ICON_SOURCE="${ICON_SOURCE_512}"
+    elif [ -f "${ICON_SOURCE_256}" ]; then
+        ICON_SOURCE="${ICON_SOURCE_256}"
+    else
+        ICON_SOURCE=""
+    fi
+
+    if [ -n "${ICON_SOURCE}" ]; then
+        # Convert PNG to ICNS with a complete iconset
+        mkdir -p AppIcon.iconset
+        sips -z 16 16 "${ICON_SOURCE}" --out AppIcon.iconset/icon_16x16.png >/dev/null
+        sips -z 32 32 "${ICON_SOURCE}" --out AppIcon.iconset/icon_16x16@2x.png >/dev/null
+        sips -z 32 32 "${ICON_SOURCE}" --out AppIcon.iconset/icon_32x32.png >/dev/null
+        sips -z 64 64 "${ICON_SOURCE}" --out AppIcon.iconset/icon_32x32@2x.png >/dev/null
+        sips -z 128 128 "${ICON_SOURCE}" --out AppIcon.iconset/icon_128x128.png >/dev/null
+        sips -z 256 256 "${ICON_SOURCE}" --out AppIcon.iconset/icon_128x128@2x.png >/dev/null
+        sips -z 256 256 "${ICON_SOURCE}" --out AppIcon.iconset/icon_256x256.png >/dev/null
+        sips -z 512 512 "${ICON_SOURCE}" --out AppIcon.iconset/icon_256x256@2x.png >/dev/null
+        sips -z 512 512 "${ICON_SOURCE}" --out AppIcon.iconset/icon_512x512.png >/dev/null
+        sips -z 1024 1024 "${ICON_SOURCE}" --out AppIcon.iconset/icon_512x512@2x.png >/dev/null
+        iconutil -c icns AppIcon.iconset -o "${BUNDLE_DIR}/Contents/Resources/AppIcon.icns"
+        rm -rf AppIcon.iconset
+    else
+        echo "Icon source not found; skipping icon generation."
+    fi
+else
+    echo "iconutil or sips not available; skipping icon generation."
 fi
 
 # Create Info.plist

@@ -34,7 +34,7 @@
           <Component Id="ProductComponent" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
             <File Id="NodokaExe" 
                   Name="nodoka.exe" 
-                  Source="../../target/x86_64-pc-windows-msvc/release/nodoka.exe" 
+                  Source="../../target/release/nodoka.exe" 
                   KeyPath="yes" />
           </Component>
         </Directory>
