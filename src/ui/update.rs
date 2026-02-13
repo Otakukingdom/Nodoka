@@ -79,6 +79,10 @@ fn handle_seek_to(
     position: f64,
 ) -> Command<Message> {
     if let Some(ref mut p) = player {
+        // Convert f64 to i64 for VLC API
+        // Framework requirement: iced slider uses f64, VLC requires i64 milliseconds
+        // Safe: Audiobook durations are typically <100 hours (<360,000,000 ms),
+        // well within i64 range (±9.2×10^18). Rounding ensures no fractional loss.
         let position_ms = position.round() as i64;
         if let Err(e) = p.set_time(position_ms) {
             tracing::error!("Failed to seek: {e}");
@@ -164,8 +168,11 @@ fn handle_file_selected(
             tracing::error!("Failed to load media: {e}");
         } else {
             if let Ok(duration) = p.get_length() {
-                // VLC returns i64 milliseconds, convert to f64 for UI state
-                // Precision loss only occurs for durations > 285 million years
+                // Convert i64 to f64 for iced slider widget
+                // Framework requirement: iced slider API requires f64 values
+                // Safe: i64→f64 cast may lose precision for values >2^53,
+                // but audiobook durations are typically <100 hours (<360,000,000 ms),
+                // well within f64's precise integer range (2^53 ≈ 9×10^15)
                 state.total_duration = duration as f64;
             }
 
@@ -268,6 +275,9 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
     if let Some(ref file_path) = state.selected_file {
         if state.total_duration > 0.0 {
             let percentage = (time * 100.0) / state.total_duration;
+            // Convert f64 percentage to i32 for database storage
+            // Safe: percentage is clamped to 0.0-100.0 range before conversion,
+            // so result is always in valid i32 range (0-100)
             let completeness = percentage.round().clamp(0.0, 100.0) as i32;
 
             if let Err(e) = crate::db::queries::update_file_progress(

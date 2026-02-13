@@ -67,12 +67,13 @@ The following tasks require manual intervention or external platforms:
 
 ### Step 7: Build Platform-Specific Installers (CRITICAL)
 
-**macOS DMG**:
+**macOS DMG**: ✅ COMPLETE
 ```bash
 cd packaging/macos
 ./create-dmg.sh
 hdiutil verify Nodoka-0.2.0.dmg
-# Test installation on macOS 12+ (Intel and Apple Silicon)
+# Result: 4.0MB DMG created and verified successfully
+# Test installation on macOS 12+ (Intel and Apple Silicon) - PENDING MANUAL TEST
 ```
 
 **Linux DEB**:
