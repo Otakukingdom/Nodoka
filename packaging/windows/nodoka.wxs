@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?define NodokaExePath = "../../target/x86_64-pc-windows-msvc/release/nodoka.exe" ?>
+<?define NodokaExePath = "../../target/release/nodoka.exe" ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
            Name="Nodoka Audiobook Reader" 
