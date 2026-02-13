@@ -1,13 +1,13 @@
 use super::events::{PlayerEvent, PlayerState};
 use crate::conversions::ms_to_f64;
-use crate::error::{NodokaError, Result};
+use crate::error::{Error, Result};
 use std::path::Path;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
 use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State};
 
-pub struct ConcretePlayer {
+pub struct VlcPlayer {
     instance: Instance,
     player: MediaPlayer,
     event_sender: mpsc::UnboundedSender<PlayerEvent>,
@@ -16,7 +16,7 @@ pub struct ConcretePlayer {
     speed: Arc<Mutex<f32>>,
 }
 
-impl ConcretePlayer {
+impl VlcPlayer {
     /// Creates a new concrete player
     ///
     /// # Errors
@@ -24,9 +24,9 @@ impl ConcretePlayer {
     /// Returns an error if VLC instance or media player cannot be created
     pub fn new() -> Result<Self> {
         let instance = Instance::new()
-            .ok_or_else(|| NodokaError::Vlc("Failed to create VLC instance".to_string()))?;
+            .ok_or_else(|| Error::Vlc("Failed to create VLC instance".to_string()))?;
         let player = MediaPlayer::new(&instance)
-            .ok_or_else(|| NodokaError::Vlc("Failed to create media player".to_string()))?;
+            .ok_or_else(|| Error::Vlc("Failed to create media player".to_string()))?;
 
         let (event_sender, _) = mpsc::unbounded_channel();
 
@@ -47,7 +47,7 @@ impl ConcretePlayer {
     /// Returns an error if the media cannot be loaded
     pub fn load_media(&mut self, path: &Path) -> Result<()> {
         let media = Media::new_path(&self.instance, path)
-            .ok_or_else(|| NodokaError::Vlc("Failed to load media".to_string()))?;
+            .ok_or_else(|| Error::Vlc("Failed to load media".to_string()))?;
         self.player.set_media(&media);
 
         if let Ok(mut current) = self.current_file.lock() {
@@ -65,7 +65,7 @@ impl ConcretePlayer {
     pub fn play(&self) -> Result<()> {
         self.player
             .play()
-            .map_err(|()| NodokaError::Vlc("Failed to play".to_string()))?;
+            .map_err(|()| Error::Vlc("Failed to play".to_string()))?;
         self.send_event(PlayerEvent::StateChanged(PlayerState::Playing));
         Ok(())
     }
@@ -100,7 +100,7 @@ impl ConcretePlayer {
     pub fn set_volume(&mut self, volume: i32) -> Result<()> {
         self.player
             .set_volume(volume)
-            .map_err(|()| NodokaError::Vlc("Failed to set volume".to_string()))?;
+            .map_err(|()| Error::Vlc("Failed to set volume".to_string()))?;
         self.volume.store(volume, Ordering::SeqCst);
         Ok(())
     }
@@ -113,7 +113,7 @@ impl ConcretePlayer {
     pub fn set_rate(&mut self, rate: f32) -> Result<()> {
         self.player
             .set_rate(rate)
-            .map_err(|()| NodokaError::Vlc("Failed to set rate".to_string()))?;
+            .map_err(|()| Error::Vlc("Failed to set rate".to_string()))?;
         if let Ok(mut spd) = self.speed.lock() {
             *spd = rate;
         }

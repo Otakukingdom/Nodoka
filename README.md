@@ -16,18 +16,19 @@ A cross-platform audiobook player built with Rust and iced. Nodoka provides auto
 
 ## Documentation
 
-**📖 Complete documentation is available in rustdoc.**
+**📖 All documentation is in rustdoc:**
 
 ```bash
 cargo doc --no-deps --open
 ```
 
-The rustdoc includes:
-- Full installation guide for all platforms
-- Architecture and design overview
-- API reference with examples
-- Troubleshooting guide
-- Development guidelines
+Documentation includes:
+- Installation guide (all platforms)
+- Usage instructions
+- Architecture overview
+- Contributing guidelines (`nodoka::contributing`)
+- Security policy (`nodoka::security`)
+- API reference
 
 ## Quick Start
 
@@ -68,9 +69,9 @@ cargo build --release
 - ✅ 18/18 tests passing
 - ✅ Zero clippy warnings (strict mode)
 - ✅ Cross-platform installers available
-- ✅ No unsafe code, no allow() attributes in source
+- ✅ No unsafe code, function-level allows only with inline justification
 
-See rustdoc for detailed technical status and code quality metrics.
+See `cargo doc --open` for detailed technical status and code quality metrics.
 
 ## Contributing
 
@@ -81,7 +82,7 @@ Contributions welcome! Please follow the project's strict linting requirements:
 - Proper error handling with `Result`
 - Doc comments for public APIs
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and rustdoc for detailed guidelines.
+See `cargo doc --open` and navigate to `nodoka::contributing` for detailed guidelines.
 
 ## License
 
@@ -93,4 +94,4 @@ MIT License - See rustdoc for full license text and credits.
 - [Issues](../../issues)
 - [Releases](../../releases)
 - [Changelog](CHANGELOG.md)
-- [Security Policy](SECURITY.md)
+- Security Policy: See `nodoka::security` in rustdoc

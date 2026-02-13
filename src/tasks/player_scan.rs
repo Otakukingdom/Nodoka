@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::models::MediaProperty;
-use crate::player::ScanPlayer;
+use crate::player::Scanner;
 use std::path::PathBuf;
 
 /// Scans a media file for its properties using VLC
@@ -10,12 +10,12 @@ use std::path::PathBuf;
 /// Returns an error if VLC cannot parse the media or duration is unavailable
 pub async fn scan_media_properties(file_path: PathBuf) -> Result<MediaProperty> {
     tokio::task::spawn_blocking(move || {
-        let scanner = ScanPlayer::new()?;
+        let scanner = Scanner::new()?;
         scanner.scan_media(&file_path)
     })
     .await
     .map_err(|e| {
-        crate::error::NodokaError::Io(std::io::Error::new(
+        crate::error::Error::Io(std::io::Error::new(
             std::io::ErrorKind::Other,
             format!("Task join error: {e}"),
         ))

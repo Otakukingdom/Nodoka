@@ -5,6 +5,35 @@ All notable changes to Nodoka Audiobook Reader will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **BREAKING**: Removed all Cargo.toml-level lint exceptions for strict compliance
+- Renamed `NodokaApp` to `App` (following Rust naming conventions)
+- Renamed `NodokaError` to `Error` (standard library pattern)
+- Renamed `NodokaState` to `State` (module context makes prefix redundant)
+- Renamed `ConcretePlayer` to `VlcPlayer` (describes implementation)
+- Renamed `ScanPlayer` to `Scanner` (removes module name repetition)
+- Renamed `initialize_schema` to `initialize` (in schema module)
+- Moved cast allows from `Cargo.toml` to function-level with explicit safety documentation
+
+### Improved
+- Fixed all 6 rustdoc warnings (unresolved links and redundant targets)
+- Enhanced numeric conversion validation with comprehensive error documentation
+- All documentation now in rustdoc (compliance with AGENTS.md)
+- README.md reduced to minimal entry point (~97 lines)
+- Function-level `#[allow]` attributes now require inline justification
+
+### Documentation
+- Moved CONTRIBUTING.md into `nodoka::contributing` rustdoc module
+- Moved SECURITY.md into `nodoka::security` rustdoc module
+- Contributing and security policies now accessible via `cargo doc`
+- All external documentation consolidated into rustdoc
+
+### Infrastructure
+- Enhanced CI to enforce strict compliance (no Cargo.toml-level allows)
+- Added validation for minimal external documentation in GitHub Actions
+
 ## [0.2.0] - 2026-02-13
 
 ### Changed

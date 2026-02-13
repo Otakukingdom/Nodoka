@@ -1,11 +1,12 @@
 use crate::db::Database;
+use crate::error::Error;
 use crate::models::Audiobook;
 use crate::proxy::AudiobookFileProxy;
-use crate::NodokaError;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 
+#[allow(clippy::module_name_repetitions)] // Proxy pattern naming is idiomatic
 pub struct AudiobookProxy {
     id: i64,
     data: Rc<RefCell<Audiobook>>,
@@ -18,11 +19,11 @@ impl AudiobookProxy {
     ///
     /// # Errors
     ///
-    /// Returns `NodokaError::Database` if the database query fails.
-    /// Returns `NodokaError::AudiobookNotFound` if the audiobook does not exist.
-    pub fn new(id: i64, db: Arc<Database>) -> Result<Self, NodokaError> {
+    /// Returns `Error::Database` if the database query fails.
+    /// Returns `Error::AudiobookNotFound` if the audiobook does not exist.
+    pub fn new(id: i64, db: Arc<Database>) -> Result<Self, Error> {
         let data = crate::db::queries::get_audiobook_by_id(db.connection(), id)?
-            .ok_or_else(|| NodokaError::AudiobookNotFound(id))?;
+            .ok_or_else(|| Error::AudiobookNotFound(id))?;
 
         Ok(Self {
             id,
@@ -36,8 +37,8 @@ impl AudiobookProxy {
     ///
     /// # Errors
     ///
-    /// Returns `NodokaError::Database` if the database query fails.
-    pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, NodokaError> {
+    /// Returns `Error::Database` if the database query fails.
+    pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, Error> {
         let cache = self.files_cache.borrow();
 
         if let Some(files) = cache.as_ref() {
@@ -62,9 +63,9 @@ impl AudiobookProxy {
     ///
     /// # Errors
     ///
-    /// Returns `NodokaError::Database` if the database query fails.
-    /// Returns `NodokaError::ConversionError` if the file count cannot be converted to i32.
-    pub fn update_completeness(&self) -> Result<(), NodokaError> {
+    /// Returns `Error::Database` if the database query fails.
+    /// Returns `Error::ConversionError` if the file count cannot be converted to i32.
+    pub fn update_completeness(&self) -> Result<(), Error> {
         let files = self.get_files()?;
 
         if files.is_empty() {
@@ -75,7 +76,7 @@ impl AudiobookProxy {
             .iter()
             .map(super::audiobook_file_proxy::AudiobookFileProxy::completeness)
             .sum();
-        let avg = total / i32::try_from(files.len()).map_err(|_| NodokaError::ConversionError)?;
+        let avg = total / i32::try_from(files.len()).map_err(|_| Error::ConversionError)?;
 
         self.data.borrow_mut().completeness = avg;
 

@@ -8,6 +8,7 @@ use tokio::io::AsyncReadExt;
 /// # Errors
 ///
 /// Returns an error if the file cannot be read
+#[allow(clippy::module_name_repetitions)] // "calculate_checksum" in checksum module is clear and explicit
 pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
     let mut file = File::open(path).await?;
     let mut hasher = Sha256::new();

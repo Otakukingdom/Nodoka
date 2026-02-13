@@ -1,9 +1,10 @@
 use crate::conversions::f64_to_ms;
-use crate::ui::{Message, NodokaState};
+use crate::ui::{Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, slider, text};
 use iced::{Element, Length};
 
-pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
+#[allow(clippy::module_name_repetitions)] // "build_player_controls" in player_controls module is explicit and clear
+pub fn build_player_controls(state: &State) -> Element<'static, Message> {
     let current_file_text = state
         .selected_file
         .as_ref()

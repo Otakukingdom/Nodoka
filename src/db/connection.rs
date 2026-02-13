@@ -1,4 +1,4 @@
-use crate::error::{NodokaError, Result};
+use crate::error::{Error, Result};
 use directories::ProjectDirs;
 use rusqlite::Connection;
 use std::path::PathBuf;
@@ -31,8 +31,8 @@ impl Database {
     }
 
     fn get_db_path() -> Result<PathBuf> {
-        let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
-            .ok_or(NodokaError::ProjectDirNotFound)?;
+        let proj_dirs =
+            ProjectDirs::from("com", "Otakukingdom", "Nodoka").ok_or(Error::ProjectDirNotFound)?;
         let data_dir = proj_dirs.data_dir();
         std::fs::create_dir_all(data_dir)?;
         Ok(data_dir.join("nodoka.db"))

@@ -48,15 +48,6 @@ indexing_slicing = { level = "deny", priority = 0 }
 missing_errors_doc = { level = "deny", priority = 0 }
 missing_panics_doc = { level = "deny", priority = 0 }
 
-# Strategic allows for VLC/iced interoperability numeric conversions
-# These casts are necessary and safe when properly validated (see src/conversions.rs)
-cast_precision_loss = { level = "allow", priority = 1 }
-cast_possible_truncation = { level = "allow", priority = 1 }
-
-# Module name repetitions are idiomatic when the type is the primary export
-# Examples: app::NodokaApp, error::NodokaError, player::ConcretePlayer
-module_name_repetitions = { level = "allow", priority = 1 }
-
 
 [lints.rust]
 unsafe_code = { level = "deny", priority = -1 }

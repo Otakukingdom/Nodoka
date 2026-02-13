@@ -7,7 +7,7 @@ use std::io::{Error as IoError, ErrorKind};
 fn create_test_db() -> Result<Database, Box<dyn Error>> {
     // Create in-memory database for testing
     let db = Database::new_in_memory()?;
-    nodoka::db::initialize_schema(db.connection())?;
+    nodoka::db::initialize(db.connection())?;
     Ok(db)
 }
 

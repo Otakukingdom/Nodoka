@@ -6,9 +6,9 @@
 //!
 //! # Numeric Cast Safety
 //!
-//! This module requires `cast_precision_loss` and `cast_possible_truncation`
-//! lints to be set to `warn` rather than `deny` (configured in `Cargo.toml`).
-//! These casts are fundamentally necessary for VLC/iced interoperability:
+//! These casts are fundamentally necessary for VLC/iced interoperability.
+//! All functions use function-level `#[allow(clippy::cast_*)]` attributes
+//! with inline justification rather than blanket Cargo.toml-level allows:
 //!
 //! - **VLC to UI (i64 → f64)**: VLC time values are validated to be within
 //!   f64's safe integer precision range (2^53) before casting. Audiobooks
@@ -20,18 +20,27 @@
 //! - **Percentage conversions**: Values are clamped to [0, 100] before
 //!   casting to i32, ensuring no overflow or truncation issues.
 //!
-//! All conversions include explicit validation logic that makes them safe
-//! despite clippy warnings. The warnings remain visible during compilation
-//! to alert developers if these patterns spread to other modules where
-//! validation may be insufficient.
+//! All conversions include explicit validation logic and comprehensive
+//! error documentation that makes them provably safe.
 
-use crate::error::{NodokaError, Result};
+use crate::error::{Error, Result};
 
 /// Converts VLC time (i64 milliseconds) to UI time (f64 milliseconds).
 ///
+/// # Safety Guarantees
+///
+/// - **Input range**: `-2^53` to `2^53` milliseconds (validated)
+/// - **Output range**: `-9.007e15` to `9.007e15` milliseconds
+/// - **Precision**: f64 can represent integers up to 2^53 exactly (no precision loss)
+/// - **Practical limit**: Audiobooks typically < 100 hours (360M ms) << 2^53
+///
+/// The i64 to f64 cast is safe because we validate the input is within the range
+/// where f64 maintains exact integer precision (±2^53). This is a mathematical
+/// guarantee, not an approximation.
+///
 /// # Errors
 ///
-/// Returns [`NodokaError::InvalidDuration`] if the time value exceeds the safe
+/// Returns [`Error::InvalidDuration`] if the time value exceeds the safe
 /// integer precision range of f64 (2^53, approximately 285 million years).
 ///
 /// # Examples
@@ -45,6 +54,7 @@ use crate::error::{NodokaError, Result};
 /// # Ok(())
 /// # }
 /// ```
+#[allow(clippy::cast_precision_loss)] // Safe: validated within f64 exact integer range (±2^53)
 pub const fn ms_to_f64(ms: i64) -> Result<f64> {
     // f64 maintains exact integer precision up to 2^53 (9,007,199,254,740,992)
     // This is approximately 285 million years in milliseconds, far beyond any
@@ -52,18 +62,25 @@ pub const fn ms_to_f64(ms: i64) -> Result<f64> {
     const MAX_SAFE_INT: i64 = 1 << 53;
 
     if ms.abs() > MAX_SAFE_INT {
-        return Err(NodokaError::InvalidDuration);
+        return Err(Error::InvalidDuration);
     }
 
-    // Allow cast_precision_loss: We've validated the value is within safe range above
+    // Safe cast: value is within ±2^53, where f64 has exact integer precision
     Ok(ms as f64)
 }
 
 /// Converts UI time (f64 milliseconds) to VLC time (i64 milliseconds).
 ///
+/// # Safety Guarantees
+///
+/// - **Input validation**: Rejects negative values (invalid time)
+/// - **Range validation**: Checks against `i64::MAX` before casting
+/// - **Rounding**: Eliminates fractional parts to prevent truncation
+/// - **Output range**: 0 to `i64::MAX` milliseconds (valid VLC time)
+///
 /// # Errors
 ///
-/// Returns [`NodokaError::InvalidPosition`] if the value is negative or
+/// Returns [`Error::InvalidPosition`] if the value is negative or
 /// exceeds the maximum i64 range.
 ///
 /// # Examples
@@ -77,23 +94,32 @@ pub const fn ms_to_f64(ms: i64) -> Result<f64> {
 /// # Ok(())
 /// # }
 /// ```
+#[allow(clippy::cast_precision_loss)] // Safe: comparison only, checking magnitude not exact value
+#[allow(clippy::cast_possible_truncation)] // Safe: round() eliminates fractional parts, range validated
 pub fn f64_to_ms(value: f64) -> Result<i64> {
     if value < 0.0 {
-        return Err(NodokaError::InvalidPosition);
+        return Err(Error::InvalidPosition);
     }
 
     let rounded = value.round();
 
-    // Allow cast_precision_loss: Comparison is safe, we just need to check magnitude
+    // Safe comparison: We only need to check if magnitude exceeds i64::MAX
+    // Precision loss in the comparison is acceptable since we're checking bounds
     if rounded > i64::MAX as f64 {
-        return Err(NodokaError::InvalidPosition);
+        return Err(Error::InvalidPosition);
     }
 
-    // Allow cast_possible_truncation: We've validated above and round() ensures no fractional part
+    // Safe cast: round() ensures no fractional part, range check above ensures fits in i64
     Ok(rounded as i64)
 }
 
 /// Converts a percentage (f64) to an integer percentage (i32).
+///
+/// # Safety Guarantees
+///
+/// - **Clamping**: Input is clamped to [0.0, 100.0] range
+/// - **Rounding**: Fractional parts eliminated before casting
+/// - **Output range**: Always 0 to 100 (well within i32 range)
 ///
 /// Automatically clamps the value to the range [0, 100] before conversion.
 ///
@@ -106,9 +132,10 @@ pub fn f64_to_ms(value: f64) -> Result<i64> {
 /// assert_eq!(percentage_to_i32(150.0), 100);
 /// ```
 #[must_use]
+#[allow(clippy::cast_possible_truncation)] // Safe: clamped to [0, 100], round() removes fractional parts
 pub fn percentage_to_i32(percentage: f64) -> i32 {
     let clamped = percentage.clamp(0.0, 100.0);
-    // Allow cast_possible_truncation: Value is clamped to [0, 100], safe for i32
+    // Safe cast: clamped to [0, 100] range, round() ensures no fractional part
     clamped.round() as i32
 }
 
@@ -116,7 +143,7 @@ pub fn percentage_to_i32(percentage: f64) -> i32 {
 ///
 /// # Errors
 ///
-/// Returns [`NodokaError::InvalidDuration`] if length is zero or negative.
+/// Returns [`Error::InvalidDuration`] if length is zero or negative.
 ///
 /// # Examples
 ///
@@ -131,7 +158,7 @@ pub fn percentage_to_i32(percentage: f64) -> i32 {
 /// ```
 pub fn calculate_percentage(seek: i64, length: i64) -> Result<f64> {
     if length <= 0 {
-        return Err(NodokaError::InvalidDuration);
+        return Err(Error::InvalidDuration);
     }
 
     let seek_f64 = ms_to_f64(seek)?;

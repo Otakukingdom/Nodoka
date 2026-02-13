@@ -1,14 +1,14 @@
 //! Application entry point and iced integration.
 //!
-//! This module contains the main [`NodokaApp`] struct which implements
+//! This module contains the main [`App`] struct which implements
 //! the [`iced::Application`] trait, integrating the UI, player, and database.
 //!
 //! ## Architecture
 //!
 //! Nodoka follows the Elm architecture pattern:
 //!
-//! - **Model**: Application state in [`NodokaState`](crate::ui::NodokaState)
-//! - **Update**: Message handling in [`update()`](crate::ui::update)
+//! - **Model**: Application state in [`State`]
+//! - **Update**: Message handling in [`update`]
 //! - **View**: UI rendering in [`main_window::view()`](crate::ui::main_window::view)
 //!
 //! ## Usage
@@ -18,15 +18,15 @@
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let db = Database::open()?;
-//! nodoka::db::initialize_schema(db.connection())?;
+//! nodoka::db::initialize(db.connection())?;
 //! app::run(db)?;
 //! # Ok(())
 //! # }
 //! ```
 
 use crate::db::Database;
-use crate::player::ConcretePlayer;
-use crate::ui::{main_window, update, Message, NodokaState};
+use crate::player::VlcPlayer;
+use crate::ui::{main_window, update, Message, State};
 use iced::{Application, Command, Element, Settings, Subscription, Theme};
 use std::time::Duration;
 
@@ -36,16 +36,16 @@ use std::time::Duration;
 /// the UI state, VLC player instance, and database connection.
 ///
 /// The application runs in an event loop where:
-/// 1. User interactions generate [`Message`](crate::ui::Message) events
-/// 2. Messages are processed by [`update()`](crate::ui::update) to modify state
-/// 3. UI is re-rendered via [`view()`](crate::ui::main_window::view)
-pub struct NodokaApp {
-    state: NodokaState,
-    player: Option<ConcretePlayer>,
+/// 1. User interactions generate [`Message`] events
+/// 2. Messages are processed by [`update`] to modify state
+/// 3. UI is re-rendered via [`view`](crate::ui::main_window::view)
+pub struct App {
+    state: State,
+    player: Option<VlcPlayer>,
     db: Database,
 }
 
-/// Initialization flags passed to [`NodokaApp`] on startup.
+/// Initialization flags passed to [`App`] on startup.
 ///
 /// Contains the database connection and any other startup configuration.
 /// Passed to [`Application::new()`] during application initialization.
@@ -53,14 +53,14 @@ pub struct Flags {
     pub db: Database,
 }
 
-impl Application for NodokaApp {
+impl Application for App {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Theme = Theme;
     type Flags = Flags;
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let mut state = NodokaState::default();
+        let mut state = State::default();
 
         // Load directories from database
         match crate::db::queries::get_all_directories(flags.db.connection()) {
@@ -116,7 +116,7 @@ impl Application for NodokaApp {
         }
 
         // Initialize player
-        let player = match ConcretePlayer::new() {
+        let player = match VlcPlayer::new() {
             Ok(mut p) => {
                 if let Err(e) = p.set_volume(state.volume) {
                     tracing::error!("Failed to set initial volume: {e}");
@@ -196,7 +196,7 @@ pub fn run(db: Database) -> iced::Result {
         iced::window::icon::from_rgba(rgba.into_raw(), width, height).ok()
     });
 
-    NodokaApp::run(Settings {
+    App::run(Settings {
         window: iced::window::Settings {
             size: iced::Size::new(1200.0, 900.0),
             position: iced::window::Position::Centered,

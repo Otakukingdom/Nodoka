@@ -58,7 +58,7 @@ impl<'a> Settings<'a> {
             || Ok(None),
             |v| {
                 v.parse().ok().map(Some).ok_or_else(|| {
-                    crate::error::NodokaError::InvalidState("Invalid audiobook ID".to_string())
+                    crate::error::Error::InvalidState("Invalid audiobook ID".to_string())
                 })
             },
         )

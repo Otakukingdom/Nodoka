@@ -1,9 +1,9 @@
-use crate::ui::{Message, NodokaState};
+use crate::ui::{Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, scrollable, text};
 use iced::{Element, Length};
 
 #[must_use]
-pub fn build_settings_dialog(state: &NodokaState) -> Element<'static, Message> {
+pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
     let directory_list: Element<_> = state
         .directories
         .iter()

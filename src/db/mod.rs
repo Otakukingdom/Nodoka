@@ -27,7 +27,7 @@
 //! let db = Database::open()?;
 //!
 //! // Initialize schema on first run
-//! nodoka::db::initialize_schema(db.connection())?;
+//! nodoka::db::initialize(db.connection())?;
 //!
 //! // Use query functions
 //! let directories = nodoka::db::queries::get_all_directories(db.connection())?;
@@ -47,4 +47,4 @@ pub mod queries;
 mod schema;
 
 pub use connection::Database;
-pub use schema::initialize_schema;
+pub use schema::initialize;

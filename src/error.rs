@@ -5,7 +5,7 @@ use thiserror::Error;
 /// All fallible operations in Nodoka return a [`Result`] with this error type.
 /// Each variant includes troubleshooting guidance where applicable.
 #[derive(Error, Debug)]
-pub enum NodokaError {
+pub enum Error {
     /// Database operation failed.
     ///
     /// ## Common Causes
@@ -205,5 +205,5 @@ pub enum NodokaError {
     InvalidPosition,
 }
 
-/// Convenience type alias for Results using [`NodokaError`].
-pub type Result<T> = std::result::Result<T, NodokaError>;
+/// Convenience type alias for Results using this crate's error type.
+pub type Result<T> = std::result::Result<T, Error>;

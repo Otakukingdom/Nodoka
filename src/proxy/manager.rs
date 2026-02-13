@@ -1,11 +1,12 @@
 use crate::db::Database;
+use crate::error::Error;
 use crate::proxy::AudiobookProxy;
-use crate::NodokaError;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 
+#[allow(clippy::module_name_repetitions)] // Manager pattern naming is idiomatic for manager module
 pub struct ProxyManager {
     db: Arc<Database>,
     audiobook_cache: Rc<RefCell<HashMap<i64, AudiobookProxy>>>,
@@ -24,9 +25,9 @@ impl ProxyManager {
     ///
     /// # Errors
     ///
-    /// Returns `NodokaError::Database` if the database query fails.
-    /// Returns `NodokaError::AudiobookNotFound` if the audiobook does not exist.
-    pub fn get_audiobook(&self, id: i64) -> Result<AudiobookProxy, NodokaError> {
+    /// Returns `Error::Database` if the database query fails.
+    /// Returns `Error::AudiobookNotFound` if the audiobook does not exist.
+    pub fn get_audiobook(&self, id: i64) -> Result<AudiobookProxy, Error> {
         let cache = self.audiobook_cache.borrow();
 
         if let Some(proxy) = cache.get(&id) {

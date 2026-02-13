@@ -89,15 +89,15 @@
 //!
 //! Nodoka follows the Elm architecture pattern via the iced framework:
 //!
-//! - **Model**: Application state stored in [`ui::NodokaState`]
-//! - **Update**: Message handling in [`ui::update()`]
+//! - **Model**: Application state stored in [`ui::State`]
+//! - **Update**: Message handling in [`ui::update`]
 //! - **View**: UI rendering in [`ui::main_window::view()`]
 //!
 //! ### Key Components
 //!
-//! - [`app::NodokaApp`]: Main application entry point
+//! - [`app::App`]: Main application entry point
 //! - [`db::Database`]: `SQLite` database wrapper for progress tracking
-//! - [`player::ConcretePlayer`]: `VLC`-based media player
+//! - [`player::VlcPlayer`]: VLC-based media player
 //! - [`tasks`]: Async operations for directory scanning and file processing
 //! - [`models`]: Domain types for audiobooks, files, and directories
 //!
@@ -111,7 +111,7 @@
 //! let db = Database::open()?;
 //!
 //! // Initialize schema
-//! nodoka::db::initialize_schema(db.connection())?;
+//! nodoka::db::initialize(db.connection())?;
 //!
 //! // Run application
 //! nodoka::app::run(db)?;
@@ -182,6 +182,275 @@ pub mod settings;
 pub mod tasks;
 pub mod ui;
 
-pub use app::NodokaApp;
+pub use app::App;
 pub use db::Database;
-pub use error::{NodokaError, Result};
+pub use error::{Error, Result};
+
+/// # Contributing to Nodoka
+///
+/// Thank you for considering contributing to Nodoka! This module outlines the process and standards for contributing.
+///
+/// ## Code of Conduct
+///
+/// Be respectful, inclusive, and constructive in all interactions.
+///
+/// ## Getting Started
+///
+/// 1. Fork the repository
+/// 2. Clone your fork: `git clone https://github.com/your-username/nodoka.git`
+/// 3. Create a branch from `main`: `git checkout -b feature/your-feature-name`
+/// 4. Make your changes following the code standards below
+/// 5. Submit a pull request
+///
+/// **Note**: Version 0.2.0 represents the complete Rust rewrite baseline. All contributions should build upon this codebase.
+///
+/// ## Code Standards (STRICT)
+///
+/// This project enforces **exceptionally strict** linting rules:
+///
+/// ### Forbidden Patterns
+/// - ❌ `unwrap()` - Use proper error handling with `?` or `match`
+/// - ❌ `expect()` - Same as unwrap, use Result types
+/// - ❌ `panic!()` - Handle errors gracefully
+/// - ❌ `#[allow(...)]` - Do not suppress warnings without inline justification
+/// - ❌ `unsafe` - Use safe Rust patterns
+/// - ❌ Dead code - Remove unused functions and imports
+///
+/// ### Required Practices
+/// - ✅ All errors returned as `Result<T, Error>`
+/// - ✅ Doc comments on all public APIs with `/// Errors` and `/// Panics` sections
+/// - ✅ Clippy passes with `-D warnings` flag
+/// - ✅ All tests pass: `cargo test`
+/// - ✅ Code formatted: `cargo fmt`
+///
+/// ## Testing Requirements
+///
+/// - Add tests for new functionality
+/// - Maintain 100% test pass rate
+/// - Use temp-dir crate for integration tests requiring file system access
+/// - Run the full test suite before submitting: `cargo test --all`
+///
+/// ## Pull Request Process
+///
+/// 1. Ensure your code passes all checks:
+///    ```bash
+///    cargo fmt --check
+///    cargo clippy --all-targets --all-features -- -D warnings
+///    cargo test --all
+///    ```
+/// 2. Update documentation if adding public APIs
+/// 3. Add entry to `CHANGELOG.md` under `[Unreleased]`
+/// 4. Reference any related issues in PR description
+/// 5. Wait for CI/CD to pass (GitHub Actions)
+/// 6. Request review from maintainers
+///
+/// ## Areas for Contribution
+///
+/// - 🐛 Bug fixes
+/// - 📚 Documentation improvements
+/// - ✨ New features (discuss in issue first)
+/// - 🧪 Additional tests
+/// - 🌐 Translations (when i18n support is added)
+/// - ♿ Accessibility improvements
+///
+/// ## Development Setup
+///
+/// See the main documentation for build instructions and dependencies.
+///
+/// ## Linting Configuration
+///
+/// The project uses strict linting enforced in `Cargo.toml`:
+///
+/// ```toml
+/// [lints.clippy]
+/// all = { level = "deny", priority = -1 }
+/// unwrap_used = { level = "deny", priority = 0 }
+/// expect_used = { level = "deny", priority = 0 }
+/// panic = { level = "deny", priority = 0 }
+/// ```
+///
+/// Function-level allows are permitted only with inline justification for unavoidable framework interoperability.
+///
+/// ## Error Handling
+///
+/// All fallible operations must return `Result<T, Error>`:
+///
+/// **❌ Bad** (don't do this):
+/// ```rust,no_run
+/// fn read_file_bad() -> String {
+///     std::fs::read_to_string("file.txt").unwrap()
+/// }
+/// ```
+///
+/// **✅ Good** (do this instead):
+/// ```rust,no_run
+/// # use nodoka::error::Result;
+/// fn read_file() -> Result<String> {
+///     Ok(std::fs::read_to_string("file.txt")?)
+/// }
+/// ```
+///
+/// ## Documentation
+///
+/// Add doc comments to all public items:
+///
+/// ```rust,no_run
+/// # use std::path::Path;
+/// /// Calculates the SHA-256 checksum of a file.
+/// ///
+/// /// # Errors
+/// ///
+/// /// Returns an error if the file cannot be read or if I/O fails during hashing.
+/// ///
+/// /// # Examples
+/// ///
+/// /// ```no_run
+/// /// # use std::path::Path;
+/// /// # async fn example() -> Result<(), std::io::Error> {
+/// /// # let calculate_checksum = |_: &Path| async { Ok("abc".to_string()) };
+/// /// let checksum = calculate_checksum(Path::new("audio.mp3")).await?;
+/// /// assert_eq!(checksum.len(), 64); // SHA-256 is 64 hex characters
+/// /// # Ok(())
+/// /// # }
+/// /// ```
+/// pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
+///     // implementation
+/// #   Ok(String::new())
+/// }
+/// ```
+///
+/// ## Testing
+///
+/// Write tests for new functionality:
+///
+/// ```rust,no_run
+/// #[cfg(test)]
+/// mod tests {
+///     use super::*;
+///     use temp_dir::TempDir;
+///     # use nodoka::error::Result;
+///
+///     #[test]
+///     fn test_my_feature() -> Result<()> {
+///         let temp = TempDir::new()?;
+///         // test implementation
+///         Ok(())
+///     }
+/// }
+/// ```
+///
+/// ## Commit Messages
+///
+/// Write clear, concise commit messages:
+///
+/// - Use present tense ("Add feature" not "Added feature")
+/// - Capitalize first letter
+/// - No period at the end
+/// - Reference issues when applicable (#123)
+///
+/// Examples:
+/// - `Add volume control to player interface`
+/// - `Fix database connection leak on error`
+/// - `Refactor audiobook scanning for better performance`
+/// - `Update README with troubleshooting section`
+///
+/// ## Questions?
+///
+/// Open an issue with the "question" label or start a discussion.
+///
+/// ## License
+///
+/// By contributing, you agree that your contributions will be licensed under the MIT License.
+pub mod contributing {}
+
+/// # Security Policy
+///
+/// ## Supported Versions
+///
+/// | Version | Supported          |
+/// | ------- | ------------------ |
+/// | 0.2.x   | ✅                 |
+/// | 0.1.x   | ❌                 |
+///
+/// ## Reporting a Vulnerability
+///
+/// If you discover a security vulnerability in Nodoka, please report it by:
+///
+/// 1. **DO NOT** open a public GitHub issue
+/// 2. Email security concerns to: (add email when available)
+/// 3. Include detailed information:
+///    - Description of the vulnerability
+///    - Steps to reproduce
+///    - Potential impact
+///    - Suggested fix (if any)
+///
+/// We will respond within 48 hours and provide a timeline for a fix.
+///
+/// ## Security Best Practices
+///
+/// ### Dependencies
+///
+/// Nodoka uses the following security measures for dependencies:
+///
+/// - **Stable versions only**: No alpha/beta/rc dependencies in production
+/// - **Minimal dependency tree**: ~26 production dependencies, all from trusted sources
+/// - **Bundled `SQLite`**: Using rusqlite with bundled feature to avoid system library vulnerabilities
+/// - **Regular updates**: Dependencies reviewed and updated quarterly
+///
+/// ### Code Quality
+///
+/// - **No unsafe code**: `#[deny(unsafe_code)]` enforced at compile time
+/// - **No unwrap/expect**: All errors handled with Result types
+/// - **No panic**: Graceful error handling throughout
+/// - **Strict clippy lints**: Enforced at compile time with `-D warnings`
+///
+/// ### Runtime Security
+///
+/// - **Single instance guard**: Prevents multiple instances from corrupting database
+/// - **Database file permissions**: User-only read/write on database files
+/// - **No network access**: Application does not make network requests
+/// - **Local data only**: All data stored locally in user's config directory
+///
+/// ### VLC Integration
+///
+/// - **Dynamic linking**: VLC loaded from system installation
+/// - **Plugin restrictions**: VLC plugin loading restricted to trusted paths
+/// - **Version requirements**: VLC 3.x required (tested versions)
+///
+/// ## Known Limitations
+///
+/// 1. **VLC 4.x compatibility**: Not yet tested, use VLC 3.x
+/// 2. **Unsigned binaries**: macOS and Windows installers are not code-signed
+///    - macOS: May require `xattr -cr` to bypass Gatekeeper
+///    - Windows: May trigger `SmartScreen` warnings
+/// 3. **No sandboxing**: Application runs with full user permissions
+///
+/// ## Audit History
+///
+/// - **2026-02-12**: Initial security review for v0.2.0 release
+///   - Dependency tree reviewed (26 stable dependencies)
+///   - No known vulnerabilities in dependencies
+///   - All security best practices implemented
+///
+/// ## Security Checklist (for contributors)
+///
+/// Before submitting changes:
+///
+/// - [ ] No new unsafe code introduced
+/// - [ ] All errors handled with Result types
+/// - [ ] No unwrap/expect/panic in source code
+/// - [ ] Clippy passes with `-D warnings`
+/// - [ ] No new dependencies without justification
+/// - [ ] New dependencies are from trusted sources
+/// - [ ] File operations use proper error handling
+/// - [ ] No hardcoded credentials or secrets
+/// - [ ] No logging of sensitive user data
+///
+/// ## Future Improvements
+///
+/// - [ ] Implement code signing for macOS and Windows
+/// - [ ] Add automated dependency vulnerability scanning in CI/CD
+/// - [ ] Implement application sandboxing on supported platforms
+/// - [ ] Add integrity verification for database files
+/// - [ ] Implement automatic backup of database
+pub mod security {}

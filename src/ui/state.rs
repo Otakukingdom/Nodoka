@@ -1,7 +1,7 @@
 use crate::models::{Audiobook, AudiobookFile, Directory};
 
 #[derive(Debug, Clone)]
-pub struct NodokaState {
+pub struct State {
     pub audiobooks: Vec<Audiobook>,
     pub selected_audiobook: Option<i64>,
     pub current_files: Vec<AudiobookFile>,
@@ -18,7 +18,7 @@ pub struct NodokaState {
     pub is_loading: bool,
 }
 
-impl Default for NodokaState {
+impl Default for State {
     fn default() -> Self {
         Self {
             audiobooks: Vec::new(),

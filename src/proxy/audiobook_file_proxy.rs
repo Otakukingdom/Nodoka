@@ -2,6 +2,7 @@ use crate::db::Database;
 use crate::models::AudiobookFile;
 use std::sync::Arc;
 
+#[allow(clippy::module_name_repetitions)] // Proxy pattern naming is idiomatic
 #[derive(Clone)]
 pub struct AudiobookFileProxy {
     data: AudiobookFile,

@@ -1,15 +1,15 @@
 use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
-use crate::player::{ConcretePlayer, PlayerState};
+use crate::player::{VlcPlayer, PlayerState};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
-use crate::ui::{Message, NodokaState};
+use crate::ui::{Message, State};
 use iced::Command;
 use std::path::Path;
 
 pub fn update(
-    state: &mut NodokaState,
+    state: &mut State,
     message: Message,
-    player: &mut Option<ConcretePlayer>,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
 ) -> Command<Message> {
     match message {
@@ -51,8 +51,8 @@ pub fn update(
 }
 
 fn handle_play_pause(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
 ) -> Command<Message> {
     if let Some(ref mut p) = player {
         if state.is_playing {
@@ -70,7 +70,7 @@ fn handle_play_pause(
     Command::none()
 }
 
-fn handle_stop(state: &mut NodokaState, player: &mut Option<ConcretePlayer>) -> Command<Message> {
+fn handle_stop(state: &mut State, player: &mut Option<VlcPlayer>) -> Command<Message> {
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -81,7 +81,7 @@ fn handle_stop(state: &mut NodokaState, player: &mut Option<ConcretePlayer>) -> 
     Command::none()
 }
 
-fn reset_playback_state(state: &mut NodokaState, player: &mut Option<ConcretePlayer>) {
+fn reset_playback_state(state: &mut State, player: &mut Option<VlcPlayer>) {
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -93,8 +93,8 @@ fn reset_playback_state(state: &mut NodokaState, player: &mut Option<ConcretePla
 }
 
 fn handle_seek_to(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     position: f64,
 ) -> Command<Message> {
     if let Some(ref mut p) = player {
@@ -115,8 +115,8 @@ fn handle_seek_to(
 }
 
 fn handle_player_tick(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
 ) -> Command<Message> {
     if state.selected_file.is_none() {
@@ -141,8 +141,8 @@ fn handle_player_tick(
 }
 
 fn handle_volume_changed(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
     volume: i32,
 ) -> Command<Message> {
@@ -162,8 +162,8 @@ fn handle_volume_changed(
 }
 
 fn handle_speed_changed(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
     speed: f32,
 ) -> Command<Message> {
@@ -183,8 +183,8 @@ fn handle_speed_changed(
 }
 
 fn handle_audiobook_selected(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
     id: i64,
 ) -> Command<Message> {
@@ -216,8 +216,8 @@ fn handle_audiobook_selected(
 }
 
 fn handle_file_selected(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
@@ -300,7 +300,7 @@ fn handle_directory_add() -> Command<Message> {
     )
 }
 
-fn handle_directory_added(state: &mut NodokaState, db: &Database, path: &str) -> Command<Message> {
+fn handle_directory_added(state: &mut State, db: &Database, path: &str) -> Command<Message> {
     if state.directories.iter().any(|d| d.full_path == path) {
         tracing::info!("Directory already added: {path}. Skipping.");
         return Command::none();
@@ -324,8 +324,8 @@ fn handle_directory_added(state: &mut NodokaState, db: &Database, path: &str) ->
 }
 
 fn handle_directory_remove(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
@@ -367,7 +367,7 @@ fn handle_directory_remove(
 }
 
 fn handle_directory_rescan(
-    _state: &mut NodokaState,
+    _state: &mut State,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
@@ -387,18 +387,18 @@ fn handle_directory_rescan(
     start_directory_scan(path.to_string())
 }
 
-fn handle_open_settings(state: &mut NodokaState) -> Command<Message> {
+fn handle_open_settings(state: &mut State) -> Command<Message> {
     state.settings_open = true;
     Command::none()
 }
 
-fn handle_close_settings(state: &mut NodokaState) -> Command<Message> {
+fn handle_close_settings(state: &mut State) -> Command<Message> {
     state.settings_open = false;
     Command::none()
 }
 
 fn handle_scan_complete(
-    state: &mut NodokaState,
+    state: &mut State,
     db: &Database,
     directory: &str,
     discovered: Vec<DiscoveredAudiobook>,
@@ -417,7 +417,7 @@ fn handle_scan_complete(
 }
 
 fn update_state_with_discovered_audiobooks(
-    state: &mut NodokaState,
+    state: &mut State,
     audiobooks: &[crate::models::Audiobook],
 ) {
     for audiobook in audiobooks {
@@ -433,7 +433,7 @@ fn update_state_with_discovered_audiobooks(
 }
 
 fn process_discovered_audiobook(
-    state: &mut NodokaState,
+    state: &mut State,
     db: &Database,
     directory: &str,
     audiobooks: &[crate::models::Audiobook],
@@ -505,7 +505,7 @@ fn resolve_audiobook_id(
 }
 
 fn update_state_audiobook_id(
-    state: &mut NodokaState,
+    state: &mut State,
     resolved_audiobook: &crate::models::Audiobook,
     audiobook_id: i64,
 ) {
@@ -568,7 +568,7 @@ fn process_single_file(
     }
 }
 
-fn finalize_directory_scan(state: &mut NodokaState, db: &Database, directory: &str) {
+fn finalize_directory_scan(state: &mut State, db: &Database, directory: &str) {
     if let Err(e) = crate::db::queries::update_directory_last_scanned(db.connection(), directory) {
         tracing::error!("Failed to update directory scan timestamp: {e}");
     }
@@ -587,12 +587,12 @@ fn handle_scan_error(error: &str) -> Command<Message> {
     Command::none()
 }
 
-fn handle_initial_load_complete(state: &mut NodokaState) -> Command<Message> {
+fn handle_initial_load_complete(state: &mut State) -> Command<Message> {
     state.is_loading = false;
     Command::none()
 }
 
-fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Command<Message> {
+fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Command<Message> {
     state.current_time = time;
 
     if let Some(ref file_path) = state.selected_file {
@@ -619,7 +619,7 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
     Command::none()
 }
 
-fn should_auto_advance(state: &NodokaState, player_state: PlayerState, time: f64) -> bool {
+fn should_auto_advance(state: &State, player_state: PlayerState, time: f64) -> bool {
     if state.selected_file.is_none() {
         return false;
     }
@@ -637,8 +637,8 @@ fn should_auto_advance(state: &NodokaState, player_state: PlayerState, time: f64
 }
 
 fn advance_to_next_file(
-    state: &mut NodokaState,
-    player: &mut Option<ConcretePlayer>,
+    state: &mut State,
+    player: &mut Option<VlcPlayer>,
     db: &Database,
 ) -> Command<Message> {
     let Some(current_path) = state.selected_file.clone() else {
@@ -668,7 +668,7 @@ fn advance_to_next_file(
     Command::none()
 }
 
-fn mark_current_file_complete(state: &mut NodokaState, db: &Database, file_path: &str) {
+fn mark_current_file_complete(state: &mut State, db: &Database, file_path: &str) {
     let final_time = if state.total_duration > 0.0 {
         state.total_duration
     } else {
@@ -699,7 +699,7 @@ fn start_directory_scan(path: String) -> Command<Message> {
 }
 
 fn update_current_file_progress(
-    state: &mut NodokaState,
+    state: &mut State,
     file_path: &str,
     seek_position: f64,
     completeness: i32,
@@ -717,7 +717,7 @@ fn update_current_file_progress(
 }
 
 fn update_audiobook_completeness_after_file_change(
-    state: &mut NodokaState,
+    state: &mut State,
     db: &Database,
     file_path: &str,
 ) {
@@ -733,7 +733,7 @@ fn update_audiobook_completeness_after_file_change(
     }
 }
 
-fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audiobook_id: i64) {
+fn recompute_audiobook_completeness(state: &mut State, db: &Database, audiobook_id: i64) {
     let (total, count) = if state.selected_audiobook == Some(audiobook_id)
         && !state.current_files.is_empty()
     {

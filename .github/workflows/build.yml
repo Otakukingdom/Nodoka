@@ -32,14 +32,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y vlc libvlc-dev libvlccore-dev
       
-      - name: Check for allow() in source code
+      - name: Check for Cargo.toml lint exceptions
         run: |
-          if rg '#\[allow\(' src/; then
-            echo "ERROR: allow() attributes found in src/"
-            echo "Only Cargo.toml-level strategic allows are permitted"
+          if grep -A 10 "\[lints\.clippy\]" Cargo.toml | grep -E 'level.*=.*"allow"'; then
+            echo "ERROR: Cargo.toml contains allow-level lint exceptions"
+            echo "Use function-level #[allow] with inline justification only"
             exit 1
           fi
-          echo "✓ No allow() attributes in source code"
+          echo "✓ No Cargo.toml-level lint exceptions"
+      
+      - name: Verify function-level allows have justifications
+        run: |
+          if rg '#\[allow\([^)]+\)\](?!\s*//[^/])' src/; then
+            echo "ERROR: allow() attributes without inline justification found"
+            echo "All #[allow] must have inline comment explaining why"
+            exit 1
+          fi
+          echo "✓ All allow() attributes have inline justifications"
       
       - name: Check for expect/unwrap in source code
         run: |
@@ -74,6 +83,15 @@ jobs:
             exit 1
           fi
           echo "✓ README.md is appropriately minimal ($lines lines)"
+      
+      - name: Verify minimal external documentation
+        run: |
+          if [ -f CONTRIBUTING.md ] || [ -f SECURITY.md ]; then
+            echo "ERROR: CONTRIBUTING.md or SECURITY.md exists outside rustdoc"
+            echo "All documentation must be in rustdoc (src/lib.rs)"
+            exit 1
+          fi
+          echo "✓ No prohibited external documentation files"
       
       - name: Verify rustdoc builds
         run: |

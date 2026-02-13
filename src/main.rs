@@ -3,7 +3,8 @@
 //! A cross-platform audiobook player built with Rust and iced.
 //! Provides automatic progress tracking, VLC-powered playback, and a clean UI.
 
-use nodoka::{Database, NodokaError};
+use nodoka::error::Error;
+use nodoka::Database;
 use std::process;
 
 fn main() {
@@ -13,7 +14,7 @@ fn main() {
     // Single instance guard
     let _instance_guard = match check_single_instance() {
         Ok(guard) => guard,
-        Err(NodokaError::LockError) => {
+        Err(Error::LockError) => {
             eprintln!("Error: Cannot launch multiple instances of Nodoka Player");
             process::exit(1);
         }
@@ -29,7 +30,7 @@ fn main() {
         process::exit(1);
     };
 
-    if let Err(e) = nodoka::db::initialize_schema(db.connection()) {
+    if let Err(e) = nodoka::db::initialize(db.connection()) {
         eprintln!("Error: Failed to initialize database schema: {e}");
         process::exit(1);
     }
@@ -70,11 +71,11 @@ impl Drop for SingleInstanceGuard {
     }
 }
 
-fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
+fn check_single_instance() -> Result<SingleInstanceGuard, Error> {
     use directories::ProjectDirs;
 
-    let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
-        .ok_or(NodokaError::ProjectDirNotFound)?;
+    let proj_dirs =
+        ProjectDirs::from("com", "Otakukingdom", "Nodoka").ok_or(Error::ProjectDirNotFound)?;
 
     let data_dir = proj_dirs.data_dir();
     std::fs::create_dir_all(data_dir)?;
@@ -85,7 +86,7 @@ fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
             if let Some(pid) = read_lock_pid(&lock_file_path) {
                 if is_pid_running(pid) {
-                    return Err(NodokaError::LockError);
+                    return Err(Error::LockError);
                 }
             }
 
@@ -96,9 +97,9 @@ fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
                 );
             }
 
-            try_create_lock(&lock_file_path).map_err(NodokaError::Io)
+            try_create_lock(&lock_file_path).map_err(Error::Io)
         }
-        Err(e) => Err(NodokaError::Io(e)),
+        Err(e) => Err(Error::Io(e)),
     }
 }
 

@@ -1,10 +1,10 @@
 use crate::ui::components::{audiobook_list, file_list, player_controls};
-use crate::ui::{settings_form, Message, NodokaState};
+use crate::ui::{settings_form, Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, text};
 use iced::{Element, Length};
 
 #[must_use]
-pub fn view(state: &NodokaState) -> Element<'static, Message> {
+pub fn view(state: &State) -> Element<'static, Message> {
     let audiobook_list_widget =
         audiobook_list::build_audiobook_list(&state.audiobooks, state.selected_audiobook);
     let file_list_widget =

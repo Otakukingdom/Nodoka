@@ -6,7 +6,7 @@ use rusqlite::Connection;
 /// # Errors
 ///
 /// Returns an error if any table or index creation fails
-pub fn initialize_schema(conn: &Connection) -> Result<()> {
+pub fn initialize(conn: &Connection) -> Result<()> {
     // Create metadata table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS metadata (
