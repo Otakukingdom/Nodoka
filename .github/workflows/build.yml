@@ -261,3 +261,42 @@ jobs:
           asset_path: ./packaging/linux/nodoka_0.2.0_amd64.deb
           asset_name: nodoka_0.2.0_amd64.deb
           asset_content_type: application/vnd.debian.binary-package
+
+  generate-checksums:
+    name: Generate SHA256 Checksums
+    needs: [package-windows, package-macos, package-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Wait for release assets to be uploaded
+        run: sleep 30
+      
+      - name: Download release assets
+        run: |
+          mkdir -p installers
+          cd installers
+          # Download from GitHub release
+          gh release download ${{ github.event.release.tag_name }} \
+            --pattern "*.dmg" \
+            --pattern "*.deb" \
+            --pattern "*.msi" \
+            --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Generate checksums
+        run: |
+          cd installers
+          sha256sum * > ../SHA256SUMS.txt
+          cd ..
+          echo "Generated checksums:"
+          cat SHA256SUMS.txt
+      
+      - name: Upload checksums to release
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            SHA256SUMS.txt \
+            --repo ${{ github.repository }} \
+            --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

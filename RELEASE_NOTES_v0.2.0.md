@@ -12,7 +12,7 @@ This release represents a complete rewrite of Nodoka from C++/Qt to Rust/iced, b
 
 ### macOS
 - **DMG**: `Nodoka-0.2.0.dmg` (4 MB)
-- SHA256: `31bee7a4509572ea58c33d486bdf83eb177256dddfcb685efc721f1711daf50f`
+- SHA256: `82a8c3d1233dffbf38c82b5ffd4ba9b31f7a0c3498ca913130194962f2a7c9f9`
 - Install VLC: `brew install --cask vlc`
 
 If you see a "damaged app" warning:

@@ -1,0 +1,2 @@
+82a8c3d1233dffbf38c82b5ffd4ba9b31f7a0c3498ca913130194962f2a7c9f9  packaging/macos/Nodoka-0.2.0.dmg
+# Linux and Windows checksums will be added after platform-specific builds
