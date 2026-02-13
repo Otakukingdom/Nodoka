@@ -49,6 +49,84 @@ fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    // Insert directory first (matches application invariants)
+    let dir = Directory {
+        full_path: "/test/audiobooks".to_string(),
+        created_at: Utc::now(),
+        last_scanned: None,
+    };
+    queries::insert_directory(conn, &dir)?;
+
+    // Insert audiobook
+    let audiobook = Audiobook {
+        id: None,
+        directory: "/test/audiobooks".to_string(),
+        name: "Test Audiobook".to_string(),
+        full_path: "/test/audiobooks/test".to_string(),
+        completeness: 0,
+        default_order: 0,
+        selected_file: None,
+        created_at: Utc::now(),
+    };
+    let id = queries::insert_audiobook(conn, &audiobook)?;
+
+    // Get all
+    let all = queries::get_all_audiobooks(conn)?;
+    assert_eq!(all.len(), 1);
+    let first = all.first().ok_or_else(|| missing("Expected audiobook"))?;
+    assert_eq!(first.id, Some(id));
+    assert_eq!(first.directory, "/test/audiobooks");
+    assert_eq!(first.name, "Test Audiobook");
+    assert_eq!(first.full_path, "/test/audiobooks/test");
+    assert_eq!(first.completeness, 0);
+    assert_eq!(first.default_order, 0);
+    assert_eq!(first.selected_file, None);
+
+    // Get by id
+    let by_id = queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Not found"))?;
+    assert_eq!(by_id.id, Some(id));
+    assert_eq!(by_id.name, "Test Audiobook");
+
+    // Update completeness and selected file
+    queries::update_audiobook_completeness(conn, id, 75)?;
+    queries::update_audiobook_selected_file(conn, id, Some("/test/audiobooks/test/Chapter 1.mp3"))?;
+
+    let updated = queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Not found"))?;
+    assert_eq!(updated.completeness, 75);
+    assert_eq!(
+        updated.selected_file.as_deref(),
+        Some("/test/audiobooks/test/Chapter 1.mp3")
+    );
+
+    // Insert associated file, then ensure delete removes it.
+    let file = AudiobookFile {
+        audiobook_id: id,
+        name: "Chapter 1.mp3".to_string(),
+        full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
+        length_of_file: Some(300_000),
+        seek_position: None,
+        position: 0,
+        completeness: 0,
+        file_exists: true,
+        created_at: Utc::now(),
+    };
+    queries::insert_audiobook_file(conn, &file)?;
+    assert_eq!(queries::get_audiobook_files(conn, id)?.len(), 1);
+
+    // Delete audiobook
+    queries::delete_audiobook(conn, id)?;
+    assert!(queries::get_audiobook_by_id(conn, id)?.is_none());
+    assert_eq!(queries::get_all_audiobooks(conn)?.len(), 0);
+    assert_eq!(queries::get_audiobook_files(conn, id)?.len(), 0);
+
+    Ok(())
+}
+
+#[test]
 fn test_database_initialization_idempotency() -> Result<(), Box<dyn Error>> {
     let temp_dir = std::env::temp_dir();
     let db_path = temp_dir.join(format!("nodoka_idempotent_test_{}.db", std::process::id()));

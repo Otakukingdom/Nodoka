@@ -73,6 +73,9 @@ impl Database {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
     #[test]
     fn test_new_in_memory_creates_database() {
@@ -113,14 +116,21 @@ mod tests {
         // This simulates the ProjectDirNotFound error scenario
         use std::env;
 
-        let original_home = env::var("HOME").ok();
+        // HOME is process-global and tests run in parallel; serialize mutations.
+        let _lock = ENV_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+        let original_home = env::var_os("HOME");
         env::remove_var("HOME");
 
         let result = Database::open();
 
         // Restore original HOME
-        if let Some(home) = original_home {
-            env::set_var("HOME", home);
+        match original_home {
+            Some(home) => env::set_var("HOME", home),
+            None => env::remove_var("HOME"),
         }
 
         // On some platforms, ProjectDirs may have fallback behavior

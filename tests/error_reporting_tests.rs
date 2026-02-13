@@ -1,5 +1,8 @@
 use nodoka::Database;
 use std::env;
+use std::sync::{Mutex, OnceLock};
+
+static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 #[test]
 fn test_database_open_error_contains_details() {
@@ -7,33 +10,38 @@ fn test_database_open_error_contains_details() {
     // Note: On some systems, this may result in different error types
     // depending on fallback behavior. The key is that we get a detailed
     // error message, not a generic "Failed to load the config file"
-    let original_home = env::var("HOME").ok();
+    // HOME is process-global and tests run in parallel; serialize mutations.
+    let _lock = ENV_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    let original_home = env::var_os("HOME");
     env::remove_var("HOME");
 
     let result = Database::open();
 
     // Restore original HOME
-    if let Some(home) = original_home {
-        env::set_var("HOME", home);
+    match original_home {
+        Some(home) => env::set_var("HOME", home),
+        None => env::remove_var("HOME"),
     }
 
     // The test may pass if HOME fallback works on this platform
     // which is acceptable - we're primarily testing that errors are detailed
-    if result.is_err() {
-        if let Err(err) = result {
-            let err_string = format!("{err}");
+    if let Err(err) = result {
+        let err_string = format!("{err}");
 
-            // The error message should be specific and informative,
-            // not the generic "Failed to load the config file"
-            // It should contain error details from one of the error variants
-            assert!(
-                !err_string.is_empty()
-                    && (err_string.contains("Project directory")
-                        || err_string.contains("Database error")
-                        || err_string.contains("IO error")),
-                "Expected informative error message, got: {err_string}",
-            );
-        }
+        // The error message should be specific and informative,
+        // not the generic "Failed to load the config file"
+        // It should contain error details from one of the error variants
+        assert!(
+            !err_string.is_empty()
+                && (err_string.contains("Project directory")
+                    || err_string.contains("Database error")
+                    || err_string.contains("IO error")),
+            "Expected informative error message, got: {err_string}",
+        );
     }
 }
 
