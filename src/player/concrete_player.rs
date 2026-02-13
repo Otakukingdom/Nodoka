@@ -1,10 +1,12 @@
 use super::events::{PlaybackEvent, PlaybackState};
+use super::media_duration;
 use super::vlc_env;
 use crate::conversions::ms_to_f64;
 use crate::error::{Error, Result};
 use std::path::Path;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tokio::sync::broadcast;
 use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State as VlcState};
 
@@ -24,19 +26,7 @@ impl Vlc {
     ///
     /// Returns an error if VLC instance or media player cannot be created
     pub fn new() -> Result<Self> {
-        // Setup VLC environment before creating instance
-        // Note: The main application calls this at startup, but we call it here
-        // too for safety when the player module is used as a library
-        vlc_env::setup_vlc_environment();
-
-        // Log current VLC environment for debugging
-        if let Ok(plugin_path) = std::env::var("VLC_PLUGIN_PATH") {
-            tracing::debug!("VLC_PLUGIN_PATH = {}", plugin_path);
-        } else {
-            tracing::debug!("VLC_PLUGIN_PATH not set, relying on system defaults");
-        }
-
-        let instance = Instance::new().ok_or_else(|| {
+        let instance = vlc_env::create_vlc_instance().ok_or_else(|| {
             let plugin_path_info = std::env::var("VLC_PLUGIN_PATH").map_or_else(
                 |_| "VLC_PLUGIN_PATH not set".to_string(),
                 |p| format!("VLC_PLUGIN_PATH={p}"),
@@ -187,14 +177,7 @@ impl Vlc {
     pub fn get_length(&self) -> Result<i64> {
         self.player.get_media().map_or_else(
             || Ok(0),
-            |media| {
-                // Parse media to get duration
-                media.parse();
-
-                // Duration is in milliseconds
-                let duration = media.duration().unwrap_or(0);
-                Ok(duration)
-            },
+            |media| media_duration::parse_duration_with_timeout(&media, Duration::from_secs(2)),
         )
     }
 

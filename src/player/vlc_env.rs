@@ -22,6 +22,43 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 
+/// Observability and overrides for deterministic tests.
+///
+/// These are `#[doc(hidden)]` because they are not stable API; they exist to
+/// support integration tests that must not depend on whether VLC is installed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[doc(hidden)]
+pub enum VlcInitEvent {
+    /// [`setup_vlc_environment()`] has been entered.
+    SetupCalled,
+    /// A VLC instance is about to be created.
+    BeforeInstanceNew,
+}
+
+type VlcInitObserver = fn(VlcInitEvent);
+type InstanceFactory = fn() -> Option<vlc::Instance>;
+
+static VLC_INIT_OBSERVER: OnceLock<Mutex<Option<VlcInitObserver>>> = OnceLock::new();
+static VLC_INSTANCE_FACTORY: OnceLock<Mutex<InstanceFactory>> = OnceLock::new();
+
+fn default_instance_factory() -> Option<vlc::Instance> {
+    vlc::Instance::new()
+}
+
+fn emit_init_event(event: VlcInitEvent) {
+    let Some(lock) = VLC_INIT_OBSERVER.get() else {
+        return;
+    };
+
+    let observer = lock
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    if let Some(callback) = *observer {
+        callback(event);
+    }
+}
+
 static VLC_ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 /// Sets up VLC environment variables for proper plugin loading.
@@ -47,6 +84,8 @@ static VLC_ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 /// When using the player module as a library, player constructors will call this
 /// automatically, but calling it explicitly at startup is recommended for reliability.
 pub fn setup_vlc_environment() {
+    emit_init_event(VlcInitEvent::SetupCalled);
+
     let _guard = VLC_ENV_LOCK
         .get_or_init(|| Mutex::new(()))
         .lock()
@@ -105,6 +144,11 @@ pub fn setup_vlc_environment() {
             }
         }
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        setup_windows_vlc_library_path();
+    }
 }
 
 /// Tests if VLC can be initialized with current environment settings.
@@ -122,12 +166,9 @@ pub fn setup_vlc_environment() {
 /// }
 /// ```
 pub fn verify_vlc_available() -> bool {
-    use vlc::Instance;
-
-    setup_vlc_environment();
     tracing::debug!("Verifying VLC availability...");
 
-    Instance::new().map_or_else(
+    create_vlc_instance().map_or_else(
         || {
             tracing::error!("Failed to create VLC instance");
             false
@@ -137,6 +178,108 @@ pub fn verify_vlc_available() -> bool {
             true
         },
     )
+}
+
+pub(super) fn create_vlc_instance() -> Option<vlc::Instance> {
+    setup_vlc_environment();
+
+    if let Ok(plugin_path) = env::var("VLC_PLUGIN_PATH") {
+        tracing::debug!("VLC_PLUGIN_PATH = {}", plugin_path);
+    } else {
+        tracing::debug!("VLC_PLUGIN_PATH not set, relying on system defaults");
+    }
+
+    emit_init_event(VlcInitEvent::BeforeInstanceNew);
+
+    let factory_lock = VLC_INSTANCE_FACTORY
+        .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
+
+    let factory = factory_lock
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    (*factory)()
+}
+
+/// Installs or clears a test observer for VLC initialization ordering.
+///
+/// This is intended for integration tests to deterministically assert that
+/// environment setup occurs before instance creation.
+#[doc(hidden)]
+pub fn __set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTestHookGuard {
+    let lock = VLC_INIT_OBSERVER.get_or_init(|| Mutex::new(None));
+    let mut guard = lock
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    let previous = *guard;
+    *guard = observer;
+
+    drop(guard);
+
+    VlcTestHookGuard {
+        restore_observer: ObserverRestore::Restore(previous),
+        restore_factory: None,
+    }
+}
+
+/// Overrides the VLC instance factory for deterministic tests.
+///
+/// Passing a factory that always returns `None` allows tests to force the VLC
+/// error path even on machines where VLC is installed.
+#[doc(hidden)]
+pub fn __set_vlc_instance_factory_for_tests(factory: InstanceFactory) -> VlcTestHookGuard {
+    let lock = VLC_INSTANCE_FACTORY
+        .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
+    let mut guard = lock
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    let previous = *guard;
+    *guard = factory;
+
+    drop(guard);
+
+    VlcTestHookGuard {
+        restore_observer: ObserverRestore::Unchanged,
+        restore_factory: Some(previous),
+    }
+}
+
+#[doc(hidden)]
+pub struct VlcTestHookGuard {
+    restore_observer: ObserverRestore,
+    restore_factory: Option<InstanceFactory>,
+}
+
+#[derive(Clone, Copy)]
+enum ObserverRestore {
+    Unchanged,
+    Restore(Option<VlcInitObserver>),
+}
+
+impl Drop for VlcTestHookGuard {
+    fn drop(&mut self) {
+        match self.restore_observer {
+            ObserverRestore::Unchanged => {}
+            ObserverRestore::Restore(previous) => {
+                let lock = VLC_INIT_OBSERVER.get_or_init(|| Mutex::new(None));
+                let mut guard = lock
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                *guard = previous;
+            }
+        }
+
+        if let Some(previous) = self.restore_factory.take() {
+            let lock = VLC_INSTANCE_FACTORY
+                .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
+            let mut guard = lock
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            *guard = previous;
+        }
+    }
 }
 
 /// Detects the VLC plugin directory path based on the operating system.
@@ -201,6 +344,76 @@ fn detect_windows_vlc_plugin_path() -> Option<PathBuf> {
     }
 
     None
+}
+
+#[cfg(target_os = "windows")]
+fn detect_windows_vlc_install_dir() -> Option<PathBuf> {
+    let install_dirs = vec![
+        r"C:\Program Files\VideoLAN\VLC",
+        r"C:\Program Files (x86)\VideoLAN\VLC",
+    ];
+
+    for dir_str in install_dirs {
+        let dir = Path::new(dir_str);
+        if dir.exists() {
+            return Some(dir.to_path_buf());
+        }
+    }
+
+    None
+}
+
+#[cfg(target_os = "windows")]
+fn setup_windows_vlc_library_path() {
+    // If already configured with an existing directory, do not override.
+    if let Ok(existing) = env::var("VLC_LIB_PATH") {
+        let path = Path::new(&existing);
+        if path.exists() {
+            tracing::info!("Using existing VLC_LIB_PATH: {}", existing);
+            return;
+        }
+
+        tracing::debug!(
+            "VLC_LIB_PATH is set to '{}' but directory does not exist; attempting auto-detection",
+            existing
+        );
+        env::remove_var("VLC_LIB_PATH");
+    }
+
+    let Some(install_dir) = detect_windows_vlc_install_dir() else {
+        return;
+    };
+
+    apply_windows_vlc_paths(&install_dir);
+}
+
+#[cfg(target_os = "windows")]
+fn apply_windows_vlc_paths(install_dir: &Path) {
+    if !install_dir.exists() {
+        return;
+    }
+
+    tracing::info!(
+        "Auto-detected VLC library path (Windows): {}",
+        install_dir.display()
+    );
+    env::set_var("VLC_LIB_PATH", install_dir);
+
+    // Some Windows setups require the lib directory on PATH for libvlc discovery.
+    // Prepend it if it's not already present.
+    let current_path = env::var_os("PATH").unwrap_or_default();
+    let current = current_path.to_string_lossy();
+    let needle = install_dir.to_string_lossy();
+
+    if !current.split(';').any(|entry| entry == needle) {
+        let mut new_path = String::new();
+        new_path.push_str(&needle);
+        if !current.is_empty() {
+            new_path.push(';');
+            new_path.push_str(&current);
+        }
+        env::set_var("PATH", new_path);
+    }
 }
 
 #[cfg(test)]
@@ -314,5 +527,37 @@ mod tests {
         }
 
         // Restored by EnvVarGuard
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn test_apply_windows_vlc_paths_sets_vlc_lib_path_and_path(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let _lock = env_lock();
+        let _vlc_lib_guard = EnvVarGuard::capture("VLC_LIB_PATH");
+        let _path_guard = EnvVarGuard::capture("PATH");
+
+        let temp_dir = TempDir::new()?;
+        let install_dir = temp_dir.path().join("VLC");
+        std::fs::create_dir_all(&install_dir)?;
+
+        env::remove_var("VLC_LIB_PATH");
+        env::set_var("PATH", "C:\\Windows\\System32");
+
+        apply_windows_vlc_paths(&install_dir);
+
+        assert_eq!(
+            env::var_os("VLC_LIB_PATH"),
+            Some(install_dir.clone().into_os_string())
+        );
+
+        let path = env::var("PATH")?;
+        let install_str = install_dir.to_string_lossy();
+        assert!(
+            path.starts_with(&install_str),
+            "PATH must be prepended with VLC install dir"
+        );
+
+        Ok(())
     }
 }

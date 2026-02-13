@@ -1,7 +1,9 @@
+use super::media_duration;
 use super::vlc_env;
 use crate::error::{Error, Result};
 use crate::models::MediaProperty;
 use std::path::Path;
+use std::time::Duration;
 use vlc::{Instance, Media};
 
 /// A VLC-based media scanner for extracting metadata without playback
@@ -16,19 +18,7 @@ impl Scanner {
     ///
     /// Returns an error if VLC instance cannot be created
     pub fn new() -> Result<Self> {
-        // Setup VLC environment before creating instance
-        // Note: The main application calls this at startup, but we call it here
-        // too for safety when the player module is used as a library
-        vlc_env::setup_vlc_environment();
-
-        // Log current VLC environment for debugging
-        if let Ok(plugin_path) = std::env::var("VLC_PLUGIN_PATH") {
-            tracing::debug!("VLC_PLUGIN_PATH = {}", plugin_path);
-        } else {
-            tracing::debug!("VLC_PLUGIN_PATH not set, relying on system defaults");
-        }
-
-        let instance = Instance::new().ok_or_else(|| {
+        let instance = vlc_env::create_vlc_instance().ok_or_else(|| {
             let plugin_path_info = std::env::var("VLC_PLUGIN_PATH").map_or_else(
                 |_| "VLC_PLUGIN_PATH not set".to_string(),
                 |p| format!("VLC_PLUGIN_PATH={p}"),
@@ -58,13 +48,7 @@ impl Scanner {
         let media = Media::new_path(&self.instance, path)
             .ok_or_else(|| Error::MediaParse("Failed to load media".to_string()))?;
 
-        // Parse the media to extract metadata
-        media.parse();
-
-        // Wait for parsing to complete
-        let duration = media
-            .duration()
-            .ok_or_else(|| Error::MediaParse("Duration not available".to_string()))?;
+        let duration = media_duration::parse_duration_with_timeout(&media, Duration::from_secs(2))?;
 
         Ok(MediaProperty::new(path.to_path_buf(), duration))
     }
