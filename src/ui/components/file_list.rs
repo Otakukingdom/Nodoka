@@ -3,6 +3,7 @@ use crate::ui::Message;
 use iced::widget::{button, column, container, horizontal_space, row, scrollable, text};
 use iced::{Element, Length};
 
+#[must_use]
 pub fn build_file_list(
     files: &[AudiobookFile],
     selected_path: Option<&String>,
@@ -36,7 +37,7 @@ fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Me
                 if is_complete {
                     text("✓").size(11)
                 } else if has_progress {
-                    text(format!("{}%", completeness)).size(11)
+                    text(format!("{completeness}%")).size(11)
                 } else {
                     text("").size(11)
                 }
@@ -50,8 +51,9 @@ fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Me
 }
 
 fn format_duration(duration_ms: Option<i64>) -> String {
-    match duration_ms {
-        Some(ms) => {
+    duration_ms.map_or_else(
+        || "Unknown".to_string(),
+        |ms| {
             let seconds = ms / 1000;
             let minutes = seconds / 60;
             let hours = minutes / 60;
@@ -61,7 +63,6 @@ fn format_duration(duration_ms: Option<i64>) -> String {
             } else {
                 format!("{}:{:02}", minutes, seconds % 60)
             }
-        }
-        None => "Unknown".to_string(),
-    }
+        },
+    )
 }

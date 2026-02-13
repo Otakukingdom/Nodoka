@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::indexing_slicing)]
+
 use chrono::Utc;
 use nodoka::db::{queries, Database};
 use nodoka::models::{Audiobook, AudiobookFile, Directory};
@@ -141,7 +143,7 @@ fn test_audiobook_file_crud_operations() {
         audiobook_id,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
+        length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
         completeness: 0,
@@ -155,7 +157,7 @@ fn test_audiobook_file_crud_operations() {
         queries::get_audiobook_files(conn, audiobook_id).expect("Failed to get audiobook files");
     assert_eq!(files.len(), 1);
     assert_eq!(files[0].name, "Chapter 1.mp3");
-    assert_eq!(files[0].length_of_file, Some(300000));
+    assert_eq!(files[0].length_of_file, Some(300_000));
 
     // Get file by path
     let by_path = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
@@ -164,21 +166,21 @@ fn test_audiobook_file_crud_operations() {
     assert_eq!(by_path.name, "Chapter 1.mp3");
 
     // Update progress
-    queries::update_file_progress(conn, "/test/audiobooks/test/Chapter 1.mp3", 150000, 50)
+    queries::update_file_progress(conn, "/test/audiobooks/test/Chapter 1.mp3", 150_000.0, 50)
         .expect("Failed to update progress");
     let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
         .expect("Failed to get file")
         .expect("File not found");
-    assert_eq!(updated.seek_position, Some(150000));
+    assert_eq!(updated.seek_position, Some(150_000));
     assert_eq!(updated.completeness, 50);
 
     // Update file length
-    queries::update_file_length(conn, "/test/audiobooks/test/Chapter 1.mp3", 350000)
+    queries::update_file_length(conn, "/test/audiobooks/test/Chapter 1.mp3", 350_000)
         .expect("Failed to update file length");
     let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")
         .expect("Failed to get file")
         .expect("File not found");
-    assert_eq!(updated.length_of_file, Some(350000));
+    assert_eq!(updated.length_of_file, Some(350_000));
 
     // Mark file as missing
     queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", false)
@@ -229,7 +231,7 @@ fn test_audiobook_progress_operations() {
             audiobook_id,
             name: format!("Chapter {}.mp3", i + 1),
             full_path: format!("/test/audiobooks/test/Chapter {}.mp3", i + 1),
-            length_of_file: Some(300000),
+            length_of_file: Some(300_000),
             seek_position: None,
             position: i,
             completeness: 0,
@@ -343,7 +345,7 @@ fn test_count_operations() {
             audiobook_id: first_id,
             name: format!("Chapter {}.mp3", i + 1),
             full_path: format!("/test/audiobooks/book1/Chapter {}.mp3", i + 1),
-            length_of_file: Some(300000),
+            length_of_file: Some(300_000),
             seek_position: None,
             position: i,
             completeness: 0,
@@ -387,7 +389,7 @@ fn test_cascade_delete_directory() {
         audiobook_id,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
+        length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
         completeness: 0,

@@ -1,6 +1,7 @@
 use super::events::{PlayerEvent, PlayerState};
 use crate::error::{NodokaError, Result};
 use std::path::Path;
+use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
 use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State};
@@ -10,7 +11,7 @@ pub struct ConcretePlayer {
     player: MediaPlayer,
     event_sender: mpsc::UnboundedSender<PlayerEvent>,
     current_file: Arc<Mutex<Option<String>>>,
-    volume: Arc<Mutex<i32>>,
+    volume: AtomicI32,
     speed: Arc<Mutex<f32>>,
 }
 
@@ -33,7 +34,7 @@ impl ConcretePlayer {
             player,
             event_sender,
             current_file: Arc::new(Mutex::new(None)),
-            volume: Arc::new(Mutex::new(100)),
+            volume: AtomicI32::new(100),
             speed: Arc::new(Mutex::new(1.0)),
         })
     }
@@ -98,10 +99,8 @@ impl ConcretePlayer {
     pub fn set_volume(&mut self, volume: i32) -> Result<()> {
         self.player
             .set_volume(volume)
-            .map_err(|_| NodokaError::Vlc("Failed to set volume".to_string()))?;
-        if let Ok(mut vol) = self.volume.lock() {
-            *vol = volume;
-        }
+            .map_err(|()| NodokaError::Vlc("Failed to set volume".to_string()))?;
+        self.volume.store(volume, Ordering::SeqCst);
         Ok(())
     }
 
@@ -113,7 +112,7 @@ impl ConcretePlayer {
     pub fn set_rate(&mut self, rate: f32) -> Result<()> {
         self.player
             .set_rate(rate)
-            .map_err(|_| NodokaError::Vlc("Failed to set rate".to_string()))?;
+            .map_err(|()| NodokaError::Vlc("Failed to set rate".to_string()))?;
         if let Ok(mut spd) = self.speed.lock() {
             *spd = rate;
         }
@@ -130,10 +129,17 @@ impl ConcretePlayer {
         Ok(())
     }
 
-    /// Gets the current playback time in milliseconds
+    /// Gets the current playback time in milliseconds as f64
+    ///
+    /// # Precision
+    ///
+    /// VLC internally uses i64 for time values. This function converts to f64
+    /// for UI consistency. For practical media durations (< 285 million years),
+    /// the conversion is exact within f64's 53-bit mantissa precision.
     #[must_use]
-    pub fn get_time(&self) -> i64 {
-        self.player.get_time().unwrap_or(0)
+    pub fn get_time(&self) -> f64 {
+        let time_ms = self.player.get_time().unwrap_or(0);
+        time_ms as f64
     }
 
     /// Gets the total duration in milliseconds
@@ -142,16 +148,17 @@ impl ConcretePlayer {
     ///
     /// Returns an error if the length cannot be retrieved
     pub fn get_length(&self) -> Result<i64> {
-        if let Some(media) = self.player.get_media() {
-            // Parse media to get duration
-            media.parse();
+        self.player.get_media().map_or_else(
+            || Ok(0),
+            |media| {
+                // Parse media to get duration
+                media.parse();
 
-            // Duration is in milliseconds
-            let duration = media.duration().unwrap_or(0);
-            Ok(duration)
-        } else {
-            Ok(0)
-        }
+                // Duration is in milliseconds
+                let duration = media.duration().unwrap_or(0);
+                Ok(duration)
+            },
+        )
     }
 
     /// Gets the current player state
@@ -169,7 +176,7 @@ impl ConcretePlayer {
     /// Gets the current volume
     #[must_use]
     pub fn get_volume(&self) -> i32 {
-        self.volume.lock().map_or(100, |v| *v)
+        self.volume.load(Ordering::SeqCst)
     }
 
     /// Gets the current playback rate
@@ -186,7 +193,7 @@ impl ConcretePlayer {
     }
 }
 
-fn convert_vlc_state(state: State) -> PlayerState {
+const fn convert_vlc_state(state: State) -> PlayerState {
     match state {
         State::NothingSpecial => PlayerState::NothingSpecial,
         State::Opening => PlayerState::Opening,

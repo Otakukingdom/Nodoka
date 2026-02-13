@@ -3,6 +3,7 @@ use crate::ui::Message;
 use iced::widget::{button, column, container, horizontal_space, row, scrollable, text};
 use iced::{Element, Length};
 
+#[must_use]
 pub fn build_audiobook_list(
     audiobooks: &[Audiobook],
     selected_id: Option<i64>,
@@ -29,7 +30,7 @@ fn build_audiobook_item(ab: &Audiobook, _selected: bool) -> Element<'static, Mes
         column![
             text(name).size(14),
             row![
-                text(format!("{}%", completeness)).size(12),
+                text(format!("{completeness}%")).size(12),
                 horizontal_space(),
                 if is_complete {
                     text("✓").size(12)

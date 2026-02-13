@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-use crate::player::ScanPlayer;
-use crate::models::MediaProperty;
 use crate::error::Result;
+use crate::models::MediaProperty;
+use crate::player::ScanPlayer;
+use std::path::PathBuf;
 
 /// Scans a media file for its properties using VLC
 ///
@@ -14,8 +14,10 @@ pub async fn scan_media_properties(file_path: PathBuf) -> Result<MediaProperty> 
         scanner.scan_media(&file_path)
     })
     .await
-    .map_err(|e| crate::error::NodokaError::Io(std::io::Error::new(
-        std::io::ErrorKind::Other,
-        format!("Task join error: {e}")
-    )))?
+    .map_err(|e| {
+        crate::error::NodokaError::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Task join error: {e}"),
+        ))
+    })?
 }

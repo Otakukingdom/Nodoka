@@ -17,9 +17,9 @@ pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
         container(text(format!("Now Playing: {current_file_text}")).size(12)).padding(10),
         // Progress slider
         slider(
-            0.0..=state.total_duration.max(1) as f64,
-            state.current_time.min(state.total_duration) as f64,
-            |val| Message::SeekTo(val as i64)
+            0.0..=state.total_duration.max(1.0),
+            state.current_time.min(state.total_duration),
+            Message::SeekTo
         ),
         // Control buttons and volume
         row![
@@ -64,8 +64,9 @@ pub fn build_player_controls(state: &NodokaState) -> Element<'static, Message> {
     .into()
 }
 
-fn _format_time(ms: i64) -> String {
-    let seconds = ms / 1000;
+fn _format_time(ms: f64) -> String {
+    let ms_i64 = ms.round() as i64;
+    let seconds = ms_i64 / 1000;
     let minutes = seconds / 60;
     let hours = minutes / 60;
 

@@ -103,7 +103,7 @@ pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audioboo
             let created_str: String = row.get(7)?;
             let created_at = DateTime::parse_from_rfc3339(&created_str)
                 .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-            
+
             Ok(Audiobook {
                 id: Some(row.get(0)?),
                 directory: row.get(1)?,
@@ -202,8 +202,7 @@ pub fn get_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<Vec<A
         let seek_str: Option<String> = row.get(4)?;
         let created_str: String = row.get(8)?;
         let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
         Ok(AudiobookFile {
             audiobook_id: row.get(0)?,
@@ -230,12 +229,13 @@ pub fn get_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<Vec<A
 pub fn update_file_progress(
     conn: &Connection,
     full_path: &str,
-    seek_position: i64,
+    seek_position: f64,
     completeness: i32,
 ) -> Result<()> {
+    let position_ms = seek_position.round() as i64;
     conn.execute(
         "UPDATE audiobook_file SET seek_position = ?1, completeness = ?2 WHERE full_path = ?3",
-        params![seek_position.to_string(), completeness, full_path],
+        params![position_ms, completeness, full_path],
     )?;
     Ok(())
 }
@@ -272,8 +272,7 @@ pub fn get_all_directories(conn: &Connection) -> Result<Vec<Directory>> {
     let rows = stmt.query_map([], |row| {
         let created_str: String = row.get(1)?;
         let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
         let last_scanned_str: Option<String> = row.get(2)?;
         let last_scanned = last_scanned_str.and_then(|s| {
@@ -374,7 +373,7 @@ pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Aud
             let created_str: String = row.get(7)?;
             let created_at = DateTime::parse_from_rfc3339(&created_str)
                 .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-            
+
             Ok(Audiobook {
                 id: Some(row.get(0)?),
                 directory: row.get(1)?,
@@ -405,9 +404,8 @@ pub fn get_audiobook_file_by_path(conn: &Connection, path: &str) -> Result<Optio
             let length_str: Option<String> = row.get(3)?;
             let seek_str: Option<String> = row.get(4)?;
             let created_str: String = row.get(8)?;
-            let created_at = DateTime::parse_from_rfc3339(&created_str)
-                .map(|dt| dt.with_timezone(&Utc))
-                .unwrap_or_else(|_| Utc::now());
+        let created_at = DateTime::parse_from_rfc3339(&created_str)
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
             Ok(AudiobookFile {
                 audiobook_id: row.get(0)?,

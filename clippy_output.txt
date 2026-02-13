@@ -1,0 +1,711 @@
+   Compiling nodoka v0.2.0 (/Users/mistlight/Projects/Nodoka/wt-001-convert-rust)
+warning: called `map(<f>).unwrap_or_else(<g>)` on a `Result` value
+   --> src/db/queries.rs:204:26
+    |
+204 |           let created_at = DateTime::parse_from_rfc3339(&created_str)
+    |  __________________________^
+205 | |             .map(|dt| dt.with_timezone(&Utc))
+206 | |             .unwrap_or_else(|_| Utc::now());
+    | |___________________________________________^ help: try: `DateTime::parse_from_rfc3339(&created_str).map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc))`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#map_unwrap_or
+    = note: `-W clippy::map-unwrap-or` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::map_unwrap_or)]`
+
+warning: casting `i64` to `i32` may truncate the value
+  --> src/models/audiobook_file.rs:52:21
+   |
+52 |                     percentage as i32
+   |                     ^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_possible_truncation
+   = note: `-W clippy::cast-possible-truncation` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_possible_truncation)]`
+help: ... or use `try_from` and handle the error accordingly
+   |
+52 |                     i32::try_from(percentage)
+   |
+
+warning: consider using an `AtomicI32` instead of a `Mutex` here; if you just want the locking behavior and not the internal type, consider using `Mutex<()>`
+  --> src/player/concrete_player.rs:36:30
+   |
+36 |             volume: Arc::new(Mutex::new(100)),
+   |                              ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#mutex_integer
+   = note: `-W clippy::mutex-integer` implied by `-W clippy::nursery`
+   = help: to override `-W clippy::nursery` add `#[allow(clippy::mutex_integer)]`
+
+warning: matching over `()` is more explicit
+   --> src/player/concrete_player.rs:101:23
+    |
+101 |             .map_err(|_| NodokaError::Vlc("Failed to set volume".to_string()))?;
+    |                       ^ help: use `()` instead of `_`: `()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#ignored_unit_patterns
+    = note: `-W clippy::ignored-unit-patterns` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::ignored_unit_patterns)]`
+
+warning: matching over `()` is more explicit
+   --> src/player/concrete_player.rs:116:23
+    |
+116 |             .map_err(|_| NodokaError::Vlc("Failed to set rate".to_string()))?;
+    |                       ^ help: use `()` instead of `_`: `()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#ignored_unit_patterns
+
+warning: use Option::map_or_else instead of an if let/else
+   --> src/player/concrete_player.rs:145:9
+    |
+145 | /         if let Some(media) = self.player.get_media() {
+146 | |             // Parse media to get duration
+147 | |             media.parse();
+...   |
+153 | |             Ok(0)
+154 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+    = note: `-W clippy::option-if-let-else` implied by `-W clippy::nursery`
+    = help: to override `-W clippy::nursery` add `#[allow(clippy::option_if_let_else)]`
+help: try
+    |
+145 ~         self.player.get_media().map_or_else(|| Ok(0), |media| {
+146 +             // Parse media to get duration
+147 +             media.parse();
+148 + 
+149 +             // Duration is in milliseconds
+150 +             let duration = media.duration().unwrap_or(0);
+151 +             Ok(duration)
+152 +         })
+    |
+
+warning: this could be a `const fn`
+   --> src/player/concrete_player.rs:189:1
+    |
+189 | / fn convert_vlc_state(state: State) -> PlayerState {
+190 | |     match state {
+191 | |         State::NothingSpecial => PlayerState::NothingSpecial,
+192 | |         State::Opening => PlayerState::Opening,
+...   |
+199 | |     }
+200 | | }
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+    = note: `-W clippy::missing-const-for-fn` implied by `-W clippy::nursery`
+    = help: to override `-W clippy::nursery` add `#[allow(clippy::missing_const_for_fn)]`
+help: make the function `const`
+    |
+189 | const fn convert_vlc_state(state: State) -> PlayerState {
+    | +++++
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/audiobook_proxy.rs:15:5
+   |
+15 |     pub fn new(id: i64, db: Arc<Database>) -> Result<Self, NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+   = note: requested on the command line with `-D clippy::missing-errors-doc`
+
+error: usage of an `Arc` that is not `Send` and `Sync`
+  --> src/proxy/audiobook_proxy.rs:22:26
+   |
+22 |             files_cache: Arc::new(RwLock::new(None)),
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `Arc<RwLock<Option<Vec<AudiobookFileProxy>>>>` is not `Send` and `Sync` as `RwLock<Option<Vec<AudiobookFileProxy>>>` is neither `Send` nor `Sync`
+   = help: if the `Arc` will not used be across threads replace it with an `Rc`
+   = help: otherwise make `RwLock<Option<Vec<AudiobookFileProxy>>>` `Send` and `Sync` or consider a wrapper type such as `Mutex`
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#arc_with_non_send_sync
+   = note: `-D clippy::arc-with-non-send-sync` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::arc_with_non_send_sync)]`
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/audiobook_proxy.rs:27:5
+   |
+27 |     pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+
+warning: temporary with significant `Drop` can be early dropped
+  --> src/proxy/audiobook_proxy.rs:46:17
+   |
+27 |       pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, NodokaError> {
+   |  _____________________________________________________________________________-
+28 | |         let cache = self
+29 | |             .files_cache
+30 | |             .read()
+...  |
+46 | |         let mut cache = self
+   | |                 ^^^^^
+...  |
+52 | |         Ok(proxies)
+53 | |     }
+   | |_____- temporary `cache` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#significant_drop_tightening
+   = note: `-W clippy::significant-drop-tightening` implied by `-W clippy::nursery`
+   = help: to override `-W clippy::nursery` add `#[allow(clippy::significant_drop_tightening)]`
+help: merge the temporary construction with its single usage
+   |
+46 ~         
+47 +         self
+48 +             .files_cache
+49 +             .write()
+50 +             .map_err(|_| NodokaError::LockError)?.;
+   |
+help: remove separated single usage
+   |
+50 -         *cache = Some(proxies.clone());
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/audiobook_proxy.rs:55:5
+   |
+55 |     pub fn update_completeness(&self) -> Result<(), NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+
+warning: temporary with significant `Drop` can be early dropped
+  --> src/proxy/audiobook_proxy.rs:65:17
+   |
+55 |       pub fn update_completeness(&self) -> Result<(), NodokaError> {
+   |  __________________________________________________________________-
+56 | |         let files = self.get_files()?;
+57 | |
+58 | |         if files.is_empty() {
+...  |
+65 | |         let mut data = self.data.write().map_err(|_| NodokaError::LockError)?;
+   | |                 ^^^^
+...  |
+68 | |         crate::db::queries::update_audiobook_completeness(self.db.connection(), self.id, avg)
+69 | |     }
+   | |_____- temporary `data` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#significant_drop_tightening
+help: merge the temporary construction with its single usage
+   |
+65 ~         
+66 +         self.data.write().map_err(|_| NodokaError::LockError)?.;
+   |
+help: remove separated single usage
+   |
+66 -         data.completeness = avg;
+   |
+
+warning: redundant closure
+  --> src/proxy/audiobook_proxy.rs:62:43
+   |
+62 |         let total: i32 = files.iter().map(|f| f.completeness()).sum();
+   |                                           ^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `super::audiobook_file_proxy::AudiobookFileProxy::completeness`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure_for_method_calls
+   = note: `-W clippy::redundant-closure-for-method-calls` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::redundant_closure_for_method_calls)]`
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/audiobook_proxy.rs:71:5
+   |
+71 |     pub fn get_data(&self) -> Result<Audiobook, NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+
+warning: this method could have a `#[must_use]` attribute
+  --> src/proxy/audiobook_proxy.rs:78:5
+   |
+78 |     pub fn id(&self) -> i64 {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ help: add the attribute: `#[must_use] pub fn id(&self) -> i64`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+   = note: `-W clippy::must-use-candidate` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::must_use_candidate)]`
+
+warning: this could be a `const fn`
+  --> src/proxy/audiobook_proxy.rs:78:5
+   |
+78 | /     pub fn id(&self) -> i64 {
+79 | |         self.id
+80 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+78 |     pub const fn id(&self) -> i64 {
+   |         +++++
+
+warning: this could be a `const fn`
+  --> src/proxy/audiobook_file_proxy.rs:12:5
+   |
+12 | /     pub fn new(data: AudiobookFile, db: Arc<Database>) -> Self {
+13 | |         Self { data, db }
+14 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+12 |     pub const fn new(data: AudiobookFile, db: Arc<Database>) -> Self {
+   |         +++++
+
+warning: this method could have a `#[must_use]` attribute
+  --> src/proxy/audiobook_file_proxy.rs:16:5
+   |
+16 |     pub fn completeness(&self) -> i32 {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add the attribute: `#[must_use] pub fn completeness(&self) -> i32`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+
+warning: this could be a `const fn`
+  --> src/proxy/audiobook_file_proxy.rs:16:5
+   |
+16 | /     pub fn completeness(&self) -> i32 {
+17 | |         self.data.completeness
+18 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+16 |     pub const fn completeness(&self) -> i32 {
+   |         +++++
+
+warning: this method could have a `#[must_use]` attribute
+  --> src/proxy/audiobook_file_proxy.rs:20:5
+   |
+20 |     pub fn data(&self) -> &AudiobookFile {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add the attribute: `#[must_use] pub fn data(&self) -> &AudiobookFile`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+
+warning: this could be a `const fn`
+  --> src/proxy/audiobook_file_proxy.rs:20:5
+   |
+20 | /     pub fn data(&self) -> &AudiobookFile {
+21 | |         &self.data
+22 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+20 |     pub const fn data(&self) -> &AudiobookFile {
+   |         +++++
+
+warning: this could be a `const fn`
+  --> src/proxy/audiobook_file_proxy.rs:26:5
+   |
+26 | /     pub fn database(&self) -> &Arc<Database> {
+27 | |         &self.db
+28 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+26 |     pub const fn database(&self) -> &Arc<Database> {
+   |         +++++
+
+error: usage of an `Arc` that is not `Send` and `Sync`
+  --> src/proxy/manager.rs:16:30
+   |
+16 |             audiobook_cache: Arc::new(RwLock::new(HashMap::new())),
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `Arc<RwLock<HashMap<i64, AudiobookProxy>>>` is not `Send` and `Sync` as `RwLock<HashMap<i64, AudiobookProxy>>` is neither `Send` nor `Sync`
+   = help: if the `Arc` will not used be across threads replace it with an `Rc`
+   = help: otherwise make `RwLock<HashMap<i64, AudiobookProxy>>` `Send` and `Sync` or consider a wrapper type such as `Mutex`
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#arc_with_non_send_sync
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/manager.rs:20:5
+   |
+20 |     pub fn get_audiobook(&self, id: i64) -> Result<AudiobookProxy, NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+
+warning: temporary with significant `Drop` can be early dropped
+  --> src/proxy/manager.rs:34:17
+   |
+20 |       pub fn get_audiobook(&self, id: i64) -> Result<AudiobookProxy, NodokaError> {
+   |  _________________________________________________________________________________-
+21 | |         let cache = self
+22 | |             .audiobook_cache
+23 | |             .read()
+...  |
+34 | |         let mut cache = self
+   | |                 ^^^^^
+...  |
+40 | |         Ok(proxy)
+41 | |     }
+   | |_____- temporary `cache` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#significant_drop_tightening
+help: merge the temporary construction with its single usage
+   |
+34 ~         
+35 +         self
+36 +             .audiobook_cache
+37 +             .write()
+38 +             .map_err(|_| NodokaError::LockError)?.insert(id, proxy.clone());
+   |
+help: remove separated single usage
+   |
+38 -         cache.insert(id, proxy.clone());
+   |
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> src/proxy/manager.rs:43:5
+   |
+43 |     pub fn clear_cache(&self) -> Result<(), NodokaError> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
+
+warning: temporary with significant `Drop` can be early dropped
+  --> src/proxy/manager.rs:44:17
+   |
+43 |       pub fn clear_cache(&self) -> Result<(), NodokaError> {
+   |  __________________________________________________________-
+44 | |         let mut cache = self
+   | |                 ^^^^^
+45 | |             .audiobook_cache
+46 | |             .write()
+...  |
+49 | |         Ok(())
+50 | |     }
+   | |_____- temporary `cache` is currently being dropped at the end of its contained scope
+   |
+   = note: this might lead to unnecessary resource contention
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#significant_drop_tightening
+help: merge the temporary construction with its single usage
+   |
+44 ~         
+45 +         self
+46 +             .audiobook_cache
+47 +             .write()
+48 +             .map_err(|_| NodokaError::LockError)?.clear();
+   |
+help: remove separated single usage
+   |
+48 -         cache.clear();
+   |
+
+warning: this could be a `const fn`
+  --> src/settings/storage.rs:11:5
+   |
+11 | /     pub fn new(conn: &'a Connection) -> Self {
+12 | |         Self { conn }
+13 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+help: make the function `const`
+   |
+11 |     pub const fn new(conn: &'a Connection) -> Self {
+   |         +++++
+
+warning: use Option::map_or_else instead of an if let/else
+  --> src/settings/storage.rs:21:9
+   |
+21 | /         match get_metadata(self.conn, "volume")? {
+22 | |             Some(v) => v.parse().or(Ok(100)),
+23 | |             None => Ok(100),
+24 | |         }
+   | |_________^ help: try: `(get_metadata(self.conn, "volume")?).map_or_else(|| Ok(100), |v| v.parse().or(Ok(100)))`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+
+warning: use Option::map_or_else instead of an if let/else
+  --> src/settings/storage.rs:42:9
+   |
+42 | /         match get_metadata(self.conn, "speed")? {
+43 | |             Some(v) => v.parse().or(Ok(1.0)),
+44 | |             None => Ok(1.0),
+45 | |         }
+   | |_________^ help: try: `(get_metadata(self.conn, "speed")?).map_or_else(|| Ok(1.0), |v| v.parse().or(Ok(1.0)))`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+
+warning: use Option::map_or_else instead of an if let/else
+  --> src/settings/storage.rs:63:9
+   |
+63 | /         match get_metadata(self.conn, "current_audiobook_id")? {
+64 | |             Some(v) => v.parse().ok().map(Some).ok_or_else(|| {
+65 | |                 crate::error::NodokaError::InvalidState("Invalid audiobook ID".to_string())
+66 | |             }),
+67 | |             None => Ok(None),
+68 | |         }
+   | |_________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+help: try
+   |
+63 ~         (get_metadata(self.conn, "current_audiobook_id")?).map_or_else(|| Ok(None), |v| v.parse().ok().map(Some).ok_or_else(|| {
+64 +                 crate::error::NodokaError::InvalidState("Invalid audiobook ID".to_string())
+65 +             }))
+   |
+
+warning: casting `usize` to `i32` may truncate the value on targets with 64-bit wide pointers
+  --> src/tasks/scan_directory.rs:84:28
+   |
+84 |             default_order: idx as i32,
+   |                            ^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+   |
+84 |             default_order: i32::try_from(idx),
+   |                            ~~~~~~~~~~~~~~~~~~
+
+warning: casting `usize` to `i32` may wrap around the value on targets with 32-bit wide pointers
+  --> src/tasks/scan_directory.rs:84:28
+   |
+84 |             default_order: idx as i32,
+   |                            ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_possible_wrap
+   = note: `-W clippy::cast-possible-wrap` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_possible_wrap)]`
+
+error: approximate value of `f{32, 64}::consts::FRAC_1_PI` found
+  --> src/ui/styles.rs:10:60
+   |
+10 | pub const SELECTED_ITEM_BG: Color = Color::from_rgb(0.333, 0.318, 0.322); // #555152
+   |                                                            ^^^^^
+   |
+   = help: consider using the constant directly
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
+   = note: `-D clippy::approx-constant` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::approx_constant)]`
+
+error: approximate value of `f{32, 64}::consts::FRAC_1_PI` found
+  --> src/ui/styles.rs:11:47
+   |
+11 | pub const TEXT_COLOR: Color = Color::from_rgb(0.318, 0.318, 0.318); // #515151
+   |                                               ^^^^^
+   |
+   = help: consider using the constant directly
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
+
+error: approximate value of `f{32, 64}::consts::FRAC_1_PI` found
+  --> src/ui/styles.rs:11:54
+   |
+11 | pub const TEXT_COLOR: Color = Color::from_rgb(0.318, 0.318, 0.318); // #515151
+   |                                                      ^^^^^
+   |
+   = help: consider using the constant directly
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
+
+error: approximate value of `f{32, 64}::consts::FRAC_1_PI` found
+  --> src/ui/styles.rs:11:61
+   |
+11 | pub const TEXT_COLOR: Color = Color::from_rgb(0.318, 0.318, 0.318); // #515151
+   |                                                             ^^^^^
+   |
+   = help: consider using the constant directly
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant
+
+warning: this function could have a `#[must_use]` attribute
+ --> src/ui/components/audiobook_list.rs:6:1
+  |
+6 | / pub fn build_audiobook_list(
+7 | |     audiobooks: &[Audiobook],
+8 | |     selected_id: Option<i64>,
+9 | | ) -> Element<'static, Message> {
+  | |______________________________^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+help: add the attribute
+  |
+6 + #[must_use] pub fn build_audiobook_list(
+7 +     audiobooks: &[Audiobook],
+8 +     selected_id: Option<i64>,
+9 ~ ) -> Element<'static, Message> {
+  |
+
+warning: variables can be used directly in the `format!` string
+  --> src/ui/components/audiobook_list.rs:32:22
+   |
+32 |                 text(format!("{}%", completeness)).size(12),
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#uninlined_format_args
+   = note: `-W clippy::uninlined-format-args` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+   |
+32 -                 text(format!("{}%", completeness)).size(12),
+32 +                 text(format!("{completeness}%")).size(12),
+   |
+
+warning: this function could have a `#[must_use]` attribute
+ --> src/ui/components/file_list.rs:6:1
+  |
+6 | / pub fn build_file_list(
+7 | |     files: &[AudiobookFile],
+8 | |     selected_path: Option<&String>,
+9 | | ) -> Element<'static, Message> {
+  | |______________________________^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+help: add the attribute
+  |
+6 + #[must_use] pub fn build_file_list(
+7 +     files: &[AudiobookFile],
+8 +     selected_path: Option<&String>,
+9 ~ ) -> Element<'static, Message> {
+  |
+
+warning: variables can be used directly in the `format!` string
+  --> src/ui/components/file_list.rs:39:26
+   |
+39 |                     text(format!("{}%", completeness)).size(11)
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#uninlined_format_args
+help: change this to
+   |
+39 -                     text(format!("{}%", completeness)).size(11)
+39 +                     text(format!("{completeness}%")).size(11)
+   |
+
+warning: use Option::map_or_else instead of an if let/else
+  --> src/ui/components/file_list.rs:53:5
+   |
+53 | /     match duration_ms {
+54 | |         Some(ms) => {
+55 | |             let seconds = ms / 1000;
+56 | |             let minutes = seconds / 60;
+...  |
+65 | |         None => "Unknown".to_string(),
+66 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+help: try
+   |
+53 ~     duration_ms.map_or_else(|| "Unknown".to_string(), |ms| {
+54 +             let seconds = ms / 1000;
+55 +             let minutes = seconds / 60;
+56 +             let hours = minutes / 60;
+57 + 
+58 +             if hours > 0 {
+59 +                 format!("{}:{:02}:{:02}", hours, minutes % 60, seconds % 60)
+60 +             } else {
+61 +                 format!("{}:{:02}", minutes, seconds % 60)
+62 +             }
+63 +         })
+   |
+
+warning: casting `i64` to `f64` causes a loss of precision (`i64` is 64 bits wide, but `f64`'s mantissa is only 52 bits wide)
+  --> src/ui/components/player_controls.rs:20:19
+   |
+20 |             0.0..=state.total_duration.max(1) as f64,
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_precision_loss
+   = note: `-W clippy::cast-precision-loss` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_precision_loss)]`
+
+warning: casting `i64` to `f64` causes a loss of precision (`i64` is 64 bits wide, but `f64`'s mantissa is only 52 bits wide)
+  --> src/ui/components/player_controls.rs:21:13
+   |
+21 |             state.current_time.min(state.total_duration) as f64,
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_precision_loss
+
+warning: casting `f64` to `i64` may truncate the value
+  --> src/ui/components/player_controls.rs:22:35
+   |
+22 |             |val| Message::SeekTo(val as i64)
+   |                                   ^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_possible_truncation
+
+warning: this function could have a `#[must_use]` attribute
+ --> src/ui/main_window.rs:6:1
+  |
+6 | pub fn view(state: &NodokaState) -> Element<'static, Message> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add the attribute: `#[must_use] pub fn view(state: &NodokaState) -> Element<'static, Message>`
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+
+warning: this function could have a `#[must_use]` attribute
+ --> src/ui/settings_form.rs:5:1
+  |
+5 | pub fn build_settings_dialog(state: &NodokaState) -> Element<'static, Message> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add the attribute: `#[must_use] pub fn build_settings_dialog(state: &NodokaState) -> Element<'static, Message>`
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#must_use_candidate
+
+warning: the function has a cognitive complexity of (47/30)
+ --> src/ui/update.rs:7:8
+  |
+7 | pub fn update(
+  |        ^^^^^^
+  |
+  = help: you could split it up into multiple smaller functions
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cognitive_complexity
+  = note: `-W clippy::cognitive-complexity` implied by `-W clippy::nursery`
+  = help: to override `-W clippy::nursery` add `#[allow(clippy::cognitive_complexity)]`
+
+warning: this function has too many lines (188/100)
+   --> src/ui/update.rs:7:1
+    |
+7   | / pub fn update(
+8   | |     state: &mut NodokaState,
+9   | |     message: Message,
+10  | |     player: &mut Option<ConcretePlayer>,
+...   |
+245 | |     }
+246 | | }
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines
+    = note: `-W clippy::too-many-lines` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::too_many_lines)]`
+
+warning: use Option::map_or instead of an if let/else
+   --> src/ui/update.rs:145:26
+    |
+145 |                   |result| match result {
+    |  __________________________^
+146 | |                     Some(path) => Message::DirectoryAdded(path),
+147 | |                     None => Message::DirectoryAddCancelled,
+148 | |                 },
+    | |_________________^ help: try: `result.map_or(Message::DirectoryAddCancelled, |path| Message::DirectoryAdded(path))`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#option_if_let_else
+
+warning: casting `i64` to `i32` may truncate the value
+   --> src/ui/update.rs:228:40
+    |
+228 |                     let completeness = ((time * 100) / state.total_duration) as i32;
+    |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+    |
+228 |                     let completeness = i32::try_from((time * 100) / state.total_duration);
+    |                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+warning: `nodoka` (lib) generated 40 warnings (28 duplicates)
+error: could not compile `nodoka` (lib) due to 12 previous errors; 40 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: `nodoka` (lib test) generated 40 warnings (12 duplicates)
+error: could not compile `nodoka` (lib test) due to 12 previous errors; 40 warnings emitted

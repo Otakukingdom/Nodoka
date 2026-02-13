@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::indexing_slicing)]
+
 use nodoka::tasks::calculate_checksum;
 use std::fs;
 use std::io::Write;
@@ -8,9 +10,10 @@ async fn test_checksum_calculation() {
     // Create temporary file
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let file_path = temp_dir.path().join("test.txt");
-    
+
     let mut file = fs::File::create(&file_path).expect("Failed to create file");
-    file.write_all(b"Hello, World!").expect("Failed to write to file");
+    file.write_all(b"Hello, World!")
+        .expect("Failed to write to file");
     drop(file);
 
     // Calculate checksum
@@ -35,7 +38,7 @@ async fn test_checksum_nonexistent_file() {
 async fn test_checksum_empty_file() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let file_path = temp_dir.path().join("empty.txt");
-    
+
     fs::File::create(&file_path).expect("Failed to create file");
 
     let checksum = calculate_checksum(&file_path)
@@ -53,7 +56,7 @@ async fn test_checksum_empty_file() {
 async fn test_checksum_large_file() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let file_path = temp_dir.path().join("large.txt");
-    
+
     let mut file = fs::File::create(&file_path).expect("Failed to create file");
     // Write 1MB of data
     let data = vec![b'A'; 1024 * 1024];

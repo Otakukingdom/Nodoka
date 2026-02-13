@@ -2,33 +2,43 @@ use crate::db::Database;
 use crate::models::Audiobook;
 use crate::proxy::AudiobookFileProxy;
 use crate::NodokaError;
-use std::sync::{Arc, RwLock};
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct AudiobookProxy {
     id: i64,
-    data: Arc<RwLock<Audiobook>>,
-    files_cache: Arc<RwLock<Option<Vec<AudiobookFileProxy>>>>,
+    data: Rc<RefCell<Audiobook>>,
+    files_cache: Rc<RefCell<Option<Vec<AudiobookFileProxy>>>>,
     db: Arc<Database>,
 }
 
 impl AudiobookProxy {
+    /// Creates a new audiobook proxy for the given audiobook ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NodokaError::Database` if the database query fails.
+    /// Returns `NodokaError::AudiobookNotFound` if the audiobook does not exist.
     pub fn new(id: i64, db: Arc<Database>) -> Result<Self, NodokaError> {
         let data = crate::db::queries::get_audiobook_by_id(db.connection(), id)?
             .ok_or_else(|| NodokaError::AudiobookNotFound(id))?;
 
         Ok(Self {
             id,
-            data: Arc::new(RwLock::new(data)),
-            files_cache: Arc::new(RwLock::new(None)),
+            data: Rc::new(RefCell::new(data)),
+            files_cache: Rc::new(RefCell::new(None)),
             db,
         })
     }
 
+    /// Retrieves the list of files associated with this audiobook.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NodokaError::Database` if the database query fails.
     pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, NodokaError> {
-        let cache = self
-            .files_cache
-            .read()
-            .map_err(|_| NodokaError::LockError)?;
+        let cache = self.files_cache.borrow();
 
         if let Some(files) = cache.as_ref() {
             return Ok(files.clone());
@@ -43,15 +53,17 @@ impl AudiobookProxy {
             .map(|f| AudiobookFileProxy::new(f, Arc::clone(&self.db)))
             .collect();
 
-        let mut cache = self
-            .files_cache
-            .write()
-            .map_err(|_| NodokaError::LockError)?;
-        *cache = Some(proxies.clone());
+        *self.files_cache.borrow_mut() = Some(proxies.clone());
 
         Ok(proxies)
     }
 
+    /// Updates the completeness percentage of this audiobook based on its files.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NodokaError::Database` if the database query fails.
+    /// Returns `NodokaError::ConversionError` if the file count cannot be converted to i32.
     pub fn update_completeness(&self) -> Result<(), NodokaError> {
         let files = self.get_files()?;
 
@@ -59,23 +71,25 @@ impl AudiobookProxy {
             return Ok(());
         }
 
-        let total: i32 = files.iter().map(|f| f.completeness()).sum();
+        let total: i32 = files
+            .iter()
+            .map(super::audiobook_file_proxy::AudiobookFileProxy::completeness)
+            .sum();
         let avg = total / i32::try_from(files.len()).map_err(|_| NodokaError::ConversionError)?;
 
-        let mut data = self.data.write().map_err(|_| NodokaError::LockError)?;
-        data.completeness = avg;
+        self.data.borrow_mut().completeness = avg;
 
         crate::db::queries::update_audiobook_completeness(self.db.connection(), self.id, avg)
     }
 
-    pub fn get_data(&self) -> Result<Audiobook, NodokaError> {
-        self.data
-            .read()
-            .map_err(|_| NodokaError::LockError)
-            .map(|d| d.clone())
+    /// Retrieves a copy of the audiobook data.
+    #[must_use]
+    pub fn get_data(&self) -> Audiobook {
+        self.data.borrow().clone()
     }
 
-    pub fn id(&self) -> i64 {
+    #[must_use]
+    pub const fn id(&self) -> i64 {
         self.id
     }
 }
@@ -84,8 +98,8 @@ impl Clone for AudiobookProxy {
     fn clone(&self) -> Self {
         Self {
             id: self.id,
-            data: Arc::clone(&self.data),
-            files_cache: Arc::clone(&self.files_cache),
+            data: Rc::clone(&self.data),
+            files_cache: Rc::clone(&self.files_cache),
             db: Arc::clone(&self.db),
         }
     }

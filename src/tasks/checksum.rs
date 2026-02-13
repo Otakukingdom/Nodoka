@@ -1,4 +1,4 @@
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::path::Path;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -12,7 +12,7 @@ pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
     let mut file = File::open(path).await?;
     let mut hasher = Sha256::new();
     let mut buffer = vec![0u8; 8192];
-    
+
     loop {
         let n = file.read(&mut buffer).await?;
         if n == 0 {
@@ -22,7 +22,7 @@ pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
             hasher.update(slice);
         }
     }
-    
+
     let result = hasher.finalize();
     Ok(format!("{result:x}"))
 }

@@ -3,6 +3,7 @@ use crate::ui::{settings_form, Message, NodokaState};
 use iced::widget::{button, column, container, horizontal_space, row, text};
 use iced::{Element, Length};
 
+#[must_use]
 pub fn view(state: &NodokaState) -> Element<'static, Message> {
     let audiobook_list_widget =
         audiobook_list::build_audiobook_list(&state.audiobooks, state.selected_audiobook);

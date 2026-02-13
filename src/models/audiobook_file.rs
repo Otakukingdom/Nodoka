@@ -39,18 +39,15 @@ impl AudiobookFile {
     ///
     /// Returns a value between 0 and 100
     #[must_use]
-    pub const fn calculate_completeness(&self) -> i32 {
+    pub fn calculate_completeness(&self) -> i32 {
         if let (Some(length), Some(seek)) = (self.length_of_file, self.seek_position) {
             if length > 0 {
                 // Calculate percentage, clamped to 0-100 range
                 let percentage = (seek * 100) / length;
-                if percentage > 100 {
-                    100
-                } else if percentage < 0 {
-                    0
-                } else {
-                    percentage as i32
-                }
+                // Clamp to 0-100 range to ensure it fits in i32
+                let clamped = percentage.clamp(0, 100);
+                // Safe conversion: clamped is guaranteed to be in 0-100 range
+                i32::try_from(clamped).unwrap_or(0)
             } else {
                 0
             }

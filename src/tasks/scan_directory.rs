@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
-use walkdir::WalkDir;
 use crate::models::Audiobook;
 use chrono::Utc;
+use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 #[derive(Debug, Clone)]
 pub struct DiscoveredAudiobook {
@@ -18,7 +18,7 @@ pub struct DiscoveredAudiobook {
 pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook>, std::io::Error> {
     tokio::task::spawn_blocking(move || {
         let mut audiobooks = Vec::new();
-        
+
         for entry in WalkDir::new(&dir_path)
             .min_depth(1)
             .max_depth(2)
@@ -31,7 +31,7 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
                 }
             }
         }
-        
+
         audiobooks
     })
     .await
@@ -45,11 +45,11 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
         .map(|e| e.path())
         .filter(|p| is_audio_file(p))
         .collect();
-    
+
     if audio_files.is_empty() {
         return None;
     }
-    
+
     Some(DiscoveredAudiobook {
         path: path.to_path_buf(),
         name: path.file_name()?.to_string_lossy().to_string(),
@@ -71,7 +71,10 @@ fn is_audio_file(path: &Path) -> bool {
 
 /// Converts discovered audiobooks to domain models
 #[must_use]
-pub fn convert_to_audiobooks(discovered: Vec<DiscoveredAudiobook>, directory: &str) -> Vec<Audiobook> {
+pub fn convert_to_audiobooks(
+    discovered: Vec<DiscoveredAudiobook>,
+    directory: &str,
+) -> Vec<Audiobook> {
     discovered
         .into_iter()
         .enumerate()
@@ -81,7 +84,8 @@ pub fn convert_to_audiobooks(discovered: Vec<DiscoveredAudiobook>, directory: &s
             name: disc.name,
             full_path: disc.path.display().to_string(),
             completeness: 0,
-            default_order: idx as i32,
+            // Safe cast: we cap at i32::MAX for extremely large collections
+            default_order: i32::try_from(idx).unwrap_or(i32::MAX),
             selected_file: None,
             created_at: Utc::now(),
         })

@@ -9,8 +9,8 @@ pub struct NodokaState {
     pub directories: Vec<Directory>,
 
     pub is_playing: bool,
-    pub current_time: i64,
-    pub total_duration: i64,
+    pub current_time: f64,
+    pub total_duration: f64,
     pub volume: i32,
     pub speed: f32,
 
@@ -27,8 +27,8 @@ impl Default for NodokaState {
             selected_file: None,
             directories: Vec::new(),
             is_playing: false,
-            current_time: 0,
-            total_duration: 0,
+            current_time: 0.0,
+            total_duration: 0.0,
             volume: 100,
             speed: 1.0,
             settings_open: false,

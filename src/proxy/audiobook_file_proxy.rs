@@ -9,21 +9,23 @@ pub struct AudiobookFileProxy {
 }
 
 impl AudiobookFileProxy {
-    pub fn new(data: AudiobookFile, db: Arc<Database>) -> Self {
+    pub const fn new(data: AudiobookFile, db: Arc<Database>) -> Self {
         Self { data, db }
     }
 
-    pub fn completeness(&self) -> i32 {
+    #[must_use]
+    pub const fn completeness(&self) -> i32 {
         self.data.completeness
     }
 
-    pub fn data(&self) -> &AudiobookFile {
+    #[must_use]
+    pub const fn data(&self) -> &AudiobookFile {
         &self.data
     }
 
     /// Gets a reference to the database connection
     #[must_use]
-    pub fn database(&self) -> &Arc<Database> {
+    pub const fn database(&self) -> &Arc<Database> {
         &self.db
     }
 }

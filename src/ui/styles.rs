@@ -7,8 +7,8 @@ pub const PLAYER_BG_COLOR: Color = Color::from_rgb(0.255, 0.255, 0.255); // #414
 pub const PLAYER_TEXT_COLOR: Color = Color::from_rgb(0.933, 0.933, 0.933); // #eee
 pub const AUDIOBOOK_LIST_BG: Color = Color::from_rgb(0.933, 0.933, 0.933); // #eee
 pub const FILE_LIST_BG: Color = Color::from_rgb(1.0, 1.0, 1.0); // white
-pub const SELECTED_ITEM_BG: Color = Color::from_rgb(0.333, 0.318, 0.322); // #555152
-pub const TEXT_COLOR: Color = Color::from_rgb(0.318, 0.318, 0.318); // #515151
+pub const SELECTED_ITEM_BG: Color = Color::from_rgb(0.333, 0.317_647, 0.322); // #555152
+pub const TEXT_COLOR: Color = Color::from_rgb(0.317_647, 0.317_647, 0.317_647); // #515151
 
 /// Creates the custom Nodoka theme based on the original Qt application colors
 #[must_use]

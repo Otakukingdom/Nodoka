@@ -2246,6 +2246,7 @@ dependencies = [
  "directories",
  "iced",
  "image",
+ "parking_lot 0.12.5",
  "pkg-config",
  "rfd",
  "rusqlite",

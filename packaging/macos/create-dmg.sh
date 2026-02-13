@@ -22,11 +22,11 @@ cp "${BUILD_DIR}/nodoka" "${BUNDLE_DIR}/Contents/MacOS/"
 chmod +x "${BUNDLE_DIR}/Contents/MacOS/nodoka"
 
 # Copy icon
-if [ -f "../../icons/app/Entypo_d83d(0)_256.png" ]; then
+if [ -f "../../assets/icons/Entypo_d83d(0)_256.png" ]; then
     # Convert PNG to ICNS (requires iconutil on macOS)
     mkdir -p AppIcon.iconset
-    cp "../../icons/app/Entypo_d83d(0)_256.png" AppIcon.iconset/icon_256x256.png
-    cp "../../icons/app/Entypo_d83d(0)_512.png" AppIcon.iconset/icon_512x512.png
+    cp "../../assets/icons/Entypo_d83d(0)_256.png" AppIcon.iconset/icon_256x256.png
+    cp "../../assets/icons/Entypo_d83d(0)_512.png" AppIcon.iconset/icon_512x512.png
     iconutil -c icns AppIcon.iconset -o "${BUNDLE_DIR}/Contents/Resources/AppIcon.icns"
     rm -rf AppIcon.iconset
 fi

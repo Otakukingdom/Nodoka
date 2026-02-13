@@ -5,7 +5,7 @@ pub enum Message {
     // Player controls
     PlayPause,
     Stop,
-    SeekTo(i64),
+    SeekTo(f64),
     VolumeChanged(i32),
     SpeedChanged(f32),
 
@@ -33,7 +33,7 @@ pub enum Message {
 
     // Player events
     PlayerStateChanged(PlayerState),
-    PlayerTimeUpdated(i64),
+    PlayerTimeUpdated(f64),
     PlayerMediaParsed,
 
     // Background tasks

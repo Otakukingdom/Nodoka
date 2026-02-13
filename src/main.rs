@@ -7,6 +7,7 @@ fn main() {
 
     // Single instance guard
     match check_single_instance() {
+        Ok(true) => {}
         Ok(false) => {
             eprintln!("Error: Cannot launch multiple instances of Nodoka Player");
             process::exit(1);
@@ -15,16 +16,12 @@ fn main() {
             eprintln!("Error checking instance: {e}");
             process::exit(1);
         }
-        Ok(true) => {}
     }
 
     // Initialize database
-    let db = match Database::open() {
-        Ok(db) => db,
-        Err(_) => {
-            eprintln!("Error: Failed to load the config file");
-            process::exit(1);
-        }
+    let Ok(db) = Database::open() else {
+        eprintln!("Error: Failed to load the config file");
+        process::exit(1);
     };
 
     if let Err(e) = nodoka::db::initialize_schema(db.connection()) {

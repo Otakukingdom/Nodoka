@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::indexing_slicing)]
+
 use chrono::Utc;
 use nodoka::models::{Audiobook, AudiobookFile};
 
@@ -29,8 +31,8 @@ fn test_audiobook_file_completeness_calculation() {
         audiobook_id: 1,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
-        seek_position: Some(150000),
+        length_of_file: Some(300_000),
+        seek_position: Some(150_000),
         position: 0,
         completeness: 0,
         file_exists: true,
@@ -39,6 +41,7 @@ fn test_audiobook_file_completeness_calculation() {
 
     // Calculate completeness manually
     if let (Some(length), Some(seek)) = (file.length_of_file, file.seek_position) {
+        #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
         let calculated = ((seek as f64 / length as f64) * 100.0) as i32;
         assert_eq!(calculated, 50);
     }
@@ -50,7 +53,7 @@ fn test_audiobook_file_no_progress() {
         audiobook_id: 1,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
+        length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
         completeness: 0,
@@ -68,8 +71,8 @@ fn test_audiobook_file_complete() {
         audiobook_id: 1,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
-        seek_position: Some(300000),
+        length_of_file: Some(300_000),
+        seek_position: Some(300_000),
         position: 0,
         completeness: 100,
         file_exists: true,
@@ -108,8 +111,8 @@ fn test_audiobook_file_serialization() {
         audiobook_id: 1,
         name: "Chapter 1.mp3".to_string(),
         full_path: "/test/Chapter 1.mp3".to_string(),
-        length_of_file: Some(300000),
-        seek_position: Some(150000),
+        length_of_file: Some(300_000),
+        seek_position: Some(150_000),
         position: 0,
         completeness: 50,
         file_exists: true,

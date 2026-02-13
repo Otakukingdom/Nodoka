@@ -8,7 +8,7 @@ pub struct Settings<'a> {
 
 impl<'a> Settings<'a> {
     #[must_use]
-    pub fn new(conn: &'a Connection) -> Self {
+    pub const fn new(conn: &'a Connection) -> Self {
         Self { conn }
     }
 
@@ -18,10 +18,7 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_volume(&self) -> Result<i32> {
-        match get_metadata(self.conn, "volume")? {
-            Some(v) => v.parse().or(Ok(100)),
-            None => Ok(100),
-        }
+        (get_metadata(self.conn, "volume")?).map_or_else(|| Ok(100), |v| v.parse().or(Ok(100)))
     }
 
     /// Sets the volume setting
@@ -39,10 +36,7 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_speed(&self) -> Result<f32> {
-        match get_metadata(self.conn, "speed")? {
-            Some(v) => v.parse().or(Ok(1.0)),
-            None => Ok(1.0),
-        }
+        (get_metadata(self.conn, "speed")?).map_or_else(|| Ok(1.0), |v| v.parse().or(Ok(1.0)))
     }
 
     /// Sets the playback speed setting
@@ -60,12 +54,14 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_current_audiobook(&self) -> Result<Option<i64>> {
-        match get_metadata(self.conn, "current_audiobook_id")? {
-            Some(v) => v.parse().ok().map(Some).ok_or_else(|| {
-                crate::error::NodokaError::InvalidState("Invalid audiobook ID".to_string())
-            }),
-            None => Ok(None),
-        }
+        (get_metadata(self.conn, "current_audiobook_id")?).map_or_else(
+            || Ok(None),
+            |v| {
+                v.parse().ok().map(Some).ok_or_else(|| {
+                    crate::error::NodokaError::InvalidState("Invalid audiobook ID".to_string())
+                })
+            },
+        )
     }
 
     /// Sets the current audiobook ID
