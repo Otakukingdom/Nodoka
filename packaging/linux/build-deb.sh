@@ -10,6 +10,14 @@ PKG_NAME="${APP_NAME}_${VERSION}_${ARCH}"
 BUILD_DIR="../../target/release"
 PKG_DIR="${PKG_NAME}"
 
+if [ -n "${TARGET_TRIPLE:-}" ]; then
+    BUILD_DIR="../../target/${TARGET_TRIPLE}/release"
+fi
+
+if [ -n "${TARGET_DIR:-}" ]; then
+    BUILD_DIR="${TARGET_DIR}"
+fi
+
 echo "Building Debian package for Nodoka Audiobook Reader..."
 
 # Create package directory structure
@@ -20,6 +28,12 @@ mkdir -p "${PKG_DIR}/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "${PKG_DIR}/usr/share/doc/${APP_NAME}"
 
 # Copy binary
+if [ ! -f "${BUILD_DIR}/nodoka" ]; then
+    echo "Error: Nodoka binary not found at ${BUILD_DIR}/nodoka"
+    echo "Set TARGET_TRIPLE or TARGET_DIR to the release output directory."
+    exit 1
+fi
+
 cp "${BUILD_DIR}/nodoka" "${PKG_DIR}/usr/bin/"
 chmod 755 "${PKG_DIR}/usr/bin/nodoka"
 

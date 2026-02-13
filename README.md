@@ -182,7 +182,7 @@ cargo build --release --target x86_64-unknown-linux-gnu
 # Create DEB package
 cd packaging/linux
 chmod +x build-deb.sh
-./build-deb.sh
+TARGET_TRIPLE=x86_64-unknown-linux-gnu ./build-deb.sh
 ```
 
 ## Usage

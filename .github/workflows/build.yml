@@ -118,8 +118,8 @@ jobs:
             artifact_name: nodoka.exe
             asset_name: nodoka-windows-amd64.exe
           - os: macos-latest
-            artifact_name: nodoka
-            asset_name: nodoka-macos-amd64
+            artifact_name: nodoka-universal
+            asset_name: nodoka-macos-universal
     steps:
       - uses: actions/checkout@v4
       
@@ -160,7 +160,23 @@ jobs:
         run: |
           choco install vlc
       
-      - name: Build release
+      - name: Add macOS targets
+        if: matrix.os == 'macos-latest'
+        run: |
+          rustup target add x86_64-apple-darwin aarch64-apple-darwin
+
+      - name: Build release (macOS universal)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cargo build --release --target x86_64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+          lipo -create \
+            target/x86_64-apple-darwin/release/nodoka \
+            target/aarch64-apple-darwin/release/nodoka \
+            -output target/release/nodoka-universal
+
+      - name: Build release (non-macOS)
+        if: matrix.os != 'macos-latest'
         run: cargo build --release --verbose
       
       - name: Upload artifact
@@ -231,11 +247,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: nodoka-macos-amd64
+          name: nodoka-macos-universal
           path: target/release/
       
       - name: Make binary executable
-        run: chmod +x target/release/nodoka
+        run: chmod +x target/release/nodoka-universal
       
       - name: Create DMG
         run: |

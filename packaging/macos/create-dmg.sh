@@ -10,6 +10,8 @@ DMG_NAME="Nodoka-${VERSION}.dmg"
 BUILD_DIR="../../target/release"
 BUNDLE_DIR="${BUILD_DIR}/${BUNDLE_NAME}"
 TEMP_DMG="temp.dmg"
+DEFAULT_BINARY="${BUILD_DIR}/nodoka"
+UNIVERSAL_BINARY="${BUILD_DIR}/nodoka-universal"
 
 echo "Creating macOS application bundle..."
 
@@ -18,7 +20,20 @@ mkdir -p "${BUNDLE_DIR}/Contents/MacOS"
 mkdir -p "${BUNDLE_DIR}/Contents/Resources"
 
 # Copy binary
-cp "${BUILD_DIR}/nodoka" "${BUNDLE_DIR}/Contents/MacOS/"
+if [ -n "${NODOKA_BINARY:-}" ]; then
+    BINARY_PATH="${NODOKA_BINARY}"
+elif [ -f "${UNIVERSAL_BINARY}" ]; then
+    BINARY_PATH="${UNIVERSAL_BINARY}"
+else
+    BINARY_PATH="${DEFAULT_BINARY}"
+fi
+
+if [ ! -f "${BINARY_PATH}" ]; then
+    echo "Error: Nodoka binary not found at ${BINARY_PATH}"
+    exit 1
+fi
+
+cp "${BINARY_PATH}" "${BUNDLE_DIR}/Contents/MacOS/nodoka"
 chmod +x "${BUNDLE_DIR}/Contents/MacOS/nodoka"
 
 # Copy icon
