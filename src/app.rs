@@ -25,7 +25,7 @@
 //! ```
 
 use crate::db::Database;
-use crate::player::VlcPlayer;
+use crate::player::Vlc;
 use crate::ui::{main_window, update, Message, State};
 use iced::{Application, Command, Element, Settings, Subscription, Theme};
 use std::time::Duration;
@@ -41,7 +41,7 @@ use std::time::Duration;
 /// 3. UI is re-rendered via [`view`](crate::ui::main_window::view)
 pub struct App {
     state: State,
-    player: Option<VlcPlayer>,
+    player: Option<Vlc>,
     db: Database,
 }
 
@@ -116,7 +116,7 @@ impl Application for App {
         }
 
         // Initialize player
-        let player = match VlcPlayer::new() {
+        let player = match Vlc::new() {
             Ok(mut p) => {
                 if let Err(e) = p.set_volume(state.volume) {
                     tracing::error!("Failed to set initial volume: {e}");

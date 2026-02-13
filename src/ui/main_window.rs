@@ -5,11 +5,9 @@ use iced::{Element, Length};
 
 #[must_use]
 pub fn view(state: &State) -> Element<'static, Message> {
-    let audiobook_list_widget =
-        audiobook_list::build_audiobook_list(&state.audiobooks, state.selected_audiobook);
-    let file_list_widget =
-        file_list::build_file_list(&state.current_files, state.selected_file.as_ref());
-    let player_widget = player_controls::build_player_controls(state);
+    let audiobook_list_widget = audiobook_list::view(&state.audiobooks, state.selected_audiobook);
+    let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
+    let player_widget = player_controls::view(state);
 
     let main_content = container(column![
         // Top bar with yellow background (#FEDB53)

@@ -1,23 +1,23 @@
-use super::events::{PlayerEvent, PlayerState};
+use super::events::{PlaybackEvent, PlaybackState};
 use super::vlc_env;
 use crate::conversions::ms_to_f64;
 use crate::error::{Error, Result};
 use std::path::Path;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc;
-use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State};
+use tokio::sync::broadcast;
+use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State as VlcState};
 
-pub struct VlcPlayer {
+pub struct Vlc {
     instance: Instance,
     player: MediaPlayer,
-    event_sender: mpsc::UnboundedSender<PlayerEvent>,
+    event_sender: broadcast::Sender<PlaybackEvent>,
     current_file: Arc<Mutex<Option<String>>>,
     volume: AtomicI32,
     speed: Arc<Mutex<f32>>,
 }
 
-impl VlcPlayer {
+impl Vlc {
     /// Creates a new concrete player
     ///
     /// # Errors
@@ -61,7 +61,7 @@ impl VlcPlayer {
         let player = MediaPlayer::new(&instance)
             .ok_or_else(|| Error::Vlc("Failed to create media player".to_string()))?;
 
-        let (event_sender, _) = mpsc::unbounded_channel();
+        let (event_sender, _) = broadcast::channel(16);
 
         Ok(Self {
             instance,
@@ -71,6 +71,12 @@ impl VlcPlayer {
             volume: AtomicI32::new(100),
             speed: Arc::new(Mutex::new(1.0)),
         })
+    }
+
+    /// Subscribes to playback events emitted by this player.
+    #[must_use]
+    pub fn subscribe(&self) -> broadcast::Receiver<PlaybackEvent> {
+        self.event_sender.subscribe()
     }
 
     /// Loads media from a file path
@@ -99,7 +105,7 @@ impl VlcPlayer {
         self.player
             .play()
             .map_err(|()| Error::Vlc("Failed to play".to_string()))?;
-        self.send_event(PlayerEvent::StateChanged(PlayerState::Playing));
+        self.send_event(PlaybackEvent::StateChanged(PlaybackState::Playing));
         Ok(())
     }
 
@@ -110,7 +116,7 @@ impl VlcPlayer {
     /// Returns an error if pause fails
     pub fn pause(&self) -> Result<()> {
         self.player.pause();
-        self.send_event(PlayerEvent::StateChanged(PlayerState::Paused));
+        self.send_event(PlaybackEvent::StateChanged(PlaybackState::Paused));
         Ok(())
     }
 
@@ -121,7 +127,7 @@ impl VlcPlayer {
     /// Returns an error if stop fails
     pub fn stop(&self) -> Result<()> {
         self.player.stop();
-        self.send_event(PlayerEvent::StateChanged(PlayerState::Stopped));
+        self.send_event(PlaybackEvent::StateChanged(PlaybackState::Stopped));
         Ok(())
     }
 
@@ -194,7 +200,7 @@ impl VlcPlayer {
 
     /// Gets the current player state
     #[must_use]
-    pub fn get_state(&self) -> PlayerState {
+    pub fn get_state(&self) -> PlaybackState {
         convert_vlc_state(self.player.state())
     }
 
@@ -217,23 +223,21 @@ impl VlcPlayer {
     }
 
     /// Sends a player event
-    fn send_event(&self, event: PlayerEvent) {
-        if self.event_sender.send(event).is_err() {
-            tracing::warn!("Failed to send player event: receiver dropped");
-        }
+    fn send_event(&self, event: PlaybackEvent) {
+        let _ = self.event_sender.send(event);
     }
 }
 
-const fn convert_vlc_state(state: State) -> PlayerState {
+const fn convert_vlc_state(state: VlcState) -> PlaybackState {
     match state {
-        State::NothingSpecial => PlayerState::NothingSpecial,
-        State::Opening => PlayerState::Opening,
-        State::Buffering => PlayerState::Buffering,
-        State::Playing => PlayerState::Playing,
-        State::Paused => PlayerState::Paused,
-        State::Stopped => PlayerState::Stopped,
-        State::Ended => PlayerState::Ended,
-        State::Error => PlayerState::Error,
+        VlcState::NothingSpecial => PlaybackState::NothingSpecial,
+        VlcState::Opening => PlaybackState::Opening,
+        VlcState::Buffering => PlaybackState::Buffering,
+        VlcState::Playing => PlaybackState::Playing,
+        VlcState::Paused => PlaybackState::Paused,
+        VlcState::Stopped => PlaybackState::Stopped,
+        VlcState::Ended => PlaybackState::Ended,
+        VlcState::Error => PlaybackState::Error,
     }
 }
 
@@ -242,8 +246,8 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
 
-    fn skip_if_vlc_unavailable() -> Option<VlcPlayer> {
-        VlcPlayer::new().ok()
+    fn skip_if_vlc_unavailable() -> Option<Vlc> {
+        Vlc::new().ok()
     }
 
     #[test]
@@ -262,7 +266,7 @@ mod tests {
             assert!(
                 matches!(
                     state,
-                    PlayerState::NothingSpecial | PlayerState::Stopped | PlayerState::Opening
+                    PlaybackState::NothingSpecial | PlaybackState::Stopped | PlaybackState::Opening
                 ),
                 "Initial state should be NothingSpecial, Stopped, or Opening"
             );
@@ -343,16 +347,19 @@ mod tests {
     #[test]
     fn test_vlc_state_conversion() {
         assert_eq!(
-            convert_vlc_state(State::NothingSpecial),
-            PlayerState::NothingSpecial
+            convert_vlc_state(VlcState::NothingSpecial),
+            PlaybackState::NothingSpecial
         );
-        assert_eq!(convert_vlc_state(State::Opening), PlayerState::Opening);
-        assert_eq!(convert_vlc_state(State::Buffering), PlayerState::Buffering);
-        assert_eq!(convert_vlc_state(State::Playing), PlayerState::Playing);
-        assert_eq!(convert_vlc_state(State::Paused), PlayerState::Paused);
-        assert_eq!(convert_vlc_state(State::Stopped), PlayerState::Stopped);
-        assert_eq!(convert_vlc_state(State::Ended), PlayerState::Ended);
-        assert_eq!(convert_vlc_state(State::Error), PlayerState::Error);
+        assert_eq!(convert_vlc_state(VlcState::Opening), PlaybackState::Opening);
+        assert_eq!(
+            convert_vlc_state(VlcState::Buffering),
+            PlaybackState::Buffering
+        );
+        assert_eq!(convert_vlc_state(VlcState::Playing), PlaybackState::Playing);
+        assert_eq!(convert_vlc_state(VlcState::Paused), PlaybackState::Paused);
+        assert_eq!(convert_vlc_state(VlcState::Stopped), PlaybackState::Stopped);
+        assert_eq!(convert_vlc_state(VlcState::Ended), PlaybackState::Ended);
+        assert_eq!(convert_vlc_state(VlcState::Error), PlaybackState::Error);
     }
 
     #[test]

@@ -2,12 +2,11 @@ use chrono::Utc;
 use nodoka::db::queries;
 use nodoka::db::Database;
 use nodoka::models::{Audiobook, AudiobookFile, Directory};
-use nodoka::proxy::{AudiobookProxy, ProxyManager};
+use nodoka::proxy::{AudiobookHandle, Cache};
 use std::error::Error;
-use std::sync::Arc;
+use std::rc::Rc;
 
-#[allow(clippy::arc_with_non_send_sync)] // Test helper function
-fn create_test_db_with_data() -> Result<(Arc<Database>, i64), Box<dyn Error>> {
+fn create_test_db_with_data() -> Result<(Rc<Database>, i64), Box<dyn Error>> {
     let database = Database::new_in_memory()?;
     nodoka::db::initialize(database.connection())?;
 
@@ -26,20 +25,20 @@ fn create_test_db_with_data() -> Result<(Arc<Database>, i64), Box<dyn Error>> {
     );
     let id = queries::insert_audiobook(database.connection(), &audiobook)?;
 
-    Ok((Arc::new(database), id))
+    Ok((Rc::new(database), id))
 }
 
 #[test]
 fn test_proxy_manager_initialization() -> Result<(), Box<dyn Error>> {
     let (db, _) = create_test_db_with_data()?;
-    let _manager = ProxyManager::new(db);
+    let _manager = Cache::new(db);
     Ok(())
 }
 
 #[test]
 fn test_proxy_manager_get_audiobook() -> Result<(), Box<dyn Error>> {
     let (db, id) = create_test_db_with_data()?;
-    let manager = ProxyManager::new(Arc::clone(&db));
+    let manager = Cache::new(Rc::clone(&db));
 
     let proxy = manager.get_audiobook(id)?;
     assert_eq!(proxy.id(), id);
@@ -53,7 +52,7 @@ fn test_proxy_manager_get_audiobook() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_proxy_manager_caching_behavior() -> Result<(), Box<dyn Error>> {
     let (db, id) = create_test_db_with_data()?;
-    let manager = ProxyManager::new(Arc::clone(&db));
+    let manager = Cache::new(Rc::clone(&db));
 
     let proxy1 = manager.get_audiobook(id)?;
     let proxy2 = manager.get_audiobook(id)?;
@@ -66,7 +65,7 @@ fn test_proxy_manager_caching_behavior() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_proxy_manager_cache_clear() -> Result<(), Box<dyn Error>> {
     let (db, id) = create_test_db_with_data()?;
-    let manager = ProxyManager::new(Arc::clone(&db));
+    let manager = Cache::new(Rc::clone(&db));
 
     let _proxy1 = manager.get_audiobook(id)?;
 
@@ -100,7 +99,7 @@ fn test_audiobook_proxy_with_files() -> Result<(), Box<dyn Error>> {
     file2.completeness = 100;
     queries::insert_audiobook_file(db.connection(), &file2)?;
 
-    let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+    let proxy = AudiobookHandle::new(id, Rc::clone(&db))?;
     let all_files = proxy.get_files()?;
 
     assert_eq!(all_files.len(), 2);
@@ -134,7 +133,7 @@ fn test_audiobook_proxy_completeness_calculation() -> Result<(), Box<dyn Error>>
     file2.completeness = 60;
     queries::insert_audiobook_file(db.connection(), &file2)?;
 
-    let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+    let proxy = AudiobookHandle::new(id, Rc::clone(&db))?;
     proxy.update_completeness()?;
 
     let data = proxy.get_data();
@@ -146,7 +145,7 @@ fn test_audiobook_proxy_completeness_calculation() -> Result<(), Box<dyn Error>>
 #[test]
 fn test_proxy_refresh_after_database_changes() -> Result<(), Box<dyn Error>> {
     let (db, id) = create_test_db_with_data()?;
-    let manager = ProxyManager::new(Arc::clone(&db));
+    let manager = Cache::new(Rc::clone(&db));
 
     let proxy = manager.get_audiobook(id)?;
     let data_before = proxy.get_data();

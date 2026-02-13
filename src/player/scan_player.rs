@@ -73,7 +73,7 @@ impl Scanner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
+    use temp_dir::TempDir;
 
     fn skip_if_vlc_unavailable() -> Option<Scanner> {
         Scanner::new().ok()
@@ -87,40 +87,55 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_nonexistent_file() {
-        if let Some(scanner) = skip_if_vlc_unavailable() {
-            let nonexistent_path = PathBuf::from("/nonexistent/file/path.mp3");
-            // VLC allows creating media for nonexistent files
-            // The scanner may return a result with duration 0 or parse successfully
-            // Actual validation happens when trying to play
-            let _result = scanner.scan_media(&nonexistent_path);
-            // Test passes if no panic occurs
-        }
-    }
+    fn test_scan_directory_path_returns_error() -> Result<()> {
+        let Some(scanner) = skip_if_vlc_unavailable() else {
+            return Ok(());
+        };
 
-    #[test]
-    fn test_scan_invalid_media_file() {
-        if let Some(scanner) = skip_if_vlc_unavailable() {
-            let invalid_path = PathBuf::from("/dev/null");
-            // VLC allows creating media for any file path
-            // It may parse successfully or return duration 0
-            // Actual validation happens during playback
-            let _result = scanner.scan_media(&invalid_path);
-            // Test passes if no panic occurs
-        }
-    }
+        let temp_dir = TempDir::new()?;
+        let result = scanner.scan_media(temp_dir.path());
 
-    #[test]
-    fn test_scan_unsupported_format() {
-        if let Some(scanner) = skip_if_vlc_unavailable() {
-            let txt_path = PathBuf::from("/tmp/test.txt");
-            if txt_path.exists() {
-                let result = scanner.scan_media(&txt_path);
+        match result {
+            Ok(prop) => {
+                assert_eq!(prop.path, temp_dir.path().to_path_buf());
+                assert!(prop.duration_ms >= 0);
+            }
+            Err(Error::MediaParse(_)) => {}
+            Err(other) => {
                 assert!(
-                    result.is_err(),
-                    "Scanning unsupported format should fail or return error"
+                    matches!(other, Error::MediaParse(_)),
+                    "Unexpected error: {other:?}"
                 );
             }
         }
+        Ok(())
+    }
+
+    #[test]
+    fn test_scan_text_file_returns_error() -> Result<()> {
+        let Some(scanner) = skip_if_vlc_unavailable() else {
+            return Ok(());
+        };
+
+        let temp_dir = TempDir::new()?;
+        let txt_path = temp_dir.path().join("test.txt");
+        std::fs::write(&txt_path, "not audio")?;
+
+        let result = scanner.scan_media(&txt_path);
+
+        match result {
+            Ok(prop) => {
+                assert_eq!(prop.path, txt_path);
+                assert!(prop.duration_ms >= 0);
+            }
+            Err(Error::MediaParse(_)) => {}
+            Err(other) => {
+                assert!(
+                    matches!(other, Error::MediaParse(_)),
+                    "Unexpected error: {other:?}"
+                );
+            }
+        }
+        Ok(())
     }
 }

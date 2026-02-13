@@ -4,11 +4,7 @@ use iced::widget::{button, column, container, horizontal_space, row, scrollable,
 use iced::{Element, Length};
 
 #[must_use]
-#[allow(clippy::module_name_repetitions)] // "build_file_list" in file_list module is explicit and clear
-pub fn build_file_list(
-    files: &[AudiobookFile],
-    selected_path: Option<&String>,
-) -> Element<'static, Message> {
+pub fn view(files: &[AudiobookFile], selected_path: Option<&String>) -> Element<'static, Message> {
     let items: Element<_> = files
         .iter()
         .fold(column![].spacing(0), |col, file| {

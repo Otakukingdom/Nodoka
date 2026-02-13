@@ -15,15 +15,14 @@ static ENV_MUTEX: Mutex<()> = Mutex::new(());
 /// Acquires a global lock for tests that modify environment variables.
 ///
 /// This prevents parallel test execution from causing race conditions when
-/// multiple tests modify the same environment variables (e.g., VLC_PLUGIN_PATH).
+/// multiple tests modify the same environment variables (e.g., `VLC_PLUGIN_PATH`).
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use crate::test_support::env_lock;
 ///
-/// #[test]
-/// fn test_with_env_modification() {
+/// fn example() {
 ///     let _lock = env_lock();
 ///     std::env::set_var("VLC_PLUGIN_PATH", "/test/path");
 ///     // Test code that depends on VLC_PLUGIN_PATH
@@ -47,18 +46,17 @@ pub fn env_lock() -> MutexGuard<'static, ()> {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use crate::test_support::{env_lock, EnvVarGuard};
 ///
-/// #[test]
-/// fn test_with_temp_env_var() {
+/// fn example() {
 ///     let _lock = env_lock();
 ///     let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
-///     
+///
 ///     std::env::set_var("VLC_PLUGIN_PATH", "/test/path");
 ///     // Test code that depends on modified VLC_PLUGIN_PATH
-///     
-///     // When _guard drops, VLC_PLUGIN_PATH is restored to original value
+///
+///     // When `_guard` drops, `VLC_PLUGIN_PATH` is restored to original value.
 /// }
 /// ```
 pub struct EnvVarGuard {

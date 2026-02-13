@@ -1,7 +1,7 @@
-use nodoka::tasks::calculate_checksum;
+use nodoka::tasks::sha256;
+use std::error::Error;
 use std::fs;
 use std::io::Write;
-use std::{error::Error, path::PathBuf};
 use temp_dir::TempDir;
 
 #[tokio::test]
@@ -15,7 +15,7 @@ async fn test_checksum_calculation() -> Result<(), Box<dyn Error>> {
     drop(file);
 
     // Calculate checksum
-    let checksum = calculate_checksum(&file_path).await?;
+    let checksum = sha256(&file_path).await?;
 
     // Verify checksum (SHA-256 of "Hello, World!")
     assert_eq!(
@@ -26,9 +26,12 @@ async fn test_checksum_calculation() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-async fn test_checksum_nonexistent_file() {
-    let result = calculate_checksum(&PathBuf::from("/nonexistent/file.txt")).await;
+async fn test_checksum_nonexistent_file() -> Result<(), Box<dyn Error>> {
+    let temp_dir = TempDir::new()?;
+    let missing_path = temp_dir.path().join("missing.txt");
+    let result = sha256(&missing_path).await;
     assert!(result.is_err());
+    Ok(())
 }
 
 #[tokio::test]
@@ -38,7 +41,7 @@ async fn test_checksum_empty_file() -> Result<(), Box<dyn Error>> {
 
     fs::File::create(&file_path)?;
 
-    let checksum = calculate_checksum(&file_path).await?;
+    let checksum = sha256(&file_path).await?;
 
     // SHA-256 of empty string
     assert_eq!(
@@ -59,7 +62,7 @@ async fn test_checksum_large_file() -> Result<(), Box<dyn Error>> {
     file.write_all(&data)?;
     drop(file);
 
-    let checksum = calculate_checksum(&file_path).await?;
+    let checksum = sha256(&file_path).await?;
 
     // Verify it completes without error and returns a valid SHA-256 hash
     assert_eq!(checksum.len(), 64);

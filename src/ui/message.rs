@@ -1,4 +1,4 @@
-use crate::player::PlayerState;
+use crate::player::PlaybackState;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -32,7 +32,7 @@ pub enum Message {
     CloseSettings,
 
     // Player events
-    PlayerStateChanged(PlayerState),
+    PlayerStateChanged(PlaybackState),
     PlayerTimeUpdated(f64),
     PlayerTick,
     PlayerMediaParsed,

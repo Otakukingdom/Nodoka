@@ -4,11 +4,7 @@ use iced::widget::{button, column, container, horizontal_space, row, scrollable,
 use iced::{Element, Length};
 
 #[must_use]
-#[allow(clippy::module_name_repetitions)] // "build_audiobook_list" in audiobook_list module is explicit and clear
-pub fn build_audiobook_list(
-    audiobooks: &[Audiobook],
-    selected_id: Option<i64>,
-) -> Element<'static, Message> {
+pub fn view(audiobooks: &[Audiobook], selected_id: Option<i64>) -> Element<'static, Message> {
     let items: Element<_> = audiobooks
         .iter()
         .fold(column![].spacing(0), |col, ab| {

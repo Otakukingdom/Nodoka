@@ -6,24 +6,70 @@
 //!
 //! # Numeric Cast Safety
 //!
-//! These casts are fundamentally necessary for VLC/iced interoperability.
-//! All functions use function-level `#[allow(clippy::cast_*)]` attributes
-//! with inline justification rather than blanket Cargo.toml-level allows:
-//!
-//! - **VLC to UI (i64 → f64)**: VLC time values are validated to be within
-//!   f64's safe integer precision range (2^53) before casting. Audiobooks
-//!   never exceed this limit (285 million years vs. typical 100 hours).
-//!
-//! - **UI to VLC (f64 → i64)**: Values are validated for range and sign,
-//!   then rounded to eliminate fractional parts before casting.
-//!
-//! - **Percentage conversions**: Values are clamped to [0, 100] before
-//!   casting to i32, ensuring no overflow or truncation issues.
-//!
-//! All conversions include explicit validation logic and comprehensive
-//! error documentation that makes them provably safe.
+//! These conversions are necessary for VLC/iced interoperability.
+//! They avoid lossy `as` casts by using fallible conversions and explicit
+//! validation.
 
 use crate::error::{Error, Result};
+
+const MAX_SAFE_F64_INT: f64 = 9_007_199_254_740_992.0; // 2^53
+
+fn u64_to_f64_exact(value: u64) -> f64 {
+    if value == 0 {
+        return 0.0;
+    }
+
+    let leading = value.leading_zeros();
+    let k = u64::from(63_u32.saturating_sub(leading));
+    let exponent = (k + 1023) << 52;
+
+    let mantissa = if k <= 52 {
+        let leading_bit = 1_u64 << k;
+        (value - leading_bit) << (52 - k)
+    } else {
+        0
+    };
+
+    f64::from_bits(exponent | mantissa)
+}
+
+fn f64_to_u64_exact(value: f64) -> Option<u64> {
+    if value == 0.0 {
+        return Some(0);
+    }
+
+    let bits = value.to_bits();
+    let sign = bits >> 63;
+    if sign != 0 {
+        return None;
+    }
+
+    let exponent_raw_u64 = (bits >> 52) & 0x7ff;
+    let exponent_raw = i32::try_from(exponent_raw_u64).ok()?;
+    if exponent_raw == 0 || exponent_raw == 0x7ff {
+        return None;
+    }
+
+    let exponent = exponent_raw - 1023;
+    if exponent < 0 {
+        return None;
+    }
+
+    let mantissa = bits & ((1_u64 << 52) - 1);
+    let significand = (1_u64 << 52) | mantissa;
+
+    if exponent <= 52 {
+        let shift = u32::try_from(52 - exponent).ok()?;
+        let mask = (1_u64 << shift).saturating_sub(1);
+        if significand & mask != 0 {
+            return None;
+        }
+        Some(significand >> shift)
+    } else {
+        let shift = u32::try_from(exponent - 52).ok()?;
+        significand.checked_shl(shift)
+    }
+}
 
 /// Converts VLC time (i64 milliseconds) to UI time (f64 milliseconds).
 ///
@@ -54,19 +100,23 @@ use crate::error::{Error, Result};
 /// # Ok(())
 /// # }
 /// ```
-#[allow(clippy::cast_precision_loss)] // Safe: validated within f64 exact integer range (±2^53)
-pub const fn ms_to_f64(ms: i64) -> Result<f64> {
+pub fn ms_to_f64(ms: i64) -> Result<f64> {
     // f64 maintains exact integer precision up to 2^53 (9,007,199,254,740,992)
     // This is approximately 285 million years in milliseconds, far beyond any
     // practical audiobook duration (typically < 100 hours = 360,000,000 ms)
-    const MAX_SAFE_INT: i64 = 1 << 53;
+    const MAX_SAFE_INT_U64: u64 = 1_u64 << 53;
 
-    if ms.abs() > MAX_SAFE_INT {
+    let abs = ms.unsigned_abs();
+    if abs > MAX_SAFE_INT_U64 {
         return Err(Error::InvalidDuration);
     }
 
-    // Safe cast: value is within ±2^53, where f64 has exact integer precision
-    Ok(ms as f64)
+    let magnitude = u64_to_f64_exact(abs);
+    if ms.is_negative() {
+        Ok(-magnitude)
+    } else {
+        Ok(magnitude)
+    }
 }
 
 /// Converts UI time (f64 milliseconds) to VLC time (i64 milliseconds).
@@ -94,23 +144,25 @@ pub const fn ms_to_f64(ms: i64) -> Result<f64> {
 /// # Ok(())
 /// # }
 /// ```
-#[allow(clippy::cast_precision_loss)] // Safe: comparison only, checking magnitude not exact value
-#[allow(clippy::cast_possible_truncation)] // Safe: round() eliminates fractional parts, range validated
 pub fn f64_to_ms(value: f64) -> Result<i64> {
     if value < 0.0 {
         return Err(Error::InvalidPosition);
     }
 
-    let rounded = value.round();
-
-    // Safe comparison: We only need to check if magnitude exceeds i64::MAX
-    // Precision loss in the comparison is acceptable since we're checking bounds
-    if rounded > i64::MAX as f64 {
+    if !value.is_finite() {
         return Err(Error::InvalidPosition);
     }
 
-    // Safe cast: round() ensures no fractional part, range check above ensures fits in i64
-    Ok(rounded as i64)
+    let rounded = value.round();
+    if !(0.0..=MAX_SAFE_F64_INT).contains(&rounded) {
+        return Err(Error::InvalidPosition);
+    }
+
+    let Some(ms) = f64_to_u64_exact(rounded) else {
+        return Err(Error::InvalidPosition);
+    };
+
+    i64::try_from(ms).map_err(|_| Error::InvalidPosition)
 }
 
 /// Converts a percentage (f64) to an integer percentage (i32).
@@ -132,11 +184,19 @@ pub fn f64_to_ms(value: f64) -> Result<i64> {
 /// assert_eq!(percentage_to_i32(150.0), 100);
 /// ```
 #[must_use]
-#[allow(clippy::cast_possible_truncation)] // Safe: clamped to [0, 100], round() removes fractional parts
 pub fn percentage_to_i32(percentage: f64) -> i32 {
+    if !percentage.is_finite() {
+        return 0;
+    }
+
     let clamped = percentage.clamp(0.0, 100.0);
-    // Safe cast: clamped to [0, 100] range, round() ensures no fractional part
-    clamped.round() as i32
+
+    let rounded = clamped.round();
+    let Some(value) = f64_to_u64_exact(rounded) else {
+        return 0;
+    };
+
+    i32::try_from(value).unwrap_or(0)
 }
 
 /// Calculates completion percentage from seek position and total length.

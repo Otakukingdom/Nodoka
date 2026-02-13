@@ -20,6 +20,9 @@
 
 use std::env;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, OnceLock};
+
+static VLC_ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 /// Sets up VLC environment variables for proper plugin loading.
 ///
@@ -44,6 +47,11 @@ use std::path::{Path, PathBuf};
 /// When using the player module as a library, player constructors will call this
 /// automatically, but calling it explicitly at startup is recommended for reliability.
 pub fn setup_vlc_environment() {
+    let _guard = VLC_ENV_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
     // Check if already configured
     if let Ok(existing_path) = env::var("VLC_PLUGIN_PATH") {
         tracing::debug!("VLC_PLUGIN_PATH already set to: {}", existing_path);
@@ -258,6 +266,13 @@ mod tests {
         // Wait for all threads
         for handle in handles {
             assert!(handle.join().is_ok(), "Thread should complete successfully");
+        }
+
+        if let Ok(path) = env::var("VLC_PLUGIN_PATH") {
+            assert!(
+                Path::new(&path).exists(),
+                "VLC_PLUGIN_PATH was set but path does not exist: {path}"
+            );
         }
 
         // Restored by EnvVarGuard

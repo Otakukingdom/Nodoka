@@ -1,7 +1,7 @@
-use nodoka::player::{Scanner, VlcPlayer};
+use nodoka::player::{Scanner, Vlc};
 
-fn skip_if_vlc_unavailable() -> Option<VlcPlayer> {
-    VlcPlayer::new().ok()
+fn skip_if_vlc_unavailable() -> Option<Vlc> {
+    Vlc::new().ok()
 }
 
 fn skip_scanner_if_vlc_unavailable() -> Option<Scanner> {
@@ -76,9 +76,9 @@ fn test_player_length_without_media() {
 
 #[test]
 fn test_multiple_players() {
-    if VlcPlayer::new().is_ok() {
-        let player1 = VlcPlayer::new();
-        let player2 = VlcPlayer::new();
+    if Vlc::new().is_ok() {
+        let player1 = Vlc::new();
+        let player2 = Vlc::new();
 
         assert!(player1.is_ok());
         assert!(player2.is_ok());

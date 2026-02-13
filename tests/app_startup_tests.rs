@@ -1,5 +1,6 @@
 use nodoka::player::setup_vlc_environment;
 use std::env;
+use std::ffi::OsString;
 use std::sync::{Mutex, MutexGuard};
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
@@ -11,10 +12,31 @@ fn env_lock() -> MutexGuard<'static, ()> {
     }
 }
 
+struct EnvVarGuard {
+    key: &'static str,
+    previous: Option<OsString>,
+}
+
+impl EnvVarGuard {
+    fn capture(key: &'static str) -> Self {
+        let previous = env::var_os(key);
+        Self { key, previous }
+    }
+}
+
+impl Drop for EnvVarGuard {
+    fn drop(&mut self) {
+        match &self.previous {
+            Some(value) => env::set_var(self.key, value),
+            None => env::remove_var(self.key),
+        }
+    }
+}
+
 #[test]
 fn test_vlc_environment_setup_before_player_creation() {
-    // This test verifies that setup_vlc_environment is called early
-    // enough that VLC can find its plugins when Instance::new() is called
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
     // Remove any existing VLC_PLUGIN_PATH to simulate fresh startup
     env::remove_var("VLC_PLUGIN_PATH");
@@ -22,38 +44,34 @@ fn test_vlc_environment_setup_before_player_creation() {
     // Call setup as main.rs should
     setup_vlc_environment();
 
-    // Verify that either:
-    // 1. VLC_PLUGIN_PATH is now set (if VLC was detected), OR
-    // 2. VLC_PLUGIN_PATH is not set (relying on system defaults)
-    // In either case, VLC Instance creation should work if VLC is installed
-
-    // Try to create a VLC instance
-    let instance = vlc::Instance::new();
-
-    if env::var("VLC_PLUGIN_PATH").is_ok() || instance.is_some() {
-        // Environment is properly configured - test passes
-    } else {
-        // VLC is not installed - this is acceptable
-        println!("VLC not installed on system, skipping test");
+    // If setup chooses to set VLC_PLUGIN_PATH, it must point at an existing directory.
+    if let Ok(plugin_path) = env::var("VLC_PLUGIN_PATH") {
+        assert!(
+            std::path::Path::new(&plugin_path).exists(),
+            "VLC_PLUGIN_PATH was set but does not exist: {plugin_path}"
+        );
     }
 }
 
 #[test]
 fn test_app_initializes_vlc_before_player() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
     // This test verifies the initialization order:
     // 1. setup_vlc_environment() must be called first
-    // 2. Then VlcPlayer::new() can succeed
+    // 2. Then Vlc::new() can succeed
 
     env::remove_var("VLC_PLUGIN_PATH");
 
     // Without calling setup_vlc_environment first,
-    // VlcPlayer::new() may fail even if VLC is installed
+    // Vlc::new() may fail even if VLC is installed
 
     // This simulates what happens in main.rs
     setup_vlc_environment();
 
     // Now player creation should work (if VLC is installed)
-    let player_result = nodoka::player::VlcPlayer::new();
+    let player_result = nodoka::player::Vlc::new();
 
     // The test passes if:
     // - VLC is installed and player is created successfully, OR
@@ -71,7 +89,10 @@ fn test_app_initializes_vlc_before_player() {
             );
         }
         Err(other) => {
-            unreachable!("Unexpected error type: {other:?}");
+            assert!(
+                matches!(other, nodoka::error::Error::Vlc(_)),
+                "Unexpected error type: {other:?}"
+            );
         }
     }
 }
@@ -79,9 +100,7 @@ fn test_app_initializes_vlc_before_player() {
 #[test]
 fn test_early_vlc_setup_prevents_init_failures() {
     let _guard = env_lock();
-
-    // Save current environment
-    let original_plugin_path = env::var("VLC_PLUGIN_PATH").ok();
+    let _env_guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
     // Simulate fresh startup
     env::remove_var("VLC_PLUGIN_PATH");
@@ -91,7 +110,7 @@ fn test_early_vlc_setup_prevents_init_failures() {
     setup_vlc_environment();
 
     // 2. Then create player
-    let player_result = nodoka::player::VlcPlayer::new();
+    let player_result = nodoka::player::Vlc::new();
 
     // Verify player creation succeeded (if VLC is installed) or failed gracefully
     match player_result {
@@ -106,23 +125,20 @@ fn test_early_vlc_setup_prevents_init_failures() {
             );
         }
         Err(e) => {
-            unreachable!("Unexpected error type: {e:?}");
+            assert!(
+                matches!(e, nodoka::error::Error::Vlc(_)),
+                "Unexpected error type: {e:?}"
+            );
         }
-    }
-
-    // Restore original environment
-    match original_plugin_path {
-        Some(path) => env::set_var("VLC_PLUGIN_PATH", path),
-        None => env::remove_var("VLC_PLUGIN_PATH"),
     }
 }
 
 #[test]
 fn test_app_startup_initializes_vlc_properly() {
     let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
-    // Save and clear VLC_PLUGIN_PATH to simulate fresh startup
-    let original = env::var("VLC_PLUGIN_PATH").ok();
+    // Clear VLC_PLUGIN_PATH to simulate fresh startup
     env::remove_var("VLC_PLUGIN_PATH");
 
     // Simulate the main.rs initialization sequence:
@@ -135,12 +151,12 @@ fn test_app_startup_initializes_vlc_properly() {
     // 3. VLC instance should be creatable
     let vlc_available = vlc::Instance::new().is_some();
 
-    // 4. VlcPlayer should initialize successfully (if VLC is available)
+    // 4. Vlc should initialize successfully (if VLC is available)
     if vlc_available {
-        let player = nodoka::player::VlcPlayer::new();
+        let player = nodoka::player::Vlc::new();
         assert!(
             player.is_ok(),
-            "VlcPlayer::new() should succeed when VLC is available and environment is set up"
+            "Vlc::new() should succeed when VLC is available and environment is set up"
         );
     }
 
@@ -151,24 +167,18 @@ fn test_app_startup_initializes_vlc_properly() {
             "If VLC is available, either plugin path should be set or VLC uses system defaults"
         );
     }
-
-    // Restore original environment
-    match original {
-        Some(path) => env::set_var("VLC_PLUGIN_PATH", path),
-        None => env::remove_var("VLC_PLUGIN_PATH"),
-    }
 }
 
 #[test]
 fn test_app_handles_missing_vlc_gracefully() {
     let _lock = env_lock();
-    let original = env::var("VLC_PLUGIN_PATH").ok();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
     // Set an invalid plugin path to simulate VLC not being found
     env::set_var("VLC_PLUGIN_PATH", "/nonexistent/invalid/vlc/path");
 
     // Try to create VLC player
-    let result = nodoka::player::VlcPlayer::new();
+    let result = nodoka::player::Vlc::new();
 
     match result {
         Err(nodoka::error::Error::Vlc(msg)) => {
@@ -183,14 +193,11 @@ fn test_app_handles_missing_vlc_gracefully() {
             // This is acceptable - test passes
         }
         Err(e) => {
-            panic!("Expected VLC error, got: {e:?}");
+            assert!(
+                matches!(e, nodoka::error::Error::Vlc(_)),
+                "Expected VLC error, got: {e:?}"
+            );
         }
-    }
-
-    // Restore
-    match original {
-        Some(path) => env::set_var("VLC_PLUGIN_PATH", path),
-        None => env::remove_var("VLC_PLUGIN_PATH"),
     }
 }
 
@@ -198,15 +205,15 @@ fn test_app_handles_missing_vlc_gracefully() {
 /// that main.rs must follow to prevent the "Failed to create VLC instance" bug.
 ///
 /// CRITICAL ORDER (from main.rs):
-/// 1. setup_vlc_environment() - MUST be called first
-/// 2. Database::open()
-/// 3. VlcPlayer::new() (called by App::new)
+/// 1. `setup_vlc_environment()` - MUST be called first
+/// 2. `Database::open()`
+/// 3. `Vlc::new()` (called by `App::new()`)
 ///
 /// This test ensures we don't regress on commit ea08b6a which fixed the bug.
 #[test]
 fn test_documented_initialization_sequence_from_main() {
     let _lock = env_lock();
-    let original = env::var("VLC_PLUGIN_PATH").ok();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
     // Start fresh
     env::remove_var("VLC_PLUGIN_PATH");
@@ -223,20 +230,14 @@ fn test_documented_initialization_sequence_from_main() {
 
     // Step 3: VLC player creation should now work
     if vlc_works {
-        let player = nodoka::player::VlcPlayer::new();
+        let player = nodoka::player::Vlc::new();
         assert!(
             player.is_ok(),
-            "VlcPlayer::new() must succeed when following correct init sequence"
+            "Vlc::new() must succeed when following correct init sequence"
         );
     } else {
         // VLC not installed - that's ok, test passes
         // The important thing is we didn't panic and got graceful error
         println!("VLC not installed - graceful degradation verified");
-    }
-
-    // Restore
-    match original {
-        Some(path) => env::set_var("VLC_PLUGIN_PATH", path),
-        None => env::remove_var("VLC_PLUGIN_PATH"),
     }
 }

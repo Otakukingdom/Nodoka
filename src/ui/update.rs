@@ -1,6 +1,6 @@
 use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
-use crate::player::{PlayerState, VlcPlayer};
+use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, State};
 use iced::Command;
@@ -9,7 +9,7 @@ use std::path::Path;
 pub fn update(
     state: &mut State,
     message: Message,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
 ) -> Command<Message> {
     match message {
@@ -50,7 +50,7 @@ pub fn update(
     }
 }
 
-fn handle_play_pause(state: &mut State, player: &mut Option<VlcPlayer>) -> Command<Message> {
+fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {
     if let Some(ref mut p) = player {
         if state.is_playing {
             if let Err(e) = p.pause() {
@@ -67,7 +67,7 @@ fn handle_play_pause(state: &mut State, player: &mut Option<VlcPlayer>) -> Comma
     Command::none()
 }
 
-fn handle_stop(state: &mut State, player: &mut Option<VlcPlayer>) -> Command<Message> {
+fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -78,7 +78,7 @@ fn handle_stop(state: &mut State, player: &mut Option<VlcPlayer>) -> Command<Mes
     Command::none()
 }
 
-fn reset_playback_state(state: &mut State, player: &mut Option<VlcPlayer>) {
+fn reset_playback_state(state: &mut State, player: &mut Option<Vlc>) {
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -89,11 +89,7 @@ fn reset_playback_state(state: &mut State, player: &mut Option<VlcPlayer>) {
     state.total_duration = 0.0;
 }
 
-fn handle_seek_to(
-    state: &mut State,
-    player: &mut Option<VlcPlayer>,
-    position: f64,
-) -> Command<Message> {
+fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) -> Command<Message> {
     if let Some(ref mut p) = player {
         match f64_to_ms(position) {
             Ok(position_ms) => {
@@ -113,7 +109,7 @@ fn handle_seek_to(
 
 fn handle_player_tick(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
 ) -> Command<Message> {
     if state.selected_file.is_none() {
@@ -139,7 +135,7 @@ fn handle_player_tick(
 
 fn handle_volume_changed(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
     volume: i32,
 ) -> Command<Message> {
@@ -160,7 +156,7 @@ fn handle_volume_changed(
 
 fn handle_speed_changed(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
     speed: f32,
 ) -> Command<Message> {
@@ -181,7 +177,7 @@ fn handle_speed_changed(
 
 fn handle_audiobook_selected(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
     id: i64,
 ) -> Command<Message> {
@@ -214,7 +210,7 @@ fn handle_audiobook_selected(
 
 fn handle_file_selected(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
@@ -318,7 +314,7 @@ fn handle_directory_added(state: &mut State, db: &Database, path: &str) -> Comma
 
 fn handle_directory_remove(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
     path: &str,
 ) -> Command<Message> {
@@ -598,12 +594,12 @@ fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Command<M
     Command::none()
 }
 
-fn should_auto_advance(state: &State, player_state: PlayerState, time: f64) -> bool {
+fn should_auto_advance(state: &State, player_state: PlaybackState, time: f64) -> bool {
     if state.selected_file.is_none() {
         return false;
     }
 
-    if player_state == PlayerState::Ended {
+    if player_state == PlaybackState::Ended {
         return true;
     }
 
@@ -617,7 +613,7 @@ fn should_auto_advance(state: &State, player_state: PlayerState, time: f64) -> b
 
 fn advance_to_next_file(
     state: &mut State,
-    player: &mut Option<VlcPlayer>,
+    player: &mut Option<Vlc>,
     db: &Database,
 ) -> Command<Message> {
     let Some(current_path) = state.selected_file.clone() else {

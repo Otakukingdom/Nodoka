@@ -97,7 +97,7 @@
 //!
 //! - [`app::App`]: Main application entry point
 //! - [`db::Database`]: `SQLite` database wrapper for progress tracking
-//! - [`player::VlcPlayer`]: VLC-based media player
+//! - [`player::Vlc`]: VLC-based media player
 //! - [`tasks`]: Async operations for directory scanning and file processing
 //! - [`models`]: Domain types for audiobooks, files, and directories
 //!
@@ -114,7 +114,7 @@
 //! // ... rest of your application
 //! ```
 //!
-//! Player constructors ([`player::VlcPlayer::new()`] and [`player::Scanner::new()`])
+//! Player constructors ([`player::Vlc::new()`] and [`player::Scanner::new()`])
 //! call this automatically for convenience, but calling it explicitly at startup
 //! provides more reliable initialization.
 //!
@@ -236,7 +236,7 @@ pub use error::{Error, Result};
 /// - ❌ `unwrap()` - Use proper error handling with `?` or `match`
 /// - ❌ `expect()` - Same as unwrap, use Result types
 /// - ❌ `panic!()` - Handle errors gracefully
-/// - ❌ `#[allow(...)]` - Do not suppress warnings without inline justification
+/// - ❌ `#[allow(...)]` - Do not suppress warnings
 /// - ❌ `unsafe` - Use safe Rust patterns
 /// - ❌ Dead code - Remove unused functions and imports
 ///
@@ -293,7 +293,7 @@ pub use error::{Error, Result};
 /// panic = { level = "deny", priority = 0 }
 /// ```
 ///
-/// Function-level allows are permitted only with inline justification for unavoidable framework interoperability.
+/// Do not use function-level `#[allow(...)]` attributes.
 ///
 /// ## Error Handling
 ///
@@ -331,13 +331,13 @@ pub use error::{Error, Result};
 /// /// ```no_run
 /// /// # use std::path::Path;
 /// /// # async fn example() -> Result<(), std::io::Error> {
-/// /// # let calculate_checksum = |_: &Path| async { Ok("abc".to_string()) };
-/// /// let checksum = calculate_checksum(Path::new("audio.mp3")).await?;
+/// /// # let sha256 = |_: &Path| async { Ok("abc".to_string()) };
+/// /// let checksum = sha256(Path::new("audio.mp3")).await?;
 /// /// assert_eq!(checksum.len(), 64); // SHA-256 is 64 hex characters
 /// /// # Ok(())
 /// /// # }
 /// /// ```
-/// pub async fn calculate_checksum(path: &Path) -> Result<String, std::io::Error> {
+/// pub async fn sha256(path: &Path) -> Result<String, std::io::Error> {
 ///     // implementation
 /// #   Ok(String::new())
 /// }
@@ -510,7 +510,7 @@ pub mod security {}
 /// ### Code Quality
 ///
 /// - ✅ Strict linting rules enforced
-/// - ✅ No `#[allow(...)]` attributes without inline justification
+/// - ✅ No `#[allow(...)]` attributes
 /// - ✅ No `expect()` or `unwrap()` usage in production code
 /// - ✅ No dead code in the codebase
 /// - ✅ All code passes `cargo clippy --all-targets --all-features -- -D warnings`

@@ -1,4 +1,4 @@
-use nodoka::player::{setup_vlc_environment, verify_vlc_available, VlcPlayer};
+use nodoka::player::{setup_vlc_environment, verify_vlc_available, Vlc};
 use std::env;
 use std::ffi::OsString;
 use std::sync::{Mutex, MutexGuard};
@@ -99,10 +99,10 @@ fn test_vlc_player_new_smoke_when_vlc_available() {
         return;
     }
 
-    let result = VlcPlayer::new();
+    let result = Vlc::new();
     assert!(
         result.is_ok(),
-        "VlcPlayer::new should succeed when a VLC instance can be created"
+        "Vlc::new should succeed when a VLC instance can be created"
     );
 }
 
@@ -115,7 +115,7 @@ fn test_vlc_player_fails_gracefully_when_vlc_unavailable() {
     env::remove_var("VLC_PLUGIN_PATH");
 
     // Don't call setup_vlc_environment to simulate a broken environment
-    let result = VlcPlayer::new();
+    let result = Vlc::new();
 
     match result {
         Err(nodoka::error::Error::Vlc(msg)) => {
@@ -125,7 +125,10 @@ fn test_vlc_player_fails_gracefully_when_vlc_unavailable() {
             // VLC was found anyway, skip test
         }
         Err(other) => {
-            unreachable!("Expected VLC error, got: {other:?}");
+            assert!(
+                matches!(other, nodoka::error::Error::Vlc(_)),
+                "Expected VLC error, got: {other:?}"
+            );
         }
     }
 }
@@ -138,7 +141,7 @@ fn test_vlc_initialization_with_invalid_plugin_path() {
     // Set an invalid plugin path
     env::set_var("VLC_PLUGIN_PATH", "/nonexistent/invalid/path");
 
-    let result = VlcPlayer::new();
+    let result = Vlc::new();
 
     // Should either succeed (if VLC can find plugins elsewhere) or fail gracefully
     if let Err(e) = result {
@@ -177,8 +180,8 @@ fn test_vlc_initialization_order_prevents_failures() {
     // Pattern from main.rs: setup_vlc_environment BEFORE creating player
     setup_vlc_environment();
 
-    // Now VlcPlayer creation should work (if VLC is installed)
-    let player_result = VlcPlayer::new();
+    // Now Vlc creation should work (if VLC is installed)
+    let player_result = Vlc::new();
 
     // Check that we either:
     // 1. Successfully created player (VLC is installed), OR
@@ -195,7 +198,10 @@ fn test_vlc_initialization_order_prevents_failures() {
             );
         }
         Err(other) => {
-            panic!("Unexpected error type: {other:?}");
+            assert!(
+                matches!(other, nodoka::error::Error::Vlc(_)),
+                "Unexpected error type: {other:?}"
+            );
         }
     }
 }

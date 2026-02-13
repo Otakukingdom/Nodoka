@@ -1,27 +1,25 @@
 use crate::db::Database;
 use crate::error::Error;
 use crate::models::Audiobook;
-use crate::proxy::AudiobookFileProxy;
+use crate::proxy::AudiobookFileHandle;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
 
-#[allow(clippy::module_name_repetitions)] // Proxy pattern naming is idiomatic
-pub struct AudiobookProxy {
+pub struct AudiobookHandle {
     id: i64,
     data: Rc<RefCell<Audiobook>>,
-    files_cache: Rc<RefCell<Option<Vec<AudiobookFileProxy>>>>,
-    db: Arc<Database>,
+    files_cache: Rc<RefCell<Option<Vec<AudiobookFileHandle>>>>,
+    db: Rc<Database>,
 }
 
-impl AudiobookProxy {
+impl AudiobookHandle {
     /// Creates a new audiobook proxy for the given audiobook ID.
     ///
     /// # Errors
     ///
     /// Returns `Error::Database` if the database query fails.
     /// Returns `Error::AudiobookNotFound` if the audiobook does not exist.
-    pub fn new(id: i64, db: Arc<Database>) -> Result<Self, Error> {
+    pub fn new(id: i64, db: Rc<Database>) -> Result<Self, Error> {
         let data = crate::db::queries::get_audiobook_by_id(db.connection(), id)?
             .ok_or_else(|| Error::AudiobookNotFound(id))?;
 
@@ -38,7 +36,7 @@ impl AudiobookProxy {
     /// # Errors
     ///
     /// Returns `Error::Database` if the database query fails.
-    pub fn get_files(&self) -> Result<Vec<AudiobookFileProxy>, Error> {
+    pub fn get_files(&self) -> Result<Vec<AudiobookFileHandle>, Error> {
         let cache = self.files_cache.borrow();
 
         if let Some(files) = cache.as_ref() {
@@ -51,7 +49,7 @@ impl AudiobookProxy {
         let files = crate::db::queries::get_audiobook_files(self.db.connection(), self.id)?;
         let proxies: Vec<_> = files
             .into_iter()
-            .map(|f| AudiobookFileProxy::new(f, Arc::clone(&self.db)))
+            .map(|f| AudiobookFileHandle::new(f, Rc::clone(&self.db)))
             .collect();
 
         *self.files_cache.borrow_mut() = Some(proxies.clone());
@@ -74,7 +72,7 @@ impl AudiobookProxy {
 
         let total: i32 = files
             .iter()
-            .map(super::audiobook_file_proxy::AudiobookFileProxy::completeness)
+            .map(super::audiobook_file_handle::AudiobookFileHandle::completeness)
             .sum();
         let avg = total / i32::try_from(files.len()).map_err(|_| Error::ConversionError)?;
 
@@ -95,13 +93,13 @@ impl AudiobookProxy {
     }
 }
 
-impl Clone for AudiobookProxy {
+impl Clone for AudiobookHandle {
     fn clone(&self) -> Self {
         Self {
             id: self.id,
             data: Rc::clone(&self.data),
             files_cache: Rc::clone(&self.files_cache),
-            db: Arc::clone(&self.db),
+            db: Rc::clone(&self.db),
         }
     }
 }
@@ -114,8 +112,7 @@ mod tests {
     use crate::models::{Audiobook, AudiobookFile, Directory};
     use chrono::Utc;
 
-    #[allow(clippy::arc_with_non_send_sync)] // Test helper function
-    fn create_test_db_with_audiobook() -> Result<(Arc<Database>, i64), Error> {
+    fn create_test_db_with_audiobook() -> Result<(Rc<Database>, i64), Error> {
         let database = Database::new_in_memory()?;
         db::initialize(database.connection())?;
 
@@ -134,13 +131,13 @@ mod tests {
         );
         let id = queries::insert_audiobook(database.connection(), &audiobook)?;
 
-        Ok((Arc::new(database), id))
+        Ok((Rc::new(database), id))
     }
 
     #[test]
     fn test_audiobook_proxy_creation() -> Result<(), Error> {
         let (db, id) = create_test_db_with_audiobook()?;
-        let proxy = AudiobookProxy::new(id, db)?;
+        let proxy = AudiobookHandle::new(id, db)?;
         assert_eq!(proxy.id(), id);
         let data = proxy.get_data();
         assert_eq!(data.name, "Test Audiobook");
@@ -148,13 +145,12 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::arc_with_non_send_sync)] // Test code
     fn test_audiobook_proxy_nonexistent() -> Result<(), Error> {
         let database = Database::new_in_memory()?;
         db::initialize(database.connection())?;
-        let db = Arc::new(database);
+        let db = Rc::new(database);
 
-        let result = AudiobookProxy::new(999, db);
+        let result = AudiobookHandle::new(999, db);
         assert!(result.is_err());
         Ok(())
     }
@@ -172,7 +168,7 @@ mod tests {
         file.completeness = 50;
         queries::insert_audiobook_file(db.connection(), &file)?;
 
-        let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+        let proxy = AudiobookHandle::new(id, Rc::clone(&db))?;
         let files = proxy.get_files()?;
         assert_eq!(files.len(), 1);
         let first_file = files
@@ -207,7 +203,7 @@ mod tests {
         file2.completeness = 100;
         queries::insert_audiobook_file(db.connection(), &file2)?;
 
-        let proxy = AudiobookProxy::new(id, Arc::clone(&db))?;
+        let proxy = AudiobookHandle::new(id, Rc::clone(&db))?;
         proxy.update_completeness()?;
 
         let data = proxy.get_data();
