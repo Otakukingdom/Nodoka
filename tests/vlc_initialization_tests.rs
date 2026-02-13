@@ -1,47 +1,107 @@
-use nodoka::player::VlcPlayer;
+use nodoka::player::{setup_vlc_environment, VlcPlayer};
 use std::env;
+use std::ffi::OsString;
+use std::sync::{Mutex, MutexGuard};
 
-#[test]
-fn test_vlc_initialization_with_automatic_setup() {
-    // Clear any existing VLC plugin path to test automatic detection
-    env::remove_var("VLC_PLUGIN_PATH");
+static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
-    // This should succeed with automatic environment setup
-    let result = VlcPlayer::new();
-
-    // On macOS with VLC installed, automatic setup should work
-    #[cfg(target_os = "macos")]
-    {
-        if std::path::Path::new("/Applications/VLC.app/Contents/MacOS/plugins").exists() {
-            assert!(
-                result.is_ok(),
-                "VLC initialization should succeed with automatic plugin path detection"
-            );
-        }
+fn env_lock() -> MutexGuard<'static, ()> {
+    match ENV_MUTEX.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
     }
+}
 
-    // On other platforms or if VLC is not installed, we just verify it doesn't panic
-    #[cfg(not(target_os = "macos"))]
-    {
-        let _ = result;
+struct EnvVarGuard {
+    key: &'static str,
+    previous: Option<OsString>,
+}
+
+impl EnvVarGuard {
+    fn capture(key: &'static str) -> Self {
+        let previous = env::var_os(key);
+        Self { key, previous }
+    }
+}
+
+impl Drop for EnvVarGuard {
+    fn drop(&mut self) {
+        match &self.previous {
+            Some(value) => env::set_var(self.key, value),
+            None => env::remove_var(self.key),
+        }
     }
 }
 
 #[test]
-fn test_vlc_initialization_with_plugin_path() {
-    // Set plugin path to VLC.app location on macOS
-    if cfg!(target_os = "macos") {
-        env::set_var(
-            "VLC_PLUGIN_PATH",
-            "/Applications/VLC.app/Contents/MacOS/plugins",
+fn test_setup_vlc_environment_respects_existing_plugin_path() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    env::set_var("VLC_PLUGIN_PATH", "/test/path");
+    setup_vlc_environment();
+
+    assert_eq!(
+        env::var_os("VLC_PLUGIN_PATH"),
+        Some(OsString::from("/test/path")),
+        "setup_vlc_environment must not override an explicit VLC_PLUGIN_PATH"
+    );
+}
+
+#[test]
+fn test_setup_vlc_environment_sets_plugin_path_when_detectable_on_macos() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    env::remove_var("VLC_PLUGIN_PATH");
+    setup_vlc_environment();
+
+    #[cfg(target_os = "macos")]
+    {
+        let standard = "/Applications/VLC.app/Contents/MacOS/plugins";
+        let standard_path_exists = std::path::Path::new(standard).exists();
+
+        let user_path = env::var_os("HOME").map(|home| {
+            std::path::Path::new(&home)
+                .join("Applications")
+                .join("VLC.app")
+                .join("Contents")
+                .join("MacOS")
+                .join("plugins")
+        });
+        let user_path_exists = user_path.as_ref().is_some_and(|p| p.exists());
+
+        let expected = if standard_path_exists {
+            Some(OsString::from(standard))
+        } else if user_path_exists {
+            user_path.map(std::path::PathBuf::into_os_string)
+        } else {
+            None
+        };
+
+        assert_eq!(
+            env::var_os("VLC_PLUGIN_PATH"),
+            expected,
+            "setup_vlc_environment should set VLC_PLUGIN_PATH iff a standard VLC.app plugins directory is detectable"
         );
     }
+}
 
-    // This should succeed with proper environment setup
+#[test]
+fn test_vlc_player_new_smoke_when_vlc_available() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    env::remove_var("VLC_PLUGIN_PATH");
+    setup_vlc_environment();
+
+    if vlc::Instance::new().is_none() {
+        return;
+    }
+
     let result = VlcPlayer::new();
-
     assert!(
         result.is_ok(),
-        "VLC initialization should succeed with VLC_PLUGIN_PATH set"
+        "VlcPlayer::new should succeed when a VLC instance can be created"
     );
 }

@@ -182,6 +182,9 @@ pub mod settings;
 pub mod tasks;
 pub mod ui;
 
+#[cfg(test)]
+pub(crate) mod test_support;
+
 pub use app::App;
 pub use db::Database;
 pub use error::{Error, Result};

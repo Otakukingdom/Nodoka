@@ -121,9 +121,13 @@ fn detect_windows_vlc_plugin_path() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::{env_lock, EnvVarGuard};
 
     #[test]
     fn test_setup_vlc_environment_idempotent() {
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
         // Set a test value
         env::set_var("VLC_PLUGIN_PATH", "/test/path");
 
@@ -135,8 +139,7 @@ mod tests {
         assert!(path.is_ok(), "VLC_PLUGIN_PATH should be set");
         assert_eq!(path.as_ref().map(String::as_str), Ok("/test/path"));
 
-        // Cleanup
-        env::remove_var("VLC_PLUGIN_PATH");
+        // Restored by EnvVarGuard
     }
 
     #[test]
@@ -153,6 +156,9 @@ mod tests {
 
     #[test]
     fn test_setup_without_vlc_installed() {
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
         // Remove any existing VLC_PLUGIN_PATH
         env::remove_var("VLC_PLUGIN_PATH");
 
@@ -166,6 +172,9 @@ mod tests {
     #[test]
     fn test_environment_setup_thread_safety() {
         use std::thread;
+
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
 
         // Remove existing path
         env::remove_var("VLC_PLUGIN_PATH");
@@ -184,6 +193,6 @@ mod tests {
             assert!(handle.join().is_ok(), "Thread should complete successfully");
         }
 
-        // Should complete without panics
+        // Restored by EnvVarGuard
     }
 }
