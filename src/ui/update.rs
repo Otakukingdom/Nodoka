@@ -1,5 +1,5 @@
 use crate::db::Database;
-use crate::player::ConcretePlayer;
+use crate::player::{ConcretePlayer, PlayerState};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, NodokaState};
 use iced::Command;
@@ -106,12 +106,18 @@ fn handle_player_tick(
         return Command::none();
     }
 
-    if let Some(ref p) = player {
-        let time = p.get_time();
-        return handle_time_updated(state, db, time);
+    let (time, player_state) = match player.as_ref() {
+        Some(p) => (p.get_time(), p.get_state()),
+        None => return Command::none(),
+    };
+
+    let command = handle_time_updated(state, db, time);
+
+    if should_auto_advance(state, player_state, time) {
+        return advance_to_next_file(state, player, db);
     }
 
-    Command::none()
+    command
 }
 
 fn handle_volume_changed(
@@ -474,6 +480,77 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
     }
 
     Command::none()
+}
+
+fn should_auto_advance(state: &NodokaState, player_state: PlayerState, time: f64) -> bool {
+    if state.selected_file.is_none() {
+        return false;
+    }
+
+    if player_state == PlayerState::Ended {
+        return true;
+    }
+
+    if !state.is_playing || state.total_duration <= 0.0 {
+        return false;
+    }
+
+    let end_threshold_ms = 500.0;
+    time + end_threshold_ms >= state.total_duration
+}
+
+fn advance_to_next_file(
+    state: &mut NodokaState,
+    player: &mut Option<ConcretePlayer>,
+    db: &Database,
+) -> Command<Message> {
+    let Some(current_path) = state.selected_file.clone() else {
+        return Command::none();
+    };
+
+    mark_current_file_complete(state, db, &current_path);
+
+    let next_path = state
+        .current_files
+        .iter()
+        .position(|file| file.full_path == current_path)
+        .and_then(|idx| state.current_files.get(idx + 1))
+        .map(|file| file.full_path.clone());
+
+    if let Some(next_path) = next_path {
+        return handle_file_selected(state, player, db, &next_path);
+    }
+
+    if let Some(ref mut p) = player {
+        if let Err(e) = p.stop() {
+            tracing::error!("Failed to stop after final file: {e}");
+        }
+    }
+    state.is_playing = false;
+    state.current_time = state.total_duration;
+    Command::none()
+}
+
+fn mark_current_file_complete(state: &mut NodokaState, db: &Database, file_path: &str) {
+    let final_time = if state.total_duration > 0.0 {
+        state.total_duration
+    } else {
+        state.current_time
+    };
+
+    if let Err(e) = crate::db::queries::update_file_progress(db.connection(), file_path, final_time, 100)
+    {
+        tracing::error!("Failed to mark file complete: {e}");
+    }
+
+    if let Some(file) = state
+        .current_files
+        .iter_mut()
+        .find(|file| file.full_path == file_path)
+    {
+        file.completeness = 100;
+        file.seek_position = Some(final_time.round() as i64);
+    }
 }
 
 fn start_directory_scan(path: String) -> Command<Message> {

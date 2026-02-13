@@ -50,7 +50,7 @@
                       WorkingDirectory="INSTALLFOLDER"
                       Icon="NodokaIcon" />
             <RemoveFolder Id="CleanUpShortCut" On="uninstall" />
-            <RegistryValue Root="HKCU" 
+            <RegistryValue Root="HKLM" 
                           Key="Software\Otakukingdom\Nodoka" 
                           Name="installed" 
                           Type="integer" 

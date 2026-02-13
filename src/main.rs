@@ -72,8 +72,6 @@ impl Drop for SingleInstanceGuard {
 
 fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
     use directories::ProjectDirs;
-    use std::fs::OpenOptions;
-    use std::io::Write;
 
     let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
         .ok_or(NodokaError::ProjectDirNotFound)?;
@@ -82,17 +80,90 @@ fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
     std::fs::create_dir_all(data_dir)?;
     let lock_file_path = data_dir.join(".nodoka.lock");
 
-    // Try to create lock file
-    match OpenOptions::new()
+    match try_create_lock(&lock_file_path) {
+        Ok(guard) => Ok(guard),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            if let Some(pid) = read_lock_pid(&lock_file_path) {
+                if is_pid_running(pid) {
+                    return Err(NodokaError::LockError);
+                }
+            }
+
+            if let Err(e) = std::fs::remove_file(&lock_file_path) {
+                tracing::warn!(
+                    "Failed to remove stale lock file {}: {e}",
+                    lock_file_path.display()
+                );
+            }
+
+            try_create_lock(&lock_file_path).map_err(NodokaError::Io)
+        }
+        Err(e) => Err(NodokaError::Io(e)),
+    }
+}
+
+fn try_create_lock(lock_file_path: &std::path::Path) -> Result<SingleInstanceGuard, std::io::Error> {
+    use std::io::Write;
+
+    let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
-        .open(&lock_file_path)
+        .open(lock_file_path)?;
+    file.write_all(std::process::id().to_string().as_bytes())?;
+    Ok(SingleInstanceGuard {
+        lock_file_path: lock_file_path.to_path_buf(),
+    })
+}
+
+fn read_lock_pid(lock_file_path: &std::path::Path) -> Option<u32> {
+    let contents = std::fs::read_to_string(lock_file_path).ok()?;
+    contents.trim().parse::<u32>().ok()
+}
+
+fn is_pid_running(pid: u32) -> bool {
+    #[cfg(unix)]
     {
-        Ok(mut file) => {
-            file.write_all(std::process::id().to_string().as_bytes())?;
-            Ok(SingleInstanceGuard { lock_file_path })
+        use std::process::Command;
+        let output = Command::new("ps")
+            .arg("-p")
+            .arg(pid.to_string())
+            .output();
+
+        if let Ok(output) = output {
+            if !output.status.success() {
+                return false;
+            }
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            return stdout.lines().skip(1).next().is_some();
         }
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Err(NodokaError::LockError),
-        Err(e) => Err(NodokaError::Io(e)),
+
+        false
+    }
+
+    #[cfg(windows)]
+    {
+        use std::process::Command;
+        let filter = format!("PID eq {pid}");
+        let output = Command::new("tasklist")
+            .arg("/FI")
+            .arg(filter)
+            .output();
+
+        if let Ok(output) = output {
+            if !output.status.success() {
+                return false;
+            }
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.contains("No tasks are running") {
+                return false;
+            }
+            let pid_str = pid.to_string();
+            return stdout.lines().any(|line| {
+                line.split_whitespace()
+                    .any(|field| field == pid_str.as_str())
+            });
+        }
+
+        false
     }
 }
