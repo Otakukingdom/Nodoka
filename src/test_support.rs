@@ -1,6 +1,10 @@
 //! Test-only support utilities.
 //!
-//! This module is compiled only for unit tests.
+//! This module provides utilities for writing thread-safe tests that modify
+//! environment variables. It is compiled only for unit tests within the crate.
+//!
+//! Integration tests in `tests/` cannot access this module and must define
+//! their own copies of these utilities.
 
 use std::env;
 use std::ffi::OsString;
@@ -8,6 +12,23 @@ use std::sync::{Mutex, MutexGuard};
 
 static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
+/// Acquires a global lock for tests that modify environment variables.
+///
+/// This prevents parallel test execution from causing race conditions when
+/// multiple tests modify the same environment variables (e.g., VLC_PLUGIN_PATH).
+///
+/// # Example
+///
+/// ```rust
+/// use crate::test_support::env_lock;
+///
+/// #[test]
+/// fn test_with_env_modification() {
+///     let _lock = env_lock();
+///     std::env::set_var("VLC_PLUGIN_PATH", "/test/path");
+///     // Test code that depends on VLC_PLUGIN_PATH
+/// }
+/// ```
 pub fn env_lock() -> MutexGuard<'static, ()> {
     match ENV_MUTEX.lock() {
         Ok(guard) => guard,
@@ -15,12 +36,42 @@ pub fn env_lock() -> MutexGuard<'static, ()> {
     }
 }
 
+/// RAII guard that captures and restores an environment variable.
+///
+/// When the guard is created, it captures the current value of an environment
+/// variable. When the guard is dropped, it restores the variable to its
+/// original value (or removes it if it wasn't set).
+///
+/// This is useful for tests that need to temporarily modify environment
+/// variables without affecting other tests or leaving the environment dirty.
+///
+/// # Example
+///
+/// ```rust
+/// use crate::test_support::{env_lock, EnvVarGuard};
+///
+/// #[test]
+/// fn test_with_temp_env_var() {
+///     let _lock = env_lock();
+///     let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+///     
+///     std::env::set_var("VLC_PLUGIN_PATH", "/test/path");
+///     // Test code that depends on modified VLC_PLUGIN_PATH
+///     
+///     // When _guard drops, VLC_PLUGIN_PATH is restored to original value
+/// }
+/// ```
 pub struct EnvVarGuard {
     key: &'static str,
     previous: Option<OsString>,
 }
 
 impl EnvVarGuard {
+    /// Captures the current value of an environment variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The name of the environment variable to capture
     pub fn capture(key: &'static str) -> Self {
         let previous = env::var_os(key);
         Self { key, previous }

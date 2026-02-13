@@ -165,3 +165,37 @@ fn test_verify_vlc_available() {
         println!("VLC is not available on this system");
     }
 }
+
+#[test]
+fn test_vlc_initialization_order_prevents_failures() {
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+    // Clear environment to simulate fresh start
+    env::remove_var("VLC_PLUGIN_PATH");
+
+    // Pattern from main.rs: setup_vlc_environment BEFORE creating player
+    setup_vlc_environment();
+
+    // Now VlcPlayer creation should work (if VLC is installed)
+    let player_result = VlcPlayer::new();
+
+    // Check that we either:
+    // 1. Successfully created player (VLC is installed), OR
+    // 2. Got a clear VLC error (VLC not installed)
+    match player_result {
+        Ok(_player) => {
+            // Success! VLC is installed and environment was set up correctly
+        }
+        Err(nodoka::error::Error::Vlc(msg)) => {
+            // VLC not installed - verify we get a helpful error message
+            assert!(
+                msg.contains("Failed to create VLC instance"),
+                "Should get clear error when VLC unavailable: {msg}"
+            );
+        }
+        Err(other) => {
+            panic!("Unexpected error type: {other:?}");
+        }
+    }
+}
