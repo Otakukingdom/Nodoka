@@ -3,10 +3,13 @@ name: Build and Test
 on:
   push:
     branches: [ main, develop ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main ]
   release:
     types: [ created ]
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -180,13 +183,16 @@ jobs:
           name: nodoka-windows-amd64.exe
           path: target/release/
       
-      - name: Install WiX
+      - name: Install WiX Toolset
         run: |
-          dotnet tool install --global wix
+          choco install wixtoolset -y
       
       - name: Build MSI
         run: |
-          wix build packaging/windows/nodoka.wxs -o Nodoka-0.2.0.msi
+          cd packaging/windows
+          & "C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe" nodoka.wxs
+          & "C:\Program Files (x86)\WiX Toolset v3.11\bin\light.exe" -ext WixUIExtension -out nodoka-0.2.0-x64.msi nodoka.wixobj
+          Move-Item nodoka-0.2.0-x64.msi ../../Nodoka-0.2.0.msi
       
       - name: Upload MSI to release
         uses: actions/upload-release-asset@v1
@@ -195,7 +201,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./Nodoka-0.2.0.msi
-          asset_name: Nodoka-0.2.0.msi
+          asset_name: nodoka-0.2.0-x64.msi
           asset_content_type: application/octet-stream
 
   package-macos:
@@ -277,9 +283,9 @@ jobs:
           cd installers
           # Download from GitHub release
           gh release download ${{ github.event.release.tag_name }} \
-            --pattern "*.dmg" \
-            --pattern "*.deb" \
-            --pattern "*.msi" \
+            --pattern "Nodoka-*.dmg" \
+            --pattern "nodoka_*.deb" \
+            --pattern "nodoka-*.msi" \
             --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

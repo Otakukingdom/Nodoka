@@ -10,9 +10,11 @@ Be respectful, inclusive, and constructive in all interactions.
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/your-username/nodoka.git`
-3. Create a branch: `git checkout -b feature/your-feature-name`
+3. Create a branch from `main`: `git checkout -b feature/your-feature-name`
 4. Make your changes following the code standards below
 5. Submit a pull request
+
+**Note**: Version 0.2.0 represents the complete Rust rewrite baseline. All contributions should build upon this codebase.
 
 ## Code Standards (STRICT)
 

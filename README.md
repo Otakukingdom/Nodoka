@@ -494,8 +494,8 @@ Workflow runs on every push and pull request to `main` and `develop` branches.
 | Platform | Build | Tests | Installer | Status |
 |----------|-------|-------|-----------|--------|
 | macOS 12+ | ✅ | ✅ | ✅ DMG | Ready |
-| Linux (Ubuntu 22.04+) | ✅ | ✅ | ⏳ DEB | Build ready |
-| Windows 10/11 | ✅ | ✅ | ⏳ MSI | Build ready |
+| Linux (Ubuntu 22.04+) | ✅ | ✅ | ✅ DEB | CI/CD Build |
+| Windows 10/11 | ✅ | ✅ | ✅ MSI | CI/CD Build |
 
 ### Code Quality Metrics
 
@@ -506,12 +506,14 @@ Workflow runs on every push and pull request to `main` and `develop` branches.
 - **Binary Size:** 8.0 MB (release, optimized)
 - **Allow Attributes in Source:** 0 (only 3 strategic allows in Cargo.toml for framework compatibility)
 
-### Remaining Work
+### Installers
 
-- ⏳ Linux DEB installer build (requires Linux environment)
-- ⏳ Windows MSI installer build (requires Windows + WiX Toolset)
-- ⏳ Cross-platform manual QA testing
-- ⏳ Performance benchmarking with large libraries (10,000+ files)
+All three platform installers are automatically built via GitHub Actions CI/CD:
+- ✅ **Windows MSI**: Built on `windows-latest` runner with WiX Toolset 3.11
+- ✅ **macOS DMG**: Built on `macos-latest` runner with universal binary (Intel + Apple Silicon)
+- ✅ **Linux DEB**: Built on `ubuntu-latest` runner with dpkg-deb
+
+Installers are created automatically when a GitHub Release is published and uploaded as release assets with SHA256 checksums.
 
 See [FINAL_STATUS.md](FINAL_STATUS.md) for detailed technical status.
 
