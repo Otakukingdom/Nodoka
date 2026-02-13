@@ -22,7 +22,7 @@
       <ComponentRef Id="ApplicationShortcut" />
     </Feature>
     
-    <Icon Id="NodokaIcon" SourceFile="../../icons/app/Entypo_d83d(0)_256.png" />
+    <Icon Id="NodokaIcon" SourceFile="../../Nodoka.ico" />
     <Property Id="ARPPRODUCTICON" Value="NodokaIcon" />
     
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />

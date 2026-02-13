@@ -12,7 +12,7 @@
   - Full C++ to Rust conversion completed
   - iced UI framework integrated (v0.12)
   - VLC-rs bindings implemented (v0.3)
-  - All 17 tests passing: `cargo test --all`
+  - All 18 tests passing: `cargo test --all`
   - Cross-platform compatibility verified
 
 ### ✅ Criterion 2: Strict Linting Rules
@@ -79,7 +79,7 @@ SHA256SUMS.txt                    ✅ Will be updated by CI/CD
 ## Verification Checklist
 
 ### Code Quality ✅
-- [x] 17/17 tests pass (`cargo test --all`)
+- [x] 18/18 tests pass (`cargo test --all`)
 - [x] Zero clippy warnings (`cargo clippy --all-targets --all-features -- -D warnings`)
 - [x] No unwrap/expect/panic in src/
 - [x] No dead code
@@ -193,7 +193,7 @@ Reviewing `.agent/PLAN.md` requirements:
 
 ## Success Metrics
 
-- ✅ **Code Quality**: 17/17 tests passing, zero warnings
+- ✅ **Code Quality**: 18/18 tests passing, zero warnings
 - ✅ **Build Automation**: CI/CD configured for all platforms
 - ✅ **Documentation**: Comprehensive user and developer docs
 - ✅ **Installer Availability**: macOS ready, Windows/Linux via CI/CD
