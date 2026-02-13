@@ -539,6 +539,8 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
     state.current_time = time;
 
     if let Some(ref file_path) = state.selected_file {
+        let file_path_owned = file_path.clone();
+        
         if state.total_duration > 0.0 {
             let percentage = (time * 100.0) / state.total_duration;
             // Convert f64 percentage to i32 for database storage
@@ -548,14 +550,14 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
 
             if let Err(e) = crate::db::queries::update_file_progress(
                 db.connection(),
-                file_path,
+                &file_path_owned,
                 time,
                 completeness,
             ) {
                 tracing::error!("Failed to update file progress: {e}");
             } else {
-                update_current_file_progress(state, file_path, time, completeness);
-                update_audiobook_completeness_after_file_change(state, db, file_path);
+                update_current_file_progress(state, &file_path_owned, time, completeness);
+                update_audiobook_completeness_after_file_change(state, db, &file_path_owned);
             }
         }
     }
@@ -631,7 +633,7 @@ fn mark_current_file_complete(state: &mut NodokaState, db: &Database, file_path:
 fn start_directory_scan(path: String) -> Command<Message> {
     Command::perform(
         async move {
-            scan_directory(path.clone())
+            scan_directory(path.clone().into())
                 .await
                 .map(|discovered| (path, discovered))
         },
@@ -682,7 +684,7 @@ fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audi
     let (total, count) = if state.selected_audiobook == Some(audiobook_id)
         && !state.current_files.is_empty()
     {
-        let total = state.current_files.iter().map(|file| file.completeness).sum();
+        let total: i32 = state.current_files.iter().map(|file| file.completeness).sum();
         let count = match i32::try_from(state.current_files.len()) {
             Ok(value) => value,
             Err(_) => {
@@ -697,7 +699,7 @@ fn recompute_audiobook_completeness(state: &mut NodokaState, db: &Database, audi
                 if files.is_empty() {
                     return;
                 }
-                let total = files.iter().map(|file| file.completeness).sum();
+                let total: i32 = files.iter().map(|file| file.completeness).sum();
                 let count = match i32::try_from(files.len()) {
                     Ok(value) => value,
                     Err(_) => {

@@ -102,7 +102,9 @@ fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
     }
 }
 
-fn try_create_lock(lock_file_path: &std::path::Path) -> Result<SingleInstanceGuard, std::io::Error> {
+fn try_create_lock(
+    lock_file_path: &std::path::Path,
+) -> Result<SingleInstanceGuard, std::io::Error> {
     use std::io::Write;
 
     let mut file = std::fs::OpenOptions::new()
@@ -124,17 +126,14 @@ fn is_pid_running(pid: u32) -> bool {
     #[cfg(unix)]
     {
         use std::process::Command;
-        let output = Command::new("ps")
-            .arg("-p")
-            .arg(pid.to_string())
-            .output();
+        let output = Command::new("ps").arg("-p").arg(pid.to_string()).output();
 
         if let Ok(output) = output {
             if !output.status.success() {
                 return false;
             }
             let stdout = String::from_utf8_lossy(&output.stdout);
-            return stdout.lines().skip(1).next().is_some();
+            return stdout.lines().nth(1).is_some();
         }
 
         false
@@ -144,10 +143,7 @@ fn is_pid_running(pid: u32) -> bool {
     {
         use std::process::Command;
         let filter = format!("PID eq {pid}");
-        let output = Command::new("tasklist")
-            .arg("/FI")
-            .arg(filter)
-            .output();
+        let output = Command::new("tasklist").arg("/FI").arg(filter).output();
 
         if let Ok(output) = output {
             if !output.status.success() {
