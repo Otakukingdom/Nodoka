@@ -1,5 +1,6 @@
 use crate::db::Database;
 use crate::player::ConcretePlayer;
+use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, NodokaState};
 use iced::Command;
 use std::path::Path;
@@ -18,23 +19,26 @@ pub fn update(
         Message::VolumeChanged(volume) => handle_volume_changed(state, player, db, volume),
         Message::SpeedChanged(speed) => handle_speed_changed(state, player, db, speed),
         Message::PlayerTimeUpdated(time) => handle_time_updated(state, db, time),
+        Message::PlayerTick => handle_player_tick(state, player, db),
 
         // Selection messages
         Message::AudiobookSelected(id) => handle_audiobook_selected(state, db, id),
-        Message::FileSelected(path) => handle_file_selected(state, player, &path),
+        Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
 
         // Directory management messages
         Message::DirectoryAdd => handle_directory_add(),
         Message::DirectoryAdded(path) => handle_directory_added(state, db, &path),
         Message::DirectoryRemove(path) => handle_directory_remove(state, db, &path),
-        Message::DirectoryRescan(_path) => handle_directory_rescan(),
+        Message::DirectoryRescan(path) => handle_directory_rescan(state, db, &path),
 
         // Settings messages
         Message::OpenSettings => handle_open_settings(state),
         Message::CloseSettings => handle_close_settings(state),
 
         // Scan messages
-        Message::ScanComplete(new_audiobooks) => handle_scan_complete(state, new_audiobooks),
+        Message::ScanComplete(directory, discovered) => {
+            handle_scan_complete(state, db, &directory, discovered)
+        }
         Message::ScanError(error) => handle_scan_error(&error),
 
         // Lifecycle messages
@@ -90,6 +94,23 @@ fn handle_seek_to(
             state.current_time = position;
         }
     }
+    Command::none()
+}
+
+fn handle_player_tick(
+    state: &mut NodokaState,
+    player: &mut Option<ConcretePlayer>,
+    db: &Database,
+) -> Command<Message> {
+    if state.selected_file.is_none() {
+        return Command::none();
+    }
+
+    if let Some(ref p) = player {
+        let time = p.get_time();
+        return handle_time_updated(state, db, time);
+    }
+
     Command::none()
 }
 
@@ -159,21 +180,64 @@ fn handle_audiobook_selected(state: &mut NodokaState, db: &Database, id: i64) ->
 fn handle_file_selected(
     state: &mut NodokaState,
     player: &mut Option<ConcretePlayer>,
+    db: &Database,
     path: &str,
 ) -> Command<Message> {
     state.selected_file = Some(path.to_string());
+
+    if let Some(id) = state.selected_audiobook {
+        if let Err(e) = crate::db::queries::update_audiobook_selected_file(
+            db.connection(),
+            id,
+            Some(path),
+        ) {
+            tracing::error!("Failed to save selected file: {e}");
+        }
+    } else if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(
+        db.connection(),
+        path,
+    ) {
+        if let Err(e) = crate::db::queries::update_audiobook_selected_file(
+            db.connection(),
+            file.audiobook_id,
+            Some(path),
+        ) {
+            tracing::error!("Failed to save selected file: {e}");
+        }
+    }
 
     if let Some(ref mut p) = player {
         if let Err(e) = p.load_media(Path::new(&path)) {
             tracing::error!("Failed to load media: {e}");
         } else {
+            if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(
+                db.connection(),
+                path,
+            ) {
+                if let Some(length_ms) = file.length_of_file {
+                    state.total_duration = length_ms as f64;
+                }
+
+                if let Some(seek_position) = file.seek_position {
+                    if let Err(e) = p.set_time(seek_position) {
+                        tracing::error!("Failed to restore seek position: {e}");
+                    } else {
+                        state.current_time = seek_position as f64;
+                    }
+                } else {
+                    state.current_time = 0.0;
+                }
+            }
+
             if let Ok(duration) = p.get_length() {
                 // Convert i64 to f64 for iced slider widget
                 // Framework requirement: iced slider API requires f64 values
                 // Safe: i64→f64 cast may lose precision for values >2^53,
                 // but audiobook durations are typically <100 hours (<360,000,000 ms),
                 // well within f64's precise integer range (2^53 ≈ 9×10^15)
-                state.total_duration = duration as f64;
+                if duration > 0 {
+                    state.total_duration = duration as f64;
+                }
             }
 
             if let Err(e) = p.play() {
@@ -212,9 +276,9 @@ fn handle_directory_added(state: &mut NodokaState, db: &Database, path: &str) ->
     }
 
     state.directories.push(directory);
-    tracing::info!("Directory added: {path}. Manual rescan recommended.");
+    tracing::info!("Directory added: {path}. Starting scan.");
 
-    Command::none()
+    start_directory_scan(path.to_string())
 }
 
 fn handle_directory_remove(state: &mut NodokaState, db: &Database, path: &str) -> Command<Message> {
@@ -227,9 +291,25 @@ fn handle_directory_remove(state: &mut NodokaState, db: &Database, path: &str) -
     Command::none()
 }
 
-fn handle_directory_rescan() -> Command<Message> {
-    tracing::info!("Directory rescan requested but not implemented in this version");
-    Command::none()
+fn handle_directory_rescan(
+    _state: &mut NodokaState,
+    db: &Database,
+    path: &str,
+) -> Command<Message> {
+    tracing::info!("Directory rescan requested: {path}");
+    if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path)
+    {
+        for audiobook in audiobooks {
+            if let Some(id) = audiobook.id {
+                if let Err(e) =
+                    crate::db::queries::mark_audiobook_files_missing(db.connection(), id)
+                {
+                    tracing::error!("Failed to mark audiobook files missing: {e}");
+                }
+            }
+        }
+    }
+    start_directory_scan(path.to_string())
 }
 
 fn handle_open_settings(state: &mut NodokaState) -> Command<Message> {
@@ -244,18 +324,120 @@ fn handle_close_settings(state: &mut NodokaState) -> Command<Message> {
 
 fn handle_scan_complete(
     state: &mut NodokaState,
-    new_audiobooks: Vec<crate::models::Audiobook>,
+    db: &Database,
+    directory: &str,
+    discovered: Vec<DiscoveredAudiobook>,
 ) -> Command<Message> {
-    for audiobook in new_audiobooks {
+    let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
+
+    for audiobook in &audiobooks {
         let exists = state
             .audiobooks
             .iter()
             .any(|a| a.full_path == audiobook.full_path);
 
         if !exists {
-            state.audiobooks.push(audiobook);
+            state.audiobooks.push(audiobook.clone());
         }
     }
+
+    for (idx, disc) in discovered.into_iter().enumerate() {
+        let disc_path = disc.path.display().to_string();
+        let existing = crate::db::queries::get_audiobook_by_path(db.connection(), &disc_path)
+            .unwrap_or(None);
+
+        let audiobook_id = if let Some(existing_ab) = existing {
+            existing_ab.id.unwrap_or_else(|| {
+                let mut new_ab = audiobooks
+                    .get(idx)
+                    .cloned()
+                    .unwrap_or_else(|| crate::models::Audiobook::new(
+                        directory.to_string(),
+                        disc.name.clone(),
+                        disc_path.clone(),
+                        i32::try_from(idx).unwrap_or(i32::MAX),
+                    ));
+                if let Ok(id) = crate::db::queries::insert_audiobook(db.connection(), &new_ab) {
+                    new_ab.id = Some(id);
+                    id
+                } else {
+                    0
+                }
+            })
+        } else {
+            let mut new_ab = audiobooks
+                .get(idx)
+                .cloned()
+                .unwrap_or_else(|| crate::models::Audiobook::new(
+                    directory.to_string(),
+                    disc.name.clone(),
+                    disc_path.clone(),
+                    i32::try_from(idx).unwrap_or(i32::MAX),
+                ));
+            match crate::db::queries::insert_audiobook(db.connection(), &new_ab) {
+                Ok(id) => {
+                    new_ab.id = Some(id);
+                    id
+                }
+                Err(e) => {
+                    tracing::error!("Failed to insert audiobook: {e}");
+                    0
+                }
+            }
+        };
+
+        if audiobook_id == 0 {
+            continue;
+        }
+
+        let mut files = disc.files;
+        files.sort_by(|a, b| {
+            a.file_name()
+                .and_then(|n| n.to_str())
+                .cmp(&b.file_name().and_then(|n| n.to_str()))
+        });
+
+        for (pos, file_path) in files.into_iter().enumerate() {
+            let name = file_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let full_path = file_path.display().to_string();
+            let mut file = crate::models::AudiobookFile::new(
+                audiobook_id,
+                name,
+                full_path.clone(),
+                i32::try_from(pos).unwrap_or(i32::MAX),
+            );
+
+            if let Ok(Some(existing_file)) =
+                crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)
+            {
+                file.length_of_file = existing_file.length_of_file;
+                file.seek_position = existing_file.seek_position;
+                file.completeness = existing_file.completeness;
+                file.file_exists = true;
+            }
+
+            if let Err(e) = crate::db::queries::insert_audiobook_file(db.connection(), &file) {
+                tracing::error!("Failed to insert audiobook file: {e}");
+            }
+        }
+    }
+
+    if let Err(e) = crate::db::queries::update_directory_last_scanned(db.connection(), directory) {
+        tracing::error!("Failed to update directory scan timestamp: {e}");
+    }
+
+    if let Some(dir) = state
+        .directories
+        .iter_mut()
+        .find(|d| d.full_path == directory)
+    {
+        dir.last_scanned = Some(chrono::Utc::now());
+    }
+
     Command::none()
 }
 
@@ -292,4 +474,18 @@ fn handle_time_updated(state: &mut NodokaState, db: &Database, time: f64) -> Com
     }
 
     Command::none()
+}
+
+fn start_directory_scan(path: String) -> Command<Message> {
+    Command::perform(
+        async move {
+            scan_directory(path.clone())
+                .await
+                .map(|discovered| (path, discovered))
+        },
+        |result| match result {
+            Ok((path, discovered)) => Message::ScanComplete(path, discovered),
+            Err(error) => Message::ScanError(error.to_string()),
+        },
+    )
 }

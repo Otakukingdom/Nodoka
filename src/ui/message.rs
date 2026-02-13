@@ -34,10 +34,11 @@ pub enum Message {
     // Player events
     PlayerStateChanged(PlayerState),
     PlayerTimeUpdated(f64),
+    PlayerTick,
     PlayerMediaParsed,
 
     // Background tasks
-    ScanComplete(Vec<crate::models::Audiobook>),
+    ScanComplete(String, Vec<crate::tasks::DiscoveredAudiobook>),
     ScanError(String),
     ChecksumCalculated(String, String),
 

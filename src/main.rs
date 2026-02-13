@@ -11,9 +11,9 @@ fn main() {
     init_logging();
 
     // Single instance guard
-    match check_single_instance() {
-        Ok(true) => {}
-        Ok(false) => {
+    let _instance_guard = match check_single_instance() {
+        Ok(guard) => guard,
+        Err(NodokaError::LockError) => {
             eprintln!("Error: Cannot launch multiple instances of Nodoka Player");
             process::exit(1);
         }
@@ -21,7 +21,7 @@ fn main() {
             eprintln!("Error checking instance: {e}");
             process::exit(1);
         }
-    }
+    };
 
     // Initialize database
     let Ok(db) = Database::open() else {
@@ -55,7 +55,22 @@ fn init_logging() {
         .init();
 }
 
-fn check_single_instance() -> Result<bool, NodokaError> {
+struct SingleInstanceGuard {
+    lock_file_path: std::path::PathBuf,
+}
+
+impl Drop for SingleInstanceGuard {
+    fn drop(&mut self) {
+        if let Err(e) = std::fs::remove_file(&self.lock_file_path) {
+            tracing::warn!(
+                "Failed to remove lock file {}: {e}",
+                self.lock_file_path.display()
+            );
+        }
+    }
+}
+
+fn check_single_instance() -> Result<SingleInstanceGuard, NodokaError> {
     use directories::ProjectDirs;
     use std::fs::OpenOptions;
     use std::io::Write;
@@ -63,7 +78,9 @@ fn check_single_instance() -> Result<bool, NodokaError> {
     let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
         .ok_or(NodokaError::ProjectDirNotFound)?;
 
-    let lock_file_path = proj_dirs.data_dir().join(".nodoka.lock");
+    let data_dir = proj_dirs.data_dir();
+    std::fs::create_dir_all(data_dir)?;
+    let lock_file_path = data_dir.join(".nodoka.lock");
 
     // Try to create lock file
     match OpenOptions::new()
@@ -73,9 +90,9 @@ fn check_single_instance() -> Result<bool, NodokaError> {
     {
         Ok(mut file) => {
             file.write_all(std::process::id().to_string().as_bytes())?;
-            Ok(true)
+            Ok(SingleInstanceGuard { lock_file_path })
         }
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Ok(false),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Err(NodokaError::LockError),
         Err(e) => Err(NodokaError::Io(e)),
     }
 }

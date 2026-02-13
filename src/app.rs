@@ -1,7 +1,8 @@
 use crate::db::Database;
 use crate::player::ConcretePlayer;
 use crate::ui::{main_window, update, Message, NodokaState};
-use iced::{Application, Command, Element, Settings, Theme};
+use iced::{Application, Command, Element, Settings, Subscription, Theme};
+use std::time::Duration;
 
 /// Main application state for the Nodoka audiobook reader.
 ///
@@ -121,6 +122,14 @@ impl Application for NodokaApp {
 
     fn view(&self) -> Element<Self::Message> {
         main_window::view(&self.state)
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        if self.state.selected_file.is_some() {
+            iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick)
+        } else {
+            Subscription::none()
+        }
     }
 
     fn theme(&self) -> Self::Theme {
