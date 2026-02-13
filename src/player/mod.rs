@@ -86,31 +86,3 @@ pub use vlc_env::{
     VlcInitEvent, VlcTestHookGuard, __set_vlc_init_observer_for_tests,
     __set_vlc_instance_factory_for_tests,
 };
-
-mod legacy {
-    use super::{PlaybackEvent, PlaybackState, Vlc};
-
-    pub type VlcPlayer = Vlc;
-
-    pub type PlayerState = PlaybackState;
-
-    pub type PlayerEvent = PlaybackEvent;
-}
-
-#[deprecated(
-    since = "0.2.0",
-    note = "Renamed: use `nodoka::player::Vlc` instead of `VlcPlayer`"
-)]
-pub use legacy::VlcPlayer;
-
-#[deprecated(
-    since = "0.2.0",
-    note = "Renamed: use `nodoka::player::PlaybackState` instead of `PlayerState`"
-)]
-pub use legacy::PlayerState;
-
-#[deprecated(
-    since = "0.2.0",
-    note = "Renamed: use `nodoka::player::PlaybackEvent` instead of `PlayerEvent`"
-)]
-pub use legacy::PlayerEvent;

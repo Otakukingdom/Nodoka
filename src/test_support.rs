@@ -3,8 +3,8 @@
 //! This module provides utilities for writing thread-safe tests that modify
 //! environment variables. It is compiled only for unit tests within the crate.
 //!
-//! Integration tests in `tests/` cannot access this module and must define
-//! their own copies of these utilities.
+//! Integration tests in `tests/` cannot access this module and instead share
+//! a small helper module in `tests/test_support.rs`.
 
 use std::env;
 use std::ffi::OsString;

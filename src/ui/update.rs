@@ -118,7 +118,31 @@ fn handle_player_tick(
 
     let (time, player_state) = match player.as_ref() {
         Some(p) => {
-            let time = p.get_time().unwrap_or(0.0);
+            if state.total_duration <= 0.0 {
+                if let Ok(duration_ms) = p.get_length() {
+                    if duration_ms > 0 {
+                        match ms_to_f64(duration_ms) {
+                            Ok(duration_f64) => state.total_duration = duration_f64,
+                            Err(e) => {
+                                tracing::warn!(
+                                    "Failed to convert media duration {duration_ms}ms to f64: {e}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            let time = match p.get_time() {
+                Ok(time) => time,
+                Err(e) => {
+                    tracing::warn!(
+                        "Failed to read player time; skipping progress persist for this tick: {e}"
+                    );
+                    return Command::none();
+                }
+            };
+
             (time, p.get_state())
         }
         None => return Command::none(),

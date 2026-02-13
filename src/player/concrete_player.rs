@@ -1,12 +1,10 @@
 use super::events::{PlaybackEvent, PlaybackState};
-use super::media_duration;
 use super::vlc_env;
 use crate::conversions::ms_to_f64;
 use crate::error::{Error, Result};
 use std::path::Path;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use tokio::sync::broadcast;
 use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State as VlcState};
 
@@ -77,6 +75,7 @@ impl Vlc {
     pub fn load_media(&mut self, path: &Path) -> Result<()> {
         let media = Media::new_path(&self.instance, path)
             .ok_or_else(|| Error::Vlc("Failed to load media".to_string()))?;
+        media.parse_async();
         self.player.set_media(&media);
 
         if let Ok(mut current) = self.current_file.lock() {
@@ -175,10 +174,9 @@ impl Vlc {
     ///
     /// Returns an error if the length cannot be retrieved
     pub fn get_length(&self) -> Result<i64> {
-        self.player.get_media().map_or_else(
-            || Ok(0),
-            |media| media_duration::parse_duration_with_timeout(&media, Duration::from_secs(2)),
-        )
+        self.player
+            .get_media()
+            .map_or_else(|| Ok(0), |media| Ok(media.duration().unwrap_or(0)))
     }
 
     /// Gets the current player state

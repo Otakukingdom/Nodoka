@@ -2,40 +2,12 @@ use nodoka::player::{
     __set_vlc_init_observer_for_tests, __set_vlc_instance_factory_for_tests, setup_vlc_environment,
     VlcInitEvent,
 };
+mod test_support;
 use std::env;
-use std::ffi::OsString;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::Mutex;
+use test_support::{env_lock, EnvVarGuard};
 
-static ENV_LOCK: Mutex<()> = Mutex::new(());
 static INIT_EVENTS: Mutex<Vec<VlcInitEvent>> = Mutex::new(Vec::new());
-
-fn env_lock() -> MutexGuard<'static, ()> {
-    match ENV_LOCK.lock() {
-        Ok(guard) => guard,
-        Err(poisoned) => poisoned.into_inner(),
-    }
-}
-
-struct EnvVarGuard {
-    key: &'static str,
-    previous: Option<OsString>,
-}
-
-impl EnvVarGuard {
-    fn capture(key: &'static str) -> Self {
-        let previous = env::var_os(key);
-        Self { key, previous }
-    }
-}
-
-impl Drop for EnvVarGuard {
-    fn drop(&mut self) {
-        match &self.previous {
-            Some(value) => env::set_var(self.key, value),
-            None => env::remove_var(self.key),
-        }
-    }
-}
 
 fn record_init_event(event: VlcInitEvent) {
     let mut events = INIT_EVENTS

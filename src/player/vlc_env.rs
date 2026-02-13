@@ -97,13 +97,13 @@ pub fn setup_vlc_environment() {
         tracing::debug!("VLC_PLUGIN_PATH already set to: {}", existing_path);
 
         let path = Path::new(&existing_path);
-        if path.exists() {
+        if path.is_dir() {
             tracing::info!("Using existing VLC_PLUGIN_PATH: {}", existing_path);
             return;
         }
 
         tracing::debug!(
-            "VLC_PLUGIN_PATH is set to '{}' but directory does not exist; attempting auto-detection",
+            "VLC_PLUGIN_PATH is set to '{}' but is not a valid directory; attempting auto-detection",
             existing_path
         );
         env::remove_var("VLC_PLUGIN_PATH");
@@ -113,7 +113,7 @@ pub fn setup_vlc_environment() {
     match detect_vlc_plugin_path() {
         Some(plugin_path) => {
             // Verify the detected path exists
-            if plugin_path.exists() {
+            if plugin_path.is_dir() {
                 tracing::info!("Auto-detected VLC plugin path: {}", plugin_path.display());
                 env::set_var("VLC_PLUGIN_PATH", &plugin_path);
             } else {
@@ -368,7 +368,7 @@ fn setup_windows_vlc_library_path() {
     // If already configured with an existing directory, do not override.
     if let Ok(existing) = env::var("VLC_LIB_PATH") {
         let path = Path::new(&existing);
-        if path.exists() {
+        if path.is_dir() {
             tracing::info!("Using existing VLC_LIB_PATH: {}", existing);
             return;
         }
@@ -389,7 +389,7 @@ fn setup_windows_vlc_library_path() {
 
 #[cfg(target_os = "windows")]
 fn apply_windows_vlc_paths(install_dir: &Path) {
-    if !install_dir.exists() {
+    if !install_dir.is_dir() {
         return;
     }
 
@@ -527,6 +527,30 @@ mod tests {
         }
 
         // Restored by EnvVarGuard
+    }
+
+    #[test]
+    fn test_setup_vlc_environment_does_not_accept_file_as_plugin_path(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("VLC_PLUGIN_PATH");
+
+        let temp_dir = TempDir::new()?;
+        let file_path = temp_dir.path().join("not_a_dir");
+        std::fs::write(&file_path, "not a directory")?;
+
+        env::set_var("VLC_PLUGIN_PATH", &file_path);
+
+        setup_vlc_environment();
+
+        if let Ok(plugin_path) = env::var("VLC_PLUGIN_PATH") {
+            assert!(
+                Path::new(&plugin_path).is_dir(),
+                "VLC_PLUGIN_PATH must not point to a file after setup: {plugin_path}"
+            );
+        }
+
+        Ok(())
     }
 
     #[test]

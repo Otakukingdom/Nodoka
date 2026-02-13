@@ -1,7 +1,8 @@
 use crate::error::{Error, Result};
 use std::time::{Duration, Instant};
 
-const POLL_INTERVAL: Duration = Duration::from_millis(5);
+const POLL_INTERVAL_MIN: Duration = Duration::from_millis(25);
+const POLL_INTERVAL_MAX: Duration = Duration::from_millis(200);
 
 pub(super) fn parse_duration_with_timeout(media: &vlc::Media, timeout: Duration) -> Result<i64> {
     media.parse_async();
@@ -28,22 +29,26 @@ fn wait_for_duration(
     timeout: Duration,
 ) -> Result<i64> {
     let started = Instant::now();
+    let mut interval = POLL_INTERVAL_MIN;
 
     loop {
         if let Some(duration) = read_duration()? {
             return Ok(duration);
         }
 
-        if started.elapsed() >= timeout {
+        let elapsed = started.elapsed();
+        if elapsed >= timeout {
             return Err(Error::MediaParse(format!(
                 "Duration not available after waiting {timeout:?}"
             )));
         }
 
         let remaining = timeout
-            .checked_sub(started.elapsed())
+            .checked_sub(elapsed)
             .unwrap_or_else(|| Duration::from_millis(0));
-        std::thread::sleep(std::cmp::min(POLL_INTERVAL, remaining));
+
+        std::thread::sleep(std::cmp::min(interval, remaining));
+        interval = std::cmp::min(interval.saturating_mul(2), POLL_INTERVAL_MAX);
     }
 }
 
@@ -59,7 +64,7 @@ mod tests {
                 calls += 1;
                 Ok(if calls < 3 { None } else { Some(123) })
             },
-            Duration::from_millis(50),
+            Duration::from_millis(200),
         );
 
         match result {
@@ -74,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_wait_for_duration_times_out() {
-        let result = wait_for_duration(|| Ok(None), Duration::from_millis(20));
+        let result = wait_for_duration(|| Ok(None), Duration::from_millis(40));
         assert!(matches!(result, Err(Error::MediaParse(_))));
     }
 }

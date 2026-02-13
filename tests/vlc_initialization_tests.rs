@@ -1,43 +1,14 @@
 use nodoka::player::{
     __set_vlc_instance_factory_for_tests, setup_vlc_environment, verify_vlc_available, Vlc,
 };
+mod test_support;
 use std::env;
 use std::ffi::OsString;
-use std::sync::{Mutex, MutexGuard};
 use temp_dir::TempDir;
+use test_support::{env_lock, EnvVarGuard};
 
 const fn always_fail_instance_creation() -> Option<vlc::Instance> {
     None
-}
-
-static ENV_MUTEX: Mutex<()> = Mutex::new(());
-
-fn env_lock() -> MutexGuard<'static, ()> {
-    match ENV_MUTEX.lock() {
-        Ok(guard) => guard,
-        Err(poisoned) => poisoned.into_inner(),
-    }
-}
-
-struct EnvVarGuard {
-    key: &'static str,
-    previous: Option<OsString>,
-}
-
-impl EnvVarGuard {
-    fn capture(key: &'static str) -> Self {
-        let previous = env::var_os(key);
-        Self { key, previous }
-    }
-}
-
-impl Drop for EnvVarGuard {
-    fn drop(&mut self) {
-        match &self.previous {
-            Some(value) => env::set_var(self.key, value),
-            None => env::remove_var(self.key),
-        }
-    }
 }
 
 #[test]
