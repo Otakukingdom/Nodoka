@@ -57,11 +57,14 @@ fn handle_play_pause(
         if state.is_playing {
             if let Err(e) = p.pause() {
                 tracing::error!("Failed to pause: {e}");
+            } else {
+                state.is_playing = false;
             }
         } else if let Err(e) = p.play() {
             tracing::error!("Failed to play: {e}");
+        } else {
+            state.is_playing = true;
         }
-        state.is_playing = !state.is_playing;
     }
     Command::none()
 }
@@ -293,6 +296,11 @@ fn handle_directory_add() -> Command<Message> {
 }
 
 fn handle_directory_added(state: &mut NodokaState, db: &Database, path: &str) -> Command<Message> {
+    if state.directories.iter().any(|d| d.full_path == path) {
+        tracing::info!("Directory already added: {path}. Skipping.");
+        return Command::none();
+    }
+
     let directory = crate::models::Directory {
         full_path: path.to_string(),
         created_at: chrono::Utc::now(),
@@ -414,8 +422,16 @@ fn handle_scan_complete(
                 disc_path.clone(),
                 i32::try_from(idx).unwrap_or(i32::MAX),
             ));
-        let existing = crate::db::queries::get_audiobook_by_path(db.connection(), &disc_path)
-            .unwrap_or(None);
+        let existing = match crate::db::queries::get_audiobook_by_path(
+            db.connection(),
+            &disc_path,
+        ) {
+            Ok(existing) => existing,
+            Err(e) => {
+                tracing::error!("Failed to lookup audiobook by path {disc_path}: {e}");
+                continue;
+            }
+        };
 
         let audiobook_id = if let Some(existing_ab) = existing {
             if let Some(id) = existing_ab.id {

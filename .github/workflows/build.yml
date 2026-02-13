@@ -374,7 +374,10 @@ jobs:
       - name: Generate checksums
         run: |
           cd installers
-          sha256sum *.msi *.dmg *.deb | sort -k2 > ../SHA256SUMS.txt
+          find . -type f \( -name "*.msi" -o -name "*.dmg" -o -name "*.deb" \) -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            | sort -k2 > ../SHA256SUMS.txt
           cd ..
           echo "Generated checksums:"
           cat SHA256SUMS.txt
