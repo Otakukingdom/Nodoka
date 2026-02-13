@@ -1,3 +1,8 @@
+//! Nodoka Audiobook Reader - Main entry point
+//!
+//! A cross-platform audiobook player built with Rust and iced.
+//! Provides automatic progress tracking, VLC-powered playback, and a clean UI.
+
 use nodoka::{Database, NodokaError};
 use std::process;
 

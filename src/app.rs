@@ -3,12 +3,19 @@ use crate::player::ConcretePlayer;
 use crate::ui::{main_window, update, Message, NodokaState};
 use iced::{Application, Command, Element, Settings, Theme};
 
+/// Main application state for the Nodoka audiobook reader.
+///
+/// This struct implements the [`iced::Application`] trait and manages
+/// the UI state, VLC player instance, and database connection.
 pub struct NodokaApp {
     state: NodokaState,
     player: Option<ConcretePlayer>,
     db: Database,
 }
 
+/// Initialization flags passed to [`NodokaApp`] on startup.
+///
+/// Contains the database connection and any other startup configuration.
 pub struct Flags {
     pub db: Database,
 }

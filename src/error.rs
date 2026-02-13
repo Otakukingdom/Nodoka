@@ -1,5 +1,8 @@
 use thiserror::Error;
 
+/// Error types for the Nodoka audiobook reader application.
+///
+/// All fallible operations in Nodoka return a [`Result`] with this error type.
 #[derive(Error, Debug)]
 pub enum NodokaError {
     #[error("Database error: {0}")]
@@ -33,4 +36,5 @@ pub enum NodokaError {
     ConversionError,
 }
 
+/// Convenience type alias for Results using [`NodokaError`].
 pub type Result<T> = std::result::Result<T, NodokaError>;
