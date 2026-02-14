@@ -6,7 +6,7 @@
 //! ## Features
 //!
 //! - **Cross-platform**: Works on Windows, macOS, and Linux
-//! - **VLC-powered playback**: Supports all VLC-compatible audio formats (MP3, M4A, M4B, OGG, FLAC, WAV, WMA)
+//! - **VLC-powered playback**: Supports all VLC-compatible audio formats (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 //! - **Automatic progress tracking**: Never lose your place with SQLite-based persistence
 //! - **Directory scanning**: Automatically discovers audiobooks from your library folders
 //! - **Playback controls**: Adjustable speed (0.5x-2.0x) and volume

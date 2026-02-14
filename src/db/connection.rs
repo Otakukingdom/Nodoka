@@ -174,24 +174,6 @@ mod tests {
     }
 
     #[test]
-    const fn test_database_open_error_types() {
-        // Test that errors from Database::open are of the correct type
-        // and contain meaningful error messages
-
-        // We can't easily simulate IO errors or database errors in unit tests
-        // without significant mocking infrastructure, but we can verify
-        // that the error conversion from rusqlite::Error and io::Error work
-
-        // This test documents that Database::open can return:
-        // - Error::ProjectDirNotFound (tested above)
-        // - Error::Io (when filesystem operations fail)
-        // - Error::Database (when SQLite operations fail)
-
-        // The integration test in tests/error_reporting_tests.rs
-        // verifies that these errors produce informative messages
-    }
-
-    #[test]
     fn test_get_db_path_returns_valid_path() {
         // Test that get_db_path returns a valid PathBuf when successful
         // This is a white-box test that verifies the internal helper function

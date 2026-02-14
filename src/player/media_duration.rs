@@ -55,24 +55,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_wait_for_duration_returns_when_available() {
+    fn test_wait_for_duration_returns_when_available() -> Result<()> {
         let mut calls = 0_u32;
-        let result = wait_for_duration(
+        let duration = wait_for_duration(
             || {
                 calls += 1;
                 Ok(if calls < 3 { None } else { Some(123) })
             },
             Duration::from_millis(200),
-        );
+        )?;
 
-        match result {
-            Ok(duration) => assert_eq!(duration, 123),
-            Err(e) => {
-                let ok = false;
-                assert!(ok, "Expected Ok duration, got: {e:?}");
-            }
-        }
+        assert_eq!(duration, 123);
         assert!(calls >= 3);
+
+        Ok(())
     }
 
     #[test]

@@ -33,6 +33,8 @@
 //! - `.m4a`, `.m4b` - Apple audio/audiobook
 //! - `.ogg` - OGG Vorbis
 //! - `.flac` - Free Lossless Audio Codec
+//! - `.opus` - Opus audio
+//! - `.aac` - Advanced Audio Coding
 //! - `.wav` - Waveform audio
 //! - `.wma` - Windows Media Audio
 //!
