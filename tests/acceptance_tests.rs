@@ -161,7 +161,11 @@
 //! - Manual testing guide for UI interactions and keyboard shortcuts
 //!
 //! ### ⏸️ Future Enhancements
-//! - Skip silence feature (optional advanced feature - not yet implemented)
+//! - **Skip silence feature** (Section 14 - optional advanced feature, intentionally deferred)
+//!   - Rationale: Requires sophisticated DSP, may skip intentional dramatic pauses,
+//!     performance impact on playback, VLC limitations, varies by user preference
+//!   - If implemented: configurable threshold, minimum duration, on/off toggle,
+//!     visual indicator, progress tracking for skipped time
 //! - Keyboard shortcut UI integration tests (requires UI testing framework)
 //! - Test coverage reporting with tarpaulin
 //! - Automated UI testing for file picker dialogs
