@@ -9,6 +9,112 @@ fn skip_if_vlc_unavailable() -> Option<Vlc> {
 }
 
 #[test]
+fn test_speed_presets_available() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let presets = vec![0.75, 1.0, 1.25, 1.5, 2.0];
+
+        for preset in presets {
+            let result = player.set_rate(preset);
+            assert!(result.is_ok(), "Failed to set preset {}", preset);
+
+            let actual = player.get_rate();
+            let diff = (actual - preset).abs();
+            assert!(
+                diff < 0.05,
+                "Preset {} not accurate: got {}",
+                preset,
+                actual
+            );
+        }
+    }
+}
+
+#[test]
+fn test_speed_custom_entry() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        // Test 0.1x increments between 0.5 and 2.0
+        let custom_speeds = vec![0.6, 0.8, 1.3, 1.7, 1.9];
+
+        for speed in custom_speeds {
+            let result = player.set_rate(speed);
+            assert!(result.is_ok(), "Failed to set custom speed {}", speed);
+
+            let actual = player.get_rate();
+            let diff = (actual - speed).abs();
+            assert!(
+                diff < 0.05,
+                "Custom speed {} not accurate: got {}",
+                speed,
+                actual
+            );
+        }
+    }
+}
+
+#[test]
+fn test_speed_instant_application() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            // Rapidly change speeds - should not cause glitches or crashes
+            let _ = player.set_rate(1.5);
+            let _ = player.set_rate(2.0);
+            let _ = player.set_rate(0.75);
+            let _ = player.set_rate(1.0);
+
+            // Player should still be functional
+            let rate = player.get_rate();
+            assert!((rate - 1.0).abs() < 0.05);
+        }
+    }
+}
+
+#[test]
+fn test_rapid_play_pause_toggling() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file);
+
+            // Rapidly toggle play/pause 20 times
+            for _ in 0..20 {
+                let _ = player.play();
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                let _ = player.pause();
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+
+            // Player should still be in valid state
+            assert!(player.get_time().is_ok());
+        }
+    }
+}
+
+#[test]
+fn test_volume_at_zero_vs_muted() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        // Test volume at 0%
+        let _ = player.set_volume(0);
+        assert_eq!(player.get_volume(), 0);
+
+        // Test that we can set other volumes after 0
+        let _ = player.set_volume(50);
+        assert_eq!(player.get_volume(), 50);
+
+        // Both 0 volume and muted should silence audio
+        let _ = player.set_volume(0);
+        assert_eq!(player.get_volume(), 0);
+    }
+}
+
+#[test]
 fn test_play_starts_playback() {
     if let Some(mut player) = skip_if_vlc_unavailable() {
         let fixtures = TestFixtures::new();

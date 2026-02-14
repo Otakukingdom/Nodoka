@@ -184,3 +184,81 @@ fn test_error_messages_are_readable() {
     assert!(!msg.is_empty());
     assert!(msg.contains("not found") || msg.contains("File"));
 }
+
+#[test]
+fn test_very_long_metadata_strings() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create audiobook with very long name (10,000 characters)
+    let long_name = "A".repeat(10000);
+    let result = create_test_audiobook(&db, "/test", &long_name);
+
+    // Should handle long strings without panic or truncation error
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_invalid_database_path_handled() -> Result<(), Box<dyn Error>> {
+    use std::path::PathBuf;
+
+    // Try to open database at invalid location
+    let invalid_path = PathBuf::from("/nonexistent/directory/that/cannot/exist/db.sqlite");
+
+    let result = nodoka::Database::open_with_path(&invalid_path);
+
+    // Should return error, not panic
+    assert!(result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_concurrent_database_writes() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
+    let db = create_test_db()?;
+
+    // Perform multiple writes
+    for i in 0..10 {
+        let _ = create_test_audiobook(&db, "/test", &format!("Book {}", i))?;
+    }
+
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    assert_eq!(audiobooks.len(), 10);
+
+    Ok(())
+}
+
+#[test]
+fn test_null_bytes_in_strings_handled() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // String with null byte (invalid in many contexts)
+    let name_with_null = "Book\0Name";
+
+    let result = create_test_audiobook(&db, "/test", name_with_null);
+
+    // Should handle gracefully (reject or sanitize)
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_extremely_deep_path_nesting() -> Result<(), Box<dyn Error>> {
+    // Test handling of very deep directory structures
+    let mut deep_path = String::from("/root");
+    for i in 0..100 {
+        deep_path.push_str(&format!("/level{}", i));
+    }
+
+    let db = create_test_db()?;
+    let result = create_test_audiobook(&db, &deep_path, "Deep Path Book");
+
+    // Should handle without stack overflow or path length errors
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}

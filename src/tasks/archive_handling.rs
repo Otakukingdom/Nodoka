@@ -4,15 +4,20 @@ use std::path::{Path, PathBuf};
 use zip::ZipArchive;
 
 /// Checks if a path is a ZIP archive
+#[must_use]
 pub fn is_zip_archive(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
-        .map(|ext| ext.eq_ignore_ascii_case("zip"))
-        .unwrap_or(false)
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
 }
 
 /// Extract ZIP to temporary location for playback
+///
 /// Returns list of extracted audio file paths
+///
+/// # Errors
+///
+/// Returns an error if the ZIP file cannot be opened or extracted
 pub fn extract_zip_for_playback(zip_path: &Path, temp_dir: &Path) -> Result<Vec<PathBuf>> {
     let file = fs::File::open(zip_path)?;
     let mut archive = ZipArchive::new(file)?;
@@ -49,6 +54,10 @@ pub fn extract_zip_for_playback(zip_path: &Path, temp_dir: &Path) -> Result<Vec<
 }
 
 /// Cleanup temporary extracted files
+///
+/// # Errors
+///
+/// Returns an error if the directory cannot be removed
 pub fn cleanup_temp_files(temp_dir: &Path) -> Result<()> {
     if temp_dir.exists() {
         fs::remove_dir_all(temp_dir)?;
@@ -64,12 +73,11 @@ fn is_audio_file(path: &Path) -> bool {
 
     path.extension()
         .and_then(|ext| ext.to_str())
-        .map(|ext| {
+        .is_some_and(|ext| {
             audio_extensions
                 .iter()
                 .any(|audio_ext| ext.eq_ignore_ascii_case(audio_ext))
         })
-        .unwrap_or(false)
 }
 
 #[cfg(test)]

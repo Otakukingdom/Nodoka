@@ -168,4 +168,87 @@ pub mod assertions {
         }
         Ok(())
     }
+
+    /// Asserts that a file exists in the audiobook
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file is not found
+    pub fn assert_file_exists(
+        db: &Database,
+        audiobook_id: i64,
+        filename: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+        let _found = files
+            .iter()
+            .find(|f| f.name == filename)
+            .ok_or_else(|| format!("File '{}' not found", filename))?;
+        Ok(())
+    }
+
+    /// Asserts that playback position is within expected range
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if position is out of range
+    pub fn assert_position_near(
+        actual: f64,
+        expected: f64,
+        tolerance: f64,
+    ) -> Result<(), Box<dyn Error>> {
+        let diff = (actual - expected).abs();
+        if diff > tolerance {
+            return Err(format!(
+                "Position {} not near expected {} (tolerance {})",
+                actual, expected, tolerance
+            )
+            .into());
+        }
+        Ok(())
+    }
+
+    /// Asserts that an audiobook has expected completion percentage
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if percentage doesn't match
+    pub fn assert_completion_percentage(
+        db: &Database,
+        audiobook_id: i64,
+        expected: i32,
+        tolerance: i32,
+    ) -> Result<(), Box<dyn Error>> {
+        let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+            .ok_or("Audiobook not found")?;
+
+        let diff = (audiobook.completeness - expected).abs();
+        if diff > tolerance {
+            return Err(format!(
+                "Completion {}% not near expected {}% (tolerance {}%)",
+                audiobook.completeness, expected, tolerance
+            )
+            .into());
+        }
+        Ok(())
+    }
+
+    /// Asserts that a bookmark exists at a specific position
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if bookmark not found
+    pub fn assert_bookmark_at_position(
+        db: &Database,
+        audiobook_id: i64,
+        position_ms: i64,
+        tolerance_ms: i64,
+    ) -> Result<(), Box<dyn Error>> {
+        let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+        let _found = bookmarks
+            .iter()
+            .find(|b| (b.position_ms - position_ms).abs() < tolerance_ms)
+            .ok_or_else(|| format!("No bookmark near position {}ms", position_ms))?;
+        Ok(())
+    }
 }

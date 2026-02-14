@@ -7,6 +7,7 @@ use chrono::{DateTime, Duration, Utc};
 
 /// Sleep timer mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::module_name_repetitions)]
 pub enum SleepTimerMode {
     /// Pause after a specific duration in seconds
     Duration(i64),

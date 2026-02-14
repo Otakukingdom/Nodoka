@@ -91,7 +91,7 @@ impl<'a> Settings<'a> {
         set_metadata(self.conn, "current_file", path)
     }
 
-    /// Gets the last audiobook ID (alias for get_current_audiobook)
+    /// Gets the last audiobook ID (alias for `get_current_audiobook`)
     ///
     /// # Errors
     ///
@@ -100,7 +100,7 @@ impl<'a> Settings<'a> {
         self.get_current_audiobook()
     }
 
-    /// Sets the last audiobook ID (alias for set_current_audiobook)
+    /// Sets the last audiobook ID (alias for `set_current_audiobook`)
     ///
     /// # Errors
     ///
@@ -109,7 +109,7 @@ impl<'a> Settings<'a> {
         self.set_current_audiobook(id)
     }
 
-    /// Gets the default speed setting (alias for get_speed)
+    /// Gets the default speed setting (alias for `get_speed`)
     ///
     /// # Errors
     ///
@@ -118,7 +118,7 @@ impl<'a> Settings<'a> {
         Ok(Some(self.get_speed()?))
     }
 
-    /// Sets the default speed setting (alias for set_speed)
+    /// Sets the default speed setting (alias for `set_speed`)
     ///
     /// # Errors
     ///
@@ -126,14 +126,13 @@ impl<'a> Settings<'a> {
     pub fn set_default_speed(&self, speed: f32) -> Result<()> {
         if !(0.5..=2.0).contains(&speed) {
             return Err(crate::error::Error::InvalidState(format!(
-                "Speed {} out of range (0.5-2.0)",
-                speed
+                "Speed {speed} out of range (0.5-2.0)"
             )));
         }
         self.set_speed(speed)
     }
 
-    /// Gets the default volume setting (alias for get_volume)
+    /// Gets the default volume setting (alias for `get_volume`)
     ///
     /// # Errors
     ///
@@ -142,7 +141,7 @@ impl<'a> Settings<'a> {
         Ok(Some(self.get_volume()?))
     }
 
-    /// Sets the default volume setting (alias for set_volume)
+    /// Sets the default volume setting (alias for `set_volume`)
     ///
     /// # Errors
     ///
@@ -150,8 +149,7 @@ impl<'a> Settings<'a> {
     pub fn set_default_volume(&self, volume: i32) -> Result<()> {
         if !(0..=200).contains(&volume) {
             return Err(crate::error::Error::InvalidState(format!(
-                "Volume {} out of range (0-200)",
-                volume
+                "Volume {volume} out of range (0-200)"
             )));
         }
         self.set_volume(volume)
@@ -261,8 +259,7 @@ impl<'a> Settings<'a> {
     pub fn set_auto_save_interval(&self, seconds: i32) -> Result<()> {
         if !(1..=60).contains(&seconds) {
             return Err(crate::error::Error::InvalidState(format!(
-                "Auto-save interval {} out of range (1-60 seconds)",
-                seconds
+                "Auto-save interval {seconds} out of range (1-60 seconds)"
             )));
         }
         set_metadata(self.conn, "auto_save_interval", &seconds.to_string())

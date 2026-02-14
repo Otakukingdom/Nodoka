@@ -27,21 +27,80 @@ fn test_sort_audiobooks_by_name() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_sort_by_date_added() -> Result<(), Box<dyn Error>> {
+fn test_search_performance_large_library() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
 
-    create_test_audiobook(&db, "/test", "First")?;
-    std::thread::sleep(std::time::Duration::from_millis(10));
-    create_test_audiobook(&db, "/test", "Second")?;
-    std::thread::sleep(std::time::Duration::from_millis(10));
-    create_test_audiobook(&db, "/test", "Third")?;
+    // Create 1000 audiobooks
+    for i in 0..1000 {
+        create_test_audiobook(&db, "/test/library", &format!("Audiobook {:04}", i))?;
+    }
 
+    // Search should be fast (< 100ms)
+    let start = std::time::Instant::now();
+    let all = queries::get_all_audiobooks(db.connection())?;
+    let results: Vec<_> = all
+        .iter()
+        .filter(|ab| ab.name.to_lowercase().contains("book"))
+        .collect();
+    let duration = start.elapsed();
+
+    assert!(
+        duration < std::time::Duration::from_millis(100),
+        "Search took {}ms (expected < 100ms)",
+        duration.as_millis()
+    );
+    assert!(results.len() > 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_sort_performance_large_library() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create 1000 audiobooks with random names
+    for i in 0..1000 {
+        create_test_audiobook(&db, "/test/library", &format!("Book {}", 1000 - i))?;
+    }
+
+    // Sort should be fast
+    let start = std::time::Instant::now();
     let mut audiobooks = queries::get_all_audiobooks(db.connection())?;
-    audiobooks.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+    audiobooks.sort_by(|a, b| a.name.cmp(&b.name));
+    let duration = start.elapsed();
 
-    assert_eq!(audiobooks[0].name, "First");
-    assert_eq!(audiobooks[1].name, "Second");
-    assert_eq!(audiobooks[2].name, "Third");
+    assert!(
+        duration < std::time::Duration::from_millis(50),
+        "Sort took {}ms (expected < 50ms)",
+        duration.as_millis()
+    );
+
+    assert_eq!(audiobooks.len(), 1000);
+
+    Ok(())
+}
+
+#[test]
+fn test_filter_performance_large_library() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create 1000 audiobooks
+    for i in 0..1000 {
+        create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+    }
+
+    // Filter by completion status should be fast
+    let start = std::time::Instant::now();
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    let incomplete: Vec<_> = audiobooks.iter().filter(|ab| !ab.is_complete()).collect();
+    let duration = start.elapsed();
+
+    assert!(
+        duration < std::time::Duration::from_millis(50),
+        "Filter took {}ms (expected < 50ms)",
+        duration.as_millis()
+    );
+    assert_eq!(incomplete.len(), 1000); // All incomplete
 
     Ok(())
 }

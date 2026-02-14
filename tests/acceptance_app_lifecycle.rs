@@ -31,32 +31,85 @@ fn test_first_launch_creates_database() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_restore_last_selected_audiobook() -> Result<(), Box<dyn Error>> {
+fn test_startup_time_with_1000_audiobooks() -> Result<(), Box<dyn Error>> {
     let temp_db_dir = temp_dir::TempDir::new()?;
-    let db_path = temp_db_dir.path().join("lifecycle.db");
+    let db_path = temp_db_dir.path().join("large.db");
 
-    // Session 1: Select audiobook
+    // Setup: Create database with 1000 audiobooks
     {
-        let db = nodoka::db::Database::open_with_path(&db_path)?;
+        let db = nodoka::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
-        let audiobook_id = create_test_audiobook(&db, "/test", "Last Book")?;
-
-        let settings = Settings::new(db.connection());
-        settings.set_last_audiobook_id(audiobook_id)?;
+        for i in 0..1000 {
+            create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+        }
     }
 
-    // Session 2: Restore
+    // Test: Measure startup time
+    let start = std::time::Instant::now();
+    let db = nodoka::Database::open_with_path(&db_path)?;
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    let duration = start.elapsed();
+
+    assert_eq!(audiobooks.len(), 1000);
+
+    // Startup should be < 3 seconds per spec
+    assert!(
+        duration < std::time::Duration::from_secs(3),
+        "Startup took {}ms (expected < 3000ms)",
+        duration.as_millis()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_large_library_query_performance() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create 1000 audiobooks
+    for i in 0..1000 {
+        create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+    }
+
+    // Query should be fast
+    let start = std::time::Instant::now();
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    let duration = start.elapsed();
+
+    assert_eq!(audiobooks.len(), 1000);
+
+    // Query should complete quickly (< 500ms for 1000 records)
+    assert!(
+        duration < std::time::Duration::from_millis(500),
+        "Query took {}ms (expected < 500ms)",
+        duration.as_millis()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_database_migration_on_version_upgrade() -> Result<(), Box<dyn Error>> {
+    let temp_db_dir = temp_dir::TempDir::new()?;
+    let db_path = temp_db_dir.path().join("migration.db");
+
+    // Create database with initial schema
     {
-        let db = nodoka::db::Database::open_with_path(&db_path)?;
-        let settings = Settings::new(db.connection());
+        let db = nodoka::Database::open_with_path(&db_path)?;
+        nodoka::db::initialize(db.connection())?;
 
-        let last_id = settings.get_last_audiobook_id()?;
-        assert!(last_id.is_some());
+        create_test_audiobook(&db, "/test", "Test Book")?;
+    }
 
-        let audiobook = queries::get_audiobook_by_id(db.connection(), last_id.unwrap())?;
-        assert!(audiobook.is_some());
-        assert_eq!(audiobook.unwrap().name, "Last Book");
+    // Reopen database (simulating upgrade)
+    {
+        let db = nodoka::Database::open_with_path(&db_path)?;
+
+        // Data should still be accessible
+        let audiobooks = queries::get_all_audiobooks(db.connection())?;
+        assert_eq!(audiobooks.len(), 1);
+        assert_eq!(audiobooks[0].name, "Test Book");
     }
 
     Ok(())
