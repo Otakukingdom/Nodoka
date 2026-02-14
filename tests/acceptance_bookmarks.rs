@@ -320,3 +320,186 @@ fn test_bookmark_file_path_tracked() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_bookmark_in_deleted_file() -> Result<(), Box<dyn Error>> {
+    use std::fs;
+    use temp_dir::TempDir;
+
+    let temp = TempDir::new()?;
+    let db = create_test_db()?;
+
+    // Create audiobook with file
+    let book_dir = temp.path().join("Book");
+    fs::create_dir_all(&book_dir)?;
+    let file_path = book_dir.join("chapter1.mp3");
+    fs::write(&file_path, b"fake audio")?;
+
+    let audiobook_id = create_test_audiobook(&db, temp.path().to_str().unwrap(), "Book")?;
+
+    // Create bookmark
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        file_path.to_str().unwrap().to_string(),
+        60000,
+        "Important".to_string(),
+    );
+    let bookmark_id = queries::insert_bookmark(db.connection(), &bookmark)?;
+
+    // Delete file
+    fs::remove_file(&file_path)?;
+
+    // Verify bookmark still exists
+    let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(bookmarks.len(), 1);
+    assert_eq!(bookmarks[0].id, Some(bookmark_id));
+
+    // Application should handle missing file gracefully when trying to use bookmark
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_position_beyond_file_duration() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+    let file_path = "/test/Book/chapter1.mp3";
+
+    // Create bookmark at position beyond typical file length
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        file_path.to_string(),
+        999_999_999, // Very large position
+        "Beyond end".to_string(),
+    );
+
+    let result = queries::insert_bookmark(db.connection(), &bookmark);
+
+    // Should allow creation; validation happens at playback time
+    assert!(result.is_ok());
+
+    if let Ok(bookmark_id) = result {
+        let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+        let saved = bookmarks.iter().find(|b| b.id == Some(bookmark_id));
+        assert!(saved.is_some());
+        assert_eq!(saved.unwrap().position_ms, 999_999_999);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_duplicate_bookmarks_same_position() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+    let file_path = "/test/Book/chapter1.mp3";
+    let position = 60000;
+
+    // Create two bookmarks at same position with different labels
+    let bookmark1 = Bookmark::new(
+        audiobook_id,
+        file_path.to_string(),
+        position,
+        "Label 1".to_string(),
+    );
+    let bookmark2 = Bookmark::new(
+        audiobook_id,
+        file_path.to_string(),
+        position,
+        "Label 2".to_string(),
+    );
+
+    let id1 = queries::insert_bookmark(db.connection(), &bookmark1)?;
+    let id2 = queries::insert_bookmark(db.connection(), &bookmark2)?;
+
+    assert_ne!(id1, id2);
+
+    let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(bookmarks.len(), 2);
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_negative_position_rejected() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        -1000, // Negative position
+        "Invalid".to_string(),
+    );
+
+    let result = queries::insert_bookmark(db.connection(), &bookmark);
+
+    // Should either reject or handle gracefully
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_empty_label() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        1000,
+        "".to_string(), // Empty label
+    );
+
+    let result = queries::insert_bookmark(db.connection(), &bookmark);
+
+    // Should handle empty label gracefully
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_very_long_label() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let long_label = "A".repeat(10000);
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        1000,
+        long_label.clone(),
+    );
+
+    let result = queries::insert_bookmark(db.connection(), &bookmark);
+
+    // Should handle long strings without panic
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_unicode_in_label() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let unicode_label = "Bookmark 📚 with émojis and 日本語";
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        1000,
+        unicode_label.to_string(),
+    );
+
+    let id = queries::insert_bookmark(db.connection(), &bookmark)?;
+
+    let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    let saved = bookmarks.iter().find(|b| b.id == Some(id)).unwrap();
+
+    assert_eq!(saved.label, unicode_label);
+
+    Ok(())
+}

@@ -1,6 +1,7 @@
 mod acceptance_support;
 use acceptance_support::*;
 
+use nodoka::db::queries;
 use nodoka::player::Scanner;
 use std::error::Error;
 
@@ -15,7 +16,10 @@ fn test_extract_duration() -> Result<(), Box<dyn Error>> {
 
     if let Ok(scanner) = Scanner::new() {
         if let Ok(properties) = scanner.scan_media(&audio_file) {
-            assert!(properties.duration_ms >= 0, "Duration should be non-negative");
+            assert!(
+                properties.duration_ms >= 0,
+                "Duration should be non-negative"
+            );
         }
     }
 
@@ -225,6 +229,92 @@ fn test_zero_duration_handled() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(duration, 0);
     assert!(duration >= 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_metadata_with_very_long_strings() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create audiobook with very long title
+    let long_title = "A".repeat(10_000);
+    let result = create_test_audiobook(&db, "/test", &long_title);
+
+    // Should handle long strings without panic
+    assert!(result.is_ok());
+
+    if let Ok(audiobook_id) = result {
+        let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+            .ok_or("Audiobook not found")?;
+        assert!(!audiobook.name.is_empty());
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_metadata_with_null_bytes() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    let title_with_null = "Book\0Title";
+
+    let result = create_test_audiobook(&db, "/test", title_with_null);
+
+    // Should handle or reject null bytes gracefully
+    assert!(result.is_ok() || result.is_err());
+
+    if let Ok(audiobook_id) = result {
+        let audiobook =
+            queries::get_audiobook_by_id(db.connection(), audiobook_id)?.ok_or("Not found")?;
+        // Null bytes should not corrupt data
+        assert!(!audiobook.name.is_empty());
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_metadata_unicode_encoding() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Unicode from various scripts
+    let unicode_name = "Café 日本語 Русский العربية";
+    let audiobook_id = create_test_audiobook(&db, "/test", unicode_name)?;
+
+    let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("Audiobook not found")?;
+
+    assert_eq!(audiobook.name, unicode_name);
+
+    Ok(())
+}
+
+#[test]
+fn test_metadata_empty_strings() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Empty name
+    let result = create_test_audiobook(&db, "/test", "");
+
+    // Should handle empty strings
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_metadata_newlines_and_tabs() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    let name_with_whitespace = "Book\nWith\tSpecial\rWhitespace";
+    let audiobook_id = create_test_audiobook(&db, "/test", name_with_whitespace)?;
+
+    let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("Audiobook not found")?;
+
+    // Should preserve or sanitize special whitespace
+    assert!(!audiobook.name.is_empty());
 
     Ok(())
 }

@@ -387,6 +387,18 @@ fn test_m4b_files_detected() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn test_m4a_files_detected() -> Result<(), Box<dyn Error>> {
+    let fixtures = TestFixtures::new();
+    let m4a_path = fixtures.audio_path("sample_m4a.m4a");
+    
+    if m4a_path.exists() {
+        assert!(m4a_path.extension().and_then(|e| e.to_str()) == Some("m4a"));
+    }
+    
+    Ok(())
+}
+
+#[test]
 fn test_flac_files_detected() -> Result<(), Box<dyn Error>> {
     let fixtures = TestFixtures::new();
     let flac_path = fixtures.audio_path("sample_flac.flac");

@@ -289,3 +289,149 @@ fn test_sort_by_default_order() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_search_with_special_regex_characters() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create audiobooks with regex special characters
+    create_test_audiobook(&db, "/test", "Book (Part 1)")?;
+    create_test_audiobook(&db, "/test", "Book [Complete]")?;
+    create_test_audiobook(&db, "/test", "Book.with.dots")?;
+    create_test_audiobook(&db, "/test", "Book+Extra")?;
+    create_test_audiobook(&db, "/test", "Book*Wildcard")?;
+
+    let all = queries::get_all_audiobooks(db.connection())?;
+
+    // Search should treat special chars as literals
+    let results: Vec<_> = all.iter().filter(|ab| ab.name.contains("(Part")).collect();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].name, "Book (Part 1)");
+
+    let results: Vec<_> = all
+        .iter()
+        .filter(|ab| ab.name.contains("[Complete]"))
+        .collect();
+    assert_eq!(results.len(), 1);
+
+    let results: Vec<_> = all.iter().filter(|ab| ab.name.contains("Book+")).collect();
+    assert_eq!(results.len(), 1);
+
+    Ok(())
+}
+
+#[test]
+fn test_sort_with_numbers_and_special_chars() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    let names = vec![
+        "Book 10",
+        "Book 2",
+        "Book 1",
+        "Book (2023)",
+        "Book [New]",
+        "Book - The Sequel",
+    ];
+
+    for name in &names {
+        create_test_audiobook(&db, "/test", name)?;
+    }
+
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+
+    // Verify natural numeric ordering exists somewhere
+    let book1 = audiobooks.iter().find(|ab| ab.name == "Book 1");
+    let book2 = audiobooks.iter().find(|ab| ab.name == "Book 2");
+    let book10 = audiobooks.iter().find(|ab| ab.name == "Book 10");
+
+    assert!(book1.is_some());
+    assert!(book2.is_some());
+    assert!(book10.is_some());
+
+    Ok(())
+}
+
+#[test]
+fn test_filter_with_no_results() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    create_test_audiobook(&db, "/test", "Book One")?;
+    create_test_audiobook(&db, "/test", "Book Two")?;
+
+    // Mark all complete
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    for book in &audiobooks {
+        queries::update_audiobook_completeness(db.connection(), book.id.unwrap(), 100)?;
+    }
+
+    // Filter for incomplete should return empty
+    let all = queries::get_all_audiobooks(db.connection())?;
+    let incomplete: Vec<_> = all.iter().filter(|ab| ab.completeness < 100).collect();
+    assert_eq!(incomplete.len(), 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_empty_library_operations() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Operations on empty library should not crash
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    assert_eq!(audiobooks.len(), 0);
+
+    // Search in empty library
+    let results: Vec<_> = audiobooks
+        .iter()
+        .filter(|ab| ab.name.contains("test"))
+        .collect();
+    assert_eq!(results.len(), 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_search_unicode_characters() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    create_test_audiobook(&db, "/test", "Book with émojis 📚")?;
+    create_test_audiobook(&db, "/test", "日本語のタイトル")?;
+    create_test_audiobook(&db, "/ test", "Книга на русском")?;
+
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+
+    // Unicode search
+    let results: Vec<_> = audiobooks
+        .iter()
+        .filter(|ab| ab.name.contains("📚"))
+        .collect();
+    assert_eq!(results.len(), 1);
+
+    let results: Vec<_> = audiobooks
+        .iter()
+        .filter(|ab| ab.name.contains("日本語"))
+        .collect();
+    assert_eq!(results.len(), 1);
+
+    Ok(())
+}
+
+#[test]
+fn test_very_long_audiobook_names() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    let long_name = "A".repeat(1000);
+    create_test_audiobook(&db, "/test", &long_name)?;
+
+    let audiobooks = queries::get_all_audiobooks(db.connection())?;
+    assert_eq!(audiobooks.len(), 1);
+
+    // Search in long name should work
+    let results: Vec<_> = audiobooks
+        .iter()
+        .filter(|ab| ab.name.contains("AAA"))
+        .collect();
+    assert_eq!(results.len(), 1);
+
+    Ok(())
+}

@@ -164,3 +164,83 @@ fn test_timer_started_at_timestamp() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_end_of_chapter_mode_single_file() -> Result<(), Box<dyn Error>> {
+    // End-of-chapter with single-file audiobook should pause at end
+    let timer = SleepTimer::new(SleepTimerMode::EndOfChapter, 0);
+
+    // Timer should indicate it waits for chapter boundary
+    assert!(matches!(timer.mode, SleepTimerMode::EndOfChapter));
+
+    Ok(())
+}
+
+#[test]
+fn test_timer_zero_duration() -> Result<(), Box<dyn Error>> {
+    // Timer with 0 duration should expire immediately or be invalid
+    let timer = SleepTimer::new(SleepTimerMode::Duration(0), 0);
+
+    std::thread::sleep(std::time::Duration::from_millis(10));
+
+    // Should be expired or handled specially
+    assert!(timer.is_expired() || timer.remaining_seconds() == Some(0));
+
+    Ok(())
+}
+
+#[test]
+fn test_timer_very_long_duration() -> Result<(), Box<dyn Error>> {
+    // Timer with very long duration (e.g., 24 hours)
+    let timer = SleepTimer::new(SleepTimerMode::Duration(86400), 0); // 24 hours in seconds
+
+    assert!(!timer.is_expired());
+    if let Some(remaining) = timer.remaining_seconds() {
+        assert!(remaining > 86390);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_multiple_timer_instances() -> Result<(), Box<dyn Error>> {
+    // Multiple timers should be independent
+    let timer1 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
+    std::thread::sleep(std::time::Duration::from_millis(500)); // Longer delay for more reliable test
+    let timer2 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
+
+    // timer1 started earlier, so should have less time remaining
+    if let (Some(remaining1), Some(remaining2)) =
+        (timer1.remaining_seconds(), timer2.remaining_seconds())
+    {
+        // Allow some tolerance for timing variations
+        assert!(
+            remaining1 <= remaining2,
+            "Timer1 should have equal or less time remaining"
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_timer_fade_duration_zero() -> Result<(), Box<dyn Error>> {
+    // Timer with zero fade duration
+    let timer = SleepTimer::new(SleepTimerMode::Duration(5), 0);
+
+    // Should work with immediate cut-off
+    assert!(!timer.is_expired());
+
+    Ok(())
+}
+
+#[test]
+fn test_timer_fade_longer_than_duration() -> Result<(), Box<dyn Error>> {
+    // Fade duration longer than timer duration (edge case)
+    let timer = SleepTimer::new(SleepTimerMode::Duration(5), 10);
+
+    // Should handle gracefully
+    assert!(!timer.is_expired());
+
+    Ok(())
+}

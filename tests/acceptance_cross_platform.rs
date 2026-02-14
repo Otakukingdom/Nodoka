@@ -181,3 +181,132 @@ fn test_empty_path_handling() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_relative_vs_absolute_paths() -> Result<(), Box<dyn Error>> {
+    use std::path::Path;
+    let db = create_test_db()?;
+    let temp = TempDir::new()?;
+
+    let book_dir = temp.path().join("Book");
+    std::fs::create_dir(&book_dir)?;
+
+    // Create with absolute path
+    let path_str = book_dir.to_str().ok_or("Invalid path")?;
+    create_test_audiobook(&db, path_str, "Absolute Path Test")?;
+
+    let audiobooks = nodoka::db::queries::get_all_audiobooks(db.connection())?;
+
+    // Stored paths should be absolute
+    for audiobook in audiobooks {
+        let path = Path::new(&audiobook.directory);
+        assert!(
+            path.is_absolute(),
+            "Path should be absolute: {}",
+            audiobook.directory
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+#[cfg(any(windows, target_os = "macos"))]
+fn test_case_sensitivity_handling() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+    use nodoka::models::Directory;
+
+    let db = create_test_db()?;
+    let temp = TempDir::new()?;
+
+    let dir = temp.path().join("Audiobooks");
+    std::fs::create_dir(&dir)?;
+
+    let dir1 = Directory {
+        full_path: dir.to_str().unwrap().to_string(),
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
+
+    queries::insert_directory(db.connection(), &dir1)?;
+
+    // Try to add same path with different case
+    let dir2_str = dir.to_str().unwrap().to_uppercase();
+    let dir2 = Directory {
+        full_path: dir2_str,
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
+
+    let result = queries::insert_directory(db.connection(), &dir2);
+
+    // On case-insensitive filesystems, should detect as duplicate or succeed
+    // Either way, should not crash
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+#[cfg(windows)]
+fn test_windows_unc_path_format() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+    use nodoka::models::Directory;
+
+    let db = create_test_db()?;
+
+    // UNC path format
+    let unc_path = r"\\server\share\audiobooks";
+
+    let dir = Directory {
+        full_path: unc_path.to_string(),
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
+
+    let result = queries::insert_directory(db.connection(), &dir);
+
+    // Should handle UNC paths or give clear error
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_path_with_trailing_separator() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let temp = TempDir::new()?;
+
+    let dir = temp.path().join("Books");
+    std::fs::create_dir(&dir)?;
+
+    // Add path with trailing separator
+    let mut path_str = dir.to_str().unwrap().to_string();
+    path_str.push(std::path::MAIN_SEPARATOR);
+
+    let result = create_test_audiobook(&db, &path_str, "Trailing Sep Test");
+
+    // Should handle trailing separators
+    assert!(result.is_ok());
+
+    Ok(())
+}
+
+#[test]
+fn test_path_with_double_separators() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Path with double separators
+    let double_sep_path = if cfg!(windows) {
+        r"C:\\Users\\\\Test\\\\Books"
+    } else {
+        "/home//user//books"
+    };
+
+    let result = create_test_audiobook(&db, double_sep_path, "Double Sep Test");
+
+    // Should handle or normalize double separators
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}

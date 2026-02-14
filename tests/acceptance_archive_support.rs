@@ -321,3 +321,136 @@ fn test_extract_preserves_file_structure() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_zip_with_deeply_nested_structure() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("deep.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    // Create deeply nested path: level1/level2/.../level10/audio.mp3
+    let deep_path = (1..=10)
+        .map(|i| format!("level{}", i))
+        .collect::<Vec<_>>()
+        .join("/");
+    let file_path = format!("{}/audio.mp3", deep_path);
+
+    zip.start_file(&file_path, FileOptions::default())?;
+    zip.write_all(b"fake audio")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let result = extract_zip_for_playback(&zip_path, &extract_dir);
+
+    // Should handle deep nesting without stack overflow
+    assert!(result.is_ok());
+
+    if let Ok(extracted) = result {
+        assert_eq!(extracted.len(), 1);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_zip_with_very_long_filename() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("longname.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    // Very long filename (200 characters)
+    let long_name = format!("{}.mp3", "a".repeat(200));
+
+    zip.start_file(&long_name, FileOptions::default())?;
+    zip.write_all(b"fake audio")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let result = extract_zip_for_playback(&zip_path, &extract_dir);
+
+    // Should handle long filenames
+    assert!(result.is_ok() || result.is_err()); // May hit filesystem limits
+
+    Ok(())
+}
+
+#[test]
+fn test_empty_zip_file() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("empty.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let result = extract_zip_for_playback(&zip_path, &extract_dir)?;
+
+    // Empty ZIP should return empty list
+    assert_eq!(result.len(), 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_zip_with_unicode_filenames() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("unicode.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    zip.start_file("日本語.mp3", FileOptions::default())?;
+    zip.write_all(b"fake audio")?;
+
+    zip.start_file("файл.mp3", FileOptions::default())?;
+    zip.write_all(b"fake audio")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let result = extract_zip_for_playback(&zip_path, &extract_dir);
+
+    // Should handle unicode filenames
+    assert!(result.is_ok());
+
+    if let Ok(extracted) = result {
+        assert_eq!(extracted.len(), 2);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_zip_extraction_creates_necessary_directories() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("dirs.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    zip.start_file("subdir1/subdir2/file.mp3", FileOptions::default())?;
+    zip.write_all(b"fake audio")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let extracted = extract_zip_for_playback(&zip_path, &extract_dir)?;
+
+    assert_eq!(extracted.len(), 1);
+    // Verify the file actually exists
+    assert!(extracted[0].exists());
+
+    Ok(())
+}

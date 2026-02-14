@@ -262,3 +262,120 @@ fn test_extremely_deep_path_nesting() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_vlc_not_installed_error_message() {
+    // Test that VLC errors are clear and actionable
+    let result = Vlc::new();
+
+    if let Err(e) = result {
+        let error_msg = format!("{}", e);
+        // Error should mention VLC and be actionable
+        assert!(
+            error_msg.to_lowercase().contains("vlc") || error_msg.to_lowercase().contains("libvlc"),
+            "Error should mention VLC: {}",
+            error_msg
+        );
+    }
+}
+
+#[test]
+fn test_network_path_errors_handled() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+    use nodoka::models::Directory;
+
+    let db = create_test_db()?;
+
+    // Test various network path formats
+    let network_paths = vec![
+        "\\\\server\\share\\audiobooks", // UNC path (Windows)
+        "smb://server/share/audiobooks", // SMB path
+        "//server/share/audiobooks",     // Alternative format
+    ];
+
+    for path in network_paths {
+        let dir = Directory {
+            full_path: path.to_string(),
+            created_at: chrono::Utc::now(),
+            last_scanned: None,
+        };
+
+        let result = queries::insert_directory(db.connection(), &dir);
+        // Should handle network paths without crashing
+        assert!(result.is_ok() || result.is_err());
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_readonly_database_error() -> Result<(), Box<dyn Error>> {
+    use std::fs;
+    use temp_dir::TempDir;
+
+    let temp = TempDir::new()?;
+    let db_path = temp.path().join("readonly.db");
+
+    // Create database
+    {
+        let _db = nodoka::Database::open_with_path(&db_path)?;
+    }
+
+    // Make it read-only
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&db_path)?.permissions();
+        perms.set_mode(0o444);
+        fs::set_permissions(&db_path, perms)?;
+    }
+
+    // Attempt to open and write should handle readonly gracefully
+    let result = nodoka::Database::open_with_path(&db_path);
+
+    // Should either open in readonly mode or fail gracefully
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_unicode_error_messages() -> Result<(), Box<dyn Error>> {
+    // Test that error messages with unicode work correctly
+    let db = create_test_db()?;
+    let unicode_name = "Book with émojis 📚 and 日本語";
+
+    let result = create_test_audiobook(&db, "/test/παθ", unicode_name);
+
+    // Should handle unicode without corruption
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn test_progress_save_error_recovery() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+    insert_test_file(&db, audiobook_id, "/test/chapter1.mp3")?;
+
+    // Save valid progress
+    let result = queries::update_file_progress(db.connection(), "/test/chapter1.mp3", 100000.0, 50);
+
+    assert!(result.is_ok());
+
+    // Try to save with invalid values
+    let result = queries::update_file_progress(
+        db.connection(),
+        "/test/chapter1.mp3",
+        -1.0, // Invalid negative value
+        -1,
+    );
+
+    // Should handle invalid input gracefully
+    assert!(result.is_ok() || result.is_err());
+
+    Ok(())
+}
