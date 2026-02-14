@@ -72,6 +72,39 @@ async fn test_scan_missing_root_returns_error() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
+async fn test_scan_directory_skips_unreadable_entries() -> Result<(), Box<dyn Error>> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        let temp = TempDir::new()?;
+        let fixtures = TestFixtures::new();
+
+        let book_dir = temp.path().join("Book");
+        fs::create_dir_all(&book_dir)?;
+        fs::copy(
+            fixtures.audio_path("sample_mp3.mp3"),
+            book_dir.join("chapter1.mp3"),
+        )?;
+
+        let unreadable = temp.path().join("unreadable");
+        fs::create_dir_all(&unreadable)?;
+        fs::set_permissions(&unreadable, fs::Permissions::from_mode(0o000))?;
+
+        let discovered = scan_directory(temp.path().to_path_buf()).await?;
+        assert!(
+            discovered.iter().any(|b| b.path == book_dir),
+            "expected scan to succeed and include readable audiobook"
+        );
+
+        // Restore permissions so TempDir cleanup can remove it.
+        let _ = fs::set_permissions(&unreadable, fs::Permissions::from_mode(0o700));
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_symbolic_links_handling() -> Result<(), Box<dyn Error>> {
     #[cfg(unix)]
     {
@@ -369,6 +402,64 @@ async fn test_rescanning_preserves_playback_progress() -> Result<(), Box<dyn Err
     assert_eq!(progress_before, progress_after);
     assert!(progress_after.is_some());
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_checksum_change_resets_progress_on_rescan() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+    use nodoka::ui::{Message, State};
+
+    let temp = TempDir::new()?;
+    let db = create_test_db()?;
+
+    let book = temp.path().join("Book");
+    fs::create_dir_all(&book)?;
+    let file_path = book.join("chapter1.mp3");
+    fs::write(&file_path, b"one")?;
+
+    let discovered = scan_directory(temp.path().to_path_buf()).await?;
+
+    let mut state = State::default();
+    let mut player: Option<nodoka::player::Vlc> = None;
+    let dir_str = temp
+        .path()
+        .to_str()
+        .ok_or("Path conversion failed")?
+        .to_string();
+
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanComplete(dir_str.clone(), discovered),
+        &mut player,
+        &db,
+    );
+
+    let book_path_str = book.to_str().ok_or("Path conversion failed")?;
+    let ab = queries::get_audiobook_by_path(db.connection(), book_path_str)?
+        .ok_or("Expected audiobook")?;
+    let ab_id = ab.id.ok_or("Expected audiobook id")?;
+
+    let file_str = file_path.to_str().ok_or("Path conversion failed")?;
+    queries::update_file_progress(db.connection(), file_str, 5000.0, 50)?;
+
+    // Change file contents to change checksum
+    fs::write(&file_path, b"two")?;
+
+    let discovered2 = scan_directory(temp.path().to_path_buf()).await?;
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanComplete(dir_str, discovered2),
+        &mut player,
+        &db,
+    );
+
+    let updated = queries::get_audiobook_file_by_path(db.connection(), file_str)?
+        .ok_or("Expected audiobook file")?;
+    assert_eq!(updated.audiobook_id, ab_id);
+    assert_eq!(updated.seek_position, None);
+    assert_eq!(updated.completeness, 0);
+    assert!(updated.checksum.is_some());
     Ok(())
 }
 

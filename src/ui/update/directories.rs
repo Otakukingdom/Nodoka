@@ -172,7 +172,7 @@ fn process_discovered_audiobook(
     };
 
     update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
-    process_audiobook_files(db, audiobook_id, disc.files);
+    process_audiobook_files(db, audiobook_id, disc.files, disc.checksums);
 }
 
 fn resolve_audiobook_id(
@@ -247,20 +247,37 @@ fn update_state_audiobook_id(
     }
 }
 
-fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<std::path::PathBuf>) {
-    let mut sorted_files = files;
-    sorted_files.sort_by(|a, b| {
+fn process_audiobook_files(
+    db: &Database,
+    audiobook_id: i64,
+    files: Vec<std::path::PathBuf>,
+    checksums: Vec<Option<String>>,
+) {
+    let paired_len = files.len().min(checksums.len());
+    let mut paired: Vec<(std::path::PathBuf, Option<String>)> = files
+        .into_iter()
+        .take(paired_len)
+        .zip(checksums.into_iter().take(paired_len))
+        .collect();
+
+    paired.sort_by(|(a, _), (b, _)| {
         let a_name = a.file_name().and_then(|n| n.to_str()).unwrap_or("");
         let b_name = b.file_name().and_then(|n| n.to_str()).unwrap_or("");
         natord::compare(a_name, b_name)
     });
 
-    for (pos, file_path) in sorted_files.iter().enumerate() {
-        process_single_file(db, audiobook_id, pos, file_path);
+    for (pos, (file_path, checksum)) in paired.into_iter().enumerate() {
+        process_single_file(db, audiobook_id, pos, &file_path, checksum);
     }
 }
 
-fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, file_path: &std::path::Path) {
+fn process_single_file(
+    db: &Database,
+    audiobook_id: i64,
+    pos: usize,
+    file_path: &std::path::Path,
+    checksum: Option<String>,
+) {
     let name = file_path
         .file_name()
         .and_then(|n| n.to_str())
@@ -273,13 +290,29 @@ fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, file_path: 
         full_path.clone(),
         i32::try_from(pos).unwrap_or(i32::MAX),
     );
+    file.checksum = checksum;
 
     if let Ok(Some(existing_file)) =
         crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)
     {
         file.length_of_file = existing_file.length_of_file;
-        file.seek_position = existing_file.seek_position;
-        file.completeness = existing_file.completeness;
+
+        let changed = match (existing_file.checksum.as_deref(), file.checksum.as_deref()) {
+            (Some(old), Some(new)) => old != new,
+            _ => false,
+        };
+
+        if file.checksum.is_none() {
+            file.checksum.clone_from(&existing_file.checksum);
+        }
+
+        if changed {
+            file.seek_position = None;
+            file.completeness = 0;
+        } else {
+            file.seek_position = existing_file.seek_position;
+            file.completeness = existing_file.completeness;
+        }
         file.file_exists = true;
     }
 

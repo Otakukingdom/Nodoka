@@ -100,19 +100,61 @@ fn test_password_protected_zip_error() -> Result<(), Box<dyn Error>> {
     let temp = TempDir::new()?;
     let zip_path = temp.path().join("protected.zip");
 
-    // Create a password-protected ZIP (note: zip crate has limited password support)
-    // This test simulates the expected behavior
+    // Create a ZIP file and mark it as encrypted by setting the ZIP "encrypted" flag.
+    // The zip crate treats this as password-required and returns a specific error.
     let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
     let options = FileOptions::default().compression_method(zip::CompressionMethod::Stored);
     zip.start_file("test.mp3", options)?;
     zip.write_all(b"test")?;
     zip.finish()?;
 
-    // When attempting to extract password-protected ZIP, should handle gracefully
-    // Real implementation would detect and error appropriately
-    assert!(zip_path.exists());
+    let mut bytes = fs::read(&zip_path)?;
+    mark_zip_as_encrypted(&mut bytes)?;
+    fs::write(&zip_path, bytes)?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let err = match extract_zip_for_playback(&zip_path, &extract_dir) {
+        Ok(_) => {
+            return Err("expected password-protected zip extraction to fail".into());
+        }
+        Err(e) => e,
+    };
+    assert!(matches!(err, nodoka::error::Error::ZipPasswordProtected));
 
     Ok(())
+}
+
+fn mark_zip_as_encrypted(bytes: &mut [u8]) -> Result<(), Box<dyn Error>> {
+    const LFH_SIG: [u8; 4] = *b"PK\x03\x04";
+    const CEN_SIG: [u8; 4] = *b"PK\x01\x02";
+
+    // Local file header: flag is at offset 6 from signature start
+    if let Some(pos) = find_sig(bytes, LFH_SIG) {
+        let flag_pos = pos + 6;
+        let Some(flag) = bytes.get_mut(flag_pos) else {
+            return Err("ZIP too small to patch local header".into());
+        };
+        *flag |= 0x01;
+    }
+
+    // Central directory header: flag is at offset 8 from signature start
+    if let Some(pos) = find_sig(bytes, CEN_SIG) {
+        let flag_pos = pos + 8;
+        let Some(flag) = bytes.get_mut(flag_pos) else {
+            return Err("ZIP too small to patch central directory".into());
+        };
+        *flag |= 0x01;
+    }
+
+    Ok(())
+}
+
+fn find_sig(haystack: &[u8], needle: [u8; 4]) -> Option<usize> {
+    haystack
+        .windows(needle.len())
+        .position(|w| w == needle.as_slice())
 }
 
 #[test]

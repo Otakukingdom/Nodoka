@@ -1,4 +1,5 @@
 use crate::player::PlaybackState;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -8,6 +9,12 @@ pub enum Message {
     SeekTo(f64),
     VolumeChanged(i32),
     SpeedChanged(f32),
+
+    // Sleep timer
+    SleepTimerSetDurationSeconds(i64),
+    SleepTimerSetEndOfChapter,
+    SleepTimerExtendSeconds(i64),
+    SleepTimerCancel,
 
     // Shortcuts
     CreateBookmark,
@@ -53,6 +60,7 @@ pub enum Message {
     ScanComplete(String, Vec<crate::tasks::DiscoveredAudiobook>),
     ScanError(String),
     ChecksumCalculated(String, String),
+    CoverThumbnailGenerated(i64, Option<PathBuf>),
 
     // Initial load
     InitialLoadComplete,

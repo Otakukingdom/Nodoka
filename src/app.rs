@@ -28,7 +28,6 @@ use crate::db::Database;
 use crate::player::Vlc;
 use crate::ui::{main_window, update, Message, State};
 use iced::{Application, Command, Element, Settings, Subscription, Theme};
-use std::path::Path;
 use std::time::Duration;
 
 /// Main application state for the Nodoka audiobook reader.
@@ -98,21 +97,6 @@ impl Application for App {
             }
             Err(e) => {
                 tracing::error!("Failed to load audiobooks: {e}");
-            }
-        }
-
-        for ab in &state.audiobooks {
-            let Some(id) = ab.id else {
-                continue;
-            };
-            match crate::cover_cache::ensure_cover_thumbnail(id, Path::new(&ab.full_path)) {
-                Ok(Some(path)) => {
-                    state.cover_thumbnails.insert(id, path);
-                }
-                Ok(None) => {}
-                Err(e) => {
-                    tracing::warn!("Failed to prepare cover thumbnail for audiobook {id}: {e}");
-                }
             }
         }
 

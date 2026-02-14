@@ -45,10 +45,10 @@
 //! - Disk speed (SSD vs HDD)
 //! - Network latency (local vs network drives)
 //!
-//! Each file requires:
-//! 1. SHA-256 checksum calculation (I/O bound)
-//! 2. VLC metadata extraction (CPU bound)
-//! 3. Database write (I/O bound)
+//! Each file may involve:
+//! 1. SHA-256 checksum calculation (I/O bound; returned in [`DiscoveredAudiobook`])
+//! 2. Optional VLC metadata extraction (CPU bound; performed by callers via [`crate::player::Scanner`])
+//! 3. Database writes (I/O bound; performed by the UI update layer)
 
 mod archive_handling;
 mod checksum;

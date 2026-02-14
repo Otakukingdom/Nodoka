@@ -38,17 +38,16 @@
 //!
 //! ## Test Coverage Summary
 //!
-//! - **Total Test Files**: 18 (16 feature tests + support + documentation)
-//! - **Total Test Cases**: 302 acceptance tests (all passing) ✅
-//! - **Total Project Tests**: 464 tests (302 acceptance + 162 unit/integration tests) ✅
-//! - **Feature Categories Covered**: 18 of 18 (100% coverage of all specification sections)
-//! - **Specification Coverage**: Fully automated acceptance checks (including UI-facing behaviors via message/state assertions)
+//! - **Total Test Files**: Acceptance tests are split across `tests/acceptance_*.rs`
+//! - **Total Test Cases**: See `cargo test --tests` output (counts vary as coverage evolves)
+//! - **Feature Categories Covered**: Broad coverage across the specification sections
+//! - **Specification Coverage**: Primarily automated checks (UI behavior is validated via message/state assertions)
 //! - **Audio Format Support**: All 9 formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
-//! - **Database Features**: Fully tested (schema, queries, persistence, migrations)
-//! - **VLC Integration**: Tested with graceful skip when unavailable
-//! - **Performance Testing**: Large library tests (1000+ audiobooks, all passing)
+//! - **Database Features**: Tested (schema, queries, persistence)
+//! - **VLC Integration**: Tested with graceful skip when unavailable (some environments will skip VLC-dependent assertions)
+//! - **Performance Testing**: Large library tests (e.g., 1000+ audiobooks)
 //! - **Edge Case Testing**: Extensive coverage of error conditions and boundary cases
-//! - **Status**: ✅ PRODUCTION READY - Comprehensive validation complete (2026-02-14)
+//! - **Status**: All acceptance tests are expected to pass in CI; this does not replace exploratory UI testing
 //!
 //! ## Test Interpretation and Automation Strategy
 //!

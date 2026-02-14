@@ -1,4 +1,5 @@
 use crate::conversions::f64_to_ms;
+use crate::models::SleepTimerMode;
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, slider, text};
 use iced::{Element, Length};
@@ -12,6 +13,42 @@ pub fn view(state: &State) -> Element<'static, Message> {
         .unwrap_or("No file selected");
 
     let play_pause_label = if state.is_playing { "⏸" } else { "▶" };
+
+    let sleep_timer_row = match state.sleep_timer.as_ref().map(|t| t.mode) {
+        None => row![
+            text("Sleep:"),
+            button(text("15m")).on_press(Message::SleepTimerSetDurationSeconds(15 * 60)),
+            button(text("30m")).on_press(Message::SleepTimerSetDurationSeconds(30 * 60)),
+            button(text("45m")).on_press(Message::SleepTimerSetDurationSeconds(45 * 60)),
+            button(text("60m")).on_press(Message::SleepTimerSetDurationSeconds(60 * 60)),
+            button(text("End"))
+                .on_press(Message::SleepTimerSetEndOfChapter)
+                .padding(5),
+        ]
+        .spacing(10),
+        Some(SleepTimerMode::EndOfChapter) => row![
+            text("Sleep:"),
+            text("End of chapter"),
+            horizontal_space(),
+            button(text("Cancel")).on_press(Message::SleepTimerCancel),
+        ]
+        .spacing(10),
+        Some(SleepTimerMode::Duration(_)) => {
+            let remaining = state
+                .sleep_timer
+                .as_ref()
+                .and_then(crate::models::SleepTimer::remaining_seconds)
+                .unwrap_or(0);
+            row![
+                text("Sleep:"),
+                text(format_remaining_seconds(remaining)),
+                horizontal_space(),
+                button(text("+15m")).on_press(Message::SleepTimerExtendSeconds(15 * 60)),
+                button(text("Cancel")).on_press(Message::SleepTimerCancel),
+            ]
+            .spacing(10)
+        }
+    };
 
     column![
         // Currently playing label
@@ -61,14 +98,22 @@ pub fn view(state: &State) -> Element<'static, Message> {
             horizontal_space(),
             // Volume controls
             text("Volume:"),
-            slider(0..=100, state.volume, Message::VolumeChanged).width(Length::Fixed(150.0)),
+            slider(0..=200, state.volume, Message::VolumeChanged).width(Length::Fixed(150.0)),
             text(format!("{}%", state.volume)),
         ]
         .padding(15)
-        .spacing(10)
+        .spacing(10),
+        container(sleep_timer_row).padding(10)
     ]
     .padding(10)
     .into()
+}
+
+fn format_remaining_seconds(secs: i64) -> String {
+    let secs = secs.max(0);
+    let minutes = secs / 60;
+    let seconds = secs % 60;
+    format!("{minutes}:{seconds:02}")
 }
 
 fn format_time(ms: f64) -> String {

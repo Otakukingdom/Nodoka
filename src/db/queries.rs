@@ -189,14 +189,15 @@ pub fn delete_audiobook(conn: &Connection, id: i64) -> Result<()> {
 pub fn insert_audiobook_file(conn: &Connection, file: &AudiobookFile) -> Result<()> {
     conn.execute(
         "INSERT OR REPLACE INTO audiobook_file 
-         (audiobook_id, name, full_path, length_of_file, seek_position, position, completeness, file_exists, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+         (audiobook_id, name, full_path, length_of_file, seek_position, checksum, position, completeness, file_exists, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         params![
             file.audiobook_id,
             file.name,
             file.full_path,
             file.length_of_file.map(|v| v.to_string()),
             file.seek_position.map(|v| v.to_string()),
+            file.checksum,
             file.position,
             file.completeness,
             file.file_exists,
@@ -213,14 +214,15 @@ pub fn insert_audiobook_file(conn: &Connection, file: &AudiobookFile) -> Result<
 /// Returns an error if the database query fails
 pub fn get_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<Vec<AudiobookFile>> {
     let mut stmt = conn.prepare(
-        "SELECT audiobook_id, name, full_path, length_of_file, seek_position, position, completeness, file_exists, created_at
+        "SELECT audiobook_id, name, full_path, length_of_file, seek_position, checksum, position, completeness, file_exists, created_at
          FROM audiobook_file WHERE audiobook_id = ?1 ORDER BY position"
     )?;
 
     let rows = stmt.query_map([audiobook_id], |row| {
         let length_str: Option<String> = row.get(3)?;
         let seek_str: Option<String> = row.get(4)?;
-        let created_str: String = row.get(8)?;
+        let checksum: Option<String> = row.get(5)?;
+        let created_str: String = row.get(9)?;
         let created_at = DateTime::parse_from_rfc3339(&created_str)
             .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
@@ -230,9 +232,10 @@ pub fn get_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<Vec<A
             full_path: row.get(2)?,
             length_of_file: length_str.and_then(|s| s.parse().ok()),
             seek_position: seek_str.and_then(|s| s.parse().ok()),
-            position: row.get(5)?,
-            completeness: row.get(6)?,
-            file_exists: row.get(7)?,
+            checksum,
+            position: row.get(6)?,
+            completeness: row.get(7)?,
+            file_exists: row.get(8)?,
             created_at,
         })
     })?;
@@ -576,15 +579,16 @@ pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Aud
 /// Returns an error if the database query fails
 pub fn get_audiobook_file_by_path(conn: &Connection, path: &str) -> Result<Option<AudiobookFile>> {
     let result = conn.query_row(
-        "SELECT audiobook_id, name, full_path, length_of_file, seek_position, position, completeness, file_exists, created_at
+        "SELECT audiobook_id, name, full_path, length_of_file, seek_position, checksum, position, completeness, file_exists, created_at
          FROM audiobook_file WHERE full_path = ?1",
         [path],
         |row| {
             let length_str: Option<String> = row.get(3)?;
             let seek_str: Option<String> = row.get(4)?;
-            let created_str: String = row.get(8)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+            let checksum: Option<String> = row.get(5)?;
+            let created_str: String = row.get(9)?;
+            let created_at = DateTime::parse_from_rfc3339(&created_str)
+                .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
 
             Ok(AudiobookFile {
                 audiobook_id: row.get(0)?,
@@ -592,9 +596,10 @@ pub fn get_audiobook_file_by_path(conn: &Connection, path: &str) -> Result<Optio
                 full_path: row.get(2)?,
                 length_of_file: length_str.and_then(|s| s.parse().ok()),
                 seek_position: seek_str.and_then(|s| s.parse().ok()),
-                position: row.get(5)?,
-                completeness: row.get(6)?,
-                file_exists: row.get(7)?,
+                checksum,
+                position: row.get(6)?,
+                completeness: row.get(7)?,
+                file_exists: row.get(8)?,
                 created_at,
             })
         }

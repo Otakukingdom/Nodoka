@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 use crate::models::MediaProperty;
 use std::path::Path;
 use std::time::Duration;
-use vlc::{Instance, Media};
+use vlc::{Instance, Media, Meta};
 
 /// A VLC-based media scanner for extracting metadata without playback
 pub struct Scanner {
@@ -48,9 +48,117 @@ impl Scanner {
         let media = Media::new_path(&self.instance, path)
             .ok_or_else(|| Error::MediaParse("Failed to load media".to_string()))?;
 
-        let duration = media_duration::parse_duration_with_timeout(&media, Duration::from_secs(2))?;
+        media.parse_async();
 
-        Ok(MediaProperty::new(path.to_path_buf(), duration))
+        let duration =
+            match media_duration::parse_duration_with_timeout(&media, Duration::from_secs(2)) {
+                Ok(duration) => duration,
+                Err(e) => {
+                    tracing::debug!(
+                        "Failed to parse duration for {} (continuing with 0ms): {e}",
+                        path.display()
+                    );
+                    0
+                }
+            };
+
+        let mut props = MediaProperty::new(path.to_path_buf(), duration);
+        props.title = media.get_meta(Meta::Title);
+        props.author = media.get_meta(Meta::Artist);
+        props.narrator = media
+            .get_meta(Meta::Publisher)
+            .or_else(|| media.get_meta(Meta::EncodedBy));
+        props.year = media.get_meta(Meta::Date).as_deref().and_then(parse_year);
+
+        Ok(props)
+    }
+
+    /// Attempts to extract embedded cover art bytes for a media file.
+    ///
+    /// This method uses VLC's media parsing and reads `Meta::ArtworkURL` when available.
+    /// If VLC exposes the embedded artwork via a file URL, this reads that file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the media cannot be loaded.
+    pub fn scan_embedded_cover_art_bytes(&self, path: &Path) -> Result<Option<Vec<u8>>> {
+        const PARSE_TIMEOUT: Duration = Duration::from_secs(2);
+        const MAX_BYTES: u64 = 10 * 1024 * 1024;
+
+        let media = Media::new_path(&self.instance, path)
+            .ok_or_else(|| Error::MediaParse("Failed to load media".to_string()))?;
+        media.parse_async();
+
+        let start = std::time::Instant::now();
+        while !media.is_parsed() {
+            if start.elapsed() >= PARSE_TIMEOUT {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(25));
+        }
+
+        let Some(art_url) = media.get_meta(Meta::ArtworkURL) else {
+            return Ok(None);
+        };
+
+        let Some(path) = artwork_url_to_path(&art_url) else {
+            return Ok(None);
+        };
+
+        let file = std::fs::File::open(&path)?;
+        let meta = file.metadata()?;
+        if meta.len() > MAX_BYTES {
+            return Ok(None);
+        }
+
+        let mut reader = std::io::BufReader::new(file);
+        let mut out = Vec::new();
+        std::io::Read::read_to_end(&mut reader, &mut out)?;
+        Ok(Some(out))
+    }
+}
+
+fn parse_year(input: &str) -> Option<i32> {
+    let trimmed = input.trim();
+    let digits: String = trimmed
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(4)
+        .collect();
+    if digits.len() != 4 {
+        return None;
+    }
+    digits.parse::<i32>().ok()
+}
+
+fn artwork_url_to_path(url: &str) -> Option<std::path::PathBuf> {
+    let trimmed = url.trim();
+    let without_prefix = trimmed.strip_prefix("file://")?;
+    let decoded = percent_decode_utf8(without_prefix.as_bytes())?;
+    Some(std::path::PathBuf::from(decoded))
+}
+
+fn percent_decode_utf8(input: &[u8]) -> Option<String> {
+    let mut out: Vec<u8> = Vec::with_capacity(input.len());
+    let mut iter = input.iter().copied();
+    while let Some(b) = iter.next() {
+        if b == b'%' {
+            let hi = from_hex(iter.next()?)?;
+            let lo = from_hex(iter.next()?)?;
+            out.push((hi << 4) | lo);
+        } else {
+            out.push(b);
+        }
+    }
+    String::from_utf8(out).ok()
+}
+
+const fn from_hex(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
     }
 }
 

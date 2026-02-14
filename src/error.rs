@@ -233,6 +233,17 @@ pub enum Error {
     /// - Check available disk space for extraction
     #[error("ZIP archive error: {0}")]
     Zip(#[from] zip::result::ZipError),
+
+    /// ZIP archive is password-protected.
+    ///
+    /// Nodoka does not currently support decrypting password-protected ZIP files.
+    ///
+    /// ## Troubleshooting
+    ///
+    /// - Extract the archive using your OS or a ZIP utility
+    /// - Add the extracted folder to Nodoka instead of the encrypted ZIP
+    #[error("ZIP archive is password-protected. Extract it first, then add the extracted folder.")]
+    ZipPasswordProtected,
 }
 
 /// Convenience type alias for Results using this crate's error type.

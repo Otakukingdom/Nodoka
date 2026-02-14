@@ -10,6 +10,7 @@ pub struct DiscoveredAudiobook {
     pub path: PathBuf,
     pub name: String,
     pub files: Vec<PathBuf>,
+    pub checksums: Vec<Option<String>>,
 }
 
 /// Scans a directory for audiobook folders
@@ -38,12 +39,11 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
             let entry = match entry_result {
                 Ok(entry) => entry,
                 Err(e) => {
-                    let message = e.to_string();
-                    let io_error = e.into_io_error().map_or_else(
-                        || std::io::Error::new(std::io::ErrorKind::Other, message),
-                        |io_error| io_error,
+                    tracing::warn!(
+                        "Skipping unreadable path during scan of {}: {e}",
+                        dir_path.display()
                     );
-                    return Err(io_error);
+                    continue;
                 }
             };
 
@@ -111,10 +111,12 @@ fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {
         .to_string_lossy()
         .to_string();
 
+    let checksums = vec![None; files.len()];
     Some(DiscoveredAudiobook {
         path: zip_path.to_path_buf(),
         name,
         files,
+        checksums,
     })
 }
 
@@ -145,11 +147,35 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
         natord::compare(a_name, b_name)
     });
 
+    let checksums: Vec<Option<String>> = audio_files.iter().map(|p| sha256_file(p).ok()).collect();
+
     Some(DiscoveredAudiobook {
         path: path.to_path_buf(),
         name: path.file_name()?.to_string_lossy().to_string(),
         files: audio_files,
+        checksums,
     })
+}
+
+fn sha256_file(path: &Path) -> std::io::Result<String> {
+    use sha2::Digest as _;
+    use std::io::Read as _;
+
+    let file = std::fs::File::open(path)?;
+    let mut reader = std::io::BufReader::new(file);
+    let mut hasher = sha2::Sha256::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        let n = reader.read(&mut buf)?;
+        if n == 0 {
+            break;
+        }
+        if let Some(slice) = buf.get(..n) {
+            hasher.update(slice);
+        }
+    }
+    let out = hasher.finalize();
+    Ok(format!("{out:x}"))
 }
 
 fn is_audio_file(path: &Path) -> bool {

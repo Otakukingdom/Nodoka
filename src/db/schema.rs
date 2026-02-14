@@ -83,6 +83,7 @@ pub fn initialize(conn: &Connection) -> Result<()> {
             full_path TEXT PRIMARY KEY,
             length_of_file TEXT,
             seek_position TEXT,
+            checksum TEXT,
             position INTEGER,
             completeness INTEGER,
             file_exists BOOL,
@@ -90,6 +91,8 @@ pub fn initialize(conn: &Connection) -> Result<()> {
         )",
         [],
     )?;
+
+    ensure_column_exists(conn, "audiobook_file", "checksum", "TEXT")?;
 
     // Create bookmarks table
     conn.execute(
@@ -115,6 +118,28 @@ pub fn initialize(conn: &Connection) -> Result<()> {
          CREATE INDEX IF NOT EXISTS bookmark_audiobook_id_index ON bookmarks(audiobook_id);",
     )?;
 
+    Ok(())
+}
+
+fn ensure_column_exists(
+    conn: &Connection,
+    table: &str,
+    column: &str,
+    column_type: &str,
+) -> Result<()> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name == column {
+            return Ok(());
+        }
+    }
+
+    conn.execute(
+        &format!("ALTER TABLE {table} ADD COLUMN {column} {column_type}"),
+        [],
+    )?;
     Ok(())
 }
 

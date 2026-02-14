@@ -1,4 +1,4 @@
-use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory};
+use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -31,6 +31,9 @@ pub struct State {
     pub volume: i32,
     pub speed: f32,
 
+    pub sleep_timer: Option<SleepTimer>,
+    pub sleep_timer_base_volume: Option<i32>,
+
     pub settings_open: bool,
     pub is_loading: bool,
 }
@@ -51,6 +54,8 @@ impl Default for State {
             total_duration: 0.0,
             volume: 100,
             speed: 1.0,
+            sleep_timer: None,
+            sleep_timer_base_volume: None,
             settings_open: false,
             is_loading: true,
         }
@@ -77,6 +82,8 @@ mod tests {
         assert!(state.total_duration.abs() < f64::EPSILON);
         assert_eq!(state.volume, 100);
         assert!((state.speed - 1.0).abs() < f32::EPSILON);
+        assert!(state.sleep_timer.is_none());
+        assert!(state.sleep_timer_base_volume.is_none());
         assert!(!state.settings_open);
         assert!(state.is_loading);
     }

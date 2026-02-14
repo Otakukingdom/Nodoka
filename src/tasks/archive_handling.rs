@@ -2,10 +2,38 @@ use crate::error::Result;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
+use zip::read::ZipFile;
 use zip::ZipArchive;
 
 const ZIP_VIRTUAL_PREFIX: &str = "zip://";
 const ZIP_VIRTUAL_DELIM: &str = "::";
+
+#[derive(Clone, Copy, Debug)]
+struct ZipExtractionLimits {
+    entries: usize,
+    total_bytes: u64,
+    entry_bytes: u64,
+    path_depth: usize,
+}
+
+const DEFAULT_ZIP_LIMITS: ZipExtractionLimits = ZipExtractionLimits {
+    // Defensive defaults: large enough for real libraries, bounded for safety.
+    entries: 10_000,
+    total_bytes: 4 * 1024 * 1024 * 1024,
+    entry_bytes: 1024 * 1024 * 1024,
+    path_depth: 32,
+};
+
+fn map_zip_error(err: zip::result::ZipError) -> crate::error::Error {
+    match err {
+        zip::result::ZipError::UnsupportedArchive(msg)
+            if msg == zip::result::ZipError::PASSWORD_REQUIRED =>
+        {
+            crate::error::Error::ZipPasswordProtected
+        }
+        other => crate::error::Error::Zip(other),
+    }
+}
 
 /// Checks if a path is a ZIP archive
 #[must_use]
@@ -23,33 +51,70 @@ pub fn is_zip_archive(path: &Path) -> bool {
 ///
 /// Returns an error if the ZIP file cannot be opened or extracted
 pub fn extract_zip_for_playback(zip_path: &Path, temp_dir: &Path) -> Result<Vec<PathBuf>> {
+    extract_zip_for_playback_with_limits(zip_path, temp_dir, DEFAULT_ZIP_LIMITS)
+}
+
+fn extract_zip_for_playback_with_limits(
+    zip_path: &Path,
+    temp_dir: &Path,
+    limits: ZipExtractionLimits,
+) -> Result<Vec<PathBuf>> {
     let file = fs::File::open(zip_path)?;
-    let mut archive = ZipArchive::new(file)?;
+    let mut archive = ZipArchive::new(file).map_err(map_zip_error)?;
+
+    let archive_len = archive.len();
+    if archive_len > limits.entries {
+        return Err(crate::error::Error::InvalidInput(format!(
+            "ZIP archive has too many entries ({archive_len} > {})",
+            limits.entries
+        )));
+    }
 
     let mut audio_files = Vec::new();
+    let mut total_written: u64 = 0;
 
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i)?;
-        let file_path = match file.enclosed_name() {
+    for i in 0..archive_len {
+        let mut entry = archive.by_index(i).map_err(map_zip_error)?;
+        let file_path = match entry.enclosed_name() {
             Some(path) => path.to_owned(),
             None => continue,
         };
+
+        if file_path.components().count() > limits.path_depth {
+            return Err(crate::error::Error::InvalidInput(
+                "ZIP entry path is too deep".to_string(),
+            ));
+        }
 
         // Only extract audio files
         if !is_audio_file(&file_path) {
             continue;
         }
 
+        let entry_size = entry.size();
+        if entry_size > limits.entry_bytes {
+            return Err(crate::error::Error::InvalidInput(
+                "ZIP entry exceeds maximum allowed size".to_string(),
+            ));
+        }
+
+        let remaining_total = limits.total_bytes.saturating_sub(total_written);
+        if remaining_total == 0 {
+            return Err(crate::error::Error::InvalidInput(
+                "ZIP extraction exceeds maximum allowed total size".to_string(),
+            ));
+        }
+
         let output_path = temp_dir.join(&file_path);
 
-        // Create parent directories
         if let Some(parent) = output_path.parent() {
             fs::create_dir_all(parent)?;
         }
 
-        // Extract file
         let mut output_file = fs::File::create(&output_path)?;
-        std::io::copy(&mut file, &mut output_file)?;
+        let max_for_entry = limits.entry_bytes.min(remaining_total);
+        let written = copy_zip_entry_limited(&mut entry, &mut output_file, max_for_entry)?;
+        total_written = total_written.saturating_add(written);
 
         audio_files.push(output_path);
     }
@@ -66,14 +131,25 @@ pub fn extract_zip_for_playback(zip_path: &Path, temp_dir: &Path) -> Result<Vec<
 /// Returns an error if the ZIP cannot be opened or read.
 pub fn list_zip_audio_entries(zip_path: &Path) -> Result<Vec<PathBuf>> {
     let file = fs::File::open(zip_path)?;
-    let mut archive = ZipArchive::new(file)?;
+    let mut archive = ZipArchive::new(file).map_err(map_zip_error)?;
+
+    let archive_len = archive.len();
+    if archive_len > DEFAULT_ZIP_LIMITS.entries {
+        return Err(crate::error::Error::InvalidInput(format!(
+            "ZIP archive has too many entries ({archive_len} > {})",
+            DEFAULT_ZIP_LIMITS.entries
+        )));
+    }
 
     let mut out = Vec::new();
-    for i in 0..archive.len() {
-        let file = archive.by_index(i)?;
+    for i in 0..archive_len {
+        let file = archive.by_index(i).map_err(map_zip_error)?;
         let Some(enclosed) = file.enclosed_name() else {
             continue;
         };
+        if enclosed.components().count() > DEFAULT_ZIP_LIMITS.path_depth {
+            continue;
+        }
         if is_audio_file(enclosed) {
             out.push(enclosed.to_path_buf());
         }
@@ -228,11 +304,28 @@ pub fn extract_zip_entry_for_playback(
     entry_path: &Path,
     temp_dir: &Path,
 ) -> Result<PathBuf> {
+    extract_zip_entry_for_playback_with_limits(zip_path, entry_path, temp_dir, DEFAULT_ZIP_LIMITS)
+}
+
+fn extract_zip_entry_for_playback_with_limits(
+    zip_path: &Path,
+    entry_path: &Path,
+    temp_dir: &Path,
+    limits: ZipExtractionLimits,
+) -> Result<PathBuf> {
     let file = fs::File::open(zip_path)?;
-    let mut archive = ZipArchive::new(file)?;
+    let mut archive = ZipArchive::new(file).map_err(map_zip_error)?;
+
+    let archive_len = archive.len();
+    if archive_len > limits.entries {
+        return Err(crate::error::Error::InvalidInput(format!(
+            "ZIP archive has too many entries ({archive_len} > {})",
+            limits.entries
+        )));
+    }
 
     let entry_str = entry_path.to_string_lossy();
-    let mut entry = archive.by_name(&entry_str)?;
+    let mut entry = archive.by_name(&entry_str).map_err(map_zip_error)?;
     let Some(enclosed) = entry.enclosed_name() else {
         return Err(crate::error::Error::InvalidInput(
             "ZIP entry path is not enclosed".to_string(),
@@ -244,13 +337,42 @@ pub fn extract_zip_entry_for_playback(
         ));
     }
 
+    if enclosed.components().count() > limits.path_depth {
+        return Err(crate::error::Error::InvalidInput(
+            "ZIP entry path is too deep".to_string(),
+        ));
+    }
+
+    let entry_size = entry.size();
+    if entry_size > limits.entry_bytes {
+        return Err(crate::error::Error::InvalidInput(
+            "ZIP entry exceeds maximum allowed size".to_string(),
+        ));
+    }
+
     let output_path = temp_dir.join(enclosed);
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;
     }
     let mut output_file = fs::File::create(&output_path)?;
-    std::io::copy(&mut entry, &mut output_file)?;
+    let _written = copy_zip_entry_limited(&mut entry, &mut output_file, limits.entry_bytes)?;
     Ok(output_path)
+}
+
+fn copy_zip_entry_limited(
+    entry: &mut ZipFile<'_>,
+    output: &mut fs::File,
+    max_bytes: u64,
+) -> Result<u64> {
+    use std::io::Read as _;
+    let mut limited = entry.take(max_bytes.saturating_add(1));
+    let written = std::io::copy(&mut limited, output)?;
+    if written > max_bytes {
+        return Err(crate::error::Error::InvalidInput(
+            "ZIP entry exceeds maximum allowed extracted bytes".to_string(),
+        ));
+    }
+    Ok(written)
 }
 
 /// Cleanup temporary extracted files
@@ -351,6 +473,33 @@ mod tests {
         let extracted = materialize_zip_virtual_path(&virtual_path)?;
         assert!(extracted.exists());
         assert!(extracted.is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn test_extract_zip_for_playback_enforces_entry_count_limit() -> Result<()> {
+        let temp = temp_dir::TempDir::new()?;
+        let zip_path = temp.path().join("many.zip");
+
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(&zip_path)?);
+        for i in 0..3 {
+            zip.start_file(format!("file{i}.mp3"), zip::write::FileOptions::default())?;
+            zip.write_all(b"audio")?;
+        }
+        zip.finish()?;
+
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(&out_dir)?;
+
+        let limits = ZipExtractionLimits {
+            entries: 2,
+            total_bytes: 1024,
+            entry_bytes: 1024,
+            path_depth: 10,
+        };
+
+        let result = extract_zip_for_playback_with_limits(&zip_path, &out_dir, limits);
+        assert!(result.is_err());
         Ok(())
     }
 }

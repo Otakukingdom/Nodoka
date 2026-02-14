@@ -4,6 +4,7 @@ use acceptance_support::*;
 use nodoka::db::queries;
 use nodoka::player::Scanner;
 use std::error::Error;
+use std::path::Path;
 
 #[test]
 fn test_extract_duration() {
@@ -22,6 +23,125 @@ fn test_extract_duration() {
             );
         }
     }
+}
+
+#[test]
+fn test_extract_title_author_year_from_id3_tags() -> Result<(), Box<dyn Error>> {
+    let Ok(scanner) = Scanner::new() else {
+        return Ok(());
+    };
+
+    let fixtures = TestFixtures::new();
+    let base_mp3 = fixtures.audio_path("sample_mp3.mp3");
+    if !base_mp3.exists() {
+        return Ok(());
+    }
+    let base_bytes = std::fs::read(&base_mp3)?;
+
+    let temp = temp_dir::TempDir::new()?;
+    let mp3_path = temp.path().join("tagged.mp3");
+
+    let cover_png = create_test_png_bytes()?;
+    write_id3v23_mp3_with_tags(
+        &mp3_path,
+        Some(("My Title", "My Author", "My Narrator", "2020")),
+        Some(&cover_png),
+        Some(&base_bytes),
+    )?;
+
+    let props = scanner.scan_media(&mp3_path)?;
+    assert_eq!(props.title.as_deref(), Some("My Title"));
+    assert_eq!(props.author.as_deref(), Some("My Author"));
+    assert_eq!(props.narrator.as_deref(), Some("My Narrator"));
+    assert_eq!(props.year, Some(2020));
+    Ok(())
+}
+
+fn create_test_png_bytes() -> Result<Vec<u8>, Box<dyn Error>> {
+    let img = image::RgbImage::from_pixel(2, 2, image::Rgb([1, 2, 3]));
+    let dyn_img = image::DynamicImage::ImageRgb8(img);
+    let mut bytes = Vec::new();
+    dyn_img.write_to(
+        &mut std::io::Cursor::new(&mut bytes),
+        image::ImageOutputFormat::Png,
+    )?;
+    Ok(bytes)
+}
+
+fn write_id3v23_mp3_with_tags(
+    path: &Path,
+    text: Option<(&str, &str, &str, &str)>,
+    cover_png: Option<&[u8]>,
+    base_audio: Option<&[u8]>,
+) -> Result<(), Box<dyn Error>> {
+    let mut frames: Vec<Vec<u8>> = Vec::new();
+    if let Some((title, artist, publisher, year)) = text {
+        frames.push(id3v23_text_frame("TIT2", title.as_bytes()));
+        frames.push(id3v23_text_frame("TPE1", artist.as_bytes()));
+        frames.push(id3v23_text_frame("TPUB", publisher.as_bytes()));
+        frames.push(id3v23_text_frame("TYER", year.as_bytes()));
+    }
+    if let Some(png) = cover_png {
+        frames.push(id3v23_apic_frame(png));
+    }
+
+    let tag_body: Vec<u8> = frames.into_iter().flatten().collect();
+    let tag_size = u32::try_from(tag_body.len()).map_err(|_| "tag too large")?;
+
+    let mut out = Vec::new();
+    out.extend_from_slice(b"ID3");
+    out.push(3); // v2.3
+    out.push(0);
+    out.push(0);
+    out.extend_from_slice(&syncsafe(tag_size));
+    out.extend_from_slice(&tag_body);
+
+    if let Some(base) = base_audio {
+        out.extend_from_slice(base);
+    } else {
+        // Add some trailing bytes so the file is non-empty beyond tags.
+        out.extend_from_slice(b"\0\0\0\0");
+    }
+    std::fs::write(path, out)?;
+    Ok(())
+}
+
+fn id3v23_text_frame(id: &str, text: &[u8]) -> Vec<u8> {
+    let mut body = Vec::with_capacity(1 + text.len());
+    body.push(0); // ISO-8859-1
+    body.extend_from_slice(text);
+
+    let mut out = Vec::new();
+    out.extend_from_slice(id.as_bytes());
+    out.extend_from_slice(&(u32::try_from(body.len()).unwrap_or(0)).to_be_bytes());
+    out.extend_from_slice(&[0, 0]);
+    out.extend_from_slice(&body);
+    out
+}
+
+fn id3v23_apic_frame(png: &[u8]) -> Vec<u8> {
+    let mut body = Vec::new();
+    body.push(0); // ISO-8859-1
+    body.extend_from_slice(b"image/png\0");
+    body.push(0x03); // cover front
+    body.push(0); // empty description
+    body.extend_from_slice(png);
+
+    let mut out = Vec::new();
+    out.extend_from_slice(b"APIC");
+    out.extend_from_slice(&(u32::try_from(body.len()).unwrap_or(0)).to_be_bytes());
+    out.extend_from_slice(&[0, 0]);
+    out.extend_from_slice(&body);
+    out
+}
+
+const fn syncsafe(size: u32) -> [u8; 4] {
+    [
+        ((size >> 21) & 0x7F) as u8,
+        ((size >> 14) & 0x7F) as u8,
+        ((size >> 7) & 0x7F) as u8,
+        (size & 0x7F) as u8,
+    ]
 }
 
 #[test]

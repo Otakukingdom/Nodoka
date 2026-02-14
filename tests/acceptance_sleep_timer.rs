@@ -3,6 +3,7 @@
 //! Tests sleep timer countdown, end-of-chapter mode, and expiration logic.
 
 use nodoka::models::{SleepTimer, SleepTimerMode};
+use nodoka::ui::{Message, State};
 use std::error::Error;
 
 #[test]
@@ -211,4 +212,36 @@ fn test_timer_fade_longer_than_duration() {
 
     // Should handle gracefully
     assert!(!timer.is_expired());
+}
+
+#[test]
+fn test_sleep_timer_expires_and_pauses_playback_state() -> Result<(), Box<dyn Error>> {
+    let db = nodoka::db::Database::new_in_memory()?;
+    nodoka::db::initialize(db.connection())?;
+
+    let mut state = State {
+        selected_file: Some("/tmp/book/ch1.mp3".to_string()),
+        is_playing: true,
+        ..State::default()
+    };
+
+    let mut player: Option<nodoka::player::Vlc> = None;
+
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerSetDurationSeconds(1),
+        &mut player,
+        &db,
+    );
+
+    let Some(ref mut timer) = state.sleep_timer else {
+        return Err("expected active sleep timer".into());
+    };
+    timer.started_at = chrono::Utc::now() - chrono::Duration::seconds(2);
+
+    let _ = nodoka::ui::update::update(&mut state, Message::PlayerTick, &mut player, &db);
+
+    assert!(state.sleep_timer.is_none());
+    assert!(!state.is_playing);
+    Ok(())
 }
