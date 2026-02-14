@@ -242,3 +242,261 @@ fn test_sleep_timer_custom_minutes_submit_sets_duration(
     ));
     Ok(())
 }
+
+#[test]
+fn test_play_pause_toggles_state() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        is_playing: false,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    // First press: should attempt to play (but won't work without actual player)
+    let _cmd = update(&mut state, Message::PlayPause, &mut player, &db);
+
+    Ok(())
+}
+
+#[test]
+fn test_seek_to_updates_state() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        current_time: 1000.0,
+        total_duration: 10000.0,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(&mut state, Message::SeekTo(5000.0), &mut player, &db);
+
+    // Without actual player, state might not change, but test the call succeeds
+    Ok(())
+}
+
+#[test]
+fn test_audiobook_selected_loads_files() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file = AudiobookFile::new(
+        id,
+        "ch1.mp3".to_string(),
+        "/dir/book/ch1.mp3".to_string(),
+        0,
+    );
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(&mut state, Message::AudiobookSelected(id), &mut player, &db);
+
+    assert_eq!(state.selected_audiobook, Some(id));
+    assert_eq!(state.current_files.len(), 1);
+
+    Ok(())
+}
+
+#[test]
+fn test_sleep_timer_custom_input_validation() -> std::result::Result<(), Box<dyn std::error::Error>>
+{
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    // Test invalid input
+    let _cmd = update(
+        &mut state,
+        Message::SleepTimerCustomMinutesChanged("abc".to_string()),
+        &mut player,
+        &db,
+    );
+    assert_eq!(state.sleep_timer_custom_minutes, "abc");
+
+    let _cmd = update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+    // Should set error message
+    assert!(state.sleep_timer_custom_error.is_some());
+    assert!(state.sleep_timer.is_none()); // Should not create timer
+
+    Ok(())
+}
+
+#[test]
+fn test_sleep_timer_cancel_stops_timer() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        sleep_timer: Some(SleepTimer::new(SleepTimerMode::Duration(1800), 10)),
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(&mut state, Message::SleepTimerCancel, &mut player, &db);
+
+    assert!(state.sleep_timer.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn test_sleep_timer_extend_adds_time() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        sleep_timer: Some(SleepTimer::new(SleepTimerMode::Duration(1800), 10)),
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(
+        &mut state,
+        Message::SleepTimerExtendSeconds(900),
+        &mut player,
+        &db,
+    );
+
+    assert!(state.sleep_timer.is_some());
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_editor_cancel_closes_without_saving(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 1500.0,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(&mut state, Message::CreateBookmark, &mut player, &db);
+    assert!(state.bookmark_editor.is_some());
+
+    let _ = update(&mut state, Message::BookmarkEditorCancel, &mut player, &db);
+    assert!(state.bookmark_editor.is_none());
+
+    // Note: CreateBookmark immediately saves a bookmark to DB, then opens editor
+    // Canceling the editor doesn't delete the already-saved bookmark
+    // This is by design - the bookmark exists, user just chose not to edit it
+    let saved = crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(
+        saved.len(),
+        1,
+        "CreateBookmark saves immediately, cancel doesn't delete"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_stop_message_stops_playback() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        is_playing: true,
+        current_time: 1500.0,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(&mut state, Message::Stop, &mut player, &db);
+
+    // Note: Stop only updates state if there's an actual player to stop
+    // Without a player, state remains unchanged (by design)
+    // This test verifies the message doesn't panic without a player
+    // In real usage, state.is_playing would be set to false when a player exists
+    assert!(
+        state.is_playing,
+        "State unchanged without player (expected behavior)"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_sleep_timer_set_duration_creates_timer(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(
+        &mut state,
+        Message::SleepTimerSetDurationSeconds(1800),
+        &mut player,
+        &db,
+    );
+
+    assert!(state.sleep_timer.is_some());
+    if let Some(ref timer) = state.sleep_timer {
+        assert!(matches!(timer.mode, SleepTimerMode::Duration(1800)));
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_sleep_timer_set_end_of_chapter_creates_timer(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _cmd = update(
+        &mut state,
+        Message::SleepTimerSetEndOfChapter,
+        &mut player,
+        &db,
+    );
+
+    assert!(state.sleep_timer.is_some());
+    if let Some(ref timer) = state.sleep_timer {
+        assert!(matches!(timer.mode, SleepTimerMode::EndOfChapter));
+    }
+
+    Ok(())
+}

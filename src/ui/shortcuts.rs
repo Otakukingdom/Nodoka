@@ -67,6 +67,13 @@ mod tests {
     }
 
     #[test]
+    fn test_space_with_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::Space, Modifiers::CTRL).is_none());
+        assert!(message_for_key_chord(ShortcutKey::Space, Modifiers::SHIFT).is_none());
+        assert!(message_for_key_chord(ShortcutKey::Space, Modifiers::ALT).is_none());
+    }
+
+    #[test]
     fn test_bookmark_shortcut_requires_expected_modifier() {
         #[cfg(target_os = "macos")]
         {
@@ -83,5 +90,85 @@ mod tests {
                 Some(Message::CreateBookmark)
             ));
         }
+    }
+
+    #[test]
+    fn test_b_without_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::B, Modifiers::default()).is_none());
+    }
+
+    #[test]
+    fn test_b_with_wrong_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::B, Modifiers::SHIFT).is_none());
+        assert!(message_for_key_chord(ShortcutKey::B, Modifiers::ALT).is_none());
+    }
+
+    #[test]
+    fn test_b_with_extra_modifiers_returns_none() {
+        // Shift + Ctrl + B should not work
+        let mods = Modifiers::CTRL | Modifiers::SHIFT;
+        assert!(message_for_key_chord(ShortcutKey::B, mods).is_none());
+
+        // Alt + Ctrl + B should not work
+        let mods = Modifiers::CTRL | Modifiers::ALT;
+        assert!(message_for_key_chord(ShortcutKey::B, mods).is_none());
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_macos_b_with_ctrl_also_works() {
+        // On macOS, Ctrl+B should also work for compatibility
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::B, Modifiers::CTRL),
+            Some(Message::CreateBookmark)
+        ));
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    #[test]
+    fn test_non_macos_b_with_logo_returns_none() {
+        // On non-macOS, Logo+B should not work
+        assert!(message_for_key_chord(ShortcutKey::B, Modifiers::LOGO).is_none());
+    }
+
+    #[test]
+    fn test_is_bookmark_modifier_rejects_shift() {
+        #[cfg(target_os = "macos")]
+        let mods = Modifiers::LOGO | Modifiers::SHIFT;
+        #[cfg(not(target_os = "macos"))]
+        let mods = Modifiers::CTRL | Modifiers::SHIFT;
+
+        assert!(!is_bookmark_modifier(mods));
+    }
+
+    #[test]
+    fn test_is_bookmark_modifier_rejects_alt() {
+        #[cfg(target_os = "macos")]
+        let mods = Modifiers::LOGO | Modifiers::ALT;
+        #[cfg(not(target_os = "macos"))]
+        let mods = Modifiers::CTRL | Modifiers::ALT;
+
+        assert!(!is_bookmark_modifier(mods));
+    }
+
+    #[test]
+    fn test_shortcut_key_equality() {
+        assert_eq!(ShortcutKey::Space, ShortcutKey::Space);
+        assert_eq!(ShortcutKey::B, ShortcutKey::B);
+        assert_ne!(ShortcutKey::Space, ShortcutKey::B);
+    }
+
+    #[test]
+    fn test_shortcut_key_debug() {
+        // Verify ShortcutKey implements Debug for better error messages
+        let _debug = format!("{:?}", ShortcutKey::Space);
+        let _debug = format!("{:?}", ShortcutKey::B);
+    }
+
+    #[test]
+    fn test_shortcut_key_clone() {
+        let key = ShortcutKey::Space;
+        let cloned = key;
+        assert_eq!(key, cloned);
     }
 }

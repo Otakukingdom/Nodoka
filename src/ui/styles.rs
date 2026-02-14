@@ -1,29 +1,148 @@
 use iced::theme::Palette;
 use iced::{Color, Theme};
 
-// Color palette based on the original application
-pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325); // #FEDB53
-pub const PLAYER_BG_COLOR: Color = Color::from_rgb(0.255, 0.255, 0.255); // #414141
-pub const PLAYER_TEXT_COLOR: Color = Color::from_rgb(0.933, 0.933, 0.933); // #eee
-pub const AUDIOBOOK_LIST_BG: Color = Color::from_rgb(0.933, 0.933, 0.933); // #eee
-pub const FILE_LIST_BG: Color = Color::from_rgb(1.0, 1.0, 1.0); // white
-pub const SELECTED_ITEM_BG: Color = Color::from_rgb(0.333, 0.317_647, 0.322); // #555152
-pub const TEXT_COLOR: Color = Color::from_rgb(0.317_647, 0.317_647, 0.317_647); // #515151
+/// Design system color tokens based on ui-ux-pro-max recommendations
+/// for audiobook player applications with vibrant rose palette
+pub mod colors {
+    use iced::Color;
 
-/// Creates the custom Nodoka theme based on the original Qt application colors
+    // Primary brand colors (vibrant rose palette from design system)
+    pub const PRIMARY: Color = Color::from_rgb(0.882, 0.114, 0.282); // #E11D48
+    pub const PRIMARY_HOVER: Color = Color::from_rgb(0.753, 0.098, 0.239); // #C0183D (darker on hover)
+    pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.639, 0.082, 0.200); // #A31533 (darker on active)
+    pub const SECONDARY: Color = Color::from_rgb(0.984, 0.443, 0.522); // #FB7185
+    pub const ACCENT: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB (engagement blue for CTA)
+
+    // Semantic colors
+    pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133); // #228B22
+    pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376); // #F4A460
+    pub const ERROR: Color = Color::from_rgb(0.882, 0.114, 0.282); // Same as primary for consistency
+    pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922); // Same as accent
+
+    // Background colors (light mode optimized)
+    pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 0.945, 0.949); // #FFF1F2
+    pub const BG_SECONDARY: Color = Color::from_rgb(1.0, 1.0, 1.0); // White
+    pub const BG_ELEVATED: Color = Color::from_rgb(0.98, 0.98, 0.98); // Slightly darker for elevation
+    pub const BG_HOVER: Color = Color::from_rgb(0.97, 0.97, 0.97); // Hover background
+
+    // Text colors (proper contrast for accessibility - WCAG AA compliant)
+    pub const TEXT_PRIMARY: Color = Color::from_rgb(0.45, 0.06, 0.18); // #730F2E (darker for better contrast)
+    pub const TEXT_SECONDARY: Color = Color::from_rgb(0.4, 0.4, 0.4); // #666666 (gray)
+    pub const TEXT_DISABLED: Color = Color::from_rgb(0.6, 0.6, 0.6); // #999999 (light gray)
+    pub const TEXT_ON_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0); // White text on primary color
+
+    // Interactive element colors
+    pub const HOVER_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.05);
+    pub const ACTIVE_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
+    pub const FOCUS_RING: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB (blue for focus states)
+    pub const SELECTION_BG: Color = Color::from_rgb(0.882, 0.114, 0.282); // Primary color for selections
+    pub const SELECTION_TEXT: Color = Color::from_rgb(1.0, 0.945, 0.949); // Light text on selection
+
+    // Border colors
+    pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9); // #E5E5E5
+    pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB
+    pub const BORDER_ERROR: Color = Color::from_rgb(0.882, 0.114, 0.282); // #E11D48
+
+    // Legacy colors for backwards compatibility (deprecated, use design system colors instead)
+    pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325); // #FEDB53 (legacy)
+    pub const PLAYER_BG_COLOR: Color = BG_ELEVATED;
+    pub const PLAYER_TEXT_COLOR: Color = TEXT_PRIMARY;
+    pub const AUDIOBOOK_LIST_BG: Color = BG_PRIMARY;
+    pub const FILE_LIST_BG: Color = BG_SECONDARY;
+}
+
+/// Spacing scale based on 4px base grid system
+pub mod spacing {
+    /// Extra small spacing: 4px
+    pub const XS: f32 = 4.0;
+    /// Small spacing: 8px
+    pub const SM: f32 = 8.0;
+    /// Medium spacing: 16px (base unit)
+    pub const MD: f32 = 16.0;
+    /// Large spacing: 24px
+    pub const LG: f32 = 24.0;
+    /// Extra large spacing: 32px
+    pub const XL: f32 = 32.0;
+    /// Extra extra large spacing: 48px
+    pub const XXL: f32 = 48.0;
+}
+
+/// Typography scale for consistent text sizing
+pub mod typography {
+    /// Extra small text: 11px
+    pub const SIZE_XS: u16 = 11;
+    /// Small text: 13px
+    pub const SIZE_SM: u16 = 13;
+    /// Base text size: 14px
+    pub const SIZE_BASE: u16 = 14;
+    /// Large text: 16px
+    pub const SIZE_LG: u16 = 16;
+    /// Extra large text: 20px
+    pub const SIZE_XL: u16 = 20;
+    /// Extra extra large text: 24px
+    pub const SIZE_XXL: u16 = 24;
+    /// Heading text: 32px
+    pub const SIZE_HEADING: u16 = 32;
+}
+
+/// Border radius constants for consistent rounded corners
+pub mod border_radius {
+    /// Small radius: 4px
+    pub const SM: f32 = 4.0;
+    /// Medium radius: 8px
+    pub const MD: f32 = 8.0;
+    /// Large radius: 12px
+    pub const LG: f32 = 12.0;
+    /// Extra large radius: 16px
+    pub const XL: f32 = 16.0;
+}
+
+/// Transition duration constants for smooth animations
+pub mod transitions {
+    /// Fast transition: 150ms
+    pub const FAST: u64 = 150;
+    /// Normal transition: 200ms
+    pub const NORMAL: u64 = 200;
+    /// Slow transition: 300ms
+    pub const SLOW: u64 = 300;
+}
+
+/// Shadow definitions for depth hierarchy (represented as border colors for iced compatibility)
+pub mod shadows {
+    use iced::Color;
+
+    /// Small shadow equivalent: subtle border
+    pub const SM_BORDER: Color = Color::from_rgb(0.85, 0.85, 0.85); // #D9D9D9
+    /// Medium shadow equivalent: medium border
+    pub const MD_BORDER: Color = Color::from_rgb(0.8, 0.8, 0.8); // #CCCCCC
+    /// Large shadow equivalent: strong border
+    pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
+}
+
+// Legacy color exports for backwards compatibility
+pub const TOP_BAR_COLOR: Color = colors::TOP_BAR_COLOR;
+pub const PLAYER_BG_COLOR: Color = colors::PLAYER_BG_COLOR;
+pub const PLAYER_TEXT_COLOR: Color = colors::PLAYER_TEXT_COLOR;
+pub const AUDIOBOOK_LIST_BG: Color = colors::AUDIOBOOK_LIST_BG;
+pub const FILE_LIST_BG: Color = colors::FILE_LIST_BG;
+pub const SELECTED_ITEM_BG: Color = colors::SELECTION_BG;
+pub const TEXT_COLOR: Color = colors::TEXT_PRIMARY;
+
+/// Creates the custom Nodoka theme based on the design system
 #[must_use]
 pub fn nodoka_theme() -> Theme {
     let palette = Palette {
-        background: Color::from_rgb(0.96, 0.96, 0.96), // Light gray background (#F5F5F5)
-        text: TEXT_COLOR,                              // Main text color (#515151)
-        primary: TOP_BAR_COLOR,                        // Primary accent color (#FEDB53)
-        success: Color::from_rgb(0.87, 0.91, 0.75),    // Success green (#DCE9BE)
-        danger: Color::from_rgb(0.8, 0.0, 0.0),        // Error red
+        background: colors::BG_PRIMARY,
+        text: colors::TEXT_PRIMARY,
+        primary: colors::PRIMARY,
+        success: colors::SUCCESS,
+        danger: colors::ERROR,
     };
 
     Theme::custom("Nodoka".to_string(), palette)
 }
 
+/// Formats duration in milliseconds to human-readable time string (H:MM:SS or M:SS)
 #[must_use]
 pub fn format_duration(ms: Option<i64>) -> String {
     match ms {
@@ -43,6 +162,7 @@ pub fn format_duration(ms: Option<i64>) -> String {
     }
 }
 
+/// Formats time in milliseconds to human-readable time string (H:MM:SS or M:SS)
 #[must_use]
 pub fn format_time_ms(ms: i64) -> String {
     let total_seconds = ms / 1000;
@@ -54,5 +174,138 @@ pub fn format_time_ms(ms: i64) -> String {
         format!("{hours}:{minutes:02}:{seconds:02}")
     } else {
         format!("{minutes}:{seconds:02}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_duration_with_hours() {
+        assert_eq!(format_duration(Some(3661000)), "1:01:01");
+        assert_eq!(format_duration(Some(7200000)), "2:00:00");
+    }
+
+    #[test]
+    fn test_format_duration_with_minutes_only() {
+        assert_eq!(format_duration(Some(125000)), "2:05");
+        assert_eq!(format_duration(Some(60000)), "1:00");
+    }
+
+    #[test]
+    fn test_format_duration_with_zero() {
+        assert_eq!(format_duration(Some(0)), "--:--");
+    }
+
+    #[test]
+    fn test_format_duration_with_none() {
+        assert_eq!(format_duration(None), "--:--");
+    }
+
+    #[test]
+    fn test_format_duration_with_negative() {
+        assert_eq!(format_duration(Some(-1000)), "--:--");
+    }
+
+    #[test]
+    fn test_format_time_ms_with_hours() {
+        assert_eq!(format_time_ms(3661000), "1:01:01");
+        assert_eq!(format_time_ms(7200000), "2:00:00");
+    }
+
+    #[test]
+    fn test_format_time_ms_with_minutes_only() {
+        assert_eq!(format_time_ms(125000), "2:05");
+        assert_eq!(format_time_ms(60000), "1:00");
+        assert_eq!(format_time_ms(0), "0:00");
+    }
+
+    #[test]
+    fn test_format_time_ms_with_seconds_only() {
+        assert_eq!(format_time_ms(30000), "0:30");
+        assert_eq!(format_time_ms(1000), "0:01");
+    }
+
+    #[test]
+    fn test_nodoka_theme_uses_design_system_colors() {
+        let theme = nodoka_theme();
+        let palette = theme.palette();
+
+        // Verify theme uses design system colors
+        assert_eq!(palette.background, colors::BG_PRIMARY);
+        assert_eq!(palette.text, colors::TEXT_PRIMARY);
+        assert_eq!(palette.primary, colors::PRIMARY);
+        assert_eq!(palette.success, colors::SUCCESS);
+        assert_eq!(palette.danger, colors::ERROR);
+    }
+
+    #[test]
+    fn test_color_contrast_meets_wcag_aa() {
+        // Verify primary text on primary background has sufficient contrast
+        // TEXT_PRIMARY (#730F2E) on BG_PRIMARY (#FFF1F2) should have > 4.5:1 ratio
+        // This is a simplified check - in production, use a proper contrast ratio calculator
+
+        let text_r = 0.45_f32;
+        let text_g = 0.06_f32;
+        let text_b = 0.18_f32;
+
+        let bg_r = 1.0_f32;
+        let bg_g = 0.945_f32;
+        let bg_b = 0.949_f32;
+
+        // Calculate relative luminance (simplified)
+        let text_lum = 0.2126 * text_r + 0.7152 * text_g + 0.0722 * text_b;
+        let bg_lum = 0.2126 * bg_r + 0.7152 * bg_g + 0.0722 * bg_b;
+
+        // Contrast ratio
+        let contrast = (bg_lum + 0.05) / (text_lum + 0.05);
+
+        // WCAG AA requires 4.5:1 for normal text
+        assert!(
+            contrast >= 4.5,
+            "Text contrast ratio {contrast} does not meet WCAG AA (4.5:1)"
+        );
+    }
+
+    #[test]
+    fn test_spacing_follows_4px_grid() {
+        assert_eq!(spacing::XS, 4.0);
+        assert_eq!(spacing::SM, 8.0);
+        assert_eq!(spacing::MD, 16.0);
+        assert_eq!(spacing::LG, 24.0);
+        assert_eq!(spacing::XL, 32.0);
+        assert_eq!(spacing::XXL, 48.0);
+
+        // Verify all spacings are multiples of 4
+        assert_eq!(spacing::XS % 4.0, 0.0);
+        assert_eq!(spacing::SM % 4.0, 0.0);
+        assert_eq!(spacing::MD % 4.0, 0.0);
+        assert_eq!(spacing::LG % 4.0, 0.0);
+        assert_eq!(spacing::XL % 4.0, 0.0);
+        assert_eq!(spacing::XXL % 4.0, 0.0);
+    }
+
+    #[test]
+    fn test_typography_scale_is_reasonable() {
+        // Verify text sizes increase monotonically
+        assert!(typography::SIZE_XS < typography::SIZE_SM);
+        assert!(typography::SIZE_SM < typography::SIZE_BASE);
+        assert!(typography::SIZE_BASE < typography::SIZE_LG);
+        assert!(typography::SIZE_LG < typography::SIZE_XL);
+        assert!(typography::SIZE_XL < typography::SIZE_XXL);
+        assert!(typography::SIZE_XXL < typography::SIZE_HEADING);
+    }
+
+    #[test]
+    fn test_transition_durations_are_in_acceptable_range() {
+        // Verify transitions are between 100ms and 500ms (best practices)
+        assert!(transitions::FAST >= 100 && transitions::FAST <= 500);
+        assert!(transitions::NORMAL >= 100 && transitions::NORMAL <= 500);
+        assert!(transitions::SLOW >= 100 && transitions::SLOW <= 500);
+
+        // Verify durations increase monotonically
+        assert!(transitions::FAST < transitions::NORMAL);
+        assert!(transitions::NORMAL < transitions::SLOW);
     }
 }
