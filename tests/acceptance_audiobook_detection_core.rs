@@ -186,25 +186,25 @@ async fn test_files_sorted_naturally() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file at index 0")?
-        .to_string_lossy()
+        .name
         .contains("Chapter 1.mp3"));
     assert!(first_book
         .files
         .get(1)
         .ok_or("No file at index 1")?
-        .to_string_lossy()
+        .name
         .contains("Chapter 2.mp3"));
     assert!(first_book
         .files
         .get(2)
         .ok_or("No file at index 2")?
-        .to_string_lossy()
+        .name
         .contains("Chapter 10.mp3"));
     assert!(first_book
         .files
         .get(3)
         .ok_or("No file at index 3")?
-        .to_string_lossy()
+        .name
         .contains("Chapter 20.mp3"));
 
     Ok(())

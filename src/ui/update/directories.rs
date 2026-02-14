@@ -1,6 +1,6 @@
 use crate::db::Database;
 use crate::player::Vlc;
-use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
+use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile};
 use crate::ui::{Message, State};
 use iced::Command;
 
@@ -172,7 +172,7 @@ fn process_discovered_audiobook(
     };
 
     update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
-    process_audiobook_files(db, audiobook_id, disc.files, disc.checksums);
+    process_audiobook_files(db, audiobook_id, disc.files);
 }
 
 fn resolve_audiobook_id(
@@ -247,50 +247,25 @@ fn update_state_audiobook_id(
     }
 }
 
-fn process_audiobook_files(
-    db: &Database,
-    audiobook_id: i64,
-    files: Vec<std::path::PathBuf>,
-    checksums: Vec<Option<String>>,
-) {
-    let paired_len = files.len().min(checksums.len());
-    let mut paired: Vec<(std::path::PathBuf, Option<String>)> = files
-        .into_iter()
-        .take(paired_len)
-        .zip(checksums.into_iter().take(paired_len))
-        .collect();
+fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<DiscoveredFile>) {
+    let mut files = files;
+    files.sort_by(|a, b| natord::compare(&a.sort_key, &b.sort_key));
 
-    paired.sort_by(|(a, _), (b, _)| {
-        let a_name = a.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        let b_name = b.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        natord::compare(a_name, b_name)
-    });
-
-    for (pos, (file_path, checksum)) in paired.into_iter().enumerate() {
-        process_single_file(db, audiobook_id, pos, &file_path, checksum);
+    for (pos, file) in files.into_iter().enumerate() {
+        process_single_file(db, audiobook_id, pos, file);
     }
 }
 
-fn process_single_file(
-    db: &Database,
-    audiobook_id: i64,
-    pos: usize,
-    file_path: &std::path::Path,
-    checksum: Option<String>,
-) {
-    let name = file_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("Unknown")
-        .to_string();
-    let full_path = file_path.display().to_string();
+fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, discovered: DiscoveredFile) {
+    let name = discovered.name;
+    let full_path = discovered.full_path;
     let mut file = crate::models::AudiobookFile::new(
         audiobook_id,
         name,
         full_path.clone(),
         i32::try_from(pos).unwrap_or(i32::MAX),
     );
-    file.checksum = checksum;
+    file.checksum = discovered.checksum;
 
     if let Ok(Some(existing_file)) =
         crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)

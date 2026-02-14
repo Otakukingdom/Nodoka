@@ -1,6 +1,7 @@
 mod acceptance_support;
 use acceptance_support::*;
 
+use nodoka::tasks::parse_zip_virtual_path;
 use nodoka::tasks::scan_directory;
 use nodoka::tasks::{cleanup_temp_files, extract_zip_for_playback, is_zip_archive};
 use std::error::Error;
@@ -41,6 +42,18 @@ async fn test_scan_directory_detects_zip_audiobook() -> Result<(), Box<dyn Error
     assert_eq!(book.name, "audiobook");
     assert_eq!(book.path, zip_path);
     assert_eq!(book.files.len(), 1);
+
+    let file_id = book
+        .files
+        .first()
+        .ok_or("No file at index 0")?
+        .full_path
+        .clone();
+    assert!(file_id.starts_with("zip://"));
+    assert!(
+        parse_zip_virtual_path(&file_id).is_some(),
+        "ZIP virtual path should be parseable after scanning"
+    );
 
     Ok(())
 }

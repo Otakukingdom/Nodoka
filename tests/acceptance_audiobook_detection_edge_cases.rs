@@ -139,7 +139,7 @@ async fn test_hidden_files_ignored() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file found")?
-        .to_string_lossy()
+        .name
         .contains("visible.mp3"));
 
     Ok(())

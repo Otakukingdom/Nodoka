@@ -9,8 +9,23 @@ use super::archive_handling;
 pub struct DiscoveredAudiobook {
     pub path: PathBuf,
     pub name: String,
-    pub files: Vec<PathBuf>,
-    pub checksums: Vec<Option<String>>,
+    pub files: Vec<DiscoveredFile>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DiscoveredFile {
+    /// File identifier stored in the database.
+    ///
+    /// For filesystem files this is an absolute path string.
+    /// For ZIP entries this is the `zip://...::...` virtual path created by
+    /// [`crate::tasks::to_zip_virtual_path`].
+    pub full_path: String,
+    /// Display name (typically the filename within the audiobook).
+    pub name: String,
+    /// Stable sort key for natural ordering within an audiobook.
+    pub sort_key: String,
+    /// Optional checksum for detecting content changes.
+    pub checksum: Option<String>,
 }
 
 /// Scans a directory for audiobook folders
@@ -92,12 +107,22 @@ fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {
         return None;
     }
 
-    let files: Vec<PathBuf> = entries
+    let files: Vec<DiscoveredFile> = entries
         .into_iter()
         .filter_map(|entry| {
-            archive_handling::to_zip_virtual_path(zip_path, &entry)
-                .ok()
-                .map(PathBuf::from)
+            let full_path = archive_handling::to_zip_virtual_path(zip_path, &entry).ok()?;
+            let name = entry
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let sort_key = entry.to_string_lossy().to_string();
+            Some(DiscoveredFile {
+                full_path,
+                name,
+                sort_key,
+                checksum: None,
+            })
         })
         .collect();
 
@@ -111,12 +136,10 @@ fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {
         .to_string_lossy()
         .to_string();
 
-    let checksums = vec![None; files.len()];
     Some(DiscoveredAudiobook {
         path: zip_path.to_path_buf(),
         name,
         files,
-        checksums,
     })
 }
 
@@ -147,13 +170,30 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
         natord::compare(a_name, b_name)
     });
 
-    let checksums: Vec<Option<String>> = audio_files.iter().map(|p| sha256_file(p).ok()).collect();
+    let files: Vec<DiscoveredFile> = audio_files
+        .into_iter()
+        .map(|p| {
+            let name = p
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let sort_key = name.clone();
+            let full_path = p.display().to_string();
+            let checksum = sha256_file(&p).ok();
+            DiscoveredFile {
+                full_path,
+                name,
+                sort_key,
+                checksum,
+            }
+        })
+        .collect();
 
     Some(DiscoveredAudiobook {
         path: path.to_path_buf(),
         name: path.file_name()?.to_string_lossy().to_string(),
-        files: audio_files,
-        checksums,
+        files,
     })
 }
 

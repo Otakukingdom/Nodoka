@@ -202,7 +202,7 @@ async fn test_opus_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file found")?
-        .to_string_lossy()
+        .name
         .contains("chapter1.opus"));
 
     Ok(())
@@ -231,7 +231,7 @@ async fn test_aac_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file found")?
-        .to_string_lossy()
+        .name
         .contains("chapter1.aac"));
 
     Ok(())
@@ -260,7 +260,7 @@ async fn test_wav_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file found")?
-        .to_string_lossy()
+        .name
         .contains("chapter1.wav"));
 
     Ok(())
@@ -289,7 +289,7 @@ async fn test_wma_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
         .files
         .first()
         .ok_or("No file found")?
-        .to_string_lossy()
+        .name
         .contains("chapter1.wma"));
 
     Ok(())

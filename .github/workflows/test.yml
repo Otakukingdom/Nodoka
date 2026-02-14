@@ -65,10 +65,15 @@ jobs:
         # Add VLC to PATH
         echo "C:\Program Files\VideoLAN\VLC" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Generate test fixtures
+    - name: Ensure test fixtures exist
+      shell: bash
       run: |
-        chmod +x scripts/generate_test_fixtures.sh
-        bash scripts/generate_test_fixtures.sh || echo "Fixture generation failed, tests will use placeholders"
+        if [ -f "tests/fixtures/audio/sample_mp3.mp3" ] && [ -f "tests/fixtures/images/cover.jpg" ]; then
+          echo "Committed fixtures present; skipping generation."
+        else
+          chmod +x scripts/generate_test_fixtures.sh
+          bash scripts/generate_test_fixtures.sh
+        fi
 
     - name: Run all tests
       run: cargo test --all --verbose

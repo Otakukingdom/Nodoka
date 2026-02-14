@@ -46,7 +46,7 @@
 //! - Network latency (local vs network drives)
 //!
 //! Each file may involve:
-//! 1. SHA-256 checksum calculation (I/O bound; returned in [`DiscoveredAudiobook`])
+//! 1. SHA-256 checksum calculation (I/O bound; stored per [`crate::tasks::DiscoveredFile`])
 //! 2. Optional VLC metadata extraction (CPU bound; performed by callers via [`crate::player::Scanner`])
 //! 3. Database writes (I/O bound; performed by the UI update layer)
 
@@ -68,4 +68,6 @@ pub use checksum::sha256;
 )]
 pub use checksum::sha256 as calculate_checksum;
 pub use player_scan::scan_media_properties;
-pub use scan_directory::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
+pub use scan_directory::{
+    convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile,
+};
