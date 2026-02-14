@@ -1,4 +1,3 @@
-use crate::player::PlaybackState;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -32,10 +31,6 @@ pub enum Message {
 
     // Audiobook list
     AudiobookSelected(i64),
-    AudiobookRemove(i64),
-    AudiobookRescan(i64),
-    AudiobookMarkComplete(i64),
-    AudiobookResetProgress(i64),
 
     // File list
     FileSelected(String),
@@ -45,7 +40,6 @@ pub enum Message {
     DirectoryAdded(String),
     DirectoryAddCancelled,
     DirectoryRemove(String),
-    DirectoryRemoved(String),
     DirectoryRescan(String),
 
     // Settings
@@ -53,15 +47,12 @@ pub enum Message {
     CloseSettings,
 
     // Player events
-    PlayerStateChanged(PlaybackState),
     PlayerTimeUpdated(f64),
     PlayerTick,
-    PlayerMediaParsed,
 
     // Background tasks
     ScanComplete(String, Vec<crate::tasks::DiscoveredAudiobook>),
     ScanError(String),
-    ChecksumCalculated(String, String),
     CoverThumbnailGenerated(i64, Option<PathBuf>),
 
     // Initial load

@@ -96,6 +96,7 @@ pub fn update(
         // Directory management messages
         Message::DirectoryAdd => directories::handle_directory_add(),
         Message::DirectoryAdded(path) => directories::handle_directory_added(state, db, &path),
+        Message::DirectoryAddCancelled | Message::None => Command::none(),
         Message::DirectoryRemove(path) => {
             directories::handle_directory_remove(state, player, db, &path)
         }
@@ -122,9 +123,6 @@ pub fn update(
         // Window events
         Message::WindowMoved(x, y) => handle_window_moved(db, x, y),
         Message::WindowResized(width, height) => handle_window_resized(db, width, height),
-
-        // Catch-all for unhandled messages
-        _ => Command::none(),
     }
 }
 

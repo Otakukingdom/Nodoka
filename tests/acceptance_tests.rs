@@ -128,33 +128,18 @@
 //! - Application lifecycle (12 tests) - **Enhanced: large library startup, migrations**
 //! - Cross-platform compatibility (11 tests) - **Enhanced: paths with spaces, unicode, separators**
 //!
-//! ### ✅ Comprehensive Validation Complete (2026-02-14)
+//! ### Validation Expectations
 //!
-//! **Final Validation Results:**
-//! - ✅ All 467 tests passing - 100% pass rate
-//! - ✅ All 18 feature categories comprehensively tested
-//! - ✅ Fully automated acceptance suite (UI-facing behaviors verified via messages and state)
-//! - ✅ Zero clippy warnings with strict deny-level linting
-//! - ✅ Zero forbidden patterns (no unwrap/expect/panic in production code)
-//! - ✅ Zero dead code in codebase
-//! - ✅ All files under 1000 lines (longest: src/ui/update.rs at 781 lines)
-//! - ✅ Release build succeeds with zero warnings
-//! - ✅ All 9 audio formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
-//! - ✅ Volume amplification to 200% verified
-//! - ✅ Speed range 0.5x-2.0x with 0.1x increments verified
-//! - ✅ Stop button position reset verified
-//! - ✅ Periodic progress save every 1 second (exceeds 5s requirement)
-//! - ✅ Auto-advance on file end verified
-//! - ✅ Natural file sorting verified (Chapter 1 before Chapter 10)
-//! - ✅ Performance validated with 1000+ audiobook libraries (CI-friendly wall-clock bounds)
-//! - ✅ Cross-platform path handling (Windows UNC, macOS, Linux paths)
-//! - ✅ Edge cases extensively tested (unicode, symlinks, concurrent access)
-//! - ✅ Error handling comprehensive (VLC, database, filesystem, network)
-//! - ✅ CI/CD pipeline configured for GitHub Actions
-//! - ✅ Automated test execution script available
-//! - ✅ Skip Silence properly documented as optional/deferred feature
+//! This suite intentionally avoids embedding hard-coded totals (e.g., "N tests passing") because
+//! counts and coverage evolve over time.
 //!
-//! **Production Readiness Confirmed:** All acceptance criteria met or exceeded.
+//! CI is expected to enforce the following invariants:
+//! - All tests pass (`cargo test --all`)
+//! - No warnings are allowed (`cargo clippy --all-targets --all-features -- -D warnings`)
+//! - Formatting is clean (`cargo fmt --check`)
+//! - `SQLite` foreign keys are enabled and enforced for referential integrity
+//!
+//! Prefer CI logs and command output as the source of truth for current counts and status.
 //!
 //! ### 🔄 Infrastructure Improvements
 //! - Real audio file fixtures (placeholder files work, ffmpeg script can generate real files)

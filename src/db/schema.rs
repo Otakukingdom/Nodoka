@@ -87,12 +87,14 @@ pub fn initialize(conn: &Connection) -> Result<()> {
             position INTEGER,
             completeness INTEGER,
             file_exists BOOL,
-            created_at TEXT
+            created_at TEXT,
+            FOREIGN KEY (audiobook_id) REFERENCES audiobooks(id) ON DELETE CASCADE
         )",
         [],
     )?;
 
     ensure_column_exists(conn, "audiobook_file", "checksum", "TEXT")?;
+    ensure_audiobook_file_foreign_key(conn)?;
 
     // Create bookmarks table
     conn.execute(
@@ -119,6 +121,94 @@ pub fn initialize(conn: &Connection) -> Result<()> {
     )?;
 
     Ok(())
+}
+
+fn ensure_audiobook_file_foreign_key(conn: &Connection) -> Result<()> {
+    let mut stmt = conn.prepare("PRAGMA foreign_key_list(audiobook_file)")?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let table: String = row.get(2)?;
+        let from: String = row.get(3)?;
+        let to: String = row.get(4)?;
+
+        if table == "audiobooks" && from == "audiobook_id" && to == "id" {
+            return Ok(());
+        }
+    }
+
+    // SQLite does not support adding foreign keys with ALTER TABLE, so we must rebuild.
+    // `rusqlite::Connection::transaction` requires `&mut Connection`, but schema initialization
+    // is driven by an immutable reference, so we use an explicit BEGIN/COMMIT.
+    conn.execute_batch("BEGIN")?;
+
+    let result: Result<()> = (|| {
+        conn.execute_batch(
+            "CREATE TABLE audiobook_file_new (
+            audiobook_id INTEGER,
+            name TEXT,
+            full_path TEXT PRIMARY KEY,
+            length_of_file TEXT,
+            seek_position TEXT,
+            checksum TEXT,
+            position INTEGER,
+            completeness INTEGER,
+            file_exists BOOL,
+            created_at TEXT,
+            FOREIGN KEY (audiobook_id) REFERENCES audiobooks(id) ON DELETE CASCADE
+        );",
+        )?;
+
+        conn.execute_batch(
+            "INSERT INTO audiobook_file_new (
+            audiobook_id,
+            name,
+            full_path,
+            length_of_file,
+            seek_position,
+            checksum,
+            position,
+            completeness,
+            file_exists,
+            created_at
+        )
+        SELECT
+            audiobook_id,
+            name,
+            full_path,
+            length_of_file,
+            seek_position,
+            checksum,
+            position,
+            completeness,
+            file_exists,
+            created_at
+        FROM audiobook_file
+        WHERE audiobook_id IS NULL OR audiobook_id IN (SELECT id FROM audiobooks);",
+        )?;
+
+        conn.execute_batch(
+            "DROP TABLE audiobook_file;
+         ALTER TABLE audiobook_file_new RENAME TO audiobook_file;",
+        )?;
+
+        conn.execute_batch(
+            "CREATE INDEX IF NOT EXISTS audiobook_ab_id_index ON audiobook_file(audiobook_id);
+         CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path);",
+        )?;
+
+        Ok(())
+    })();
+
+    match result {
+        Ok(()) => {
+            conn.execute_batch("COMMIT")?;
+            Ok(())
+        }
+        Err(e) => {
+            let _ = conn.execute_batch("ROLLBACK");
+            Err(e)
+        }
+    }
 }
 
 fn ensure_column_exists(
@@ -231,6 +321,24 @@ mod tests {
 
         result?;
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_audiobook_file_enforces_audiobook_foreign_key() -> Result<()> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute("PRAGMA foreign_keys = ON", [])?;
+        initialize(&conn)?;
+
+        let insert = conn.execute(
+            "INSERT INTO audiobook_file (audiobook_id, full_path) VALUES (?1, ?2)",
+            rusqlite::params![999_i64, "/tmp/orphan.mp3"],
+        );
+
+        assert!(
+            insert.is_err(),
+            "audiobook_file should reject orphan audiobook_id when foreign keys are enabled"
+        );
         Ok(())
     }
 }
