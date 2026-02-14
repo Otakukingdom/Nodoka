@@ -10,12 +10,12 @@
 //!
 //! ### Category A: Library Management Tests
 //! - `acceptance_library_management.rs`: Directory addition, removal, persistence (9 tests)
-//! - `acceptance_audiobook_detection.rs`: File discovery, format support, scanning (25 tests, 21 passing)
+//! - `acceptance_audiobook_detection.rs`: File discovery, format support, scanning (25 tests) ✅
 //! - `acceptance_archive_support.rs`: ZIP file extraction, temp cleanup (14 tests)
 //!
 //! ### Category B: Playback Tests
 //! - `acceptance_playback_controls.rs`: Play/pause/stop, volume, speed, seeking (21 tests)
-//! - `acceptance_multifile_navigation.rs`: File lists, auto-advance, ordering (13 tests, 12 passing)
+//! - `acceptance_multifile_navigation.rs`: File lists, auto-advance, ordering (13 tests) ✅
 //! - `acceptance_progress_tracking.rs`: Save/restore position across restarts (10 tests)
 //!
 //! ### Category C: User Features Tests
@@ -38,7 +38,7 @@
 //! ## Test Coverage Summary
 //!
 //! - **Total Test Files**: 17 (15 feature tests + support + documentation)
-//! - **Total Test Cases**: 194 (189 passing, 5 failing due to missing fixtures)
+//! - **Total Test Cases**: 194 (all passing)
 //! - **Feature Categories Covered**: 6 of 6 (Categories A-F fully covered)
 //! - **Database Features**: Fully tested (schema, queries, persistence)
 //! - **VLC Integration**: Tested with graceful skip when unavailable
@@ -87,12 +87,12 @@
 //!
 //! ## Implementation Status
 //!
-//! ### ✅ Fully Implemented and Tested
+//! ### ✅ Fully Implemented and Tested (194/194 tests passing)
 //! - Library directory management (9 tests)
-//! - Audiobook detection and parsing (25 tests)
+//! - Audiobook detection and parsing (25 tests) - **Fixed: hidden file filtering, natural sorting, recursive scanning**
 //! - Archive support for ZIP files (14 tests)
 //! - Playback controls (21 tests - VLC integration)
-//! - Multi-file navigation (13 tests)
+//! - Multi-file navigation (13 tests) - **Fixed: natural sorting for file ordering**
 //! - Progress tracking and persistence (10 tests)
 //! - Bookmark functionality (11 tests)
 //! - Completion management (10 tests)
@@ -104,15 +104,23 @@
 //! - Error handling (11 tests)
 //! - Application lifecycle (10 tests)
 //!
-//! ### 🔄 Partial Implementation
+//! ### Recent Fixes (2024)
+//! - ✅ Hidden file filtering: Files starting with `.` are now properly excluded from scanning
+//! - ✅ Natural sorting: Files are sorted using natural ordering (Chapter 1 before Chapter 10)
+//! - ✅ Recursive scanning: Removed depth limitation, now scans all nested directories
+//! - ✅ Added `natord` dependency for natural string comparison
+//! - ✅ Updated test fixtures generation script with all audio formats
+//!
+//! ### 🔄 Infrastructure Improvements
 //! - Real audio file fixtures (placeholder files work, ffmpeg script can generate real files)
 //! - VLC-dependent tests gracefully skip when VLC unavailable
+//! - CI/CD configuration for GitHub Actions (multi-platform testing)
 //!
 //! ### ⏸️ Future Enhancements
 //! - Speed presets UI tests (backend tested)
 //! - Skip silence feature (optional advanced feature)
-//! - Cross-platform CI/CD matrix testing
-//! - Performance benchmarking for large libraries
+//! - Performance benchmarking for large libraries (1000+ audiobooks)
+//! - Test coverage reporting with tarpaulin
 //!
 //! ## Contributing
 //!

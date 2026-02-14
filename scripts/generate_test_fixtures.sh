@@ -29,12 +29,32 @@ if command -v ffmpeg &> /dev/null; then
     # OGG - 1 second silent audio
     ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -acodec libvorbis \
         "$FIXTURES_DIR/audio/sample_ogg.ogg" -y 2>/dev/null
-    
+
+    # M4A - 1 second silent audio
+    ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -c:a aac \
+        "$FIXTURES_DIR/audio/sample_m4a.m4a" -y 2>/dev/null
+
+    # OPUS - 1 second silent audio
+    ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -acodec libopus \
+        "$FIXTURES_DIR/audio/sample_opus.opus" -y 2>/dev/null
+
+    # WAV - 1 second silent audio
+    ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -acodec pcm_s16le \
+        "$FIXTURES_DIR/audio/sample_wav.wav" -y 2>/dev/null
+
+    # WMA - 1 second silent audio (if supported)
+    ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -acodec wmav2 \
+        "$FIXTURES_DIR/audio/sample_wma.wma" -y 2>/dev/null || echo "WMA encoding not supported, skipping"
+
+    # AAC - 1 second silent audio
+    ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -c:a aac \
+        "$FIXTURES_DIR/audio/sample_aac.aac" -y 2>/dev/null
+
     # M4B with metadata
     ffmpeg -f lavfi -i anullsrc=r=44100:cl=mono -t 1 -c:a aac \
         -metadata title="Test Audiobook" -metadata artist="Test Author" \
         "$FIXTURES_DIR/audio/with_cover.m4b" -y 2>/dev/null
-    
+
     echo "Audio fixtures generated successfully"
 else
     echo "Warning: ffmpeg not found. Creating placeholder files."
@@ -43,8 +63,13 @@ else
     # Create minimal placeholder files
     echo "PLACEHOLDER_MP3" > "$FIXTURES_DIR/audio/sample_mp3.mp3"
     echo "PLACEHOLDER_M4B" > "$FIXTURES_DIR/audio/sample_m4b.m4b"
+    echo "PLACEHOLDER_M4A" > "$FIXTURES_DIR/audio/sample_m4a.m4a"
     echo "PLACEHOLDER_FLAC" > "$FIXTURES_DIR/audio/sample_flac.flac"
     echo "PLACEHOLDER_OGG" > "$FIXTURES_DIR/audio/sample_ogg.ogg"
+    echo "PLACEHOLDER_OPUS" > "$FIXTURES_DIR/audio/sample_opus.opus"
+    echo "PLACEHOLDER_WAV" > "$FIXTURES_DIR/audio/sample_wav.wav"
+    echo "PLACEHOLDER_WMA" > "$FIXTURES_DIR/audio/sample_wma.wma"
+    echo "PLACEHOLDER_AAC" > "$FIXTURES_DIR/audio/sample_aac.aac"
     echo "PLACEHOLDER_M4B_COVER" > "$FIXTURES_DIR/audio/with_cover.m4b"
 fi
 

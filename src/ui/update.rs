@@ -654,9 +654,9 @@ fn update_state_audiobook_id(
 fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<std::path::PathBuf>) {
     let mut sorted_files = files;
     sorted_files.sort_by(|a, b| {
-        a.file_name()
-            .and_then(|n| n.to_str())
-            .cmp(&b.file_name().and_then(|n| n.to_str()))
+        let a_name = a.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        let b_name = b.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        natord::compare(a_name, b_name)
     });
 
     for (pos, file_path) in sorted_files.iter().enumerate() {

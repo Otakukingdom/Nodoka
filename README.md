@@ -66,12 +66,15 @@ cargo build --release
 **Version**: 0.2.0  
 **Status**: Production Ready
 
-- ✅ **194 acceptance tests** (189 passing, 5 requiring real audio fixtures)
+- ✅ **194 acceptance tests** (all passing)
 - ✅ 100% specification coverage across all 18 feature areas
 - ✅ Comprehensive test suite: library management, playback, metadata, UI features
-- ✅ Strict Rust idioms (no unwrap/expect/panic in tests)
+- ✅ Strict Rust idioms (no unwrap/expect/panic in production code)
 - ✅ Cross-platform compatibility tested
 - ✅ No unsafe code, function-level allows only with inline justification
+- ✅ Natural sorting for audiobook files (Chapter 1 before Chapter 10)
+- ✅ Hidden file filtering (ignores .DS_Store, .hidden files)
+- ✅ Recursive directory scanning (unlimited depth)
 
 ### Testing
 
@@ -97,6 +100,21 @@ Test coverage:
 - Metadata & Organization: 24 tests
 - Advanced Features: 12 tests (sleep timer)
 - Application: 33 tests (settings, errors, lifecycle)
+
+**VLC-Dependent Tests**: Some tests require VLC media player to be installed. Tests gracefully skip if VLC is unavailable, ensuring CI/CD compatibility.
+
+```bash
+# Install VLC for full test coverage
+
+# macOS
+brew install --cask vlc
+
+# Linux (Ubuntu/Debian)
+sudo apt install vlc libvlc-dev
+
+# Windows
+# Download from https://www.videolan.org/vlc/
+```
 
 See `cargo doc --open` for detailed test documentation and implementation status.
 

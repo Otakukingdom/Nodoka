@@ -25,6 +25,7 @@ rfd = "0.14"
 image = "0.24"
 parking_lot = "0.12"
 zip = "0.6"
+natord = "1.0"
 
 [dev-dependencies]
 temp-dir = "0.1"

@@ -21,8 +21,14 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
 
         for entry in WalkDir::new(&dir_path)
             .min_depth(1)
-            .max_depth(2)
+            .follow_links(false)
             .into_iter()
+            .filter_entry(|e| {
+                // Filter out hidden files and directories (starting with '.')
+                e.file_name()
+                    .to_str()
+                    .is_some_and(|s| !s.starts_with('.'))
+            })
             .filter_map(std::result::Result::ok)
         {
             if entry.file_type().is_dir() {
@@ -39,16 +45,31 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
 }
 
 fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
-    let audio_files: Vec<PathBuf> = std::fs::read_dir(path)
+    let mut audio_files: Vec<PathBuf> = std::fs::read_dir(path)
         .ok()?
         .filter_map(std::result::Result::ok)
         .map(|e| e.path())
-        .filter(|p| is_audio_file(p))
+        .filter(|p| {
+            // Filter out hidden files (starting with '.')
+            if let Some(file_name) = p.file_name().and_then(|n| n.to_str()) {
+                if file_name.starts_with('.') {
+                    return false;
+                }
+            }
+            is_audio_file(p)
+        })
         .collect();
 
     if audio_files.is_empty() {
         return None;
     }
+
+    // Sort files using natural ordering
+    audio_files.sort_by(|a, b| {
+        let a_name = a.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        let b_name = b.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        natord::compare(a_name, b_name)
+    });
 
     Some(DiscoveredAudiobook {
         path: path.to_path_buf(),
