@@ -1,0 +1,22 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_completion_management.rs (target/debug/deps/acceptance_completion_management-4b5a65cb00c22721)
+
+running 15 tests
+test test_manually_mark_complete ... ok
+test test_completion_over_100_percent_capped ... ok
+test test_completion_boundary_at_100_percent ... ok
+test test_filter_by_completion_status ... ok
+test test_completion_with_zero_length_files ... ok
+test test_completion_negative_value_handled ... ok
+test test_manually_mark_complete_mid_playback ... ok
+test test_partial_completion_percentage ... ok
+test test_completion_percentage_calculated ... ok
+test test_audiobook_marked_complete_automatically ... ok
+test test_completion_with_missing_files ... ok
+test test_completion_status_persists ... ok
+test test_reset_preserves_audiobook_metadata ... ok
+test test_reset_progress_clears_completion ... ok
+test test_unmark_completed ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

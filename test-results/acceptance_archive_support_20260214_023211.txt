@@ -1,0 +1,29 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_archive_support.rs (target/debug/deps/acceptance_archive_support-72598f58a93f79ec)
+
+running 22 tests
+test test_non_zip_files_not_detected ... ok
+test test_zip_file_name_becomes_audiobook_name ... ok
+test test_cleanup_nonexistent_directory ... ok
+test test_zip_files_detected_as_archives ... ok
+test test_empty_zip_file ... ok
+test test_corrupted_zip_shows_error ... ok
+test test_corrupted_zip_file_handling ... ok
+test test_temp_files_cleanup_on_app_exit ... ok
+test test_password_protected_zip_error ... ok
+test test_cleanup_temp_files ... ok
+test test_zip_extraction_creates_necessary_directories ... ok
+test test_zip_with_no_audio_files ... ok
+test test_extract_zip_with_audio_files ... ok
+test test_zip_with_non_audio_files_ignored ... ok
+test test_zip_with_unicode_filenames ... ok
+test test_zip_playback_progress_tracked ... ok
+test test_extract_preserves_file_structure ... ok
+test test_zip_with_deeply_nested_structure ... ok
+test test_zip_with_very_long_filename ... ok
+test test_zip_with_nested_directories ... ok
+test test_zip_with_mixed_content ... ok
+test test_large_zip_memory_handling ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

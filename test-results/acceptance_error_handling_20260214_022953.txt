@@ -1,0 +1,28 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_error_handling.rs (target/debug/deps/acceptance_error_handling-7435e116fc20f978)
+
+running 21 tests
+test test_error_messages_are_readable ... ok
+test test_invalid_database_path_handled ... ok
+test test_concurrent_database_access ... ok
+test test_invalid_directory_path_handled ... ok
+test test_network_path_errors_handled ... ok
+test test_empty_string_inputs_handled ... ok
+test test_database_errors_return_result ... ok
+test test_extremely_deep_path_nesting ... ok
+test test_null_bytes_in_strings_handled ... ok
+test test_missing_file_in_audiobook ... ok
+test test_progress_save_error_recovery ... ok
+test test_concurrent_database_writes ... ok
+test test_readonly_database_error ... ok
+test test_unicode_error_messages ... ok
+test test_special_characters_in_paths ... ok
+test test_very_long_paths_handled ... ok
+test test_very_long_metadata_strings ... ok
+test test_missing_vlc_handled_gracefully ... ok
+test test_vlc_not_installed_error_message ... ok
+test test_nonexistent_file_handled ... ok
+test test_unplayable_file_shows_error ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

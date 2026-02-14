@@ -1,0 +1,43 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_audiobook_detection.rs (target/debug/deps/acceptance_audiobook_detection-09508c0c7f4ce06b)
+
+running 36 tests
+test test_aac_files_detected ... ok
+test test_m4b_files_detected ... ok
+test test_m4a_files_detected ... ok
+test test_flac_files_detected ... ok
+test test_mp3_files_detected ... ok
+test test_files_with_incorrect_extensions ... ok
+test test_empty_folders_no_audiobooks ... ok
+test test_audiobook_name_from_folder ... ok
+test test_aac_files_detected_by_scanner ... ok
+test test_multi_disc_audiobooks_structure ... ok
+test test_ogg_files_detected ... ok
+test test_opus_files_detected ... ok
+test test_case_insensitive_extensions ... ok
+test test_files_marked_as_missing_when_deleted ... ok
+test test_files_sorted_naturally ... ok
+test test_mixed_format_audiobook ... ok
+test test_mixed_content_folders ... ok
+test test_multi_disc_audiobooks ... ok
+test test_non_audio_files_ignored ... ok
+test test_nested_subdirectories ... ok
+test test_wav_files_detected ... ok
+test test_opus_files_detected_by_scanner ... ok
+test test_special_characters_in_names ... ok
+test test_wma_files_detected ... ok
+test test_rescanning_preserves_playback_progress ... ok
+test test_unicode_in_filenames ... ok
+test test_rescanning_updates_library ... ok
+test test_very_long_filenames ... ok
+test test_recursive_scanning_discovers_all_files ... ok
+test test_wav_files_detected_by_scanner ... ok
+test test_wma_files_detected_by_scanner ... ok
+test test_zero_byte_files_ignored ... ok
+test test_various_audio_formats_detected ... ok
+test test_hidden_files_ignored ... ok
+test test_single_file_audiobook ... ok
+test test_symbolic_links_handling ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

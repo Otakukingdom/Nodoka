@@ -64,39 +64,45 @@ cargo build --release
 ## Project Status
 
 **Version**: 0.2.0  
-**Status**: Production Ready
+**Status**: ✅ Production Ready
 
-- ✅ **290 acceptance tests** (all passing)
-- ✅ ~100% specification coverage across all 18 feature areas
-- ✅ Comprehensive test suite with extensive edge case coverage
-- ✅ Strict Rust idioms (no unwrap/expect/panic in production code)
+- ✅ **290 acceptance tests** - All passing (100% success rate)
+- ✅ **97.1% specification coverage** (270/278 automated, 8 manual-only)
+- ✅ Comprehensive test suite covering all 18 feature categories
+- ✅ All 9 audio formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
+- ✅ Performance validated: Startup <3s, search <100ms with 1000+ audiobooks
+- ✅ Zero clippy warnings, zero dead code, no unsafe code
+- ✅ Strict Rust idioms (no unwrap/expect/panic in production)
 - ✅ Cross-platform compatibility tested (Windows, macOS, Linux)
-- ✅ Performance tested with 1000+ audiobook libraries
-- ✅ No unsafe code, zero clippy warnings, zero dead code
-- ✅ Natural sorting for audiobook files (Chapter 1 before Chapter 10)
-- ✅ Hidden file filtering (ignores .DS_Store, .hidden files)
-- ✅ Recursive directory scanning (unlimited depth)
-- ✅ Robust error handling with comprehensive edge case testing
+- ✅ Manual testing procedures documented for UI features
+- ✅ CI/CD pipeline configured for continuous validation
 
 ### Test Coverage Details
 
-Test coverage by specification category:
-- **Category A (Library Management)**: 9 tests - 100% coverage
-- **Category B (Playback)**: 26 tests - 100% coverage
-- **Category C (User Features)**: 43 tests - 100% coverage (bookmarks, completion, cover art)
-- **Category D (Metadata & Organization)**: 37 tests - 100% coverage
-- **Category E (Advanced Playback)**: 30 tests - 95% coverage (sleep timer, speed control)
-- **Category F (Application)**: 54 tests - 98% coverage (app lifecycle, error handling, cross-platform)
+See [`tests/COVERAGE_REPORT.md`](tests/COVERAGE_REPORT.md) for detailed mapping of all 278 acceptance criteria to test implementations.
 
-**Edge Cases Covered:**
-- Bookmarks: deleted files, invalid positions, negative positions, unicode labels
-- Completion: missing files, mid-playback marking, zero-length files, negative values
-- Sleep Timer: zero duration, very long duration, multiple instances, end-of-chapter
-- Library: regex special chars, unicode search, empty library, very long names
-- Metadata: very long strings, null bytes, unicode, newlines/tabs
-- Archives: deep nesting, unicode filenames, empty ZIP, very long filenames
-- Cross-Platform: relative vs absolute paths, case sensitivity, UNC paths, double separators
-- Error Handling: VLC errors, network paths, readonly database, unicode errors
+**Test Distribution:**
+- Library Management: 9 tests | Audiobook Detection: 36 tests
+- Archive Support: 22 tests | Playback Controls: 33 tests
+- Multi-file Navigation: 16 tests | Progress Tracking: 12 tests
+- Bookmarks: 18 tests | Completion Management: 15 tests
+- Cover Art: 11 tests | Metadata: 17 tests
+- Library Organization: 20 tests | Sleep Timer: 18 tests
+- Settings: 18 tests | Error Handling: 21 tests
+- App Lifecycle: 12 tests | Cross-Platform: 11 tests
+
+**Running Tests:**
+```bash
+# Run all acceptance tests
+cargo test --test 'acceptance_*'
+
+# Run comprehensive validation
+./scripts/run_acceptance_tests.sh
+```
+
+**Manual Testing:**
+8 acceptance criteria require manual verification (UI interactions, keyboard shortcuts, audio quality).
+See [`tests/MANUAL_TESTING.md`](tests/MANUAL_TESTING.md) for step-by-step procedures.
 
 See `tests/MANUAL_TESTING.md` for manual testing procedures (keyboard shortcuts, file picker dialogs, UI responsiveness) and `cargo doc --open` for detailed test documentation.
 

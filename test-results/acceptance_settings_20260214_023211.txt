@@ -1,0 +1,25 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running tests/acceptance_settings.rs (target/debug/deps/acceptance_settings-cb18ed17efb8a31c)
+
+running 18 tests
+test test_invalid_speed_string ... ok
+test test_settings_have_defaults ... ok
+test test_current_audiobook_storage ... ok
+test test_multiple_settings_independent ... ok
+test test_current_file_storage ... ok
+test test_settings_changes_immediate ... ok
+test test_invalid_volume_string ... ok
+test test_max_volume_allowed ... ok
+test test_settings_reset_to_defaults ... ok
+test test_settings_persist_across_restarts ... ok
+test test_volume_validation_range ... ok
+test test_speed_validation_range ... ok
+test test_zero_volume_allowed ... ok
+test test_speed_persists ... ok
+test test_volume_persists ... ok
+test test_volume_above_maximum_handling ... ok
+test test_negative_volume_handling ... ok
+test test_extreme_speed_values ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+

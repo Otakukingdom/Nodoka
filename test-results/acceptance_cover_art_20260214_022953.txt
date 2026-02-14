@@ -1,0 +1,18 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_cover_art.rs (target/debug/deps/acceptance_cover_art-bc7f1b71c2ccad1c)
+
+running 11 tests
+test test_cover_detection_case_insensitive ... ok
+test test_cover_priority_order ... ok
+test test_multiple_image_formats_supported ... ok
+test test_various_image_extensions ... ok
+test test_corrupted_image_handled ... ok
+test test_cover_cache_directory_concept ... ok
+test test_cover_from_folder_png ... ok
+test test_default_placeholder_when_no_cover ... ok
+test test_cover_from_folder_jpg ... ok
+test test_cover_in_nested_directory ... ok
+test test_large_image_exists ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

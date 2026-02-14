@@ -1,0 +1,19 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_app_lifecycle.rs (target/debug/deps/acceptance_app_lifecycle-52e4b482877d2ff9)
+
+running 12 tests
+test test_restore_window_state ... ok
+test test_database_versioning ... ok
+test test_database_schema_has_required_tables ... ok
+test test_schema_idempotent ... ok
+test test_startup_time_reasonable ... ok
+test test_first_launch_creates_database ... ok
+test test_database_migration_on_version_upgrade ... ok
+test test_graceful_shutdown_saves_progress ... ok
+test test_subsequent_launches_restore_state ... ok
+test test_large_library_startup ... ok
+test test_large_library_query_performance ... ok
+test test_startup_time_with_1000_audiobooks ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

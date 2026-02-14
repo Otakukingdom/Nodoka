@@ -1,0 +1,18 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_cross_platform.rs (target/debug/deps/acceptance_cross_platform-8a2e44c98e8e40e3)
+
+running 11 tests
+test test_path_separators_normalized ... ok
+test test_path_with_trailing_separator ... ok
+test test_absolute_paths_stored_correctly ... ok
+test test_macos_path_format ... ok
+test test_empty_path_handling ... ok
+test test_path_with_double_separators ... ok
+test test_case_sensitivity_handling ... ok
+test test_file_paths_with_unicode ... ok
+test test_file_paths_with_spaces ... ok
+test test_special_characters_in_path ... ok
+test test_relative_vs_absolute_paths ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

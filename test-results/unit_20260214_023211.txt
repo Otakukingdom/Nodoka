@@ -1,0 +1,81 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/deps/nodoka-90414ba35247e497)
+
+running 71 tests
+test conversions::tests::test_calculate_percentage_invalid_length ... ok
+test conversions::tests::test_calculate_percentage_normal ... ok
+test conversions::tests::test_f64_to_ms_negative ... ok
+test conversions::tests::test_ms_to_f64_normal ... ok
+test conversions::tests::test_ms_to_f64_overflow ... ok
+test conversions::tests::test_percentage_to_i32_clamping ... ok
+test conversions::tests::test_f64_to_ms_normal ... ok
+test conversions::tests::test_percentage_to_i32_normal ... ok
+test db::connection::tests::test_database_open_error_types ... ok
+test db::connection::tests::test_connection_provides_access_to_rusqlite ... ok
+test db::connection::tests::test_new_in_memory_creates_database ... ok
+test db::connection::tests::test_get_db_path_returns_valid_path ... ok
+test db::connection::tests::test_database_open_error_on_missing_project_dir ... ok
+test db::schema::tests::test_initialize_is_idempotent ... ok
+test player::concrete_player::tests::test_vlc_state_conversion ... ok
+test db::schema::tests::test_initialize_creates_all_tables ... ok
+test db::schema::tests::test_initialize_creates_all_indices ... ok
+test db::schema::tests::test_initialize_file_based_database ... ok
+test player::scan_player::tests::test_scan_directory_path_returns_error ... ok
+test player::media_duration::tests::test_wait_for_duration_times_out ... ok
+test player::scan_player::tests::test_scanner_creation ... ok
+test player::vlc_env::tests::test_detect_vlc_plugin_path_on_macos ... ok
+test player::vlc_env::tests::test_environment_setup_thread_safety ... ok
+test player::vlc_env::tests::test_setup_runs_before_first_instance_creation_regression ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_does_not_accept_file_as_plugin_path ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_does_not_keep_stale_plugin_path ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_idempotent ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_keeps_multi_entry_plugin_path_if_any_dir_exists ... ok
+test player::vlc_env::tests::test_setup_without_vlc_installed ... ok
+test proxy::audiobook_file_handle::tests::test_file_proxy_completeness ... ok
+test proxy::audiobook_file_handle::tests::test_file_proxy_creation ... ok
+test proxy::audiobook_file_handle::tests::test_file_proxy_data_access ... ok
+test proxy::audiobook_handle::tests::test_audiobook_proxy_creation ... ok
+test player::concrete_player::tests::test_player_creation ... ok
+test player::concrete_player::tests::test_rate_setting ... ok
+test player::concrete_player::tests::test_initial_state ... ok
+test player::concrete_player::tests::test_volume_setting ... ok
+test player::concrete_player::tests::test_stop_without_media ... ok
+test player::concrete_player::tests::test_time_retrieval_without_media ... ok
+test player::concrete_player::tests::test_set_time_without_media ... ok
+test player::concrete_player::tests::test_length_without_media ... ok
+test player::concrete_player::tests::test_load_nonexistent_media ... ok
+test proxy::manager::tests::test_manager_creation ... ok
+test proxy::audiobook_handle::tests::test_audiobook_proxy_get_files ... ok
+test settings::storage::tests::test_current_audiobook_default_value ... ok
+test proxy::audiobook_handle::tests::test_audiobook_proxy_nonexistent ... ok
+test proxy::manager::tests::test_manager_caching ... ok
+test proxy::manager::tests::test_manager_clear_cache ... ok
+test proxy::manager::tests::test_manager_nonexistent_audiobook ... ok
+test tasks::archive_handling::tests::test_is_audio_file_false ... ok
+test tasks::archive_handling::tests::test_is_audio_file_true ... ok
+test proxy::manager::tests::test_manager_get_audiobook ... ok
+test tasks::archive_handling::tests::test_is_zip_archive_false ... ok
+test tasks::archive_handling::tests::test_is_zip_archive_true ... ok
+test settings::storage::tests::test_current_file_default_value ... ok
+test ui::state::tests::test_state_clone ... ok
+test ui::state::tests::test_state_default_values ... ok
+test ui::state::tests::test_state_loading_flag ... ok
+test ui::state::tests::test_state_mutation ... ok
+test ui::state::tests::test_state_selection ... ok
+test ui::state::tests::test_state_settings_modal ... ok
+test proxy::audiobook_handle::tests::test_audiobook_proxy_update_completeness ... ok
+test settings::storage::tests::test_current_audiobook_persistence ... ok
+test settings::storage::tests::test_volume_default_value ... ok
+test settings::storage::tests::test_speed_persistence ... ok
+test settings::storage::tests::test_volume_persistence ... ok
+test settings::storage::tests::test_speed_default_value ... ok
+test settings::storage::tests::test_current_file_persistence ... ok
+test ui::update::tests::test_handle_file_selected_does_not_change_selection_or_db_on_load_failure ... ok
+test player::media_duration::tests::test_wait_for_duration_returns_when_available ... ok
+test player::scan_player::tests::test_scan_text_file_returns_error ... ok
+
+test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

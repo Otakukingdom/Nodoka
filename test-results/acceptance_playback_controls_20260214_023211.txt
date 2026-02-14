@@ -1,0 +1,96 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_playback_controls.rs (target/debug/deps/acceptance_playback_controls-0e5d90a71f31d3b8)
+
+running 33 tests
+Keyboard shortcuts to verify manually:
+  Space: Play/Pause
+  Ctrl+B: Create bookmark
+These require manual testing in the running application.
+test test_keyboard_shortcuts_documented ... ok
+test test_playback_state_values ... ok
+[mp3 @ 0x814da9200] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8c00] Failed to read frame size: Could not seek to 1039.
+[0000000814e81b30] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[0000000814e80d30] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da9800] Failed to read frame size: Could not seek to 1039.
+[0000000814e82070] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da9800] Failed to read frame size: Could not seek to 1039.
+[0000000814e817b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e825b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e82770] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e82e70] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e800f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e82af0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[0000000814e810b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_invalid_file_handled_gracefully ... ok
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+test test_speed_above_maximum ... ok
+test test_speed_below_minimum ... ok
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[0000000814e5aaf0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_seek_beyond_duration_handled ... ok
+test test_play_starts_playback ... ok
+test test_speed_changes_no_crashes ... ok
+test test_speed_custom_entry ... ok
+test test_speed_increments ... ok
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[0000000814e59430] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e5ae70] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_playback_state_indicators ... ok
+test test_speed_persists_per_audiobook ... ok
+test test_speed_presets_all_defined ... ok
+test test_speed_presets_available ... ok
+test test_speed_range_05x_to_20x ... ok
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[0000000814e5a5b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_speed_persists_across_files ... ok
+test test_speed_changes_during_playback ... ok
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e580f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+[0000000814e5a230] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_get_duration ... ok
+test test_get_total_duration ... ok
+test test_get_current_time ... ok
+test test_seek_to_position ... ok
+test test_seek_to_specific_position ... ok
+test test_volume_at_zero_vs_muted ... ok
+test test_volume_boundary_values ... ok
+[mp3 @ 0x814da8000] Failed to read frame size: Could not seek to 1039.
+test test_volume_range_0_to_200 ... ok
+[mp3 @ 0x814da8600] Failed to read frame size: Could not seek to 1039.
+[0000000814e59eb0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_speed_instant_application ... ok
+test test_volume_persists_across_files ... ok
+test test_volume_adjusts_during_playback ... ok
+test test_current_time_updates_during_playback ... ok
+test test_pause_maintains_position ... ok
+test test_stop_stops_playback ... ok
+test test_stop_resets_position_to_beginning ... ok
+test test_rapid_play_pause_toggling ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+
