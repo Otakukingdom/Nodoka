@@ -1,8 +1,9 @@
 use chrono::Utc;
 use nodoka::db::{queries, Database};
-use nodoka::models::{Audiobook, AudiobookFile, Directory};
+use nodoka::models::{Audiobook, AudiobookFile, Bookmark, Directory};
 use std::error::Error;
 use std::io::{Error as IoError, ErrorKind};
+use temp_dir::TempDir;
 
 fn create_test_db() -> Result<Database, Box<dyn Error>> {
     // Create in-memory database for testing
@@ -15,14 +16,22 @@ fn missing(message: &'static str) -> IoError {
     IoError::new(ErrorKind::Other, message)
 }
 
+fn create_existing_directory() -> Result<(TempDir, String), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let dir_path = temp.path().to_string_lossy().to_string();
+    Ok((temp, dir_path))
+}
+
 #[test]
 fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
 
+    let (_temp, dir_path) = create_existing_directory()?;
+
     // Insert directory
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -32,17 +41,17 @@ fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
     let dirs = queries::get_all_directories(conn)?;
     assert_eq!(dirs.len(), 1);
     let first_dir = dirs.first().ok_or_else(|| missing("Expected directory"))?;
-    assert_eq!(first_dir.full_path, "/test/audiobooks");
+    assert_eq!(first_dir.full_path, dir_path);
 
     // Update last scanned
-    queries::update_directory_last_scanned(conn, "/test/audiobooks")?;
+    queries::update_directory_last_scanned(conn, &dir.full_path)?;
 
     let dirs = queries::get_all_directories(conn)?;
     let updated_dir = dirs.first().ok_or_else(|| missing("Expected directory"))?;
     assert!(updated_dir.last_scanned.is_some());
 
     // Delete directory
-    queries::delete_directory(conn, "/test/audiobooks")?;
+    queries::delete_directory(conn, &dir.full_path)?;
     let dirs = queries::get_all_directories(conn)?;
     assert_eq!(dirs.len(), 0);
     Ok(())
@@ -53,9 +62,11 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
 
+    let (_temp, dir_path) = create_existing_directory()?;
+
     // Insert directory first (matches application invariants)
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -64,9 +75,9 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
     // Insert audiobook
     let audiobook = Audiobook {
         id: None,
-        directory: "/test/audiobooks".to_string(),
+        directory: dir_path.clone(),
         name: "Test Audiobook".to_string(),
-        full_path: "/test/audiobooks/test".to_string(),
+        full_path: format!("{dir_path}/test"),
         completeness: 0,
         default_order: 0,
         selected_file: None,
@@ -79,9 +90,9 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
     assert_eq!(all.len(), 1);
     let first = all.first().ok_or_else(|| missing("Expected audiobook"))?;
     assert_eq!(first.id, Some(id));
-    assert_eq!(first.directory, "/test/audiobooks");
+    assert_eq!(first.directory, dir_path);
     assert_eq!(first.name, "Test Audiobook");
-    assert_eq!(first.full_path, "/test/audiobooks/test");
+    assert_eq!(first.full_path, audiobook.full_path);
     assert_eq!(first.completeness, 0);
     assert_eq!(first.default_order, 0);
     assert_eq!(first.selected_file, None);
@@ -93,20 +104,21 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
 
     // Update completeness and selected file
     queries::update_audiobook_completeness(conn, id, 75)?;
-    queries::update_audiobook_selected_file(conn, id, Some("/test/audiobooks/test/Chapter 1.mp3"))?;
+    let selected_file_path = format!("{dir_path}/test/Chapter 1.mp3");
+    queries::update_audiobook_selected_file(conn, id, Some(selected_file_path.as_str()))?;
 
     let updated = queries::get_audiobook_by_id(conn, id)?.ok_or_else(|| missing("Not found"))?;
     assert_eq!(updated.completeness, 75);
     assert_eq!(
         updated.selected_file.as_deref(),
-        Some("/test/audiobooks/test/Chapter 1.mp3")
+        Some(selected_file_path.as_str())
     );
 
     // Insert associated file, then ensure delete removes it.
     let file = AudiobookFile {
         audiobook_id: id,
         name: "Chapter 1.mp3".to_string(),
-        full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
+        full_path: format!("{dir_path}/test/Chapter 1.mp3"),
         length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
@@ -181,9 +193,11 @@ fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
 
+    let (_temp, dir_path) = create_existing_directory()?;
+
     // Insert directory and audiobook first
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -191,9 +205,9 @@ fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
 
     let audiobook = Audiobook {
         id: None,
-        directory: "/test/audiobooks".to_string(),
+        directory: dir_path.clone(),
         name: "Test Audiobook".to_string(),
-        full_path: "/test/audiobooks/test".to_string(),
+        full_path: format!("{dir_path}/test"),
         completeness: 0,
         default_order: 0,
         selected_file: None,
@@ -201,11 +215,13 @@ fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
+    let file_path = format!("{dir_path}/test/Chapter 1.mp3");
+
     // Insert file
     let file = AudiobookFile {
         audiobook_id,
         name: "Chapter 1.mp3".to_string(),
-        full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
+        full_path: file_path.clone(),
         length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
@@ -223,32 +239,32 @@ fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
     assert_eq!(first_file.length_of_file, Some(300_000));
 
     // Get file by path
-    let by_path = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+    let by_path = queries::get_audiobook_file_by_path(conn, &file_path)?
         .ok_or_else(|| missing("File not found"))?;
     assert_eq!(by_path.name, "Chapter 1.mp3");
 
     // Update progress
-    queries::update_file_progress(conn, "/test/audiobooks/test/Chapter 1.mp3", 150_000.0, 50)?;
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+    queries::update_file_progress(conn, &file_path, 150_000.0, 50)?;
+    let updated = queries::get_audiobook_file_by_path(conn, &file_path)?
         .ok_or_else(|| missing("File not found"))?;
     assert_eq!(updated.seek_position, Some(150_000));
     assert_eq!(updated.completeness, 50);
 
     // Update file length
-    queries::update_file_length(conn, "/test/audiobooks/test/Chapter 1.mp3", 350_000)?;
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+    queries::update_file_length(conn, &file_path, 350_000)?;
+    let updated = queries::get_audiobook_file_by_path(conn, &file_path)?
         .ok_or_else(|| missing("File not found"))?;
     assert_eq!(updated.length_of_file, Some(350_000));
 
     // Mark file as missing
-    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", false)?;
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+    queries::mark_file_exists(conn, &file_path, false)?;
+    let updated = queries::get_audiobook_file_by_path(conn, &file_path)?
         .ok_or_else(|| missing("File not found"))?;
     assert!(!updated.file_exists);
 
     // Mark file as existing
-    queries::mark_file_exists(conn, "/test/audiobooks/test/Chapter 1.mp3", true)?;
-    let updated = queries::get_audiobook_file_by_path(conn, "/test/audiobooks/test/Chapter 1.mp3")?
+    queries::mark_file_exists(conn, &file_path, true)?;
+    let updated = queries::get_audiobook_file_by_path(conn, &file_path)?
         .ok_or_else(|| missing("File not found"))?;
     assert!(updated.file_exists);
     Ok(())
@@ -260,8 +276,9 @@ fn test_audiobook_progress_operations() -> Result<(), Box<dyn Error>> {
     let conn = db.connection();
 
     // Setup
+    let (_temp, dir_path) = create_existing_directory()?;
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -269,9 +286,9 @@ fn test_audiobook_progress_operations() -> Result<(), Box<dyn Error>> {
 
     let audiobook = Audiobook {
         id: None,
-        directory: "/test/audiobooks".to_string(),
+        directory: dir_path.clone(),
         name: "Test Audiobook".to_string(),
-        full_path: "/test/audiobooks/test".to_string(),
+        full_path: format!("{dir_path}/test"),
         completeness: 0,
         default_order: 0,
         selected_file: None,
@@ -284,7 +301,7 @@ fn test_audiobook_progress_operations() -> Result<(), Box<dyn Error>> {
         let file = AudiobookFile {
             audiobook_id,
             name: format!("Chapter {}.mp3", i + 1),
-            full_path: format!("/test/audiobooks/test/Chapter {}.mp3", i + 1),
+            full_path: format!("{dir_path}/test/Chapter {}.mp3", i + 1),
             length_of_file: Some(300_000),
             seek_position: None,
             position: i,
@@ -358,8 +375,9 @@ fn test_count_operations() -> Result<(), Box<dyn Error>> {
     assert_eq!(count, 0);
 
     // Add directory and audiobooks
+    let (_temp, dir_path) = create_existing_directory()?;
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -368,9 +386,9 @@ fn test_count_operations() -> Result<(), Box<dyn Error>> {
     for i in 0..5 {
         let audiobook = Audiobook {
             id: None,
-            directory: "/test/audiobooks".to_string(),
+            directory: dir_path.clone(),
             name: format!("Audiobook {}", i + 1),
-            full_path: format!("/test/audiobooks/book{}", i + 1),
+            full_path: format!("{dir_path}/book{}", i + 1),
             completeness: 0,
             default_order: i,
             selected_file: None,
@@ -393,7 +411,7 @@ fn test_count_operations() -> Result<(), Box<dyn Error>> {
         let file = AudiobookFile {
             audiobook_id: first_id,
             name: format!("Chapter {}.mp3", i + 1),
-            full_path: format!("/test/audiobooks/book1/Chapter {}.mp3", i + 1),
+            full_path: format!("{}/book1/Chapter {}.mp3", dir_path, i + 1),
             length_of_file: Some(300_000),
             seek_position: None,
             position: i,
@@ -446,9 +464,11 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
 
+    let (_temp, dir_path) = create_existing_directory()?;
+
     // Setup directory with audiobooks and files
     let dir = Directory {
-        full_path: "/test/audiobooks".to_string(),
+        full_path: dir_path.clone(),
         created_at: Utc::now(),
         last_scanned: None,
     };
@@ -456,9 +476,9 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
 
     let audiobook = Audiobook {
         id: None,
-        directory: "/test/audiobooks".to_string(),
+        directory: dir_path.clone(),
         name: "Test Audiobook".to_string(),
-        full_path: "/test/audiobooks/test".to_string(),
+        full_path: format!("{dir_path}/test"),
         completeness: 0,
         default_order: 0,
         selected_file: None,
@@ -469,7 +489,7 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
     let file = AudiobookFile {
         audiobook_id,
         name: "Chapter 1.mp3".to_string(),
-        full_path: "/test/audiobooks/test/Chapter 1.mp3".to_string(),
+        full_path: format!("{dir_path}/test/Chapter 1.mp3"),
         length_of_file: Some(300_000),
         seek_position: None,
         position: 0,
@@ -480,7 +500,7 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
     queries::insert_audiobook_file(conn, &file)?;
 
     // Delete directory should cascade
-    queries::delete_directory(conn, "/test/audiobooks")?;
+    queries::delete_directory(conn, &dir_path)?;
 
     // Verify everything is deleted
     let dirs = queries::get_all_directories(conn)?;
@@ -491,5 +511,54 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
 
     let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert_eq!(files.len(), 0);
+    Ok(())
+}
+
+#[test]
+fn test_delete_directory_removes_bookmarks() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    let (_temp, dir_path) = create_existing_directory()?;
+
+    let dir = Directory {
+        full_path: dir_path.clone(),
+        created_at: Utc::now(),
+        last_scanned: None,
+    };
+    queries::insert_directory(conn, &dir)?;
+
+    let audiobook = Audiobook {
+        id: None,
+        directory: dir_path.clone(),
+        name: "Book".to_string(),
+        full_path: format!("{dir_path}/Book"),
+        completeness: 0,
+        default_order: 0,
+        selected_file: None,
+        created_at: Utc::now(),
+    };
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
+
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        format!("{dir_path}/Book/chapter1.mp3"),
+        1234,
+        "Test".to_string(),
+    );
+    let _bookmark_id = queries::insert_bookmark(conn, &bookmark)?;
+
+    assert_eq!(
+        queries::get_bookmarks_for_audiobook(conn, audiobook_id)?.len(),
+        1
+    );
+
+    queries::delete_directory(conn, &dir_path)?;
+
+    assert_eq!(
+        queries::get_bookmarks_for_audiobook(conn, audiobook_id)?.len(),
+        0
+    );
+
     Ok(())
 }

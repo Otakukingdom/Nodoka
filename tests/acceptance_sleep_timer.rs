@@ -15,11 +15,11 @@ fn test_create_timer_with_duration() {
 
 #[test]
 fn test_timer_countdown() {
-    let timer = SleepTimer::new(SleepTimerMode::Duration(2), 5);
+    let mut timer = SleepTimer::new(SleepTimerMode::Duration(2), 5);
 
     assert!(!timer.is_expired());
 
-    std::thread::sleep(std::time::Duration::from_secs(3));
+    timer.started_at = chrono::Utc::now() - chrono::Duration::seconds(3);
 
     assert!(timer.is_expired());
 }
@@ -71,27 +71,27 @@ fn test_custom_fade_duration() {
 
 #[test]
 fn test_timer_expiration_boundary() {
-    let timer = SleepTimer::new(SleepTimerMode::Duration(1), 0);
+    let mut timer = SleepTimer::new(SleepTimerMode::Duration(1), 0);
 
     // Should not be expired immediately
     assert!(!timer.is_expired());
 
-    // Wait slightly less than duration
-    std::thread::sleep(std::time::Duration::from_millis(900));
+    // Simulate slightly less than duration
+    timer.started_at = chrono::Utc::now() - chrono::Duration::milliseconds(900);
     assert!(!timer.is_expired());
 
-    // Wait past duration
-    std::thread::sleep(std::time::Duration::from_millis(200));
+    // Simulate past duration
+    timer.started_at = chrono::Utc::now() - chrono::Duration::milliseconds(1100);
     assert!(timer.is_expired());
 }
 
 #[test]
 fn test_remaining_time_decreases() -> Result<(), Box<dyn Error>> {
-    let timer = SleepTimer::new(SleepTimerMode::Duration(10), 5);
+    let mut timer = SleepTimer::new(SleepTimerMode::Duration(10), 5);
 
     let first = timer.remaining_seconds().ok_or("No time")?;
 
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    timer.started_at = chrono::Utc::now() - chrono::Duration::seconds(2);
 
     let second = timer.remaining_seconds().ok_or("No time")?;
 
@@ -103,9 +103,8 @@ fn test_remaining_time_decreases() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_remaining_time_bottoms_at_zero() -> Result<(), Box<dyn Error>> {
-    let timer = SleepTimer::new(SleepTimerMode::Duration(1), 0);
-
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    let mut timer = SleepTimer::new(SleepTimerMode::Duration(1), 0);
+    timer.started_at = chrono::Utc::now() - chrono::Duration::seconds(2);
 
     let remaining = timer.remaining_seconds().ok_or("No time")?;
     assert_eq!(remaining, 0);
@@ -127,11 +126,11 @@ fn test_timer_mode_equality() {
 
 #[test]
 fn test_short_duration_timer() {
-    let timer = SleepTimer::new(SleepTimerMode::Duration(1), 1);
+    let mut timer = SleepTimer::new(SleepTimerMode::Duration(1), 1);
 
     assert!(!timer.is_expired());
 
-    std::thread::sleep(std::time::Duration::from_millis(1100));
+    timer.started_at = chrono::Utc::now() - chrono::Duration::milliseconds(1100);
 
     assert!(timer.is_expired());
 }
@@ -161,8 +160,6 @@ fn test_timer_zero_duration() {
     // Timer with 0 duration should expire immediately or be invalid
     let timer = SleepTimer::new(SleepTimerMode::Duration(0), 0);
 
-    std::thread::sleep(std::time::Duration::from_millis(10));
-
     // Should be expired or handled specially
     assert!(timer.is_expired() || timer.remaining_seconds() == Some(0));
 }
@@ -181,9 +178,10 @@ fn test_timer_very_long_duration() {
 #[test]
 fn test_multiple_timer_instances() {
     // Multiple timers should be independent
-    let timer1 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
-    std::thread::sleep(std::time::Duration::from_millis(500)); // Longer delay for more reliable test
+    let mut timer1 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
     let timer2 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
+
+    timer1.started_at = timer2.started_at - chrono::Duration::milliseconds(500);
 
     // timer1 started earlier, so should have less time remaining
     if let (Some(remaining1), Some(remaining2)) =

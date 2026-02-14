@@ -73,6 +73,17 @@ impl Vlc {
     ///
     /// Returns an error if the media cannot be loaded
     pub fn load_media(&mut self, path: &Path) -> Result<()> {
+        if !path.exists() {
+            return Err(Error::FileNotFound(path.display().to_string()));
+        }
+
+        if !path.is_file() {
+            return Err(Error::InvalidInput(format!(
+                "Media path is not a file: {}",
+                path.display()
+            )));
+        }
+
         let media = Media::new_path(&self.instance, path)
             .ok_or_else(|| Error::Vlc("Failed to load media".to_string()))?;
         media.parse_async();
@@ -315,12 +326,10 @@ mod tests {
     fn test_load_nonexistent_media() {
         if let Some(mut player) = skip_if_vlc_unavailable() {
             let nonexistent_path = PathBuf::from("/nonexistent/file/path.mp3");
-            // VLC allows loading nonexistent files (lazy validation)
-            // Error occurs during playback, not during load
             let result = player.load_media(&nonexistent_path);
             assert!(
-                result.is_ok(),
-                "VLC allows loading nonexistent media (validation happens during playback)"
+                matches!(result, Err(Error::FileNotFound(_))),
+                "Loading a non-existent media path should error"
             );
         }
     }

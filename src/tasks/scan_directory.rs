@@ -17,18 +17,38 @@ pub struct DiscoveredAudiobook {
 /// Returns an error if the directory cannot be read
 pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook>, std::io::Error> {
     tokio::task::spawn_blocking(move || {
+        let metadata = std::fs::metadata(&dir_path)?;
+        if !metadata.is_dir() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Scan root must be a directory",
+            ));
+        }
+
         let mut audiobooks = Vec::new();
 
-        for entry in WalkDir::new(&dir_path)
-            .min_depth(1)
-            .follow_links(false)
-            .into_iter()
-            .filter_entry(|e| {
-                // Filter out hidden files and directories (starting with '.')
-                e.file_name().to_str().is_some_and(|s| !s.starts_with('.'))
-            })
-            .filter_map(std::result::Result::ok)
-        {
+        for entry_result in WalkDir::new(&dir_path).min_depth(1).follow_links(false) {
+            let entry = match entry_result {
+                Ok(entry) => entry,
+                Err(e) => {
+                    let message = e.to_string();
+                    let io_error = e.into_io_error().map_or_else(
+                        || std::io::Error::new(std::io::ErrorKind::Other, message),
+                        |io_error| io_error,
+                    );
+                    return Err(io_error);
+                }
+            };
+
+            // Filter out hidden files and directories (starting with '.')
+            if entry
+                .file_name()
+                .to_str()
+                .is_some_and(|s| s.starts_with('.'))
+            {
+                continue;
+            }
+
             if entry.file_type().is_dir() {
                 if let Some(audiobook) = discover_audiobook(entry.path()) {
                     audiobooks.push(audiobook);
@@ -36,10 +56,10 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
             }
         }
 
-        audiobooks
+        Ok(audiobooks)
     })
     .await
-    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
 }
 
 fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {

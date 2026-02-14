@@ -43,15 +43,20 @@ fn default_instance_factory() -> Option<vlc::Instance> {
     vlc::Instance::new()
 }
 
+fn lock_unpoison<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    match mutex.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    }
+}
+
 #[cfg(test)]
 fn emit_init_event(event: VlcInitEvent) {
     let Some(lock) = VLC_INIT_OBSERVER.get() else {
         return;
     };
 
-    let observer = lock
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let observer = lock_unpoison(lock);
 
     if let Some(callback) = *observer {
         callback(event);
@@ -86,10 +91,8 @@ pub fn setup_vlc_environment() {
     #[cfg(test)]
     emit_init_event(VlcInitEvent::SetupCalled);
 
-    let _guard = VLC_ENV_LOCK
-        .get_or_init(|| Mutex::new(()))
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let lock = VLC_ENV_LOCK.get_or_init(|| Mutex::new(()));
+    let _guard = lock_unpoison(lock);
 
     // Check if already configured.
     // If the value is stale (no directory entries exist), clear it and attempt auto-detection.
@@ -197,9 +200,7 @@ pub(super) fn create_vlc_instance() -> Option<vlc::Instance> {
     let factory_lock = VLC_INSTANCE_FACTORY
         .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
 
-    let factory = factory_lock
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let factory = lock_unpoison(factory_lock);
 
     (*factory)()
 }
@@ -208,9 +209,7 @@ pub(super) fn create_vlc_instance() -> Option<vlc::Instance> {
 #[cfg(test)]
 fn __set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTestHookGuard {
     let lock = VLC_INIT_OBSERVER.get_or_init(|| Mutex::new(None));
-    let mut guard = lock
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let mut guard = lock_unpoison(lock);
 
     let previous = *guard;
     *guard = observer;
@@ -231,9 +230,7 @@ fn __set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTe
 fn __set_vlc_instance_factory_for_tests(factory: InstanceFactory) -> VlcTestHookGuard {
     let lock = VLC_INSTANCE_FACTORY
         .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
-    let mut guard = lock
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let mut guard = lock_unpoison(lock);
 
     let previous = *guard;
     *guard = factory;
@@ -266,9 +263,7 @@ impl Drop for VlcTestHookGuard {
             ObserverRestore::Unchanged => {}
             ObserverRestore::Restore(previous) => {
                 let lock = VLC_INIT_OBSERVER.get_or_init(|| Mutex::new(None));
-                let mut guard = lock
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                let mut guard = lock_unpoison(lock);
                 *guard = previous;
             }
         }
@@ -276,9 +271,7 @@ impl Drop for VlcTestHookGuard {
         if let Some(previous) = self.restore_factory.take() {
             let lock = VLC_INSTANCE_FACTORY
                 .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
-            let mut guard = lock
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let mut guard = lock_unpoison(lock);
             *guard = previous;
         }
     }
@@ -403,7 +396,10 @@ fn apply_windows_vlc_paths(install_dir: &Path) {
 
     // Some Windows setups require the lib directory on PATH for libvlc discovery.
     // Prepend it if it's not already present.
-    let current_path = env::var_os("PATH").unwrap_or_default();
+    let current_path = match env::var_os("PATH") {
+        Some(value) => value,
+        None => std::ffi::OsString::new(),
+    };
     let mut entries: Vec<PathBuf> = env::split_paths(&current_path).collect();
 
     fn normalize_for_contains(path: &Path) -> String {
@@ -439,9 +435,7 @@ mod tests {
     static INIT_EVENTS: Mutex<Vec<VlcInitEvent>> = Mutex::new(Vec::new());
 
     fn record_init_event(event: VlcInitEvent) {
-        let mut events = INIT_EVENTS
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut events = lock_unpoison(&INIT_EVENTS);
         events.push(event);
     }
 
@@ -479,9 +473,7 @@ mod tests {
         env::remove_var("VLC_PLUGIN_PATH");
 
         {
-            let mut events = INIT_EVENTS
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let mut events = lock_unpoison(&INIT_EVENTS);
             events.clear();
         }
 
@@ -494,10 +486,7 @@ mod tests {
             "Expected deterministic VLC error when instance creation is forced to fail"
         );
 
-        let events = INIT_EVENTS
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .clone();
+        let events = lock_unpoison(&INIT_EVENTS).clone();
 
         assert_eq!(
             events,

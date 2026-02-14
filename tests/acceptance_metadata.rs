@@ -35,8 +35,10 @@ fn test_missing_metadata_handled() {
 
     if let Ok(scanner) = Scanner::new() {
         let result = scanner.scan_media(&audio_file);
-        // Should not panic even if metadata is missing
-        assert!(result.is_ok() || result.is_err());
+        match result {
+            Ok(properties) => assert!(properties.duration_ms >= 0),
+            Err(e) => assert!(!format!("{e}").is_empty()),
+        }
     }
 }
 
@@ -241,15 +243,8 @@ fn test_metadata_with_null_bytes() -> Result<(), Box<dyn Error>> {
 
     let result = create_test_audiobook(&db, "/test", title_with_null);
 
-    // Should handle or reject null bytes gracefully
-    assert!(result.is_ok() || result.is_err());
-
-    if let Ok(audiobook_id) = result {
-        let audiobook =
-            queries::get_audiobook_by_id(db.connection(), audiobook_id)?.ok_or("Not found")?;
-        // Null bytes should not corrupt data
-        assert!(!audiobook.name.is_empty());
-    }
+    // Null bytes should be rejected to avoid database and UI issues.
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -277,8 +272,7 @@ fn test_metadata_empty_strings() -> Result<(), Box<dyn Error>> {
     // Empty name
     let result = create_test_audiobook(&db, "/test", "");
 
-    // Should handle empty strings
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }

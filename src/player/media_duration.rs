@@ -43,9 +43,7 @@ fn wait_for_duration(
             )));
         }
 
-        let remaining = timeout
-            .checked_sub(elapsed)
-            .unwrap_or_else(|| Duration::from_millis(0));
+        let remaining = timeout.checked_sub(elapsed).unwrap_or_default();
 
         std::thread::sleep(std::cmp::min(interval, remaining));
         interval = std::cmp::min(interval.saturating_mul(2), POLL_INTERVAL_MAX);

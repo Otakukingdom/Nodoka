@@ -6,8 +6,6 @@
 //! - Test audiobook directory generation
 //! - Custom assertion helpers
 
-#![allow(dead_code)]
-
 use nodoka::db::{queries, Database};
 use nodoka::models::{Audiobook, AudiobookFile};
 use std::error::Error;
@@ -248,6 +246,45 @@ pub mod assertions {
             .iter()
             .find(|b| (b.position_ms - position_ms).abs() < tolerance_ms)
             .ok_or_else(|| format!("No bookmark near position {position_ms}ms"))?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod internal_smoke {
+    use super::*;
+    use nodoka::models::Bookmark;
+
+    #[test]
+    fn test_acceptance_support_helpers_compile_and_run() -> Result<(), Box<dyn Error>> {
+        let db = create_test_db()?;
+
+        let fixtures = TestFixtures::new();
+        let _ = fixtures.audio_path("sample_mp3.mp3");
+        let _ = fixtures.archive_path("sample.zip");
+        let _ = fixtures.image_path("cover.jpg");
+
+        let temp = TempDir::new()?;
+        let _dir = create_test_audiobook_directory(&temp, "Book", 1)?;
+
+        let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+        insert_test_file(&db, audiobook_id, "/test/Book/ch1.mp3")?;
+
+        let bookmark = Bookmark::new(
+            audiobook_id,
+            "/test/Book/ch1.mp3".to_string(),
+            1000,
+            "Test".to_string(),
+        );
+        let _ = queries::insert_bookmark(db.connection(), &bookmark)?;
+
+        let resolved = assertions::assert_audiobook_exists(&db, "Book")?;
+        assertions::assert_file_count(&db, resolved, 1)?;
+        assertions::assert_file_exists(&db, resolved, "ch1.mp3")?;
+        assertions::assert_position_near(10.0, 10.0, 0.0)?;
+        assertions::assert_completion_percentage(&db, resolved, 0, 0)?;
+        assertions::assert_bookmark_at_position(&db, resolved, 1000, 1)?;
+
         Ok(())
     }
 }

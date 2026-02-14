@@ -111,32 +111,40 @@ mod tests {
     use crate::db::queries;
     use crate::models::{Audiobook, AudiobookFile, Directory};
     use chrono::Utc;
+    use temp_dir::TempDir;
 
-    fn create_test_db_with_audiobook() -> Result<(Rc<Database>, i64), Error> {
+    fn create_test_db_with_audiobook() -> Result<(TempDir, Rc<Database>, i64, String), Error> {
         let database = Database::new_in_memory()?;
         db::initialize(database.connection())?;
 
+        let temp_dir = TempDir::new().map_err(Error::Io)?;
+        let dir_path = temp_dir
+            .path()
+            .to_str()
+            .ok_or_else(|| Error::InvalidState("Temp dir path not UTF-8".to_string()))?
+            .to_string();
+
         let dir = Directory {
-            full_path: "/test/audiobooks".to_string(),
+            full_path: dir_path.clone(),
             created_at: Utc::now(),
             last_scanned: None,
         };
         queries::insert_directory(database.connection(), &dir)?;
 
         let audiobook = Audiobook::new(
-            "/test/audiobooks".to_string(),
+            dir_path.clone(),
             "Test Audiobook".to_string(),
-            "/test/audiobooks/Test Audiobook".to_string(),
+            format!("{dir_path}/Test Audiobook"),
             0,
         );
         let id = queries::insert_audiobook(database.connection(), &audiobook)?;
 
-        Ok((Rc::new(database), id))
+        Ok((temp_dir, Rc::new(database), id, dir_path))
     }
 
     #[test]
     fn test_audiobook_proxy_creation() -> Result<(), Error> {
-        let (db, id) = create_test_db_with_audiobook()?;
+        let (_temp_dir, db, id, _dir_path) = create_test_db_with_audiobook()?;
         let proxy = AudiobookHandle::new(id, db)?;
         assert_eq!(proxy.id(), id);
         let data = proxy.get_data();
@@ -157,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_audiobook_proxy_get_files() -> Result<(), Error> {
-        let (db, id) = create_test_db_with_audiobook()?;
+        let (_temp_dir, db, id, _dir_path) = create_test_db_with_audiobook()?;
 
         let mut file = AudiobookFile::new(
             id,
@@ -183,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_audiobook_proxy_update_completeness() -> Result<(), Error> {
-        let (db, id) = create_test_db_with_audiobook()?;
+        let (_temp_dir, db, id, _dir_path) = create_test_db_with_audiobook()?;
 
         let mut file1 = AudiobookFile::new(
             id,

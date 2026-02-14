@@ -7,6 +7,12 @@ pub struct Database {
     conn: Connection,
 }
 
+fn enable_foreign_keys(conn: &Connection) -> Result<()> {
+    conn.execute("PRAGMA foreign_keys = ON", [])
+        .map(|_| ())
+        .map_err(Into::into)
+}
+
 impl Database {
     /// Opens the database connection and initializes WAL mode
     ///
@@ -44,6 +50,7 @@ impl Database {
         let conn = Connection::open(db_path)?;
         // PRAGMA journal_mode returns a result, so we must use query_row instead of execute
         let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
+        enable_foreign_keys(&conn)?;
         Ok(Self { conn })
     }
 
@@ -54,6 +61,7 @@ impl Database {
     /// Returns an error if the in-memory database cannot be created
     pub fn new_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
+        enable_foreign_keys(&conn)?;
         Ok(Self { conn })
     }
 
@@ -65,6 +73,7 @@ impl Database {
     pub fn open_with_path(path: &std::path::Path) -> Result<Self> {
         let conn = Connection::open(path)?;
         let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
+        enable_foreign_keys(&conn)?;
         Ok(Self { conn })
     }
 
@@ -122,16 +131,27 @@ mod tests {
     }
 
     #[test]
+    fn test_foreign_keys_enabled_by_default() -> Result<()> {
+        let db = Database::new_in_memory()?;
+        let enabled: i64 = db
+            .connection()
+            .query_row("PRAGMA foreign_keys", [], |row| row.get(0))?;
+        assert_eq!(enabled, 1);
+        Ok(())
+    }
+
+    #[test]
     fn test_database_open_error_on_missing_project_dir() {
         // Test that Database::open returns an error when project directory cannot be determined
         // This simulates the ProjectDirNotFound error scenario
         use std::env;
 
         // HOME is process-global and tests run in parallel; serialize mutations.
-        let _lock = ENV_LOCK
-            .get_or_init(|| Mutex::new(()))
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let lock = ENV_LOCK.get_or_init(|| Mutex::new(()));
+        let _lock = match lock.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
 
         let original_home = env::var_os("HOME");
         env::remove_var("HOME");

@@ -69,6 +69,8 @@ fn test_remove_directory_removes_audiobooks() -> Result<(), Box<dyn Error>> {
 fn test_directories_persist_across_restarts() -> Result<(), Box<dyn Error>> {
     let temp_db = TempDir::new()?;
     let db_path = temp_db.path().join("test.db");
+    let temp_dir = TempDir::new()?;
+    let dir_path = temp_dir.path().to_str().ok_or("Invalid path")?.to_string();
 
     // First session: add directory
     {
@@ -76,7 +78,7 @@ fn test_directories_persist_across_restarts() -> Result<(), Box<dyn Error>> {
         nodoka::db::initialize(db.connection())?;
 
         let dir = Directory {
-            full_path: "/test/path".to_string(),
+            full_path: dir_path.clone(),
             created_at: Utc::now(),
             last_scanned: None,
         };
@@ -90,7 +92,7 @@ fn test_directories_persist_across_restarts() -> Result<(), Box<dyn Error>> {
         assert_eq!(directories.len(), 1);
         assert_eq!(
             directories.first().ok_or("No directory")?.full_path,
-            "/test/path"
+            dir_path
         );
     }
 
@@ -202,7 +204,7 @@ fn test_last_scanned_timestamp_updates() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_nonexistent_directory_can_be_added() -> Result<(), Box<dyn Error>> {
-    // The database should accept any path - validation happens at scan time
+    // Spec: Adding a directory that doesn't exist should show an error.
     let db = create_test_db()?;
 
     let dir = Directory {
@@ -211,10 +213,11 @@ fn test_nonexistent_directory_can_be_added() -> Result<(), Box<dyn Error>> {
         last_scanned: None,
     };
 
-    queries::insert_directory(db.connection(), &dir)?;
+    let result = queries::insert_directory(db.connection(), &dir);
+    assert!(result.is_err());
 
     let directories = queries::get_all_directories(db.connection())?;
-    assert_eq!(directories.len(), 1);
+    assert_eq!(directories.len(), 0);
 
     Ok(())
 }
@@ -223,6 +226,8 @@ fn test_nonexistent_directory_can_be_added() -> Result<(), Box<dyn Error>> {
 fn test_directory_removal_is_persisted() -> Result<(), Box<dyn Error>> {
     let temp_db = TempDir::new()?;
     let db_path = temp_db.path().join("test.db");
+    let temp_dir = TempDir::new()?;
+    let dir_path = temp_dir.path().to_str().ok_or("Invalid path")?.to_string();
 
     // First session: add and remove directory
     {
@@ -230,12 +235,12 @@ fn test_directory_removal_is_persisted() -> Result<(), Box<dyn Error>> {
         nodoka::db::initialize(db.connection())?;
 
         let dir = Directory {
-            full_path: "/test/path".to_string(),
+            full_path: dir_path.clone(),
             created_at: Utc::now(),
             last_scanned: None,
         };
         queries::insert_directory(db.connection(), &dir)?;
-        queries::delete_directory(db.connection(), "/test/path")?;
+        queries::delete_directory(db.connection(), &dir_path)?;
     }
 
     // Second session: verify removal persisted

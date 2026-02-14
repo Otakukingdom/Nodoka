@@ -136,8 +136,14 @@ fn test_large_zip_memory_handling() -> Result<(), Box<dyn Error>> {
 
     let result = extract_zip_for_playback(&zip_path, &extract_dir);
 
-    // Should either succeed or fail gracefully, not crash
-    assert!(result.is_ok() || result.is_err());
+    match result {
+        Ok(extracted) => {
+            assert_eq!(extracted.len(), 100);
+        }
+        Err(e) => {
+            assert!(!format!("{e}").is_empty());
+        }
+    }
 
     Ok(())
 }
@@ -392,8 +398,16 @@ fn test_zip_with_very_long_filename() -> Result<(), Box<dyn Error>> {
 
     let result = extract_zip_for_playback(&zip_path, &extract_dir);
 
-    // Should handle long filenames
-    assert!(result.is_ok() || result.is_err()); // May hit filesystem limits
+    match result {
+        Ok(extracted) => {
+            assert_eq!(extracted.len(), 1);
+            assert!(extracted.first().ok_or("Missing extracted path")?.exists());
+        }
+        Err(e) => {
+            // Some filesystems may refuse long filenames; ensure we fail with an error.
+            assert!(!format!("{e}").is_empty());
+        }
+    }
 
     Ok(())
 }

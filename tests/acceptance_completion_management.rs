@@ -346,8 +346,11 @@ fn test_completion_over_100_percent_capped() -> Result<(), Box<dyn Error>> {
     let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
         .ok_or("Audiobook not found")?;
 
-    // Should be capped at 100 or allowed (implementation choice)
-    assert!(audiobook.completeness >= 0);
+    assert!(
+        (0..=100).contains(&audiobook.completeness),
+        "Completeness should be clamped to 0-100"
+    );
+    assert_eq!(audiobook.completeness, 100);
 
     Ok(())
 }
@@ -357,18 +360,11 @@ fn test_completion_negative_value_handled() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
 
-    // Try to set negative completion
-    let result = queries::update_audiobook_completeness(db.connection(), audiobook_id, -10);
+    queries::update_audiobook_completeness(db.connection(), audiobook_id, -10)?;
 
-    // Implementation currently allows negative values (which is fine for testing)
-    // Application should validate at UI layer
-    assert!(result.is_ok() || result.is_err());
-
-    // Just verify it doesn't crash
-    if result.is_ok() {
-        let _audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?;
-        // Value stored as-is; validation is application layer's responsibility
-    }
+    let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("Audiobook not found")?;
+    assert_eq!(audiobook.completeness, 0);
 
     Ok(())
 }

@@ -177,13 +177,19 @@ fn test_special_characters_in_path() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_empty_path_handling() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+    use nodoka::models::Directory;
+
     let db = create_test_db()?;
 
-    // Attempting to create audiobook with empty path should be handled
-    let result = create_test_audiobook(&db, "", "Empty Path Test");
+    let dir = Directory {
+        full_path: String::new(),
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
 
-    // Either succeeds (allowing empty paths) or fails gracefully
-    assert!(result.is_ok() || result.is_err());
+    let result = queries::insert_directory(db.connection(), &dir);
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -246,9 +252,21 @@ fn test_case_sensitivity_handling() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_directory(db.connection(), &dir2);
 
-    // On case-insensitive filesystems, should detect as duplicate or succeed
-    // Either way, should not crash
-    assert!(result.is_ok() || result.is_err());
+    match result {
+        Ok(()) => {
+            let directories = queries::get_all_directories(db.connection())?;
+            assert!(!directories.is_empty());
+            assert!(
+                directories
+                    .iter()
+                    .any(|d| std::fs::metadata(&d.full_path).is_ok()),
+                "At least one stored directory path should exist"
+            );
+        }
+        Err(e) => {
+            assert!(!format!("{e}").is_empty());
+        }
+    }
 
     Ok(())
 }
@@ -272,8 +290,8 @@ fn test_windows_unc_path_format() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_directory(db.connection(), &dir);
 
-    // Should handle UNC paths or give clear error
-    assert!(result.is_ok() || result.is_err());
+    // In CI we likely can't access the network path; ensure we fail with a clear error.
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -300,19 +318,32 @@ fn test_path_with_trailing_separator() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_path_with_double_separators() -> Result<(), Box<dyn Error>> {
-    let db = create_test_db()?;
+    use nodoka::db::queries;
+    use nodoka::models::Directory;
 
-    // Path with double separators
+    let db = create_test_db()?;
+    let temp = TempDir::new()?;
+
+    let dir = temp.path().join("Books");
+    std::fs::create_dir(&dir)?;
+    let canonical = dir.to_str().ok_or("Path conversion failed")?.to_string();
+
     let double_sep_path = if cfg!(windows) {
-        r"C:\\Users\\\\Test\\\\Books"
+        canonical.replace('\\', "\\\\")
     } else {
-        "/home//user//books"
+        canonical.replace('/', "//")
     };
 
-    let result = create_test_audiobook(&db, double_sep_path, "Double Sep Test");
+    let dir_record = Directory {
+        full_path: double_sep_path,
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
 
-    // Should handle or normalize double separators
-    assert!(result.is_ok() || result.is_err());
+    queries::insert_directory(db.connection(), &dir_record)?;
+    let dirs = queries::get_all_directories(db.connection())?;
+    assert_eq!(dirs.len(), 1);
+    assert!(std::fs::metadata(&dirs.first().ok_or("No dir")?.full_path).is_ok());
 
     Ok(())
 }

@@ -33,6 +33,17 @@ async fn test_recursive_scanning_discovers_all_files() -> Result<(), Box<dyn Err
 }
 
 #[tokio::test]
+async fn test_scan_missing_root_returns_error() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let missing = temp.path().join("does_not_exist");
+
+    let result = scan_directory(missing).await;
+    assert!(result.is_err());
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_symbolic_links_handling() -> Result<(), Box<dyn Error>> {
     #[cfg(unix)]
     {

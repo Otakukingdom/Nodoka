@@ -6,7 +6,7 @@ mod acceptance_support;
 use acceptance_support::*;
 
 use nodoka::db::queries;
-use nodoka::models::Bookmark;
+use nodoka::models::{AudiobookFile, Bookmark};
 use std::error::Error;
 use temp_dir::TempDir;
 
@@ -65,38 +65,56 @@ fn test_bookmarks_listed_chronologically() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
 
-    // Create bookmarks at different positions
-    let b1 = Bookmark::new(
-        audiobook_id,
-        "/test/Book/chapter1.mp3".to_string(),
-        500,
-        "First".to_string(),
-    );
-    let b2 = Bookmark::new(
-        audiobook_id,
-        "/test/Book/chapter1.mp3".to_string(),
-        1500,
-        "Second".to_string(),
-    );
-    let b3 = Bookmark::new(
+    // Define file order within the audiobook.
+    queries::insert_audiobook_file(
+        db.connection(),
+        &AudiobookFile::new(
+            audiobook_id,
+            "chapter1.mp3".to_string(),
+            "/test/Book/chapter1.mp3".to_string(),
+            0,
+        ),
+    )?;
+    queries::insert_audiobook_file(
+        db.connection(),
+        &AudiobookFile::new(
+            audiobook_id,
+            "chapter2.mp3".to_string(),
+            "/test/Book/chapter2.mp3".to_string(),
+            1,
+        ),
+    )?;
+
+    // Insert out of order; ordering should still be deterministic.
+    let b_ch2 = Bookmark::new(
         audiobook_id,
         "/test/Book/chapter2.mp3".to_string(),
         300,
-        "Third".to_string(),
+        "Ch2".to_string(),
+    );
+    let b_ch1_late = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        1500,
+        "Ch1 Late".to_string(),
+    );
+    let b_ch1_early = Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        500,
+        "Ch1 Early".to_string(),
     );
 
-    queries::insert_bookmark(db.connection(), &b1)?;
-    std::thread::sleep(std::time::Duration::from_millis(10));
-    queries::insert_bookmark(db.connection(), &b2)?;
-    std::thread::sleep(std::time::Duration::from_millis(10));
-    queries::insert_bookmark(db.connection(), &b3)?;
+    queries::insert_bookmark(db.connection(), &b_ch2)?;
+    queries::insert_bookmark(db.connection(), &b_ch1_late)?;
+    queries::insert_bookmark(db.connection(), &b_ch1_early)?;
 
     let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
 
     assert_eq!(bookmarks.len(), 3);
-    assert_eq!(bookmarks.first().ok_or("No bookmark")?.label, "First");
-    assert_eq!(bookmarks.get(1).ok_or("No bookmark")?.label, "Second");
-    assert_eq!(bookmarks.get(2).ok_or("No bookmark")?.label, "Third");
+    assert_eq!(bookmarks.first().ok_or("No bookmark")?.label, "Ch1 Early");
+    assert_eq!(bookmarks.get(1).ok_or("No bookmark")?.label, "Ch1 Late");
+    assert_eq!(bookmarks.get(2).ok_or("No bookmark")?.label, "Ch2");
 
     Ok(())
 }
@@ -458,8 +476,7 @@ fn test_bookmark_negative_position_rejected() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);
 
-    // Should either reject or handle gracefully
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -478,8 +495,7 @@ fn test_bookmark_empty_label() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);
 
-    // Should handle empty label gracefully
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -499,8 +515,7 @@ fn test_bookmark_very_long_label() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);
 
-    // Should handle long strings without panic
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }

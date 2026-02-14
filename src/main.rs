@@ -58,7 +58,7 @@ fn init_logging() {
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "nodoka=info".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "nodoka=info".to_string()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();

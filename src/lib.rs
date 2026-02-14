@@ -43,12 +43,12 @@
 //! ### Installing Nodoka
 //!
 //! #### Windows
-//! 1. Download `nodoka-0.2.0-x64.msi` from the [releases page](https://github.com/your-username/nodoka/releases)
+//! 1. Download `nodoka-0.2.0-x64.msi` from the [releases page](https://github.com/otakukingdom/nodoka/releases)
 //! 2. Run the installer and follow the wizard
 //! 3. Launch Nodoka from the Start Menu
 //!
 //! #### macOS
-//! 1. Download `Nodoka-0.2.0.dmg` from the [releases page](https://github.com/your-username/nodoka/releases)
+//! 1. Download `Nodoka-0.2.0.dmg` from the [releases page](https://github.com/otakukingdom/nodoka/releases)
 //! 2. Open the DMG and drag Nodoka to your Applications folder
 //! 3. If you see a "damaged app" warning, run in Terminal:
 //!    ```sh
@@ -56,7 +56,7 @@
 //!    ```
 //!
 //! #### Linux
-//! 1. Download `nodoka_0.2.0_amd64.deb` from the [releases page](https://github.com/your-username/nodoka/releases)
+//! 1. Download `nodoka_0.2.0_amd64.deb` from the [releases page](https://github.com/otakukingdom/nodoka/releases)
 //! 2. Install with:
 //!    ```sh
 //!    sudo dpkg -i nodoka_0.2.0_amd64.deb
@@ -67,7 +67,7 @@
 //!
 //! ```sh
 //! # Clone the repository
-//! git clone https://github.com/your-username/nodoka.git
+//! git clone https://github.com/otakukingdom/nodoka.git
 //! cd nodoka
 //!
 //! # Build release binary
@@ -241,7 +241,7 @@ pub use error::{Error, Result};
 /// ## Getting Started
 ///
 /// 1. Fork the repository
-/// 2. Clone your fork: `git clone https://github.com/your-username/nodoka.git`
+/// 2. Clone your fork: `git clone https://github.com/otakukingdom/nodoka.git`
 /// 3. Create a branch from `main`: `git checkout -b feature/your-feature-name`
 /// 4. Make your changes following the code standards below
 /// 5. Submit a pull request
@@ -274,7 +274,7 @@ pub use error::{Error, Result};
 /// ### Acceptance Test Suite
 ///
 /// - **290 automated tests** covering all 18 feature categories
-/// - **97.1% specification coverage** (270/278 criteria automated)
+/// - Acceptance suite is fully automated (no manual testing)
 /// - **9 audio formats tested**: MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA
 /// - **Performance validated**: Startup <3s, search <100ms with 1000+ audiobooks
 /// - **Cross-platform**: Tests run on Windows, macOS, and Linux
@@ -283,8 +283,6 @@ pub use error::{Error, Result};
 /// ```bash
 /// cargo test --test 'acceptance_*'
 /// ```
-///
-/// See `tests/COVERAGE_REPORT.md` for detailed coverage mapping.
 ///
 /// ### Contributing Tests
 ///
@@ -337,13 +335,6 @@ pub use error::{Error, Result};
 /// ## Error Handling
 ///
 /// All fallible operations must return `Result<T, Error>`:
-///
-/// **❌ Bad** (don't do this):
-/// ```rust,no_run
-/// fn read_file_bad() -> String {
-///     std::fs::read_to_string("file.txt").unwrap()
-/// }
-/// ```
 ///
 /// **✅ Good** (do this instead):
 /// ```rust,no_run

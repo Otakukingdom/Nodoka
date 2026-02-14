@@ -165,6 +165,14 @@ pub enum Error {
     #[error("Invalid state: {0}")]
     InvalidState(String),
 
+    /// User-provided or external input was invalid.
+    ///
+    /// This is used for values that would lead to ambiguous UI behavior or
+    /// undefined behavior in dependencies (for example, strings containing NUL
+    /// bytes).
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+
     /// Project data directory could not be determined.
     ///
     /// ## Common Causes

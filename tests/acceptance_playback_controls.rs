@@ -4,9 +4,52 @@ use acceptance_support::*;
 use nodoka::player::Vlc;
 use std::error::Error;
 use std::path::Path;
+use temp_dir::TempDir;
 
 fn skip_if_vlc_unavailable() -> Option<Vlc> {
     Vlc::new().ok()
+}
+
+fn write_silence_wav(path: &Path, duration_ms: u32) -> std::io::Result<()> {
+    let sample_rate: u32 = 8_000;
+    let channels: u16 = 1;
+    let bits_per_sample: u16 = 16;
+    let bytes_per_sample: u32 = u32::from(bits_per_sample / 8);
+
+    let num_samples: u32 = sample_rate.saturating_mul(duration_ms) / 1000;
+    let data_size: u32 = num_samples
+        .saturating_mul(u32::from(channels))
+        .saturating_mul(bytes_per_sample);
+
+    let data_size_usize = usize::try_from(data_size).map_err(|_| {
+        std::io::Error::new(std::io::ErrorKind::InvalidInput, "WAV data size overflow")
+    })?;
+
+    let mut bytes = Vec::with_capacity(44usize.saturating_add(data_size_usize));
+    bytes.extend_from_slice(b"RIFF");
+    bytes.extend_from_slice(&(36u32.saturating_add(data_size)).to_le_bytes());
+    bytes.extend_from_slice(b"WAVE");
+    bytes.extend_from_slice(b"fmt ");
+    bytes.extend_from_slice(&16u32.to_le_bytes());
+    bytes.extend_from_slice(&1u16.to_le_bytes());
+    bytes.extend_from_slice(&channels.to_le_bytes());
+    bytes.extend_from_slice(&sample_rate.to_le_bytes());
+    let byte_rate = sample_rate
+        .saturating_mul(u32::from(channels))
+        .saturating_mul(bytes_per_sample);
+    bytes.extend_from_slice(&byte_rate.to_le_bytes());
+
+    let block_align_u32 = u32::from(channels).saturating_mul(bytes_per_sample);
+    let block_align = u16::try_from(block_align_u32).map_err(|_| {
+        std::io::Error::new(std::io::ErrorKind::InvalidInput, "WAV block align overflow")
+    })?;
+    bytes.extend_from_slice(&block_align.to_le_bytes());
+    bytes.extend_from_slice(&bits_per_sample.to_le_bytes());
+    bytes.extend_from_slice(b"data");
+    bytes.extend_from_slice(&data_size.to_le_bytes());
+    bytes.resize(bytes.len().saturating_add(data_size_usize), 0);
+
+    std::fs::write(path, bytes)
 }
 
 #[test]
@@ -109,20 +152,29 @@ fn test_volume_at_zero_vs_muted() {
 }
 
 #[test]
-fn test_play_starts_playback() {
+fn test_play_starts_playback() -> Result<(), Box<dyn Error>> {
     if let Some(mut player) = skip_if_vlc_unavailable() {
-        let fixtures = TestFixtures::new();
-        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+        let temp = TempDir::new()?;
+        let wav_path = temp.path().join("sample.wav");
+        write_silence_wav(&wav_path, 500)?;
 
-        if audio_file.exists() {
-            let result = player.load_media(&audio_file).and_then(|()| player.play());
-            std::thread::sleep(std::time::Duration::from_millis(100));
+        player.load_media(&wav_path)?;
+        player.play()?;
+        std::thread::sleep(std::time::Duration::from_millis(100));
 
-            if result.is_ok() {
-                assert!(player.is_playing() || !player.is_playing()); // Either state is acceptable
-            }
-        }
+        assert!(
+            matches!(
+                player.get_state(),
+                nodoka::player::PlaybackState::Playing
+                    | nodoka::player::PlaybackState::Opening
+                    | nodoka::player::PlaybackState::Buffering
+                    | nodoka::player::PlaybackState::Paused
+            ),
+            "Player should enter a valid playing-related state"
+        );
     }
+
+    Ok(())
 }
 
 #[test]
@@ -361,8 +413,7 @@ fn test_seek_to_position() {
             let result = player.set_time(500);
             std::thread::sleep(std::time::Duration::from_millis(100));
 
-            // Verify no panic occurred
-            assert!(result.is_ok() || result.is_err());
+            assert!(result.is_ok(), "Seeking should not fail for a loaded media");
         }
     }
 }
@@ -393,8 +444,10 @@ fn test_invalid_file_handled_gracefully() {
         let nonexistent = Path::new("/nonexistent/file.mp3");
         let result = player.load_media(nonexistent);
 
-        // Should either error or handle gracefully, not panic
-        assert!(result.is_ok() || result.is_err());
+        assert!(
+            result.is_err(),
+            "Loading a non-existent media path should error"
+        );
     }
 }
 
@@ -450,8 +503,7 @@ fn test_seek_to_specific_position() {
             let result = player.set_time(2500);
             std::thread::sleep(std::time::Duration::from_millis(100));
 
-            // Verify no panic occurred
-            assert!(result.is_ok() || result.is_err());
+            assert!(result.is_ok(), "Seeking should not fail for a loaded media");
         }
     }
 }
@@ -507,8 +559,10 @@ fn test_seek_beyond_duration_handled() {
             // Try to seek way beyond the file duration
             let _ = player.set_time(999_999_999);
 
-            // Should handle gracefully without crash
-            assert!(player.get_time().is_ok() || player.get_time().is_err());
+            match player.get_time() {
+                Ok(time_ms) => assert!(time_ms >= 0.0),
+                Err(e) => assert!(!format!("{e}").is_empty()),
+            }
         }
     }
 }

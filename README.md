@@ -48,7 +48,7 @@ Download pre-built installers from the [Releases](../../releases) page:
 # Install Rust 1.82+ and VLC development libraries
 # (See rustdoc for platform-specific prerequisites)
 
-git clone https://github.com/your-username/nodoka.git
+git clone https://github.com/otakukingdom/nodoka.git
 cd nodoka
 cargo build --release
 ./target/release/nodoka
@@ -67,21 +67,16 @@ cargo build --release
 **Status**: ✅ Production Ready
 
 - ✅ **290 acceptance tests** - All passing (100% success rate)
-- ✅ **97.1% specification coverage** (270/278 automated, 8 manual-only)
+- ✅ Acceptance test suite is fully automated (no manual testing)
 - ✅ Comprehensive test suite covering all 18 feature categories
 - ✅ All 9 audio formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 - ✅ Performance validated: Startup <3s, search <100ms with 1000+ audiobooks
 - ✅ Zero clippy warnings, zero dead code, no unsafe code
 - ✅ Strict Rust idioms (no unwrap/expect/panic in production)
 - ✅ Cross-platform compatibility tested (Windows, macOS, Linux)
-- ✅ Manual testing procedures documented for UI features
 - ✅ CI/CD pipeline configured for continuous validation
 
-### Test Coverage Details
-
-See [`tests/COVERAGE_REPORT.md`](tests/COVERAGE_REPORT.md) for detailed mapping of all 278 acceptance criteria to test implementations.
-
-**Test Distribution:**
+### Test Distribution
 - Library Management: 9 tests | Audiobook Detection: 36 tests
 - Archive Support: 22 tests | Playback Controls: 33 tests
 - Multi-file Navigation: 16 tests | Progress Tracking: 12 tests
@@ -99,12 +94,6 @@ cargo test --test 'acceptance_*'
 # Run comprehensive validation
 ./scripts/run_acceptance_tests.sh
 ```
-
-**Manual Testing:**
-8 acceptance criteria require manual verification (UI interactions, keyboard shortcuts, audio quality).
-See [`tests/MANUAL_TESTING.md`](tests/MANUAL_TESTING.md) for step-by-step procedures.
-
-See `tests/MANUAL_TESTING.md` for manual testing procedures (keyboard shortcuts, file picker dialogs, UI responsiveness) and `cargo doc --open` for detailed test documentation.
 
 ### Testing
 

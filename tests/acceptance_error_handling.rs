@@ -26,9 +26,25 @@ fn test_unplayable_file_shows_error() {
         let corrupted = fixtures.audio_path("corrupted.mp3");
 
         if corrupted.exists() {
-            let result = player.load_media(&corrupted);
-            // Should handle gracefully, not crash
-            assert!(result.is_ok() || result.is_err());
+            let load_result = player.load_media(&corrupted);
+            match load_result {
+                Ok(()) => {
+                    // If media object was created, attempting to play should fail or transition
+                    // to an error-like state, but must not panic.
+                    let play_result = player.play();
+                    if play_result.is_ok() {
+                        assert!(
+                            !matches!(player.get_state(), nodoka::player::PlaybackState::Playing),
+                            "Corrupted media should not play successfully"
+                        );
+                    } else {
+                        assert!(!format!("{play_result:?}").is_empty());
+                    }
+                }
+                Err(e) => {
+                    assert!(!format!("{e}").is_empty());
+                }
+            }
         }
     }
 }
@@ -55,8 +71,7 @@ fn test_nonexistent_file_handled() {
         let nonexistent = Path::new("/nonexistent/path/to/file.mp3");
         let result = player.load_media(nonexistent);
 
-        // Should not panic
-        assert!(result.is_ok() || result.is_err());
+        assert!(result.is_err());
     }
 }
 
@@ -73,9 +88,9 @@ fn test_invalid_directory_path_handled() -> Result<(), Box<dyn Error>> {
         last_scanned: None,
     };
 
-    // Should be able to insert (path validation happens at scan time)
+    // Adding a non-existent directory should return an error.
     let result = queries::insert_directory(db.connection(), &invalid_dir);
-    assert!(result.is_ok());
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -87,8 +102,7 @@ fn test_empty_string_inputs_handled() -> Result<(), Box<dyn Error>> {
     // Empty audiobook name should be handled
     let result = create_test_audiobook(&db, "/test", "");
 
-    // Should either succeed with empty name or fail gracefully
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }
@@ -110,8 +124,7 @@ fn test_very_long_paths_handled() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_directory(db.connection(), &dir);
 
-    // Should handle long paths (may succeed or fail depending on limits)
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -123,7 +136,10 @@ fn test_special_characters_in_paths() -> Result<(), Box<dyn Error>> {
 
     let db = create_test_db()?;
 
-    let special_path = "/path/with/special/chars/!@#$%^&*()/";
+    let temp = temp_dir::TempDir::new()?;
+    let special_dir = temp.path().join("My Audiobooks (2024) !@#$%&()");
+    std::fs::create_dir_all(&special_dir)?;
+    let special_path = special_dir.to_str().ok_or("Invalid path")?;
 
     let dir = Directory {
         full_path: special_path.to_string(),
@@ -190,7 +206,7 @@ fn test_very_long_metadata_strings() -> Result<(), Box<dyn Error>> {
     let result = create_test_audiobook(&db, "/test", &long_name);
 
     // Should handle long strings without panic or truncation error
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }
@@ -234,8 +250,7 @@ fn test_null_bytes_in_strings_handled() -> Result<(), Box<dyn Error>> {
 
     let result = create_test_audiobook(&db, "/test", name_with_null);
 
-    // Should handle gracefully (reject or sanitize)
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_err());
 
     Ok(())
 }
@@ -252,7 +267,7 @@ fn test_extremely_deep_path_nesting() -> Result<(), Box<dyn Error>> {
     let result = create_test_audiobook(&db, &deep_path, "Deep Path Book");
 
     // Should handle without stack overflow or path length errors
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }
@@ -294,8 +309,7 @@ fn test_network_path_errors_handled() -> Result<(), Box<dyn Error>> {
         };
 
         let result = queries::insert_directory(db.connection(), &dir);
-        // Should handle network paths without crashing
-        assert!(result.is_ok() || result.is_err());
+        assert!(result.is_err());
     }
 
     Ok(())
@@ -326,8 +340,16 @@ fn test_readonly_database_error() -> Result<(), Box<dyn Error>> {
     // Attempt to open and write should handle readonly gracefully
     let result = nodoka::Database::open_with_path(&db_path);
 
-    // Should either open in readonly mode or fail gracefully
-    assert!(result.is_ok() || result.is_err());
+    match result {
+        Ok(db) => {
+            // Opening might succeed, but initializing schema requires writes.
+            let init_result = nodoka::db::initialize(db.connection());
+            assert!(init_result.is_err());
+        }
+        Err(e) => {
+            assert!(!format!("{e}").is_empty());
+        }
+    }
 
     Ok(())
 }
@@ -341,7 +363,7 @@ fn test_unicode_error_messages() -> Result<(), Box<dyn Error>> {
     let result = create_test_audiobook(&db, "/test/παθ", unicode_name);
 
     // Should handle unicode without corruption
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_ok());
 
     Ok(())
 }
@@ -369,7 +391,7 @@ fn test_progress_save_error_recovery() -> Result<(), Box<dyn Error>> {
     );
 
     // Should handle invalid input gracefully
-    assert!(result.is_ok() || result.is_err());
+    assert!(result.is_err());
 
     Ok(())
 }

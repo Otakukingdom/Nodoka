@@ -1,8 +1,9 @@
 use crate::conversions::f64_to_ms;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::models::{Audiobook, AudiobookFile, Directory};
 use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, OptionalExtension};
+use std::path::Path;
 
 /// Inserts a new audiobook into the database
 ///
@@ -10,6 +11,13 @@ use rusqlite::{params, Connection, OptionalExtension};
 ///
 /// Returns an error if the database insert fails
 pub fn insert_audiobook(conn: &Connection, audiobook: &Audiobook) -> Result<i64> {
+    validate_no_nul("audiobook.directory", &audiobook.directory)?;
+    validate_no_nul("audiobook.name", &audiobook.name)?;
+    validate_no_nul("audiobook.full_path", &audiobook.full_path)?;
+    if let Some(selected) = audiobook.selected_file.as_deref() {
+        validate_no_nul("audiobook.selected_file", selected)?;
+    }
+
     conn.execute(
         "INSERT INTO audiobooks (directory, name, full_path, completeness, default_order, selected_file, created_at)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -24,6 +32,15 @@ pub fn insert_audiobook(conn: &Connection, audiobook: &Audiobook) -> Result<i64>
         ],
     )?;
     Ok(conn.last_insert_rowid())
+}
+
+fn validate_no_nul(field: &'static str, value: &str) -> Result<()> {
+    if value.contains('\0') {
+        return Err(Error::InvalidInput(format!(
+            "{field} must not contain NUL bytes"
+        )));
+    }
+    Ok(())
 }
 
 /// Gets all audiobooks for a specific directory
@@ -127,6 +144,7 @@ pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audioboo
 ///
 /// Returns an error if the database update fails
 pub fn update_audiobook_completeness(conn: &Connection, id: i64, completeness: i32) -> Result<()> {
+    let completeness = completeness.clamp(0, 100);
     conn.execute(
         "UPDATE audiobooks SET completeness = ?1 WHERE id = ?2",
         params![completeness, id],
@@ -157,6 +175,7 @@ pub fn update_audiobook_selected_file(
 ///
 /// Returns an error if the database delete fails
 pub fn delete_audiobook(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM bookmarks WHERE audiobook_id = ?1", [id])?;
     conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
     conn.execute("DELETE FROM audiobooks WHERE id = ?1", [id])?;
     Ok(())
@@ -248,6 +267,7 @@ pub fn update_file_progress(
 ///
 /// Returns an error if the database insert fails
 pub fn insert_directory(conn: &Connection, directory: &Directory) -> Result<()> {
+    validate_directory_exists(&directory.full_path)?;
     conn.execute(
         "INSERT OR REPLACE INTO directories (full_path, created_at, last_scanned)
          VALUES (?1, ?2, ?3)",
@@ -260,6 +280,28 @@ pub fn insert_directory(conn: &Connection, directory: &Directory) -> Result<()> 
                 .map(chrono::DateTime::to_rfc3339),
         ],
     )?;
+    Ok(())
+}
+
+fn validate_directory_exists(full_path: &str) -> Result<()> {
+    validate_no_nul("directory.full_path", full_path)?;
+
+    let path = Path::new(full_path);
+    if !path.is_absolute() {
+        return Err(Error::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Directory path must be absolute",
+        )));
+    }
+
+    let metadata = std::fs::metadata(path).map_err(Error::from)?;
+    if !metadata.is_dir() {
+        return Err(Error::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Directory path does not refer to a directory",
+        )));
+    }
+
     Ok(())
 }
 
@@ -306,8 +348,9 @@ pub fn delete_directory(conn: &Connection, path: &str) -> Result<()> {
         .query_map([path], |row| row.get(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
 
-    // Delete all files for these audiobooks
+    // Delete all files and bookmarks for these audiobooks
     for id in ids {
+        conn.execute("DELETE FROM bookmarks WHERE audiobook_id = ?1", [id])?;
         conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
     }
 
@@ -354,6 +397,16 @@ pub fn set_metadata(conn: &Connection, key: &str, value: &str) -> Result<()> {
 ///
 /// Returns an error if the database insert fails
 pub fn insert_bookmark(conn: &Connection, bookmark: &crate::models::Bookmark) -> Result<i64> {
+    if bookmark.position_ms < 0 {
+        return Err(crate::error::Error::InvalidPosition);
+    }
+    if bookmark.label.trim().is_empty() {
+        return Err(Error::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Bookmark label cannot be empty",
+        )));
+    }
+
     conn.execute(
         "INSERT INTO bookmarks (audiobook_id, file_path, position_ms, label, note, created_at)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -379,8 +432,13 @@ pub fn get_bookmarks_for_audiobook(
     audiobook_id: i64,
 ) -> Result<Vec<crate::models::Bookmark>> {
     let mut stmt = conn.prepare(
-        "SELECT id, audiobook_id, file_path, position_ms, label, note, created_at
-         FROM bookmarks WHERE audiobook_id = ?1 ORDER BY created_at",
+        "SELECT b.id, b.audiobook_id, b.file_path, b.position_ms, b.label, b.note, b.created_at
+         FROM bookmarks b
+         LEFT JOIN audiobook_file f
+           ON f.audiobook_id = b.audiobook_id
+          AND f.full_path = b.file_path
+         WHERE b.audiobook_id = ?1
+         ORDER BY COALESCE(f.position, 2147483647), b.position_ms, b.created_at, b.id",
     )?;
 
     let rows = stmt.query_map([audiobook_id], |row| {
@@ -445,8 +503,9 @@ pub fn delete_audiobooks_by_directory(conn: &Connection, directory: &str) -> Res
         .query_map([directory], |row| row.get(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
 
-    // Delete all files for these audiobooks
+    // Delete all files and bookmarks for these audiobooks
     for id in ids {
+        conn.execute("DELETE FROM bookmarks WHERE audiobook_id = ?1", [id])?;
         conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
     }
 
