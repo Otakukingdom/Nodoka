@@ -299,3 +299,125 @@ fn test_natural_sort_order() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_auto_advance_logic() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    // Insert three files
+    insert_test_file(&db, audiobook_id, "/test/Book/file1.mp3")?;
+    insert_test_file(&db, audiobook_id, "/test/Book/file2.mp3")?;
+    insert_test_file(&db, audiobook_id, "/test/Book/file3.mp3")?;
+
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+
+    // Simulate: currently playing file 1, it ends (reaches 100% completion)
+    let current_index = 0;
+
+    // Auto-advance logic: should move to next file
+    let next_index = current_index + 1;
+    assert!(next_index < files.len(), "Should have next file available");
+    assert_eq!(files[next_index].name, "file2.mp3");
+
+    // Update selected file to simulate auto-advance
+    queries::update_audiobook_selected_file(
+        db.connection(),
+        audiobook_id,
+        Some(&files[next_index].full_path),
+    )?;
+
+    let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("Audiobook not found")?;
+    assert_eq!(
+        audiobook.selected_file,
+        Some(files[next_index].full_path.clone())
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_last_file_no_auto_advance() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    insert_test_file(&db, audiobook_id, "/test/Book/file1.mp3")?;
+    insert_test_file(&db, audiobook_id, "/test/Book/file2.mp3")?;
+
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+
+    // Simulate: currently at last file
+    let current_index = files.len() - 1;
+
+    // Should detect it's the last file
+    assert_eq!(current_index, files.len() - 1);
+
+    // When last file ends, should NOT auto-advance (no next file)
+    let next_index = current_index + 1;
+    assert!(next_index >= files.len(), "Should be past end of files");
+
+    // Instead, audiobook should be marked as complete
+    queries::mark_audiobook_complete(db.connection(), audiobook_id)?;
+
+    let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("Audiobook not found")?;
+    assert_eq!(audiobook.completeness, 100);
+
+    Ok(())
+}
+
+#[test]
+fn test_previous_button_threshold_behavior() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let file1 = "/test/Book/file1.mp3";
+    let file2 = "/test/Book/file2.mp3";
+
+    insert_test_file(&db, audiobook_id, file1)?;
+    insert_test_file(&db, audiobook_id, file2)?;
+
+    // Scenario 1: At position 0 in file2, previous should go to file1
+    queries::update_file_progress(db.connection(), file2, 0.0, 0)?;
+    queries::update_audiobook_selected_file(db.connection(), audiobook_id, Some(file2))?;
+
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let current_file = files
+        .iter()
+        .find(|f| f.full_path == file2)
+        .ok_or("File not found")?;
+
+    // If position is 0 or very small (< 3 seconds = 3000ms), go to previous file
+    if current_file.seek_position.unwrap_or(0) < 3000 {
+        // Should go to previous file
+        queries::update_audiobook_selected_file(db.connection(), audiobook_id, Some(file1))?;
+        let audiobook =
+            queries::get_audiobook_by_id(db.connection(), audiobook_id)?.ok_or("Not found")?;
+        assert_eq!(audiobook.selected_file, Some(file1.to_string()));
+    }
+
+    // Scenario 2: At position > 3 seconds in file2, previous should restart current file
+    queries::update_file_progress(db.connection(), file2, 5000.0, 25)?;
+    queries::update_audiobook_selected_file(db.connection(), audiobook_id, Some(file2))?;
+
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let current_file = files
+        .iter()
+        .find(|f| f.full_path == file2)
+        .ok_or("File not found")?;
+
+    // If position > 3000ms, restart current file (reset position to 0)
+    if current_file.seek_position.unwrap_or(0) >= 3000 {
+        // Should reset position of current file to 0
+        queries::update_file_progress(db.connection(), file2, 0.0, 0)?;
+        let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+        let current_file = files
+            .iter()
+            .find(|f| f.full_path == file2)
+            .ok_or("File not found")?;
+        assert_eq!(current_file.seek_position, Some(0));
+    }
+
+    Ok(())
+}

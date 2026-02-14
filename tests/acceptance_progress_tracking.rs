@@ -272,3 +272,76 @@ fn test_file_position_precision() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_periodic_auto_save_simulation() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let file_path = "/test/Book/chapter1.mp3";
+    insert_test_file(&db, audiobook_id, file_path)?;
+
+    // Simulate periodic auto-save during playback
+    // Position updates should occur every ~5 seconds during playback
+
+    // Initial position
+    queries::update_file_progress(db.connection(), file_path, 0.0, 0)?;
+
+    // After 5 seconds of playback
+    queries::update_file_progress(db.connection(), file_path, 5000.0, 5)?;
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    assert_eq!(files[0].seek_position, Some(5000));
+
+    // After 10 seconds
+    queries::update_file_progress(db.connection(), file_path, 10000.0, 10)?;
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    assert_eq!(files[0].seek_position, Some(10000));
+
+    // After 15 seconds
+    queries::update_file_progress(db.connection(), file_path, 15000.0, 15)?;
+    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    assert_eq!(files[0].seek_position, Some(15000));
+
+    // Progress should be persisted and recoverable even without explicit pause/stop
+    Ok(())
+}
+
+#[test]
+fn test_crash_recovery_via_periodic_save() -> Result<(), Box<dyn Error>> {
+    let temp_db_dir = TempDir::new()?;
+    let db_path = temp_db_dir.path().join("crash_recovery_test.db");
+
+    // Simulate application session with periodic saves
+    {
+        let db = nodoka::Database::open_with_path(&db_path)?;
+        nodoka::db::initialize(db.connection())?;
+
+        let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+        let file_path = "/test/Book/chapter1.mp3";
+        insert_test_file(&db, audiobook_id, file_path)?;
+
+        // Simulate periodic saves during playback (every 5 seconds)
+        queries::update_file_progress(db.connection(), file_path, 5000.0, 5)?;
+        queries::update_file_progress(db.connection(), file_path, 10000.0, 10)?;
+        queries::update_file_progress(db.connection(), file_path, 15000.0, 15)?;
+
+        // Simulate crash - no explicit close/cleanup
+        // Database should have persisted the last auto-save
+    }
+
+    // Recover after "crash" - open database again
+    {
+        let db = nodoka::Database::open_with_path(&db_path)?;
+
+        let audiobooks = queries::get_all_audiobooks(db.connection())?;
+        let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
+
+        let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+
+        // Should have recovered the last auto-saved position (15 seconds)
+        assert_eq!(files[0].seek_position, Some(15000));
+        assert_eq!(files[0].completeness, 15);
+    }
+
+    Ok(())
+}

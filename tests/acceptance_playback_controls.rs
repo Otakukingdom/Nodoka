@@ -20,10 +20,7 @@ fn test_speed_presets_available() {
 
             let actual = player.get_rate();
             let diff = (actual - preset).abs();
-            assert!(
-                diff < 0.05,
-                "Preset {preset} not accurate: got {actual}"
-            );
+            assert!(diff < 0.05, "Preset {preset} not accurate: got {actual}");
         }
     }
 }
@@ -163,6 +160,46 @@ fn test_stop_stops_playback() {
             let _ = player.stop();
 
             assert!(!player.is_playing());
+        }
+    }
+}
+
+#[test]
+fn test_stop_resets_position_to_beginning() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            if player.load_media(&audio_file).is_ok() && player.play().is_ok() {
+                std::thread::sleep(std::time::Duration::from_millis(300));
+
+                // Verify we're past the beginning
+                if let Ok(time_before) = player.get_time() {
+                    // Only run the test if playback actually started
+                    if time_before > 0.0 {
+                        // Stop playback
+                        let _ = player.stop();
+
+                        // Position should reset to 0 after stop
+                        // Note: VLC may not immediately report position 0 after stop,
+                        // but on next play it should start from beginning
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+
+                        // Play again and check it starts from beginning
+                        let _ = player.play();
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+
+                        if let Ok(time_after) = player.get_time() {
+                            // Should be near beginning (allowing for small startup delay)
+                            assert!(
+                                time_after < 500.0,
+                                "After stop and play, position should start from beginning"
+                            );
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -508,10 +545,7 @@ fn test_speed_presets_all_defined() {
     if let Some(mut player) = skip_if_vlc_unavailable() {
         for preset in required_presets {
             let result = player.set_rate(preset);
-            assert!(
-                result.is_ok(),
-                "Speed preset {preset} should be supported"
-            );
+            assert!(result.is_ok(), "Speed preset {preset} should be supported");
 
             // Verify the rate was actually set
             let actual = player.get_rate();
@@ -560,16 +594,8 @@ fn test_speed_persists_per_audiobook() -> Result<(), Box<dyn Error>> {
 
     // Set different speeds via metadata
     use nodoka::db::queries;
-    queries::set_metadata(
-        db.connection(),
-        &format!("speed_audiobook_{ab1_id}"),
-        "1.5",
-    )?;
-    queries::set_metadata(
-        db.connection(),
-        &format!("speed_audiobook_{ab2_id}"),
-        "2.0",
-    )?;
+    queries::set_metadata(db.connection(), &format!("speed_audiobook_{ab1_id}"), "1.5")?;
+    queries::set_metadata(db.connection(), &format!("speed_audiobook_{ab2_id}"), "2.0")?;
 
     // Verify speeds are independent
     let speed1 = queries::get_metadata(db.connection(), &format!("speed_audiobook_{ab1_id}"))?

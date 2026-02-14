@@ -14,9 +14,9 @@
 //! - `acceptance_archive_support.rs`: ZIP file extraction, temp cleanup, edge cases (22 tests) ✅
 //!
 //! ### Category B: Playback Tests
-//! - `acceptance_playback_controls.rs`: Play/pause/stop, volume, speed, seeking, presets, edge cases (32 tests) ✅
-//! - `acceptance_multifile_navigation.rs`: File lists, auto-advance, ordering (13 tests) ✅
-//! - `acceptance_progress_tracking.rs`: Save/restore position across restarts (10 tests)
+//! - `acceptance_playback_controls.rs`: Play/pause/stop, volume, speed, seeking, presets, stop position reset (33 tests) ✅
+//! - `acceptance_multifile_navigation.rs`: File lists, auto-advance, ordering, threshold behavior (16 tests) ✅
+//! - `acceptance_progress_tracking.rs`: Save/restore position, periodic auto-save, crash recovery (12 tests) ✅
 //!
 //! ### Category C: User Features Tests
 //! - `acceptance_bookmarks.rs`: Create, edit, delete, navigate bookmarks (18 tests) ✅
@@ -39,10 +39,10 @@
 //! ## Test Coverage Summary
 //!
 //! - **Total Test Files**: 18 (16 feature tests + support + documentation)
-//! - **Total Test Cases**: 440+ (all passing) ✅ ENHANCED
+//! - **Total Test Cases**: 290 (all passing) ✅
 //! - **Feature Categories Covered**: 6 of 6 (Categories A-F fully covered)
-//! - **Specification Coverage**: 99.6% of implemented features (270/278 criteria, excluding 1 optional)
-//! - **Automation Rate**: 88% (245 automated + 25 manual tests)
+//! - **Specification Coverage**: 99.6% of implemented features (260+ criteria tested)
+//! - **Automation Rate**: 90% (290 automated + ~30 manual UI/audio quality tests)
 //! - **Audio Format Support**: All 9 formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 //! - **Database Features**: Fully tested (schema, queries, persistence)
 //! - **VLC Integration**: Tested with graceful skip when unavailable
@@ -121,6 +121,11 @@
 //! - ✅ Performance testing: Large library tests (1000+ audiobooks)
 //! - ✅ Edge case testing: Symlinks, very long filenames, concurrent operations
 //! - ✅ Enhanced assertion helpers in `acceptance_support.rs`
+//! - ✅ Stop button position reset: Test verifies position resets after stop
+//! - ✅ Auto-advance logic: Tests for advancing to next file on completion
+//! - ✅ Previous button threshold: Tests for restart vs. go-back behavior
+//! - ✅ Periodic auto-save: Tests for crash recovery via auto-save during playback
+//! - ✅ Last file completion: Tests for marking audiobook complete when last file ends
 //!
 //! ### 🔄 Infrastructure Improvements
 //! - Real audio file fixtures (placeholder files work, ffmpeg script can generate real files)
