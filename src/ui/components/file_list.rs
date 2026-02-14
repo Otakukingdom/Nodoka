@@ -17,21 +17,30 @@ pub fn view(files: &[AudiobookFile], selected_path: Option<&String>) -> Element<
     scrollable(items).height(Length::Fill).into()
 }
 
-fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Message> {
-    let name = file.name.clone();
+fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Message> {
+    let mut name = file.name.clone();
+    let is_missing = !file.file_exists;
+    if selected {
+        name = format!("* {name}");
+    }
+    if is_missing {
+        name = format!("{name} [missing]");
+    }
     let duration = format_duration(file.length_of_file);
     let completeness = file.completeness;
     let has_progress = file.seek_position.is_some();
     let is_complete = completeness >= 100;
     let path = file.full_path.clone();
 
-    button(container(
+    let mut item_button = button(container(
         column![
             text(name).size(13),
             row![
                 text(duration).size(11),
                 horizontal_space(),
-                if is_complete {
+                if is_missing {
+                    text("missing").size(11)
+                } else if is_complete {
                     text("✓").size(11)
                 } else if has_progress {
                     text(format!("{completeness}%")).size(11)
@@ -42,9 +51,13 @@ fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Me
         ]
         .padding(5),
     ))
-    .on_press(Message::FileSelected(path))
-    .width(Length::Fill)
-    .into()
+    .width(Length::Fill);
+
+    if !is_missing {
+        item_button = item_button.on_press(Message::FileSelected(path));
+    }
+
+    item_button.into()
 }
 
 fn format_duration(duration_ms: Option<i64>) -> String {

@@ -133,9 +133,83 @@ fn parse_year(input: &str) -> Option<i32> {
 
 fn artwork_url_to_path(url: &str) -> Option<std::path::PathBuf> {
     let trimmed = url.trim();
-    let without_prefix = trimmed.strip_prefix("file://")?;
-    let decoded = percent_decode_utf8(without_prefix.as_bytes())?;
-    Some(std::path::PathBuf::from(decoded))
+
+    let rest = if let Some(after) = trimmed.strip_prefix("file://") {
+        after
+    } else {
+        let after = trimmed.strip_prefix("file:")?;
+        after.strip_prefix("//").unwrap_or(after)
+    };
+
+    // file URLs either look like:
+    // - file:///path/to/file
+    // - file://localhost/path/to/file
+    // - file:///C:/path/to/file (Windows)
+    // - file://server/share/path (Windows UNC)
+    if rest.starts_with('/') {
+        let decoded = percent_decode_utf8(rest.as_bytes())?;
+        #[cfg(windows)]
+        {
+            return Some(std::path::PathBuf::from(normalize_windows_file_url_path(
+                &decoded,
+            )));
+        }
+        #[cfg(not(windows))]
+        {
+            return Some(std::path::PathBuf::from(decoded));
+        }
+    }
+
+    let (authority, path_part) = rest.split_once('/')?;
+    let authority_decoded = percent_decode_utf8(authority.as_bytes())?;
+    let path_decoded = percent_decode_utf8(path_part.as_bytes())?;
+
+    if authority_decoded.eq_ignore_ascii_case("localhost") {
+        let joined = format!("/{path_decoded}");
+        #[cfg(windows)]
+        {
+            return Some(std::path::PathBuf::from(normalize_windows_file_url_path(
+                &joined,
+            )));
+        }
+        #[cfg(not(windows))]
+        {
+            return Some(std::path::PathBuf::from(joined));
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        let tail = path_decoded.replace('/', "\\");
+        return Some(std::path::PathBuf::from(format!(
+            "\\\\{authority_decoded}\\{tail}"
+        )));
+    }
+    #[cfg(not(windows))]
+    {
+        Some(std::path::PathBuf::from(format!(
+            "//{authority_decoded}/{path_decoded}"
+        )))
+    }
+}
+
+#[cfg(windows)]
+fn normalize_windows_file_url_path(decoded: &str) -> String {
+    // Windows file URLs commonly include an extra leading slash:
+    //   file:///C:/Users/...  -> "/C:/Users/..."
+    // Strip it when it looks like a drive path.
+    let s = decoded;
+    if s.len() >= 4 {
+        let bytes = s.as_bytes();
+        if bytes[0] == b'/'
+            && bytes[1].is_ascii_alphabetic()
+            && bytes[2] == b':'
+            && bytes[3] == b'/'
+        {
+            return s[1..].to_string();
+        }
+    }
+    s.to_string()
 }
 
 fn percent_decode_utf8(input: &[u8]) -> Option<String> {
@@ -229,5 +303,66 @@ mod tests {
             }
         }
         Ok(())
+    }
+
+    #[test]
+    fn test_artwork_url_to_path_file_triple_slash() {
+        let p = artwork_url_to_path("file:///tmp/cover%20art.png");
+        #[cfg(not(windows))]
+        {
+            assert_eq!(p, Some(std::path::PathBuf::from("/tmp/cover art.png")));
+        }
+        #[cfg(windows)]
+        {
+            assert!(p.is_some());
+        }
+    }
+
+    #[test]
+    fn test_artwork_url_to_path_localhost() {
+        let p = artwork_url_to_path("file://localhost/tmp/cover.png");
+        #[cfg(not(windows))]
+        {
+            assert_eq!(p, Some(std::path::PathBuf::from("/tmp/cover.png")));
+        }
+        #[cfg(windows)]
+        {
+            assert!(p.is_some());
+        }
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn test_artwork_url_to_path_windows_drive_letter() {
+        let p = artwork_url_to_path("file:///C:/Users/Alice/cover.png");
+        assert_eq!(
+            p,
+            Some(std::path::PathBuf::from("C:/Users/Alice/cover.png"))
+        );
+
+        let p2 = artwork_url_to_path("file://localhost/C:/Users/Alice/cover.png");
+        assert_eq!(
+            p2,
+            Some(std::path::PathBuf::from("C:/Users/Alice/cover.png"))
+        );
+    }
+
+    #[test]
+    fn test_artwork_url_to_path_unc_or_host_path() {
+        let p = artwork_url_to_path("file://example.com/share/cover.png");
+        #[cfg(windows)]
+        {
+            assert_eq!(
+                p,
+                Some(std::path::PathBuf::from(r"\\example.com\share\cover.png"))
+            );
+        }
+        #[cfg(not(windows))]
+        {
+            assert_eq!(
+                p,
+                Some(std::path::PathBuf::from("//example.com/share/cover.png"))
+            );
+        }
     }
 }

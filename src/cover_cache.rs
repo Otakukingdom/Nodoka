@@ -40,6 +40,24 @@ pub fn ensure_cover_thumbnail_with_embedded(
         audiobook_path.parent().unwrap_or(audiobook_path)
     };
 
+    let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
+        .ok_or(crate::error::Error::ProjectDirNotFound)?;
+    let cache_dir = proj_dirs.data_dir().join("cover-cache");
+    let out_path = cache_dir.join(format!("{audiobook_id}.png"));
+
+    // Fast path: avoid repeated filesystem decoding and VLC probing if a cached thumbnail exists
+    // and none of the likely sources have changed.
+    if embedded_image.is_none() {
+        match cached_thumbnail_status(&out_path, selection_root, audiobook_path) {
+            CachedThumbnailStatus::Usable => return Ok(Some(out_path)),
+            CachedThumbnailStatus::Orphaned => {
+                let _ = std::fs::remove_file(&out_path);
+                return Ok(None);
+            }
+            CachedThumbnailStatus::Stale => {}
+        }
+    }
+
     let probed_embedded: Option<Vec<u8>> = if embedded_image.is_some() {
         None
     } else {
@@ -53,11 +71,7 @@ pub fn ensure_cover_thumbnail_with_embedded(
         return Ok(None);
     };
 
-    let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
-        .ok_or(crate::error::Error::ProjectDirNotFound)?;
-    let cache_dir = proj_dirs.data_dir().join("cover-cache");
     std::fs::create_dir_all(&cache_dir)?;
-    let out_path = cache_dir.join(format!("{audiobook_id}.png"));
 
     let img = match selection.source {
         crate::cover_art::Source::Embedded => {
@@ -78,8 +92,119 @@ pub fn ensure_cover_thumbnail_with_embedded(
     Ok(Some(out_path))
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum CachedThumbnailStatus {
+    Usable,
+    Stale,
+    Orphaned,
+}
+
+fn cached_thumbnail_status(
+    out_path: &Path,
+    selection_root: &Path,
+    audiobook_path: &Path,
+) -> CachedThumbnailStatus {
+    let Ok(out_meta) = std::fs::metadata(out_path) else {
+        return CachedThumbnailStatus::Stale;
+    };
+    let Ok(out_modified) = out_meta.modified() else {
+        return CachedThumbnailStatus::Stale;
+    };
+
+    let mut any_source_exists = false;
+    let mut stale = false;
+
+    if let Some(paths) = existing_cover_file_candidates(selection_root) {
+        if !paths.is_empty() {
+            any_source_exists = true;
+        }
+        for p in paths {
+            if let Ok(meta) = std::fs::metadata(&p) {
+                if let Ok(modified) = meta.modified() {
+                    if modified > out_modified {
+                        stale = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(media) = first_audio_file_candidate(audiobook_path) {
+        let ext_ok = media
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(ext_supports_embedded_cover_probe);
+        if ext_ok {
+            any_source_exists = true;
+            if let Ok(meta) = std::fs::metadata(&media) {
+                if let Ok(modified) = meta.modified() {
+                    if modified > out_modified {
+                        stale = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if !any_source_exists {
+        return CachedThumbnailStatus::Orphaned;
+    }
+    if stale {
+        CachedThumbnailStatus::Stale
+    } else {
+        CachedThumbnailStatus::Usable
+    }
+}
+
+fn existing_cover_file_candidates(selection_root: &Path) -> Option<Vec<PathBuf>> {
+    if !selection_root.is_dir() {
+        return None;
+    }
+
+    let mut entries: Vec<(String, PathBuf)> = std::fs::read_dir(selection_root)
+        .ok()?
+        .filter_map(std::result::Result::ok)
+        .map(|e| e.path())
+        .filter(|p| p.is_file())
+        .filter_map(|p| {
+            let name = p.file_name()?.to_str()?.to_ascii_lowercase();
+            if name.starts_with('.') {
+                return None;
+            }
+            Some((name, p))
+        })
+        .collect();
+
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let mut out: Vec<PathBuf> = Vec::new();
+    push_first_match(&mut out, &entries, ["folder.jpg", "folder.jpeg"]);
+    push_first_match(&mut out, &entries, ["cover.jpg", "cover.jpeg"]);
+    push_first_match(&mut out, &entries, ["cover.png"]);
+    Some(out)
+}
+
+fn push_first_match<const N: usize>(
+    out: &mut Vec<PathBuf>,
+    entries: &[(String, PathBuf)],
+    names: [&str; N],
+) {
+    for name in names {
+        if let Some((_, path)) = entries.iter().find(|(lower, _)| lower == name) {
+            out.push(path.clone());
+            return;
+        }
+    }
+}
+
 fn probe_embedded_cover_bytes(audiobook_path: &Path) -> Option<Vec<u8>> {
     let media_path = first_audio_file_candidate(audiobook_path)?;
+
+    let ext = media_path.extension().and_then(|e| e.to_str())?;
+    if !ext_supports_embedded_cover_probe(ext) {
+        return None;
+    }
 
     let scanner = match crate::player::Scanner::new() {
         Ok(scanner) => scanner,
@@ -99,6 +224,12 @@ fn probe_embedded_cover_bytes(audiobook_path: &Path) -> Option<Vec<u8>> {
             None
         }
     }
+}
+
+fn ext_supports_embedded_cover_probe(ext: &str) -> bool {
+    ext.eq_ignore_ascii_case("mp3")
+        || ext.eq_ignore_ascii_case("m4a")
+        || ext.eq_ignore_ascii_case("m4b")
 }
 
 fn first_audio_file_candidate(audiobook_path: &Path) -> Option<std::path::PathBuf> {

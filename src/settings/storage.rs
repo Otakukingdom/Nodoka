@@ -18,7 +18,9 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_volume(&self) -> Result<i32> {
-        (get_metadata(self.conn, "volume")?).map_or_else(|| Ok(100), |v| v.parse().or(Ok(100)))
+        Ok(get_metadata(self.conn, "volume")?
+            .and_then(|v| v.parse::<i32>().ok())
+            .unwrap_or(100))
     }
 
     /// Sets the volume setting
@@ -36,7 +38,9 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_speed(&self) -> Result<f32> {
-        (get_metadata(self.conn, "speed")?).map_or_else(|| Ok(1.0), |v| v.parse().or(Ok(1.0)))
+        Ok(get_metadata(self.conn, "speed")?
+            .and_then(|v| v.parse::<f32>().ok())
+            .unwrap_or(1.0))
     }
 
     /// Sets the playback speed setting

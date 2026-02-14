@@ -21,13 +21,20 @@ pub(super) fn handle_directory_added(
     db: &Database,
     path: &str,
 ) -> Command<Message> {
-    if state.directories.iter().any(|d| d.full_path == path) {
-        tracing::info!("Directory already added: {path}. Skipping.");
+    let stored_path = normalize_directory_path_for_storage(path);
+    let compare_key = normalize_directory_path_for_compare(&stored_path);
+
+    if state
+        .directories
+        .iter()
+        .any(|d| normalize_directory_path_for_compare(&d.full_path) == compare_key)
+    {
+        tracing::info!("Directory already added: {stored_path}. Skipping.");
         return Command::none();
     }
 
     let directory = crate::models::Directory {
-        full_path: path.to_string(),
+        full_path: stored_path.clone(),
         created_at: chrono::Utc::now(),
         last_scanned: None,
     };
@@ -38,9 +45,9 @@ pub(super) fn handle_directory_added(
     }
 
     state.directories.push(directory);
-    tracing::info!("Directory added: {path}. Starting scan.");
+    tracing::info!("Directory added: {stored_path}. Starting scan.");
 
-    start_directory_scan(path.to_string())
+    start_directory_scan(stored_path)
 }
 
 pub(super) fn handle_directory_remove(
@@ -119,13 +126,19 @@ pub(super) fn handle_scan_complete(
 
     update_state_with_discovered_audiobooks(state, &audiobooks);
 
+    let mut cmds: Vec<Command<Message>> = Vec::new();
+
     for (idx, disc) in discovered.into_iter().enumerate() {
-        process_discovered_audiobook(state, db, directory, &audiobooks, idx, disc);
+        if let Some(cmd) =
+            process_discovered_audiobook(state, db, directory, &audiobooks, idx, disc)
+        {
+            cmds.push(cmd);
+        }
     }
 
     finalize_directory_scan(state, db, directory);
 
-    Command::none()
+    Command::batch(cmds)
 }
 
 pub(super) fn handle_scan_error(error: &str) -> Command<Message> {
@@ -156,7 +169,7 @@ fn process_discovered_audiobook(
     audiobooks: &[crate::models::Audiobook],
     idx: usize,
     disc: DiscoveredAudiobook,
-) {
+) -> Option<Command<Message>> {
     let disc_path = disc.path.display().to_string();
     let mut resolved_audiobook = audiobooks.get(idx).cloned().unwrap_or_else(|| {
         crate::models::Audiobook::new(
@@ -167,12 +180,12 @@ fn process_discovered_audiobook(
         )
     });
 
-    let Some(audiobook_id) = resolve_audiobook_id(db, &disc_path, &mut resolved_audiobook) else {
-        return;
-    };
+    let audiobook_id = resolve_audiobook_id(db, &disc_path, &mut resolved_audiobook)?;
 
-    update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
+    let cmd = update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
     process_audiobook_files(db, audiobook_id, disc.files);
+
+    cmd
 }
 
 fn resolve_audiobook_id(
@@ -220,7 +233,7 @@ fn update_state_audiobook_id(
     state: &mut State,
     resolved_audiobook: &crate::models::Audiobook,
     audiobook_id: i64,
-) {
+) -> Option<Command<Message>> {
     if let Some(entry) = state
         .audiobooks
         .iter_mut()
@@ -233,18 +246,41 @@ fn update_state_audiobook_id(
         state.audiobooks.push(ab);
     }
 
-    match crate::cover_cache::ensure_cover_thumbnail(
-        audiobook_id,
-        std::path::Path::new(&resolved_audiobook.full_path),
-    ) {
-        Ok(Some(path)) => {
-            state.cover_thumbnails.insert(audiobook_id, path);
-        }
-        Ok(None) => {}
-        Err(e) => {
-            tracing::warn!("Failed to prepare cover thumbnail for audiobook {audiobook_id}: {e}");
-        }
+    if state.cover_thumbnails.contains_key(&audiobook_id) {
+        return None;
     }
+
+    // Generate cover thumbnails asynchronously to keep directory scans non-blocking.
+    Some(super::generate_cover_thumbnail_command(
+        audiobook_id,
+        resolved_audiobook.full_path.clone(),
+    ))
+}
+
+fn normalize_directory_path_for_storage(path: &str) -> String {
+    let raw = std::path::PathBuf::from(path);
+    let canonical = std::fs::canonicalize(&raw).unwrap_or(raw);
+    trim_trailing_separators(&canonical.to_string_lossy())
+}
+
+fn normalize_directory_path_for_compare(path: &str) -> String {
+    let stored = normalize_directory_path_for_storage(path);
+    #[cfg(windows)]
+    {
+        return stored.to_ascii_lowercase();
+    }
+    #[cfg(not(windows))]
+    {
+        stored
+    }
+}
+
+fn trim_trailing_separators(path: &str) -> String {
+    let mut out = path;
+    while out.len() > 1 && (out.ends_with('/') || out.ends_with('\\')) {
+        out = &out[..out.len() - 1];
+    }
+    out.to_string()
 }
 
 fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<DiscoveredFile>) {
