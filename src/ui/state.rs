@@ -33,6 +33,8 @@ pub struct State {
 
     pub sleep_timer: Option<SleepTimer>,
     pub sleep_timer_base_volume: Option<i32>,
+    pub sleep_timer_custom_minutes: String,
+    pub sleep_timer_custom_error: Option<String>,
 
     pub settings_open: bool,
     pub is_loading: bool,
@@ -56,6 +58,8 @@ impl Default for State {
             speed: 1.0,
             sleep_timer: None,
             sleep_timer_base_volume: None,
+            sleep_timer_custom_minutes: String::new(),
+            sleep_timer_custom_error: None,
             settings_open: false,
             is_loading: true,
         }
@@ -84,6 +88,8 @@ mod tests {
         assert!((state.speed - 1.0).abs() < f32::EPSILON);
         assert!(state.sleep_timer.is_none());
         assert!(state.sleep_timer_base_volume.is_none());
+        assert!(state.sleep_timer_custom_minutes.is_empty());
+        assert!(state.sleep_timer_custom_error.is_none());
         assert!(!state.settings_open);
         assert!(state.is_loading);
     }

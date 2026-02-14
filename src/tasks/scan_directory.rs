@@ -50,7 +50,9 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
             audiobooks.push(root_audiobook);
         }
 
-        for entry_result in WalkDir::new(&dir_path).min_depth(1).follow_links(false) {
+        // Follow directory symlinks so users can link external audiobook roots.
+        // walkdir detects cycles and reports them as errors which we skip.
+        for entry_result in WalkDir::new(&dir_path).min_depth(1).follow_links(true) {
             let entry = match entry_result {
                 Ok(entry) => entry,
                 Err(e) => {

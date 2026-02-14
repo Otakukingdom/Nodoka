@@ -62,6 +62,40 @@ pub(super) fn handle_sleep_timer_cancel(
     Command::none()
 }
 
+pub(super) fn handle_sleep_timer_custom_minutes_changed(
+    state: &mut State,
+    value: &str,
+) -> Command<Message> {
+    state.sleep_timer_custom_minutes = value.to_string();
+    state.sleep_timer_custom_error = None;
+    Command::none()
+}
+
+pub(super) fn handle_sleep_timer_custom_submit(state: &mut State) -> Command<Message> {
+    let trimmed = state.sleep_timer_custom_minutes.trim();
+    if trimmed.is_empty() {
+        state.sleep_timer_custom_error = Some("Enter minutes".to_string());
+        return Command::none();
+    }
+
+    let minutes: i64 = match trimmed.parse() {
+        Ok(v) => v,
+        Err(_e) => {
+            state.sleep_timer_custom_error = Some("Minutes must be a whole number".to_string());
+            return Command::none();
+        }
+    };
+
+    if minutes <= 0 {
+        state.sleep_timer_custom_error = Some("Minutes must be greater than zero".to_string());
+        return Command::none();
+    }
+
+    let secs = minutes.saturating_mul(60);
+    state.sleep_timer_custom_error = None;
+    handle_sleep_timer_set_duration(state, secs)
+}
+
 pub(super) fn should_pause_for_end_of_chapter(state: &State, should_auto_advance: bool) -> bool {
     should_auto_advance
         && matches!(

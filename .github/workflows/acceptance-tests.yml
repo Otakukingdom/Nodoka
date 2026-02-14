@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+  issues: write
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -132,6 +136,7 @@ jobs:
         
     - name: Add comment to PR (if applicable)
       if: github.event_name == 'pull_request'
+      continue-on-error: true
       uses: actions/github-script@v6
       with:
         script: |

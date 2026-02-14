@@ -394,20 +394,34 @@ pub fn set_metadata(conn: &Connection, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
+/// Deletes a metadata key.
+///
+/// # Errors
+///
+/// Returns an error if the database query fails.
+pub fn delete_metadata(conn: &Connection, key: &str) -> Result<()> {
+    conn.execute("DELETE FROM metadata WHERE key = ?1", [key])?;
+    Ok(())
+}
+
 /// Inserts a new bookmark
 ///
 /// # Errors
 ///
 /// Returns an error if the database insert fails
 pub fn insert_bookmark(conn: &Connection, bookmark: &crate::models::Bookmark) -> Result<i64> {
+    validate_no_nul("bookmark.file_path", &bookmark.file_path)?;
+    validate_no_nul("bookmark.label", &bookmark.label)?;
+    if let Some(note) = bookmark.note.as_deref() {
+        validate_no_nul("bookmark.note", note)?;
+    }
     if bookmark.position_ms < 0 {
         return Err(crate::error::Error::InvalidPosition);
     }
     if bookmark.label.trim().is_empty() {
-        return Err(Error::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "Bookmark label cannot be empty",
-        )));
+        return Err(Error::InvalidInput(
+            "bookmark.label cannot be empty".to_string(),
+        ));
     }
 
     conn.execute(
@@ -470,6 +484,16 @@ pub fn get_bookmarks_for_audiobook(
 ///
 /// Returns an error if the database update fails
 pub fn update_bookmark(conn: &Connection, bookmark: &crate::models::Bookmark) -> Result<()> {
+    validate_no_nul("bookmark.label", &bookmark.label)?;
+    if let Some(note) = bookmark.note.as_deref() {
+        validate_no_nul("bookmark.note", note)?;
+    }
+    if bookmark.label.trim().is_empty() {
+        return Err(Error::InvalidInput(
+            "bookmark.label cannot be empty".to_string(),
+        ));
+    }
+
     let id = bookmark.id.ok_or_else(|| {
         crate::error::Error::Io(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
@@ -515,16 +539,6 @@ pub fn delete_audiobooks_by_directory(conn: &Connection, directory: &str) -> Res
     // Delete all audiobooks
     conn.execute("DELETE FROM audiobooks WHERE directory = ?1", [directory])?;
 
-    Ok(())
-}
-
-/// Deletes a metadata value
-///
-/// # Errors
-///
-/// Returns an error if the database delete fails
-pub fn delete_metadata(conn: &Connection, key: &str) -> Result<()> {
-    conn.execute("DELETE FROM metadata WHERE key = ?1", [key])?;
     Ok(())
 }
 

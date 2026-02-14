@@ -495,7 +495,34 @@ fn test_bookmark_empty_label() -> Result<(), Box<dyn Error>> {
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);
 
-    assert!(result.is_err());
+    match result {
+        Err(nodoka::Error::InvalidInput(_)) => {}
+        Err(other) => return Err(format!("expected InvalidInput, got: {other}").into()),
+        Ok(id) => return Err(format!("expected error, got Ok({id})").into()),
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_nul_bytes_rejected() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let bookmark = nodoka::models::Bookmark::new(
+        audiobook_id,
+        "/test/Book/chapter1.mp3".to_string(),
+        1000,
+        "Bad\0Label".to_string(),
+    )
+    .with_note(Some("Note\0".to_string()));
+
+    let result = queries::insert_bookmark(db.connection(), &bookmark);
+    match result {
+        Err(nodoka::Error::InvalidInput(_)) => {}
+        Err(other) => return Err(format!("expected InvalidInput, got: {other}").into()),
+        Ok(id) => return Err(format!("expected error, got Ok({id})").into()),
+    }
 
     Ok(())
 }

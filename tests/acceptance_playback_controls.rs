@@ -704,11 +704,18 @@ fn test_keyboard_shortcut_ctrl_b_creates_bookmark() -> Result<(), Box<dyn Error>
     };
 
     // Verify the chord maps to the bookmark message.
-    let message = nodoka::ui::shortcuts::message_for_key_chord(
-        nodoka::ui::shortcuts::ShortcutKey::B,
-        iced::keyboard::Modifiers::CTRL,
-    )
-    .ok_or("Shortcut did not map")?;
+    let message =
+        nodoka::ui::shortcuts::message_for_key_chord(nodoka::ui::shortcuts::ShortcutKey::B, {
+            #[cfg(target_os = "macos")]
+            {
+                iced::keyboard::Modifiers::LOGO
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                iced::keyboard::Modifiers::CTRL
+            }
+        })
+        .ok_or("Shortcut did not map")?;
 
     let mut player: Option<nodoka::player::Vlc> = None;
     let _ = nodoka::ui::update::update(&mut state, message, &mut player, &db);

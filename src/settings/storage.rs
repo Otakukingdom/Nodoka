@@ -1,4 +1,4 @@
-use crate::db::queries::{get_metadata, set_metadata};
+use crate::db::queries::{delete_metadata, get_metadata, set_metadata};
 use crate::error::Result;
 use rusqlite::Connection;
 
@@ -10,6 +10,13 @@ impl<'a> Settings<'a> {
     #[must_use]
     pub const fn new(conn: &'a Connection) -> Self {
         Self { conn }
+    }
+
+    fn clear_metadata_keys(&self, keys: &[&'static str]) -> Result<()> {
+        for key in keys {
+            delete_metadata(self.conn, key)?;
+        }
+        Ok(())
     }
 
     /// Gets the volume setting
@@ -170,11 +177,32 @@ impl<'a> Settings<'a> {
 
         match (x, y) {
             (Some(x_str), Some(y_str)) => {
-                let x_val: i32 = x_str.parse().unwrap_or(0);
-                let y_val: i32 = y_str.parse().unwrap_or(0);
+                let x_val: i32 = match x_str.parse() {
+                    Ok(v) => v,
+                    Err(_e) => {
+                        tracing::warn!("Corrupted window_x/window_y metadata; clearing keys");
+                        self.clear_metadata_keys(&["window_x", "window_y"])?;
+                        return Ok(None);
+                    }
+                };
+                let y_val: i32 = match y_str.parse() {
+                    Ok(v) => v,
+                    Err(_e) => {
+                        tracing::warn!("Corrupted window_x/window_y metadata; clearing keys");
+                        self.clear_metadata_keys(&["window_x", "window_y"])?;
+                        return Ok(None);
+                    }
+                };
                 Ok(Some((x_val, y_val)))
             }
-            _ => Ok(None),
+            (None, None) => Ok(None),
+            _ => {
+                // Partial state: treat as corrupted and clear both so we don't
+                // oscillate between defaults and persisted values.
+                tracing::warn!("Corrupted window_x/window_y metadata (partial); clearing keys");
+                self.clear_metadata_keys(&["window_x", "window_y"])?;
+                Ok(None)
+            }
         }
     }
 
@@ -200,11 +228,36 @@ impl<'a> Settings<'a> {
 
         match (w, h) {
             (Some(w_str), Some(h_str)) => {
-                let w_val: i32 = w_str.parse().unwrap_or(800);
-                let h_val: i32 = h_str.parse().unwrap_or(600);
+                let w_val: i32 = match w_str.parse() {
+                    Ok(v) => v,
+                    Err(_e) => {
+                        tracing::warn!(
+                            "Corrupted window_width/window_height metadata; clearing keys"
+                        );
+                        self.clear_metadata_keys(&["window_width", "window_height"])?;
+                        return Ok(None);
+                    }
+                };
+                let h_val: i32 = match h_str.parse() {
+                    Ok(v) => v,
+                    Err(_e) => {
+                        tracing::warn!(
+                            "Corrupted window_width/window_height metadata; clearing keys"
+                        );
+                        self.clear_metadata_keys(&["window_width", "window_height"])?;
+                        return Ok(None);
+                    }
+                };
                 Ok(Some((w_val, h_val)))
             }
-            _ => Ok(None),
+            (None, None) => Ok(None),
+            _ => {
+                tracing::warn!(
+                    "Corrupted window_width/window_height metadata (partial); clearing keys"
+                );
+                self.clear_metadata_keys(&["window_width", "window_height"])?;
+                Ok(None)
+            }
         }
     }
 

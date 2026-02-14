@@ -15,6 +15,8 @@ pub enum Message {
     SleepTimerSetEndOfChapter,
     SleepTimerExtendSeconds(i64),
     SleepTimerCancel,
+    SleepTimerCustomMinutesChanged(String),
+    SleepTimerCustomSubmit,
 
     // Shortcuts
     CreateBookmark,
@@ -64,6 +66,10 @@ pub enum Message {
 
     // Initial load
     InitialLoadComplete,
+
+    // Window events
+    WindowMoved(i32, i32),
+    WindowResized(u32, u32),
 
     // No-op
     None,

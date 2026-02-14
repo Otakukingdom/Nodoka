@@ -2,7 +2,7 @@
 # Comprehensive acceptance test execution script for Nodoka
 # Runs all acceptance tests and generates detailed coverage report
 
-set -e
+set -euo pipefail
 
 echo "+----------------------------------------------------------+"
 echo "|     Nodoka Acceptance Test Suite - Full Validation       |"
@@ -20,6 +20,31 @@ mkdir -p "$RESULTS_DIR"
 
 echo "Starting test execution at $(date)"
 echo ""
+
+extract_passed_count() {
+    local file
+    file="$1"
+
+    # Accept both unit and integration test output formats.
+    # Example:
+    #   test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;
+    awk '
+        BEGIN { found = 0 }
+        /test result:/ {
+            for (i = 1; i <= NF; i++) {
+                if ($i == "passed;") {
+                    v = $(i - 1);
+                    if (v ~ /^[0-9]+$/) {
+                        print v;
+                        found = 1;
+                        exit 0;
+                    }
+                }
+            }
+        }
+        END { if (found == 0) print 0 }
+    ' "$file" 2>/dev/null || printf '%s\n' 0
+}
 
 # Step 1: Verify VLC is available
 echo "-> Checking VLC availability..."
@@ -54,14 +79,16 @@ if cargo build --release > "${RESULTS_DIR}/build_${TIMESTAMP}.txt" 2>&1; then
         echo "  [OK] No dead code found"
     fi
 else
-    echo "  [WARN] Build had warnings/errors - see ${RESULTS_DIR}/build_${TIMESTAMP}.txt"
+    echo "  [FAIL] Release build failed - see ${RESULTS_DIR}/build_${TIMESTAMP}.txt"
+    tail -50 "${RESULTS_DIR}/build_${TIMESTAMP}.txt" || true
+    exit 1
 fi
 echo ""
 
 # Step 4: Run all unit tests
 echo "-> Running unit tests..."
 if cargo test --lib -- --nocapture > "${RESULTS_DIR}/unit_${TIMESTAMP}.txt" 2>&1; then
-    UNIT_COUNT=$(grep "test result:" "${RESULTS_DIR}/unit_${TIMESTAMP}.txt" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+')
+    UNIT_COUNT=$(extract_passed_count "${RESULTS_DIR}/unit_${TIMESTAMP}.txt")
     echo "  [OK] Unit tests: $UNIT_COUNT passed"
 else
     echo "  [FAIL] Unit tests failed - see ${RESULTS_DIR}/unit_${TIMESTAMP}.txt"
@@ -77,7 +104,11 @@ echo ""
 # Define test categories
 declare -a categories=(
     "acceptance_library_management:Library Management"
-    "acceptance_audiobook_detection:Audiobook Detection"
+    "acceptance_audiobook_detection_core:Audiobook Detection (Core)"
+    "acceptance_audiobook_detection_formats:Audiobook Detection (Formats)"
+    "acceptance_audiobook_detection_edge_cases:Audiobook Detection (Edge Cases)"
+    "acceptance_audiobook_detection_structure:Audiobook Detection (Structure)"
+    "acceptance_audiobook_detection_rescanning:Audiobook Detection (Rescanning)"
     "acceptance_archive_support:Archive Support"
     "acceptance_playback_controls:Playback Controls"
     "acceptance_multifile_navigation:Multi-file Navigation"
@@ -104,8 +135,7 @@ for category_info in "${categories[@]}"; do
     echo "  Testing: $category_name"
     
     if cargo test --test "$test_file" -- --nocapture > "${RESULTS_DIR}/${test_file}_${TIMESTAMP}.txt" 2>&1; then
-        RESULT=$(grep "test result:" "${RESULTS_DIR}/${test_file}_${TIMESTAMP}.txt" | tail -1)
-        PASSED=$(echo "$RESULT" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+')
+        PASSED=$(extract_passed_count "${RESULTS_DIR}/${test_file}_${TIMESTAMP}.txt")
         echo "    [OK] $PASSED tests passed"
         TOTAL_PASSED=$((TOTAL_PASSED + PASSED))
         CATEGORY_RESULTS="${CATEGORY_RESULTS}\n  [OK] $category_name: $PASSED tests passed"

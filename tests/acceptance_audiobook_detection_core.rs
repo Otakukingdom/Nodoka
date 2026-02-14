@@ -108,29 +108,32 @@ async fn test_scan_directory_skips_unreadable_entries() -> Result<(), Box<dyn Er
 async fn test_symbolic_links_handling() -> Result<(), Box<dyn Error>> {
     #[cfg(unix)]
     {
-        let temp = TempDir::new()?;
+        let scan_root = TempDir::new()?;
+        let external = TempDir::new()?;
         let fixtures = TestFixtures::new();
 
-        // Create real directory with audio files
-        let real_dir = temp.path().join("real_audiobooks");
-        fs::create_dir_all(&real_dir)?;
-        let book = real_dir.join("TestBook");
+        // Create an audiobook *outside* the scan root, reachable only via symlink.
+        let external_books = external.path().join("external_audiobooks");
+        fs::create_dir_all(&external_books)?;
+        let book = external_books.join("TestBook");
         fs::create_dir_all(&book)?;
         fs::copy(
             fixtures.audio_path("sample_mp3.mp3"),
             book.join("chapter1.mp3"),
         )?;
 
-        // Create symbolic link to the directory
-        let link_dir = temp.path().join("linked_audiobooks");
+        // Create symbolic link inside scan root to the external directory.
+        let link_dir = scan_root.path().join("linked_audiobooks");
         #[cfg(unix)]
-        std::os::unix::fs::symlink(&real_dir, &link_dir)?;
+        std::os::unix::fs::symlink(&external_books, &link_dir)?;
 
         // Scanning should handle symlinks without infinite loops
-        let discovered = scan_directory(temp.path().to_path_buf()).await?;
+        let discovered = scan_directory(scan_root.path().to_path_buf()).await?;
 
-        // Should discover audiobook at least once
-        assert!(!discovered.is_empty());
+        assert!(
+            discovered.iter().any(|b| b.name == "TestBook"),
+            "expected symlinked audiobook to be discovered"
+        );
     }
 
     Ok(())

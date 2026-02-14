@@ -28,7 +28,67 @@ use crate::db::Database;
 use crate::player::Vlc;
 use crate::ui::{main_window, update, Message, State};
 use iced::{Application, Command, Element, Settings, Subscription, Theme};
+use rusqlite::Connection;
 use std::time::Duration;
+
+const DEFAULT_WINDOW_WIDTH: f32 = 1200.0;
+const DEFAULT_WINDOW_HEIGHT: f32 = 900.0;
+const MIN_WINDOW_WIDTH: f32 = 800.0;
+const MIN_WINDOW_HEIGHT: f32 = 600.0;
+
+fn i32_to_f32_window_size(v: i32) -> Option<f32> {
+    let v_u16 = u16::try_from(v).ok()?;
+    Some(f32::from(v_u16))
+}
+
+fn i32_to_f32_window_position(v: i32) -> Option<f32> {
+    let v_i16 = i16::try_from(v).ok()?;
+    Some(f32::from(v_i16))
+}
+
+/// Resolves initial window settings from persisted metadata.
+///
+/// This is used by [`run`] to restore window size and position across restarts.
+///
+/// When persisted geometry is missing or invalid, Nodoka falls back to centered
+/// defaults.
+#[must_use]
+pub fn window_settings_from_storage(
+    conn: &Connection,
+    icon: Option<iced::window::Icon>,
+) -> iced::window::Settings {
+    let settings = crate::settings::Settings::new(conn);
+
+    let default_size = iced::Size::new(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+
+    let size = match settings.get_window_size() {
+        Ok(Some((w, h))) => match (i32_to_f32_window_size(w), i32_to_f32_window_size(h)) {
+            (Some(w_f32), Some(h_f32)) if w_f32 > 0.0 && h_f32 > 0.0 => {
+                iced::Size::new(w_f32, h_f32)
+            }
+            _ => default_size,
+        },
+        _ => default_size,
+    };
+
+    let position = match settings.get_window_position() {
+        Ok(Some((x, y))) => match (i32_to_f32_window_position(x), i32_to_f32_window_position(y)) {
+            (Some(x_f32), Some(y_f32)) => {
+                iced::window::Position::Specific(iced::Point::new(x_f32, y_f32))
+            }
+            _ => iced::window::Position::Centered,
+        },
+        _ => iced::window::Position::Centered,
+    };
+
+    iced::window::Settings {
+        size,
+        position,
+        min_size: Some(iced::Size::new(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)),
+        icon,
+        ..Default::default()
+    }
+}
 
 /// Main application state for the Nodoka audiobook reader.
 ///
@@ -206,6 +266,16 @@ impl Application for App {
 
         subs.push(iced::keyboard::on_key_press(map_key_press));
 
+        subs.push(iced::event::listen_with(|event, _status| match event {
+            iced::Event::Window(_id, iced::window::Event::Moved { x, y }) => {
+                Some(Message::WindowMoved(x, y))
+            }
+            iced::Event::Window(_id, iced::window::Event::Resized { width, height }) => {
+                Some(Message::WindowResized(width, height))
+            }
+            _ => None,
+        }));
+
         Subscription::batch(subs)
     }
 
@@ -259,13 +329,7 @@ pub fn run(db: Database) -> iced::Result {
     });
 
     App::run(Settings {
-        window: iced::window::Settings {
-            size: iced::Size::new(1200.0, 900.0),
-            position: iced::window::Position::Centered,
-            min_size: Some(iced::Size::new(800.0, 600.0)),
-            icon,
-            ..Default::default()
-        },
+        window: window_settings_from_storage(db.connection(), icon),
         flags: Flags { db },
         id: None,
         fonts,

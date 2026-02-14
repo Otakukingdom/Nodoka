@@ -218,6 +218,60 @@ fn test_restore_window_state() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn test_corrupted_window_geometry_is_repaired() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
+    let db = create_test_db()?;
+    let settings = Settings::new(db.connection());
+
+    // Corrupt persisted values.
+    queries::set_metadata(db.connection(), "window_x", "not-an-int")?;
+    queries::set_metadata(db.connection(), "window_y", "200")?;
+    queries::set_metadata(db.connection(), "window_width", "wide")?;
+    queries::set_metadata(db.connection(), "window_height", "600")?;
+
+    assert_eq!(settings.get_window_position()?, None);
+    assert_eq!(settings.get_window_size()?, None);
+
+    // Keys should be cleared so subsequent reads don't keep re-parsing bad data.
+    assert_eq!(queries::get_metadata(db.connection(), "window_x")?, None);
+    assert_eq!(queries::get_metadata(db.connection(), "window_y")?, None);
+    assert_eq!(
+        queries::get_metadata(db.connection(), "window_width")?,
+        None
+    );
+    assert_eq!(
+        queries::get_metadata(db.connection(), "window_height")?,
+        None
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_window_geometry_is_applied_to_app_window_settings() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let settings = Settings::new(db.connection());
+
+    settings.set_window_position(100, 200)?;
+    settings.set_window_size(800, 600)?;
+
+    let win = nodoka::app::window_settings_from_storage(db.connection(), None);
+
+    assert_eq!(win.size, iced::Size::new(800.0, 600.0));
+
+    match win.position {
+        iced::window::Position::Specific(point) => {
+            assert!((point.x - 100.0).abs() < f32::EPSILON);
+            assert!((point.y - 200.0).abs() < f32::EPSILON);
+        }
+        other => return Err(format!("expected specific position, got: {other:?}").into()),
+    }
+
+    Ok(())
+}
+
+#[test]
 fn test_startup_time_reasonable() -> Result<(), Box<dyn Error>> {
     use std::time::Instant;
 

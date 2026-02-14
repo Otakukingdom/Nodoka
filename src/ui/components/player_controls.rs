@@ -1,7 +1,7 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
 use crate::ui::{Message, State};
-use iced::widget::{button, column, container, horizontal_space, row, slider, text};
+use iced::widget::{button, column, container, horizontal_space, row, slider, text, text_input};
 use iced::{Element, Length};
 
 pub fn view(state: &State) -> Element<'static, Message> {
@@ -14,41 +14,9 @@ pub fn view(state: &State) -> Element<'static, Message> {
 
     let play_pause_label = if state.is_playing { "⏸" } else { "▶" };
 
-    let sleep_timer_row = match state.sleep_timer.as_ref().map(|t| t.mode) {
-        None => row![
-            text("Sleep:"),
-            button(text("15m")).on_press(Message::SleepTimerSetDurationSeconds(15 * 60)),
-            button(text("30m")).on_press(Message::SleepTimerSetDurationSeconds(30 * 60)),
-            button(text("45m")).on_press(Message::SleepTimerSetDurationSeconds(45 * 60)),
-            button(text("60m")).on_press(Message::SleepTimerSetDurationSeconds(60 * 60)),
-            button(text("End"))
-                .on_press(Message::SleepTimerSetEndOfChapter)
-                .padding(5),
-        ]
-        .spacing(10),
-        Some(SleepTimerMode::EndOfChapter) => row![
-            text("Sleep:"),
-            text("End of chapter"),
-            horizontal_space(),
-            button(text("Cancel")).on_press(Message::SleepTimerCancel),
-        ]
-        .spacing(10),
-        Some(SleepTimerMode::Duration(_)) => {
-            let remaining = state
-                .sleep_timer
-                .as_ref()
-                .and_then(crate::models::SleepTimer::remaining_seconds)
-                .unwrap_or(0);
-            row![
-                text("Sleep:"),
-                text(format_remaining_seconds(remaining)),
-                horizontal_space(),
-                button(text("+15m")).on_press(Message::SleepTimerExtendSeconds(15 * 60)),
-                button(text("Cancel")).on_press(Message::SleepTimerCancel),
-            ]
-            .spacing(10)
-        }
-    };
+    let sleep_timer_controls = sleep_timer_controls(state);
+
+    let speed_step = speed_step_from_speed(state.speed);
 
     column![
         // Currently playing label
@@ -77,6 +45,11 @@ pub fn view(state: &State) -> Element<'static, Message> {
             horizontal_space(),
             // Speed label and value
             text("Speed:"),
+            text(format!("{:.1}x", state.speed)),
+            slider(5..=20, speed_step, |step| Message::SpeedChanged(
+                speed_from_step(step)
+            ))
+            .width(Length::Fixed(120.0)),
             button(text("0.5x"))
                 .on_press(Message::SpeedChanged(0.5))
                 .padding(5),
@@ -103,10 +76,87 @@ pub fn view(state: &State) -> Element<'static, Message> {
         ]
         .padding(15)
         .spacing(10),
-        container(sleep_timer_row).padding(10)
+        container(sleep_timer_controls).padding(10)
     ]
     .padding(10)
     .into()
+}
+
+fn speed_step_from_speed(speed: f32) -> i32 {
+    let formatted = format!("{speed:.1}");
+    let digits = formatted.replace('.', "");
+    match digits.parse::<i32>() {
+        Ok(v) => v.clamp(5, 20),
+        Err(_e) => 10,
+    }
+}
+
+fn speed_from_step(step: i32) -> f32 {
+    let step_u16 = match u16::try_from(step) {
+        Ok(v) => v,
+        Err(_e) => 10,
+    };
+    let raw = f32::from(step_u16) / 10.0;
+    let formatted = format!("{raw:.1}");
+    formatted.parse::<f32>().ok().unwrap_or(1.0).clamp(0.5, 2.0)
+}
+
+fn sleep_timer_controls(state: &State) -> Element<'static, Message> {
+    match state.sleep_timer.as_ref().map(|t| t.mode) {
+        None => {
+            let presets = row![
+                text("Sleep:"),
+                button(text("15m")).on_press(Message::SleepTimerSetDurationSeconds(15 * 60)),
+                button(text("30m")).on_press(Message::SleepTimerSetDurationSeconds(30 * 60)),
+                button(text("45m")).on_press(Message::SleepTimerSetDurationSeconds(45 * 60)),
+                button(text("60m")).on_press(Message::SleepTimerSetDurationSeconds(60 * 60)),
+                button(text("End"))
+                    .on_press(Message::SleepTimerSetEndOfChapter)
+                    .padding(5),
+            ]
+            .spacing(10);
+
+            let custom = row![
+                text("Custom:"),
+                text_input("minutes", &state.sleep_timer_custom_minutes)
+                    .on_input(Message::SleepTimerCustomMinutesChanged)
+                    .on_submit(Message::SleepTimerCustomSubmit)
+                    .width(Length::Fixed(90.0)),
+                button(text("Set")).on_press(Message::SleepTimerCustomSubmit),
+            ]
+            .spacing(10);
+
+            let mut content = column![presets, custom].spacing(6);
+            if let Some(err) = state.sleep_timer_custom_error.as_deref() {
+                content = content.push(text(err).size(12));
+            }
+            content.into()
+        }
+        Some(SleepTimerMode::EndOfChapter) => row![
+            text("Sleep:"),
+            text("End of chapter"),
+            horizontal_space(),
+            button(text("Cancel")).on_press(Message::SleepTimerCancel),
+        ]
+        .spacing(10)
+        .into(),
+        Some(SleepTimerMode::Duration(_)) => {
+            let remaining = state
+                .sleep_timer
+                .as_ref()
+                .and_then(crate::models::SleepTimer::remaining_seconds)
+                .unwrap_or(0);
+            row![
+                text("Sleep:"),
+                text(format_remaining_seconds(remaining)),
+                horizontal_space(),
+                button(text("+15m")).on_press(Message::SleepTimerExtendSeconds(15 * 60)),
+                button(text("Cancel")).on_press(Message::SleepTimerCancel),
+            ]
+            .spacing(10)
+            .into()
+        }
+    }
 }
 
 fn format_remaining_seconds(secs: i64) -> String {

@@ -213,3 +213,32 @@ fn test_end_of_chapter_sleep_timer_intercepts_auto_advance() {
         &state, false
     ));
 }
+
+#[test]
+fn test_sleep_timer_custom_minutes_submit_sets_duration(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State {
+        sleep_timer_custom_minutes: "17".to_string(),
+        ..State::default()
+    };
+
+    let mut player: Option<Vlc> = None;
+    let _ = update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+
+    let Some(timer) = state.sleep_timer.as_ref() else {
+        return Err("expected active timer".into());
+    };
+    assert!(matches!(
+        timer.mode,
+        SleepTimerMode::Duration(secs) if secs == 17 * 60
+    ));
+    Ok(())
+}

@@ -68,6 +68,10 @@ pub fn update(
             sleep_timer::handle_sleep_timer_extend(state, secs)
         }
         Message::SleepTimerCancel => sleep_timer::handle_sleep_timer_cancel(state, player),
+        Message::SleepTimerCustomMinutesChanged(value) => {
+            sleep_timer::handle_sleep_timer_custom_minutes_changed(state, &value)
+        }
+        Message::SleepTimerCustomSubmit => sleep_timer::handle_sleep_timer_custom_submit(state),
 
         // Shortcut actions
         Message::CreateBookmark => bookmarks::handle_create_bookmark(state, db),
@@ -115,9 +119,46 @@ pub fn update(
         // Lifecycle messages
         Message::InitialLoadComplete => handle_initial_load_complete(state),
 
+        // Window events
+        Message::WindowMoved(x, y) => handle_window_moved(db, x, y),
+        Message::WindowResized(width, height) => handle_window_resized(db, width, height),
+
         // Catch-all for unhandled messages
         _ => Command::none(),
     }
+}
+
+fn handle_window_moved(db: &Database, x: i32, y: i32) -> Command<Message> {
+    let settings = crate::settings::Settings::new(db.connection());
+    if let Err(e) = settings.set_window_position(x, y) {
+        tracing::warn!("Failed to persist window position: {e}");
+    }
+    Command::none()
+}
+
+fn handle_window_resized(db: &Database, width: u32, height: u32) -> Command<Message> {
+    let settings = crate::settings::Settings::new(db.connection());
+
+    let width_i32 = match i32::try_from(width) {
+        Ok(v) => v,
+        Err(_e) => {
+            tracing::warn!("Window resize width out of range: {width}");
+            return Command::none();
+        }
+    };
+    let height_i32 = match i32::try_from(height) {
+        Ok(v) => v,
+        Err(_e) => {
+            tracing::warn!("Window resize height out of range: {height}");
+            return Command::none();
+        }
+    };
+
+    if let Err(e) = settings.set_window_size(width_i32, height_i32) {
+        tracing::warn!("Failed to persist window size: {e}");
+    }
+
+    Command::none()
 }
 
 fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {

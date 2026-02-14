@@ -29,11 +29,59 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
             }
         }
         ShortcutKey::B => {
-            if modifiers.control() && !modifiers.shift() && !modifiers.alt() && !modifiers.logo() {
+            if is_bookmark_modifier(modifiers) {
                 Some(Message::CreateBookmark)
             } else {
                 None
             }
+        }
+    }
+}
+
+fn is_bookmark_modifier(modifiers: Modifiers) -> bool {
+    let no_extra = !modifiers.shift() && !modifiers.alt();
+
+    #[cfg(target_os = "macos")]
+    {
+        // Use Command as the primary modifier on macOS.
+        // Also accept Ctrl for compatibility (e.g. external keyboards).
+        no_extra && (modifiers.logo() || modifiers.control())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        no_extra && modifiers.control() && !modifiers.logo()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_space_without_modifiers_maps_to_play_pause() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::Space, Modifiers::default()),
+            Some(Message::PlayPause)
+        ));
+    }
+
+    #[test]
+    fn test_bookmark_shortcut_requires_expected_modifier() {
+        #[cfg(target_os = "macos")]
+        {
+            assert!(matches!(
+                message_for_key_chord(ShortcutKey::B, Modifiers::LOGO),
+                Some(Message::CreateBookmark)
+            ));
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            assert!(matches!(
+                message_for_key_chord(ShortcutKey::B, Modifiers::CTRL),
+                Some(Message::CreateBookmark)
+            ));
         }
     }
 }
