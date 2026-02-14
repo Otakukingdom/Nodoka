@@ -1,0 +1,27 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_library_organization.rs (target/debug/deps/acceptance_library_organization-af4e46dda978baf0)
+
+running 20 tests
+test test_search_partial_match ... ok
+test test_search_no_results ... ok
+test test_empty_library ... ok
+test test_filter_by_completion_status ... ok
+test test_empty_library_operations ... ok
+test test_filter_in_progress ... ok
+test test_search_by_name_case_insensitive ... ok
+test test_filter_incomplete_only ... ok
+test test_filter_with_no_results ... ok
+test test_search_special_characters ... ok
+test test_sort_by_default_order ... ok
+test test_search_unicode_characters ... ok
+test test_very_long_audiobook_names ... ok
+test test_sort_audiobooks_by_name ... ok
+test test_sort_with_numbers_and_special_chars ... ok
+test test_search_with_special_regex_characters ... ok
+test test_sort_reverse_alphabetical ... ok
+test test_filter_performance_large_library ... ok
+test test_search_performance_large_library ... ok
+test test_sort_performance_large_library ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+

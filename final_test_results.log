@@ -1,36 +1,44 @@
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
      Running unittests src/lib.rs (target/debug/deps/nodoka-90414ba35247e497)
 
 running 71 tests
 test conversions::tests::test_calculate_percentage_invalid_length ... ok
 test conversions::tests::test_calculate_percentage_normal ... ok
 test conversions::tests::test_f64_to_ms_negative ... ok
+test conversions::tests::test_f64_to_ms_normal ... ok
 test conversions::tests::test_ms_to_f64_normal ... ok
 test conversions::tests::test_ms_to_f64_overflow ... ok
-test conversions::tests::test_f64_to_ms_normal ... ok
 test conversions::tests::test_percentage_to_i32_clamping ... ok
 test conversions::tests::test_percentage_to_i32_normal ... ok
 test db::connection::tests::test_database_open_error_types ... ok
 test db::connection::tests::test_connection_provides_access_to_rusqlite ... ok
 test db::connection::tests::test_new_in_memory_creates_database ... ok
 test db::connection::tests::test_get_db_path_returns_valid_path ... ok
-test db::connection::tests::test_database_open_error_on_missing_project_dir ... ok
 test db::schema::tests::test_initialize_creates_all_indices ... ok
 test db::schema::tests::test_initialize_creates_all_tables ... ok
-test player::concrete_player::tests::test_vlc_state_conversion ... ok
 test db::schema::tests::test_initialize_is_idempotent ... ok
+test db::connection::tests::test_database_open_error_on_missing_project_dir ... ok
 test db::schema::tests::test_initialize_file_based_database ... ok
-test player::media_duration::tests::test_wait_for_duration_times_out ... ok
-test player::concrete_player::tests::test_time_retrieval_without_media ... ok
-test player::concrete_player::tests::test_rate_setting ... ok
+test player::concrete_player::tests::test_player_creation ... ok
 test player::concrete_player::tests::test_length_without_media ... ok
-test player::concrete_player::tests::test_volume_setting ... ok
 test player::concrete_player::tests::test_initial_state ... ok
+test player::concrete_player::tests::test_load_nonexistent_media ... ok
+test player::concrete_player::tests::test_rate_setting ... ok
+test player::concrete_player::tests::test_vlc_state_conversion ... ok
 test player::concrete_player::tests::test_set_time_without_media ... ok
 test player::concrete_player::tests::test_stop_without_media ... ok
-test player::concrete_player::tests::test_player_creation ... ok
+test player::concrete_player::tests::test_time_retrieval_without_media ... ok
+test player::concrete_player::tests::test_volume_setting ... ok
+test player::media_duration::tests::test_wait_for_duration_times_out ... ok
+test player::scan_player::tests::test_scanner_creation ... ok
 test player::vlc_env::tests::test_detect_vlc_plugin_path_on_macos ... ok
 test player::vlc_env::tests::test_environment_setup_thread_safety ... ok
+test player::vlc_env::tests::test_setup_runs_before_first_instance_creation_regression ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_does_not_accept_file_as_plugin_path ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_does_not_keep_stale_plugin_path ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_idempotent ... ok
+test player::vlc_env::tests::test_setup_vlc_environment_keeps_multi_entry_plugin_path_if_any_dir_exists ... ok
+test player::vlc_env::tests::test_setup_without_vlc_installed ... ok
 test proxy::audiobook_file_handle::tests::test_file_proxy_completeness ... ok
 test proxy::audiobook_file_handle::tests::test_file_proxy_creation ... ok
 test proxy::audiobook_file_handle::tests::test_file_proxy_data_access ... ok
@@ -45,12 +53,12 @@ test proxy::manager::tests::test_manager_get_audiobook ... ok
 test proxy::manager::tests::test_manager_nonexistent_audiobook ... ok
 test settings::storage::tests::test_current_audiobook_default_value ... ok
 test settings::storage::tests::test_current_audiobook_persistence ... ok
-test player::scan_player::tests::test_scanner_creation ... ok
-test player::vlc_env::tests::test_setup_runs_before_first_instance_creation_regression ... ok
-test settings::storage::tests::test_current_file_persistence ... ok
 test settings::storage::tests::test_current_file_default_value ... ok
+test settings::storage::tests::test_current_file_persistence ... ok
 test settings::storage::tests::test_speed_default_value ... ok
-test player::concrete_player::tests::test_load_nonexistent_media ... ok
+test settings::storage::tests::test_speed_persistence ... ok
+test settings::storage::tests::test_volume_default_value ... ok
+test settings::storage::tests::test_volume_persistence ... ok
 test tasks::archive_handling::tests::test_is_audio_file_false ... ok
 test tasks::archive_handling::tests::test_is_audio_file_true ... ok
 test tasks::archive_handling::tests::test_is_zip_archive_false ... ok
@@ -61,20 +69,12 @@ test ui::state::tests::test_state_loading_flag ... ok
 test ui::state::tests::test_state_mutation ... ok
 test ui::state::tests::test_state_selection ... ok
 test ui::state::tests::test_state_settings_modal ... ok
-test settings::storage::tests::test_volume_default_value ... ok
-test settings::storage::tests::test_speed_persistence ... ok
-test settings::storage::tests::test_volume_persistence ... ok
-test player::vlc_env::tests::test_setup_vlc_environment_does_not_accept_file_as_plugin_path ... ok
-test player::vlc_env::tests::test_setup_vlc_environment_does_not_keep_stale_plugin_path ... ok
 test ui::update::tests::test_handle_file_selected_does_not_change_selection_or_db_on_load_failure ... ok
-test player::vlc_env::tests::test_setup_vlc_environment_idempotent ... ok
-test player::vlc_env::tests::test_setup_vlc_environment_keeps_multi_entry_plugin_path_if_any_dir_exists ... ok
-test player::vlc_env::tests::test_setup_without_vlc_installed ... ok
 test player::scan_player::tests::test_scan_text_file_returns_error ... ok
 test player::media_duration::tests::test_wait_for_duration_returns_when_available ... ok
 test player::scan_player::tests::test_scan_directory_path_returns_error ... ok
 
-test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
 
      Running unittests src/main.rs (target/debug/deps/nodoka-8f796e0056f9e97b)
 
@@ -85,45 +85,45 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/acceptance_app_lifecycle.rs (target/debug/deps/acceptance_app_lifecycle-52e4b482877d2ff9)
 
 running 12 tests
-test test_schema_idempotent ... ok
-test test_database_versioning ... ok
 test test_database_schema_has_required_tables ... ok
-test test_large_library_startup ... ok
+test test_database_versioning ... ok
 test test_first_launch_creates_database ... ok
-test test_restore_window_state ... ok
-test test_subsequent_launches_restore_state ... ok
-test test_graceful_shutdown_saves_progress ... ok
 test test_database_migration_on_version_upgrade ... ok
+test test_graceful_shutdown_saves_progress ... ok
+test test_restore_window_state ... ok
+test test_schema_idempotent ... ok
+test test_large_library_startup ... ok
 test test_startup_time_reasonable ... ok
+test test_subsequent_launches_restore_state ... ok
 test test_large_library_query_performance ... ok
 test test_startup_time_with_1000_audiobooks ... ok
 
-test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
      Running tests/acceptance_archive_support.rs (target/debug/deps/acceptance_archive_support-72598f58a93f79ec)
 
 running 22 tests
-test test_non_zip_files_not_detected ... ok
-test test_temp_files_cleanup_on_app_exit ... ok
-test test_zip_file_name_becomes_audiobook_name ... ok
 test test_cleanup_nonexistent_directory ... ok
-test test_zip_files_detected_as_archives ... ok
+test test_cleanup_temp_files ... ok
 test test_corrupted_zip_shows_error ... ok
 test test_corrupted_zip_file_handling ... ok
-test test_cleanup_temp_files ... ok
 test test_empty_zip_file ... ok
+test test_non_zip_files_not_detected ... ok
 test test_password_protected_zip_error ... ok
+test test_temp_files_cleanup_on_app_exit ... ok
 test test_extract_zip_with_audio_files ... ok
-test test_zip_playback_progress_tracked ... ok
+test test_zip_file_name_becomes_audiobook_name ... ok
+test test_zip_files_detected_as_archives ... ok
+test test_extract_preserves_file_structure ... ok
 test test_zip_extraction_creates_necessary_directories ... ok
+test test_zip_playback_progress_tracked ... ok
+test test_zip_with_deeply_nested_structure ... ok
+test test_zip_with_mixed_content ... ok
 test test_zip_with_no_audio_files ... ok
 test test_zip_with_nested_directories ... ok
-test test_extract_preserves_file_structure ... ok
 test test_zip_with_non_audio_files_ignored ... ok
-test test_zip_with_mixed_content ... ok
-test test_zip_with_very_long_filename ... ok
 test test_zip_with_unicode_filenames ... ok
-test test_zip_with_deeply_nested_structure ... ok
+test test_zip_with_very_long_filename ... ok
 test test_large_zip_memory_handling ... ok
 
 test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
@@ -132,40 +132,40 @@ test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 
 running 36 tests
 test test_aac_files_detected ... ok
-test test_flac_files_detected ... ok
-test test_m4b_files_detected ... ok
-test test_m4a_files_detected ... ok
-test test_mp3_files_detected ... ok
-test test_files_with_incorrect_extensions ... ok
 test test_empty_folders_no_audiobooks ... ok
-test test_audiobook_name_from_folder ... ok
 test test_aac_files_detected_by_scanner ... ok
-test test_hidden_files_ignored ... ok
+test test_audiobook_name_from_folder ... ok
 test test_case_insensitive_extensions ... ok
+test test_flac_files_detected ... ok
+test test_files_with_incorrect_extensions ... ok
+test test_m4a_files_detected ... ok
+test test_m4b_files_detected ... ok
+test test_hidden_files_ignored ... ok
+test test_files_sorted_naturally ... ok
+test test_mp3_files_detected ... ok
+test test_mixed_content_folders ... ok
+test test_files_marked_as_missing_when_deleted ... ok
+test test_mixed_format_audiobook ... ok
+test test_multi_disc_audiobooks ... ok
 test test_ogg_files_detected ... ok
 test test_opus_files_detected ... ok
-test test_files_marked_as_missing_when_deleted ... ok
-test test_files_sorted_naturally ... ok
-test test_mixed_content_folders ... ok
-test test_mixed_format_audiobook ... ok
-test test_multi_disc_audiobooks_structure ... ok
-test test_multi_disc_audiobooks ... ok
-test test_nested_subdirectories ... ok
-test test_non_audio_files_ignored ... ok
-test test_wav_files_detected ... ok
-test test_wma_files_detected ... ok
-test test_rescanning_preserves_playback_progress ... ok
 test test_opus_files_detected_by_scanner ... ok
+test test_multi_disc_audiobooks_structure ... ok
+test test_non_audio_files_ignored ... ok
+test test_nested_subdirectories ... ok
 test test_single_file_audiobook ... ok
+test test_rescanning_preserves_playback_progress ... ok
+test test_rescanning_updates_library ... ok
+test test_recursive_scanning_discovers_all_files ... ok
 test test_special_characters_in_names ... ok
 test test_unicode_in_filenames ... ok
-test test_wav_files_detected_by_scanner ... ok
-test test_very_long_filenames ... ok
-test test_recursive_scanning_discovers_all_files ... ok
-test test_rescanning_updates_library ... ok
+test test_wav_files_detected ... ok
 test test_symbolic_links_handling ... ok
-test test_wma_files_detected_by_scanner ... ok
+test test_very_long_filenames ... ok
+test test_wma_files_detected ... ok
 test test_various_audio_formats_detected ... ok
+test test_wav_files_detected_by_scanner ... ok
+test test_wma_files_detected_by_scanner ... ok
 test test_zero_byte_files_ignored ... ok
 
 test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
@@ -173,22 +173,22 @@ test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
      Running tests/acceptance_bookmarks.rs (target/debug/deps/acceptance_bookmarks-0f0b038cc00531e2)
 
 running 18 tests
-test test_bookmarks_per_audiobook_isolated ... ok
-test test_bookmark_very_long_label ... ok
-test test_bookmark_file_path_tracked ... ok
-test test_bookmark_position_beyond_file_duration ... ok
 test test_bookmark_negative_position_rejected ... ok
-test test_bookmark_with_label_and_note ... ok
+test test_bookmark_empty_label ... ok
+test test_bookmark_file_path_tracked ... ok
 test test_bookmark_in_deleted_file ... ok
 test test_bookmark_unicode_in_label ... ok
 test test_bookmark_position_stored_accurately ... ok
+test test_bookmark_position_beyond_file_duration ... ok
+test test_bookmark_very_long_label ... ok
+test test_bookmark_with_label_and_note ... ok
 test test_bookmark_without_note ... ok
-test test_bookmark_empty_label ... ok
-test test_multiple_bookmarks_same_audiobook ... ok
-test test_delete_bookmark ... ok
+test test_bookmarks_per_audiobook_isolated ... ok
 test test_create_bookmark_at_position ... ok
+test test_delete_bookmark ... ok
 test test_duplicate_bookmarks_same_position ... ok
 test test_edit_bookmark_label_and_note ... ok
+test test_multiple_bookmarks_same_audiobook ... ok
 test test_bookmarks_persist_across_restarts ... ok
 test test_bookmarks_listed_chronologically ... ok
 
@@ -197,19 +197,19 @@ test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
      Running tests/acceptance_completion_management.rs (target/debug/deps/acceptance_completion_management-4b5a65cb00c22721)
 
 running 15 tests
-test test_completion_boundary_at_100_percent ... ok
-test test_manually_mark_complete ... ok
-test test_audiobook_marked_complete_automatically ... ok
-test test_partial_completion_percentage ... ok
 test test_completion_over_100_percent_capped ... ok
-test test_manually_mark_complete_mid_playback ... ok
+test test_completion_negative_value_handled ... ok
+test test_audiobook_marked_complete_automatically ... ok
+test test_completion_boundary_at_100_percent ... ok
 test test_completion_percentage_calculated ... ok
 test test_completion_with_zero_length_files ... ok
-test test_completion_negative_value_handled ... ok
-test test_filter_by_completion_status ... ok
 test test_completion_with_missing_files ... ok
+test test_filter_by_completion_status ... ok
+test test_manually_mark_complete ... ok
+test test_manually_mark_complete_mid_playback ... ok
 test test_completion_status_persists ... ok
 test test_reset_preserves_audiobook_metadata ... ok
+test test_partial_completion_percentage ... ok
 test test_unmark_completed ... ok
 test test_reset_progress_clears_completion ... ok
 
@@ -219,14 +219,14 @@ test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 
 running 11 tests
 test test_cover_detection_case_insensitive ... ok
-test test_cover_priority_order ... ok
-test test_multiple_image_formats_supported ... ok
-test test_various_image_extensions ... ok
 test test_corrupted_image_handled ... ok
 test test_cover_cache_directory_concept ... ok
 test test_cover_from_folder_png ... ok
-test test_default_placeholder_when_no_cover ... ok
+test test_cover_priority_order ... ok
 test test_cover_from_folder_jpg ... ok
+test test_multiple_image_formats_supported ... ok
+test test_various_image_extensions ... ok
+test test_default_placeholder_when_no_cover ... ok
 test test_cover_in_nested_directory ... ok
 test test_large_image_exists ... ok
 
@@ -236,270 +236,270 @@ test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 
 running 11 tests
 test test_empty_path_handling ... ok
-test test_macos_path_format ... ok
-test test_special_characters_in_path ... ok
-test test_path_with_double_separators ... ok
-test test_path_with_trailing_separator ... ok
-test test_file_paths_with_unicode ... ok
-test test_relative_vs_absolute_paths ... ok
 test test_case_sensitivity_handling ... ok
-test test_path_separators_normalized ... ok
 test test_absolute_paths_stored_correctly ... ok
 test test_file_paths_with_spaces ... ok
+test test_file_paths_with_unicode ... ok
+test test_macos_path_format ... ok
+test test_path_with_double_separators ... ok
+test test_path_separators_normalized ... ok
+test test_path_with_trailing_separator ... ok
+test test_relative_vs_absolute_paths ... ok
+test test_special_characters_in_path ... ok
 
 test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/acceptance_error_handling.rs (target/debug/deps/acceptance_error_handling-7435e116fc20f978)
 
 running 21 tests
-test test_error_messages_are_readable ... ok
-test test_invalid_database_path_handled ... ok
-test test_missing_file_in_audiobook ... ok
-test test_database_errors_return_result ... ok
 test test_concurrent_database_access ... ok
-test test_invalid_directory_path_handled ... ok
-test test_null_bytes_in_strings_handled ... ok
+test test_error_messages_are_readable ... ok
+test test_database_errors_return_result ... ok
+test test_invalid_database_path_handled ... ok
 test test_empty_string_inputs_handled ... ok
-test test_network_path_errors_handled ... ok
-test test_progress_save_error_recovery ... ok
-test test_extremely_deep_path_nesting ... ok
 test test_concurrent_database_writes ... ok
-test test_readonly_database_error ... ok
-test test_very_long_paths_handled ... ok
+test test_extremely_deep_path_nesting ... ok
+test test_invalid_directory_path_handled ... ok
+test test_missing_file_in_audiobook ... ok
+test test_network_path_errors_handled ... ok
+test test_null_bytes_in_strings_handled ... ok
+test test_progress_save_error_recovery ... ok
 test test_special_characters_in_paths ... ok
+test test_readonly_database_error ... ok
 test test_unicode_error_messages ... ok
 test test_very_long_metadata_strings ... ok
-test test_vlc_not_installed_error_message ... ok
+test test_very_long_paths_handled ... ok
 test test_missing_vlc_handled_gracefully ... ok
+test test_vlc_not_installed_error_message ... ok
 test test_nonexistent_file_handled ... ok
 test test_unplayable_file_shows_error ... ok
 
-test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
 
      Running tests/acceptance_library_management.rs (target/debug/deps/acceptance_library_management-5f7d236def6a4335)
 
 running 9 tests
-test test_last_scanned_timestamp_updates ... ok
-test test_remove_directory_removes_audiobooks ... ok
 test test_add_directory_via_database ... ok
+test test_directory_with_special_characters ... ok
 test test_duplicate_directory_rejected ... ok
 test test_empty_directories_handled ... ok
-test test_directory_with_special_characters ... ok
-test test_nonexistent_directory_can_be_added ... ok
+test test_last_scanned_timestamp_updates ... ok
 test test_directories_persist_across_restarts ... ok
+test test_nonexistent_directory_can_be_added ... ok
 test test_directory_removal_is_persisted ... ok
+test test_remove_directory_removes_audiobooks ... ok
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/acceptance_library_organization.rs (target/debug/deps/acceptance_library_organization-af4e46dda978baf0)
 
 running 20 tests
-test test_empty_library_operations ... ok
-test test_empty_library ... ok
-test test_search_partial_match ... ok
-test test_search_by_name_case_insensitive ... ok
 test test_filter_in_progress ... ok
-test test_search_special_characters ... ok
-test test_search_no_results ... ok
+test test_empty_library_operations ... ok
 test test_filter_by_completion_status ... ok
-test test_filter_with_no_results ... ok
+test test_empty_library ... ok
 test test_filter_incomplete_only ... ok
+test test_filter_with_no_results ... ok
+test test_search_by_name_case_insensitive ... ok
+test test_search_no_results ... ok
+test test_search_partial_match ... ok
+test test_search_special_characters ... ok
 test test_search_unicode_characters ... ok
+test test_search_with_special_regex_characters ... ok
 test test_sort_audiobooks_by_name ... ok
 test test_sort_by_default_order ... ok
-test test_search_with_special_regex_characters ... ok
-test test_very_long_audiobook_names ... ok
 test test_sort_reverse_alphabetical ... ok
 test test_sort_with_numbers_and_special_chars ... ok
-test test_search_performance_large_library ... ok
+test test_very_long_audiobook_names ... ok
 test test_filter_performance_large_library ... ok
+test test_search_performance_large_library ... ok
 test test_sort_performance_large_library ... ok
 
-test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
      Running tests/acceptance_metadata.rs (target/debug/deps/acceptance_metadata-8c54a233b8ca281c)
 
 running 17 tests
 test test_long_metadata_strings ... ok
+test test_metadata_caching ... ok
+test test_metadata_empty_strings ... ok
 test test_metadata_encoding ... ok
 test test_metadata_fields_optional ... ok
-test test_metadata_unicode_encoding ... ok
-test test_total_audiobook_duration ... ok
-test test_zero_duration_handled ... ok
-test test_metadata_empty_strings ... ok
-test test_metadata_caching ... ok
+test test_metadata_newlines_and_tabs ... ok
 test test_metadata_persistence ... ok
+test test_metadata_unicode_encoding ... ok
 test test_metadata_with_null_bytes ... ok
 test test_metadata_with_very_long_strings ... ok
-test test_metadata_newlines_and_tabs ... ok
-[mp3 @ 0xba9288c00] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xba9288000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xba9288600] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xba9289200] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xba9289800] Failed to read frame size: Could not seek to 1039.
-test test_file_properties_extraction ... ok
+[mp3 @ 0xbfcd44000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0xbfcd45200] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0xbfcd44600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0xbfcd44c00] Failed to read frame size: Could not seek to 1039.
 test test_extract_duration ... ok
-test test_missing_metadata_handled ... ok
-[mov,mp4,m4a,3gp,3g2,mj2 @ 0xba9288000] moov atom not found
+[mp3 @ 0xbfcd44000] Failed to read frame size: Could not seek to 1039.
+test test_file_properties_extraction ... ok
+test test_total_audiobook_duration ... ok
 test test_duration_calculation ... ok
+test test_zero_duration_handled ... ok
+test test_missing_metadata_handled ... ok
+[mov,mp4,m4a,3gp,3g2,mj2 @ 0xbfd116a00] moov atom not found
 test test_multiple_format_metadata ... ok
 
-test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
 
      Running tests/acceptance_multifile_navigation.rs (target/debug/deps/acceptance_multifile_navigation-7b112eaf6d6a84f8)
 
 running 16 tests
 test test_current_file_tracking ... ok
-test test_first_file_detection ... ok
-test test_last_file_detection ... ok
-test test_files_sorted_in_list ... ok
 test test_file_order_maintained ... ok
-test test_file_progress_independent ... ok
-test test_position_resets_on_file_change ... ok
 test test_auto_advance_logic ... ok
 test test_file_list_shows_all_files ... ok
-test test_next_file_navigation ... ok
-test test_natural_sort_order ... ok
+test test_file_progress_independent ... ok
+test test_first_file_detection ... ok
+test test_files_sorted_in_list ... ok
+test test_last_file_detection ... ok
 test test_last_file_no_auto_advance ... ok
-test test_single_file_audiobook_navigation ... ok
-test test_switching_between_files ... ok
-test test_previous_button_threshold_behavior ... ok
+test test_natural_sort_order ... ok
+test test_next_file_navigation ... ok
+test test_position_resets_on_file_change ... ok
 test test_previous_file_navigation ... ok
+test test_single_file_audiobook_navigation ... ok
+test test_previous_button_threshold_behavior ... ok
+test test_switching_between_files ... ok
 
 test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/acceptance_playback_controls.rs (target/debug/deps/acceptance_playback_controls-0e5d90a71f31d3b8)
 
 running 33 tests
+[mp3 @ 0x950edd200] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edd800] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edcc00] Failed to read frame size: Could not seek to 1039.
+[00000009511b33b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[00000009511b31f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b3570] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+test test_get_total_duration ... ok
+test test_get_current_time ... ok
 test test_keyboard_shortcuts_documented ... ok
-test test_playback_state_values ... ok
-[mp3 @ 0xc5ae28c00] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae29200] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae80630] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[0000000c5ae807f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae809b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae81430] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae80630] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae80ef0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28c00] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae810b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28c00] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae815f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae80b70] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ae802b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
 test test_invalid_file_handled_gracefully ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b15f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_get_duration ... ok
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b07f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b0ef0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_play_starts_playback ... ok
+test test_playback_state_values ... ok
+test test_current_time_updates_during_playback ... ok
+test test_playback_state_indicators ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b1970] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b2930] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b1cf0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_seek_beyond_duration_handled ... ok
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b2930] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+test test_pause_maintains_position ... ok
 test test_speed_above_maximum ... ok
 test test_speed_below_minimum ... ok
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad86070] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-test test_play_starts_playback ... ok
-test test_playback_state_indicators ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b23f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_seek_to_position ... ok
 test test_speed_changes_no_crashes ... ok
 test test_speed_custom_entry ... ok
 test test_speed_increments ... ok
-test test_seek_beyond_duration_handled ... ok
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad878f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad86cb0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b1970] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+test test_speed_changes_during_playback ... ok
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b1b30] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_seek_to_specific_position ... ok
 test test_speed_persists_per_audiobook ... ok
 test test_speed_presets_all_defined ... ok
 test test_speed_presets_available ... ok
 test test_speed_range_05x_to_20x ... ok
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad84630] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-test test_speed_changes_during_playback ... ok
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad863f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b17b0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+test test_speed_instant_application ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b2930] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
 test test_speed_persists_across_files ... ok
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad87c70] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-test test_get_total_duration ... ok
-test test_get_duration ... ok
-test test_get_current_time ... ok
-test test_seek_to_position ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
+[00000009511b23f0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+test test_volume_adjusts_during_playback ... ok
 test test_volume_at_zero_vs_muted ... ok
 test test_volume_boundary_values ... ok
-[mp3 @ 0xc5ae28000] Failed to read frame size: Could not seek to 1039.
-[mp3 @ 0xc5ae28600] Failed to read frame size: Could not seek to 1039.
-[0000000c5ad87730] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
-test test_volume_range_0_to_200 ... ok
-test test_speed_instant_application ... ok
-test test_seek_to_specific_position ... ok
-test test_volume_persists_across_files ... ok
-test test_volume_adjusts_during_playback ... ok
-test test_pause_maintains_position ... ok
-test test_current_time_updates_during_playback ... ok
-test test_stop_stops_playback ... ok
-test test_stop_resets_position_to_beginning ... ok
+[mp3 @ 0x950edc000] Failed to read frame size: Could not seek to 1039.
+[00000009511b1cf0] avcodec demux error: Could not open /Users/mistlight/Projects/Nodoka/wt-004-acceptance/tests/fixtures/audio/sample_mp3.mp3: Invalid argument
+[mp3 @ 0x950edc600] Failed to read frame size: Could not seek to 1039.
 test test_rapid_play_pause_toggling ... ok
+test test_volume_range_0_to_200 ... ok
+test test_stop_stops_playback ... ok
+test test_volume_persists_across_files ... ok
+test test_stop_resets_position_to_beginning ... ok
 
-test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.02s
 
      Running tests/acceptance_progress_tracking.rs (target/debug/deps/acceptance_progress_tracking-9deeb69b8da20a5c)
 
 running 12 tests
-test test_selected_file_tracking ... ok
-test test_file_position_precision ... ok
-test test_reset_progress_clears_all ... ok
-test test_progress_saved_on_file_update ... ok
+test test_completeness_percentage_tracked ... ok
 test test_independent_progress_per_file ... ok
+test test_file_position_precision ... ok
 test test_multiple_audiobooks_independent_progress ... ok
 test test_periodic_auto_save_simulation ... ok
+test test_progress_saved_on_file_update ... ok
+test test_crash_recovery_via_periodic_save ... ok
 test test_progress_with_multiple_files ... ok
-test test_completeness_percentage_tracked ... ok
+test test_reset_progress_clears_all ... ok
+test test_selected_file_tracking ... ok
 test test_progress_persists_across_restarts ... ok
 test test_selected_file_persists_across_restarts ... ok
-test test_crash_recovery_via_periodic_save ... ok
 
-test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/acceptance_settings.rs (target/debug/deps/acceptance_settings-cb18ed17efb8a31c)
 
 running 18 tests
-test test_settings_reset_to_defaults ... ok
-test test_max_volume_allowed ... ok
 test test_current_audiobook_storage ... ok
 test test_current_file_storage ... ok
-test test_invalid_volume_string ... ok
-test test_settings_have_defaults ... ok
 test test_invalid_speed_string ... ok
+test test_invalid_volume_string ... ok
+test test_max_volume_allowed ... ok
 test test_multiple_settings_independent ... ok
+test test_settings_have_defaults ... ok
 test test_settings_changes_immediate ... ok
-test test_zero_volume_allowed ... ok
-test test_volume_validation_range ... ok
-test test_speed_validation_range ... ok
-test test_speed_persists ... ok
+test test_settings_reset_to_defaults ... ok
 test test_settings_persist_across_restarts ... ok
+test test_speed_persists ... ok
+test test_speed_validation_range ... ok
 test test_volume_persists ... ok
+test test_volume_validation_range ... ok
+test test_zero_volume_allowed ... ok
 test test_volume_above_maximum_handling ... ok
-test test_negative_volume_handling ... ok
 test test_extreme_speed_values ... ok
+test test_negative_volume_handling ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
      Running tests/acceptance_sleep_timer.rs (target/debug/deps/acceptance_sleep_timer-d4f84e5812059308)
 
@@ -507,23 +507,23 @@ running 18 tests
 test test_create_timer_with_duration ... ok
 test test_custom_fade_duration ... ok
 test test_end_of_chapter_mode_single_file ... ok
-test test_end_of_chapter_mode ... ok
 test test_predefined_durations ... ok
+test test_end_of_chapter_mode ... ok
 test test_remaining_time_calculation ... ok
+test test_multiple_timer_instances ... ok
+test test_short_duration_timer ... ok
+test test_remaining_time_bottoms_at_zero ... ok
+test test_remaining_time_decreases ... ok
 test test_timer_fade_duration_zero ... ok
 test test_timer_fade_longer_than_duration ... ok
 test test_timer_mode_equality ... ok
 test test_timer_started_at_timestamp ... ok
 test test_timer_very_long_duration ... ok
 test test_timer_zero_duration ... ok
-test test_multiple_timer_instances ... ok
-test test_short_duration_timer ... ok
 test test_timer_expiration_boundary ... ok
-test test_remaining_time_bottoms_at_zero ... ok
-test test_remaining_time_decreases ... ok
 test test_timer_countdown ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.01s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.51s
 
      Running tests/acceptance_support.rs (target/debug/deps/acceptance_support-8f858123b461b292)
 
@@ -548,31 +548,31 @@ test test_documented_initialization_sequence_from_main ... ok
 test test_early_vlc_setup_prevents_init_failures ... ok
 test test_vlc_environment_setup_before_player_creation ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
      Running tests/database_tests.rs (target/debug/deps/database_tests-b246eff473e7e448)
 
 running 9 tests
-test test_directory_crud_operations ... ok
-test test_metadata_operations ... ok
 test test_audiobook_crud_operations ... ok
-test test_cascade_delete_directory ... ok
-test test_count_operations ... ok
 test test_audiobook_file_crud_operations ... ok
+test test_cascade_delete_directory ... ok
 test test_audiobook_progress_operations ... ok
-test test_database_initialization_idempotency ... ok
+test test_directory_crud_operations ... ok
+test test_count_operations ... ok
+test test_metadata_operations ... ok
 test test_database_initialize_succeeds_on_file_database ... ok
+test test_database_initialization_idempotency ... ok
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/e2e_tests.rs (target/debug/deps/e2e_tests-d719724d2308504f)
 
 running 5 tests
-test test_settings_persistence_workflow ... ok
+test test_add_directory_workflow ... ok
 test test_directory_removal_workflow ... ok
 test test_playback_progress_workflow ... ok
-test test_add_directory_workflow ... ok
 test test_multi_file_audiobook_workflow ... ok
+test test_settings_persistence_workflow ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
@@ -586,9 +586,9 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/models_tests.rs (target/debug/deps/models_tests-77ce3bb9a4d2ddc0)
 
 running 6 tests
+test test_audiobook_file_complete ... ok
 test test_audiobook_file_completeness_calculation ... ok
 test test_audiobook_file_no_progress ... ok
-test test_audiobook_file_complete ... ok
 test test_audiobook_is_complete ... ok
 test test_audiobook_file_serialization ... ok
 test test_audiobook_serialization ... ok
@@ -598,64 +598,64 @@ test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/player_tests.rs (target/debug/deps/player_tests-7eeae2832a76e6b3)
 
 running 8 tests
-test test_scanner_creation_integration ... ok
 test test_player_creation_integration ... ok
-test test_player_length_without_media ... ok
-test test_player_time_operations ... ok
-test test_player_state_transitions ... ok
 test test_player_rate_persistence ... ok
+test test_player_length_without_media ... ok
+test test_player_state_transitions ... ok
+test test_player_time_operations ... ok
+test test_scanner_creation_integration ... ok
 test test_player_volume_persistence ... ok
 test test_multiple_players ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
      Running tests/proxy_integration_tests.rs (target/debug/deps/proxy_integration_tests-1928b95b043695e7)
 
 running 7 tests
-test test_proxy_manager_get_audiobook ... ok
 test test_proxy_manager_caching_behavior ... ok
-test test_proxy_manager_initialization ... ok
-test test_proxy_refresh_after_database_changes ... ok
-test test_proxy_manager_cache_clear ... ok
 test test_audiobook_proxy_with_files ... ok
+test test_proxy_manager_cache_clear ... ok
 test test_audiobook_proxy_completeness_calculation ... ok
+test test_proxy_manager_initialization ... ok
+test test_proxy_manager_get_audiobook ... ok
+test test_proxy_refresh_after_database_changes ... ok
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/scanning_integration_tests.rs (target/debug/deps/scanning_integration_tests-92dac1af8afcc58d)
 
 running 7 tests
-test test_empty_directory_handling ... ok
-test test_nested_directory_handling ... ok
 test test_directory_with_files ... ok
+test test_empty_directory_handling ... ok
 test test_directory_insertion_and_retrieval ... ok
-test test_multiple_directory_scanning ... ok
-test test_directory_update_last_scanned ... ok
 test test_directory_deletion ... ok
+test test_directory_update_last_scanned ... ok
+test test_multiple_directory_scanning ... ok
+test test_nested_directory_handling ... ok
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
      Running tests/settings_tests.rs (target/debug/deps/settings_tests-f7f20f2d6f4cbbc1)
 
 running 6 tests
-test test_settings_defaults ... ok
-test test_settings_volume_persistence ... ok
 test test_settings_persistence_across_instances ... ok
-test test_settings_current_file ... ok
 test test_settings_current_audiobook ... ok
+test test_settings_defaults ... ok
+test test_settings_current_file ... ok
 test test_settings_speed_persistence ... ok
+test test_settings_volume_persistence ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
      Running tests/tasks_tests.rs (target/debug/deps/tasks_tests-c3ca396abf2c389a)
 
 running 4 tests
 test test_checksum_nonexistent_file ... ok
-test test_checksum_empty_file ... ok
 test test_checksum_calculation ... ok
+test test_checksum_empty_file ... ok
 test test_checksum_large_file ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
      Running tests/test_support.rs (target/debug/deps/test_support-326b533fa1633ca4)
 
@@ -666,38 +666,38 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/vlc_initialization_tests.rs (target/debug/deps/vlc_initialization_tests-ef34c73bd409ff3a)
 
 running 6 tests
+test test_setup_vlc_environment_respects_existing_plugin_path ... ok
 test test_setup_vlc_environment_sets_plugin_path_when_detectable_on_macos ... ok
-test test_vlc_player_new_smoke_when_vlc_available ... ok
 test test_verify_vlc_available ... ok
 test test_vlc_initialization_order_prevents_failures ... ok
 test test_vlc_initialization_with_invalid_plugin_path ... ok
-test test_setup_vlc_environment_respects_existing_plugin_path ... ok
+test test_vlc_player_new_smoke_when_vlc_available ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
 
    Doc-tests nodoka
 
 running 20 tests
+test src/conversions.rs - conversions::f64_to_ms (line 138) - compile ... ok
+test src/app.rs - app (line 16) - compile ... ok
+test src/conversions.rs - conversions::calculate_percentage (line 210) - compile ... ok
+test src/conversions.rs - conversions::ms_to_f64 (line 94) - compile ... ok
+test src/db/mod.rs - db (line 22) - compile ... ok
+test src/conversions.rs - conversions::percentage_to_i32 (line 180) - compile ... ok
+test src/db/connection.rs - db::connection::Database::open (line 34) - compile ... ok
+test src/db/schema.rs - db::schema::initialize (line 34) - compile ... ok
 test src/lib.rs - contributing (line 342) - compile ... ok
 test src/lib.rs - contributing (line 360) - compile ... ok
 test src/lib.rs - (line 110) - compile ... ok
-test src/conversions.rs - conversions::calculate_percentage (line 210) - compile ... ok
-test src/conversions.rs - conversions::percentage_to_i32 (line 180) - compile ... ok
-test src/db/mod.rs - db (line 22) - compile ... ok
 test src/lib.rs - contributing (line 349) - compile ... ok
-test src/db/schema.rs - db::schema::initialize (line 34) - compile ... ok
-test src/conversions.rs - conversions::f64_to_ms (line 138) - compile ... ok
 test src/lib.rs - (line 123) - compile ... ok
-test src/app.rs - app (line 16) - compile ... ok
-test src/conversions.rs - conversions::ms_to_f64 (line 94) - compile ... ok
 test src/lib.rs - contributing (line 389) - compile ... ok
-test src/db/connection.rs - db::connection::Database::open (line 34) - compile ... ok
-test src/player/vlc_env.rs - player::vlc_env (line 16) - compile ... ok
 test src/player/mod.rs - player (line 15) - compile ... ok
-test src/player/vlc_env.rs - player::vlc_env::verify_vlc_available (line 162) - compile ... ok
+test src/player/vlc_env.rs - player::vlc_env (line 16) - compile ... ok
 test src/player/mod.rs - player (line 44) - compile ... ok
+test src/player/vlc_env.rs - player::vlc_env::verify_vlc_available (line 162) - compile ... ok
 test src/settings/mod.rs - settings (line 16) - compile ... ok
 test src/tasks/mod.rs - tasks (line 16) - compile ... ok
 
-test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
 

@@ -1,0 +1,25 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/acceptance_bookmarks.rs (target/debug/deps/acceptance_bookmarks-0f0b038cc00531e2)
+
+running 18 tests
+test test_bookmark_position_beyond_file_duration ... ok
+test test_bookmark_position_stored_accurately ... ok
+test test_bookmark_with_label_and_note ... ok
+test test_bookmark_negative_position_rejected ... ok
+test test_bookmark_file_path_tracked ... ok
+test test_bookmark_without_note ... ok
+test test_bookmark_unicode_in_label ... ok
+test test_bookmark_empty_label ... ok
+test test_bookmarks_per_audiobook_isolated ... ok
+test test_bookmark_in_deleted_file ... ok
+test test_bookmark_very_long_label ... ok
+test test_duplicate_bookmarks_same_position ... ok
+test test_delete_bookmark ... ok
+test test_create_bookmark_at_position ... ok
+test test_edit_bookmark_label_and_note ... ok
+test test_multiple_bookmarks_same_audiobook ... ok
+test test_bookmarks_persist_across_restarts ... ok
+test test_bookmarks_listed_chronologically ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
