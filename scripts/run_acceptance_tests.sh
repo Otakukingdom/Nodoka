@@ -146,8 +146,8 @@ $(echo -e "$CATEGORY_RESULTS")
 
 SPECIFICATION COVERAGE
 ----------------------
-See tests/COVERAGE_REPORT.md for detailed mapping of 
-acceptance criteria to test implementations.
+This repository enforces a fully automated acceptance suite (no manual testing).
+For the suite overview and category mapping, see tests/acceptance_tests.rs.
 
 CODE QUALITY
 ------------
@@ -157,9 +157,9 @@ Build Status: Success
 
 PERFORMANCE
 -----------
-Startup Time: <3s (requirement met)
-Search Performance: <100ms (requirement met)
-Test Execution Time: ~5 seconds total
+Performance-related acceptance checks are enforced by the test suite
+(notably acceptance_library_organization and acceptance_app_lifecycle).
+Wall-clock thresholds are intentionally conservative to avoid CI flakiness.
 
 AUDIO FORMAT SUPPORT
 --------------------
@@ -170,7 +170,7 @@ PRODUCTION READINESS
 --------------------
 ✅ All automated tests passing
 ✅ Zero code quality issues
-✅ Performance requirements met
+✅ Performance acceptance checks enforced by tests
 ✅ All audio formats supported
 
 Status: PRODUCTION READY

@@ -206,7 +206,7 @@
 //! cargo test --all                  # All tests
 //! ```
 //!
-//! See `tests/COVERAGE_REPORT.md` for detailed test coverage documentation.
+//! See `tests/acceptance_tests.rs` for the acceptance suite overview.
 //!
 //! ## License
 //!
@@ -277,7 +277,8 @@ pub use error::{Error, Result};
 /// - **290 automated tests** covering all 18 feature categories
 /// - Acceptance suite is fully automated (no manual testing)
 /// - **9 audio formats tested**: MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA
-/// - **Performance validated**: Startup <3s, search <100ms with 1000+ audiobooks
+/// - **Performance validated**: Large-library operations are bounded by conservative,
+///   CI-friendly wall-clock thresholds in acceptance tests
 /// - **Cross-platform**: Tests run on Windows, macOS, and Linux
 ///
 /// Run acceptance tests:

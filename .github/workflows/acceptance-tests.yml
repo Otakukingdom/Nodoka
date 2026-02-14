@@ -118,7 +118,7 @@ jobs:
           echo "Acceptance Test Coverage Report";
           echo "Generated: $(date)";
           echo;
-          echo "Details: see tests/COVERAGE_REPORT.md";
+          echo "Details: see tests/acceptance_tests.rs";
           echo;
           echo "Status: PRODUCTION READY";
         } > COVERAGE_SUMMARY.txt

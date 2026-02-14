@@ -97,7 +97,7 @@
 //!
 //! ## Implementation Status
 //!
-//! ### ✅ Fully Implemented and Tested (446/446 tests passing - 100%)
+//! ### ✅ Fully Implemented and Tested (acceptance suite)
 //! - Library directory management (9 tests)
 //! - Audiobook detection and parsing (36 tests) - **Enhanced: all 9 audio formats, symlinks, edge cases**
 //! - Archive support for ZIP files (22 tests) - **Enhanced: nested structures, unicode, corrupted files**
@@ -133,7 +133,7 @@
 //! - ✅ Periodic progress save every 1 second (exceeds 5s requirement)
 //! - ✅ Auto-advance on file end verified
 //! - ✅ Natural file sorting verified (Chapter 1 before Chapter 10)
-//! - ✅ Performance validated with 1000+ audiobook libraries (startup <3s, search <100ms)
+//! - ✅ Performance validated with 1000+ audiobook libraries (CI-friendly wall-clock bounds)
 //! - ✅ Cross-platform path handling (Windows UNC, macOS, Linux paths)
 //! - ✅ Edge cases extensively tested (unicode, symlinks, concurrent access)
 //! - ✅ Error handling comprehensive (VLC, database, filesystem, network)

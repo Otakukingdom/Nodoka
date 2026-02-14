@@ -222,14 +222,6 @@ else
     check_fail "RELEASE_NOTES_v0.2.0.md not found"
 fi
 
-# Check manual testing guide
-echo -n "Checking manual testing guide... "
-if [ -f "MANUAL_TESTING_GUIDE.md" ]; then
-    check_pass "MANUAL_TESTING_GUIDE.md exists"
-else
-    check_warn "MANUAL_TESTING_GUIDE.md not found"
-fi
-
 # Check release checklist
 echo -n "Checking release checklist... "
 if [ -f "RELEASE_CHECKLIST.md" ]; then
@@ -276,8 +268,8 @@ if [ $FAIL_COUNT -eq 0 ]; then
     echo "4. Create GitHub release from tag"
     echo "5. Wait for CI/CD to build installers"
     echo "6. Download and verify all installers"
-    echo "7. Perform manual testing per MANUAL_TESTING_GUIDE.md"
-    echo "8. Publish release when tests pass"
+    echo "7. Verify acceptance suite passes on all supported platforms (CI)"
+    echo "8. Publish release when CI passes"
     echo ""
     exit 0
 else

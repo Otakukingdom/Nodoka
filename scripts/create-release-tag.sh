@@ -115,8 +115,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "6. Wait for CI/CD to build and upload installers (~10-15 minutes)"
     echo "7. Verify all 3 installers uploaded: .msi, .dmg, .deb"
     echo "8. Download installers and verify checksums"
-    echo "9. Perform manual testing per MANUAL_TESTING_GUIDE.md"
-    echo "10. Publish release when all tests pass"
+    echo "9. Verify acceptance suite passes on all supported platforms (CI)"
+    echo "10. Publish release when all CI checks pass"
     echo ""
 else
     echo ""
