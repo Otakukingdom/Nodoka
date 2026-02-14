@@ -1,6 +1,7 @@
 use crate::conversions::{f64_to_ms, ms_to_f64, percentage_to_i32};
 use crate::db::Database;
 use crate::error::Result;
+use crate::models::Bookmark;
 use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
 use crate::ui::{Message, State};
@@ -48,6 +49,9 @@ pub fn update(
         Message::PlayerTimeUpdated(time) => handle_time_updated(state, db, time),
         Message::PlayerTick => handle_player_tick(state, player, db),
 
+        // Shortcut actions
+        Message::CreateBookmark => handle_create_bookmark(state, db),
+
         // Selection messages
         Message::AudiobookSelected(id) => handle_audiobook_selected(state, player, db, id),
         Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
@@ -74,6 +78,35 @@ pub fn update(
         // Catch-all for unhandled messages
         _ => Command::none(),
     }
+}
+
+fn handle_create_bookmark(state: &State, db: &Database) -> Command<Message> {
+    let (Some(audiobook_id), Some(file_path)) =
+        (state.selected_audiobook, state.selected_file.clone())
+    else {
+        return Command::none();
+    };
+
+    let position_ms = match f64_to_ms(state.current_time) {
+        Ok(ms) => ms,
+        Err(e) => {
+            tracing::error!("Failed to convert bookmark position: {e}");
+            return Command::none();
+        }
+    };
+
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        file_path,
+        position_ms,
+        String::from("Bookmark"),
+    );
+
+    if let Err(e) = crate::db::queries::insert_bookmark(db.connection(), &bookmark) {
+        tracing::error!("Failed to create bookmark: {e}");
+    }
+
+    Command::none()
 }
 
 fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {

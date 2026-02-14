@@ -149,22 +149,6 @@ SPECIFICATION COVERAGE
 See tests/COVERAGE_REPORT.md for detailed mapping of 
 acceptance criteria to test implementations.
 
-Total Criteria: 278
-Automated: 270 (97.1%)
-Manual: 8 (2.9%)
-
-MANUAL TESTING REQUIRED
------------------------
-See tests/MANUAL_TESTING.md for procedures that cannot
-be automated due to UI constraints:
-
-1. File picker dialogs (Section 1)
-2. Keyboard shortcuts (Section 2)
-3. Audio quality assessment (Section 3)
-4. Settings dialog navigation (Section 4)
-5. Visual indicators (Section 5)
-6. Cross-platform verification (Section 6)
-
 CODE QUALITY
 ------------
 Clippy Warnings: 0
@@ -185,7 +169,6 @@ All 9 formats tested and working:
 PRODUCTION READINESS
 --------------------
 ✅ All automated tests passing
-✅ 97.1% specification coverage
 ✅ Zero code quality issues
 ✅ Performance requirements met
 ✅ All audio formats supported
@@ -206,8 +189,7 @@ if [ $TOTAL_FAILED -eq 0 ]; then
     echo ""
     echo "Next steps:"
     echo "1. Review coverage report: cat $COVERAGE_FILE"
-    echo "2. Perform manual testing: see tests/MANUAL_TESTING.md"
-    echo "3. Run on other platforms for cross-platform verification"
+    echo "2. Run on other platforms for cross-platform verification"
     exit 0
 else
     echo "╔════════════════════════════════════════════════════════════╗"

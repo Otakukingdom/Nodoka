@@ -678,23 +678,42 @@ fn test_speed_changes_no_crashes() {
     }
 }
 
-// Keyboard shortcut tests - document behavior since UI automation not available
+#[test]
+fn test_keyboard_shortcut_space_maps_to_play_pause() {
+    let message = nodoka::ui::shortcuts::message_for_key_chord(
+        nodoka::ui::shortcuts::ShortcutKey::Space,
+        iced::keyboard::Modifiers::default(),
+    );
+
+    assert!(matches!(message, Some(nodoka::ui::Message::PlayPause)));
+}
 
 #[test]
-fn test_keyboard_shortcuts_documented() {
-    // This test exists to document the required keyboard shortcuts
-    // since full UI automation is not available in acceptance tests.
+fn test_keyboard_shortcut_ctrl_b_creates_bookmark() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
 
-    // Required shortcuts from specification:
-    // - Space: Play/Pause toggle
-    // - Ctrl+B: Create bookmark at current position
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+    let file_path = "/test/Book/chapter_01.mp3";
+    insert_test_file(&db, audiobook_id, file_path)?;
 
-    // Implementation verified via:
-    // 1. Code review of message handling
-    // 2. Manual testing with the application UI
+    let mut state = nodoka::ui::State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 12_000.0,
+        ..Default::default()
+    };
 
-    println!("Keyboard shortcuts to verify manually:");
-    println!("  Space: Play/Pause");
-    println!("  Ctrl+B: Create bookmark");
-    println!("These require manual testing in the running application.");
+    // Verify the chord maps to the bookmark message.
+    let message = nodoka::ui::shortcuts::message_for_key_chord(
+        nodoka::ui::shortcuts::ShortcutKey::B,
+        iced::keyboard::Modifiers::CTRL,
+    )
+    .ok_or("Shortcut did not map")?;
+
+    let mut player: Option<nodoka::player::Vlc> = None;
+    let _ = nodoka::ui::update::update(&mut state, message, &mut player, &db);
+
+    assertions::assert_bookmark_at_position(&db, audiobook_id, 12_000, 5)?;
+
+    Ok(())
 }

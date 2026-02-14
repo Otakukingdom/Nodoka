@@ -9,6 +9,9 @@ pub enum Message {
     VolumeChanged(i32),
     SpeedChanged(f32),
 
+    // Shortcuts
+    CreateBookmark,
+
     // Audiobook list
     AudiobookSelected(i64),
     AudiobookRemove(i64),

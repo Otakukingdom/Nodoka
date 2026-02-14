@@ -33,6 +33,34 @@ async fn test_recursive_scanning_discovers_all_files() -> Result<(), Box<dyn Err
 }
 
 #[tokio::test]
+async fn test_scan_root_with_audio_files_is_detected_as_audiobook() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let fixtures = TestFixtures::new();
+
+    // Place an audio file directly in the scan root.
+    fs::copy(
+        fixtures.audio_path("sample_mp3.mp3"),
+        temp.path().join("chapter01.mp3"),
+    )?;
+
+    let discovered = scan_directory(temp.path().to_path_buf()).await?;
+
+    assert_eq!(discovered.len(), 1);
+    let book = discovered.first().ok_or("No audiobook discovered")?;
+    assert_eq!(book.path, temp.path().to_path_buf());
+    assert_eq!(book.files.len(), 1);
+
+    let expected_name = temp
+        .path()
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Invalid scan root name")?;
+    assert_eq!(book.name, expected_name);
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_scan_missing_root_returns_error() -> Result<(), Box<dyn Error>> {
     let temp = TempDir::new()?;
     let missing = temp.path().join("does_not_exist");

@@ -27,6 +27,11 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
 
         let mut audiobooks = Vec::new();
 
+        // The scan root itself can be an audiobook when it contains audio files.
+        if let Some(root_audiobook) = discover_audiobook(&dir_path) {
+            audiobooks.push(root_audiobook);
+        }
+
         for entry_result in WalkDir::new(&dir_path).min_depth(1).follow_links(false) {
             let entry = match entry_result {
                 Ok(entry) => entry,

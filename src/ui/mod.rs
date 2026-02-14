@@ -44,6 +44,7 @@ pub mod components;
 pub mod main_window;
 mod message;
 pub mod settings_form;
+pub mod shortcuts;
 mod state;
 mod styles;
 pub mod update;

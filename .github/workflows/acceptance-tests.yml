@@ -37,12 +37,10 @@ jobs:
     - name: Install VLC (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        brew install --cask vlc || true
-        # Verify installation
-        if [ -d "/Applications/VLC.app" ]; then
-          echo "VLC installed successfully"
-        else
-          echo "Warning: VLC installation may have failed"
+        brew install --cask vlc
+        if [ ! -d "/Applications/VLC.app" ]; then
+          echo "VLC installation failed (VLC.app not found)"
+          exit 1
         fi
       
     - name: Install VLC (Windows)
@@ -116,33 +114,23 @@ jobs:
         
     - name: Generate coverage summary
       run: |
-        echo "# Acceptance Test Coverage Report" > COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "**Generated:** $(date)" >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "## Summary" >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "- **Total Acceptance Tests:** 290" >> COVERAGE_SUMMARY.md
-        echo "- **Test Pass Rate:** 100%" >> COVERAGE_SUMMARY.md
-        echo "- **Specification Coverage:** 97.1% (270/278 automated, 8 manual)" >> COVERAGE_SUMMARY.md
-        echo "- **Audio Formats:** All 9 formats tested" >> COVERAGE_SUMMARY.md
-        echo "- **Code Quality:** Zero clippy warnings, zero dead code" >> COVERAGE_SUMMARY.md
-        echo "- **Cross-Platform:** Tested on Ubuntu, macOS, Windows" >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "## Details" >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "See \`tests/COVERAGE_REPORT.md\` for detailed acceptance criteria mapping." >> COVERAGE_SUMMARY.md
-        echo "See \`tests/MANUAL_TESTING.md\` for manual testing procedures." >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "## Status" >> COVERAGE_SUMMARY.md
-        echo "" >> COVERAGE_SUMMARY.md
-        echo "✅ **PRODUCTION READY** - All acceptance criteria met" >> COVERAGE_SUMMARY.md
+        {
+          echo "Acceptance Test Coverage Report";
+          echo "Generated: $(date)";
+          echo;
+          echo "Details: see tests/COVERAGE_REPORT.md";
+          echo;
+          echo "Status: PRODUCTION READY";
+        } > COVERAGE_SUMMARY.txt
+
+        echo "## Coverage Report" >> "$GITHUB_STEP_SUMMARY"
+        echo "See artifact: coverage-report (COVERAGE_SUMMARY.txt)" >> "$GITHUB_STEP_SUMMARY"
         
     - name: Upload coverage report
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report
-        path: COVERAGE_SUMMARY.md
+        path: COVERAGE_SUMMARY.txt
         
     - name: Add comment to PR (if applicable)
       if: github.event_name == 'pull_request'
@@ -150,7 +138,7 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const coverage = fs.readFileSync('COVERAGE_SUMMARY.md', 'utf8');
+          const coverage = fs.readFileSync('COVERAGE_SUMMARY.txt', 'utf8');
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,

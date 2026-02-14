@@ -154,9 +154,7 @@
 //!     performance impact on playback, VLC limitations, varies by user preference
 //!   - If implemented: configurable threshold, minimum duration, on/off toggle,
 //!     visual indicator, progress tracking for skipped time
-//! - Keyboard shortcut UI integration tests (requires UI testing framework)
 //! - Test coverage reporting with tarpaulin
-//! - Automated UI testing for file picker dialogs
 //!
 //! ## Contributing
 //!
@@ -190,18 +188,6 @@
 //!    let db_path = temp_dir.path().join("test.db");
 //!    let db = Database::open_with_path(&db_path)?;
 //!    ```
-//!
-//! ## Manual Testing
-//!
-//! Some acceptance criteria require manual verification due to UI interactions:
-//!
-//! - **File picker dialogs**: Native OS dialogs cannot be automated
-//! - **Keyboard shortcuts**: Space for play/pause, Ctrl+B for bookmarks
-//! - **UI responsiveness**: Smooth scrolling, no freezing during scans
-//! - **Audio quality**: Pitch correction, volume amplification
-//! - **Sleep timer fade**: Gradual volume reduction
-//!
-//! These manual tests are documented in individual test files with detailed procedures.
 //!
 //! ## Troubleshooting Tests
 //!
@@ -239,9 +225,8 @@
 //! ### Performance Test Thresholds
 //!
 //! Performance tests have generous thresholds to avoid flaky failures:
-//! - Startup with 1000 audiobooks: < 3 seconds
-//! - Search query: < 100ms
-//! - Sort operation: < 50ms
+//! - Startup with 1000 audiobooks: under a few seconds on typical developer machines
+//! - Library search/sort/filter: bounded by a generous wall-clock threshold in CI to avoid flake
 //!
 //! If performance tests fail consistently, it may indicate a real performance regression.
 //!

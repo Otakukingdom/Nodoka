@@ -174,16 +174,37 @@ impl Application for App {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
+        let mut subs: Vec<Subscription<Message>> = Vec::new();
+
         if self.state.selected_file.is_some() {
-            iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick)
-        } else {
-            Subscription::none()
+            subs.push(iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick));
         }
+
+        subs.push(iced::keyboard::on_key_press(map_key_press));
+
+        Subscription::batch(subs)
     }
 
     fn theme(&self) -> Self::Theme {
         crate::ui::nodoka_theme()
     }
+}
+
+fn map_key_press(
+    key: iced::keyboard::Key,
+    modifiers: iced::keyboard::Modifiers,
+) -> Option<Message> {
+    let shortcut_key = match key {
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::Space) => {
+            crate::ui::shortcuts::ShortcutKey::Space
+        }
+        iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("b") => {
+            crate::ui::shortcuts::ShortcutKey::B
+        }
+        _ => return None,
+    };
+
+    crate::ui::shortcuts::message_for_key_chord(shortcut_key, modifiers)
 }
 
 /// Runs the Nodoka application

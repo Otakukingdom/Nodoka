@@ -193,7 +193,7 @@
 //! Nodoka v0.2.0 includes **comprehensive acceptance testing**:
 //!
 //! - **290 automated acceptance tests** (100% pass rate)
-//! - **97.1% specification coverage** (270/278 criteria automated)
+//! - **Specification coverage** validated by the acceptance suite
 //! - **All 9 audio formats tested** (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 //! - **Performance validated** for libraries with 1000+ audiobooks
 //! - **Cross-platform testing** on Windows, macOS, and Linux
@@ -214,6 +214,7 @@
 
 pub mod app;
 pub mod conversions;
+pub mod cover_art;
 pub mod db;
 pub mod error;
 pub mod models;

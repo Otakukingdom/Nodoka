@@ -1,74 +1,130 @@
 mod acceptance_support;
 use acceptance_support::*;
 
+use nodoka::cover_art::{select, Source};
 use std::error::Error;
 use std::fs;
 use std::path::Path;
 use temp_dir::TempDir;
 
+fn write_test_jpeg(path: &Path) -> Result<(), Box<dyn Error>> {
+    let img = image::RgbImage::from_pixel(2, 2, image::Rgb([255, 0, 0]));
+    let dyn_img = image::DynamicImage::ImageRgb8(img);
+
+    let mut bytes = Vec::new();
+    let mut encoder = image::codecs::jpeg::JpegEncoder::new(&mut bytes);
+    encoder.encode_image(&dyn_img)?;
+
+    fs::write(path, bytes)?;
+    Ok(())
+}
+
 #[test]
-fn test_cover_from_folder_jpg() -> Result<(), Box<dyn Error>> {
+fn test_cover_priority_folder_jpg_over_cover_jpg() -> Result<(), Box<dyn Error>> {
     let temp = TempDir::new()?;
     let fixtures = TestFixtures::new();
 
     let audiobook = temp.path().join("Book");
     fs::create_dir_all(&audiobook)?;
-
     fs::copy(
         fixtures.audio_path("sample_mp3.mp3"),
         audiobook.join("audio.mp3"),
     )?;
 
-    if fixtures.image_path("cover.jpg").exists() {
-        fs::copy(
-            fixtures.image_path("cover.jpg"),
-            audiobook.join("cover.jpg"),
-        )?;
-    } else {
-        // Create a simple cover.jpg file
-        fs::write(audiobook.join("cover.jpg"), b"fake image data")?;
-    }
+    write_test_jpeg(&audiobook.join("folder.jpg"))?;
+    write_test_jpeg(&audiobook.join("cover.jpg"))?;
 
-    let cover_path = audiobook.join("cover.jpg");
-    assert!(cover_path.exists());
+    let selection = select(&audiobook, None)?.ok_or("No cover selected")?;
+    let Source::File(path) = selection.source else {
+        return Err("Expected file cover art".into());
+    };
+    assert_eq!(
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .ok_or("Bad name")?,
+        "folder.jpg"
+    );
 
     Ok(())
 }
 
 #[test]
-fn test_cover_from_folder_png() -> Result<(), Box<dyn Error>> {
+fn test_cover_priority_embedded_over_folder_image() -> Result<(), Box<dyn Error>> {
     let temp = TempDir::new()?;
+    let fixtures = TestFixtures::new();
+
     let audiobook = temp.path().join("Book");
     fs::create_dir_all(&audiobook)?;
+    fs::copy(
+        fixtures.audio_path("sample_mp3.mp3"),
+        audiobook.join("audio.mp3"),
+    )?;
 
-    fs::write(audiobook.join("folder.png"), b"fake png data")?;
+    let folder_path = audiobook.join("folder.jpg");
+    write_test_jpeg(&folder_path)?;
+    let embedded = fs::read(&folder_path)?;
 
-    let cover_path = audiobook.join("folder.png");
-    assert!(cover_path.exists());
+    let selection = select(&audiobook, Some(&embedded))?.ok_or("No cover selected")?;
+    assert!(matches!(selection.source, Source::Embedded));
 
     Ok(())
 }
 
 #[test]
-fn test_multiple_image_formats_supported() {
-    let formats = vec!["cover.jpg", "cover.png", "cover.gif", "cover.webp"];
+fn test_corrupted_folder_image_falls_back_to_cover_jpg() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let fixtures = TestFixtures::new();
 
-    for format in formats {
-        let path = Path::new(format);
-        assert!(
-            path.extension().is_some(),
-            "Format {format} should have extension"
-        );
-    }
+    let audiobook = temp.path().join("Book");
+    fs::create_dir_all(&audiobook)?;
+    fs::copy(
+        fixtures.audio_path("sample_mp3.mp3"),
+        audiobook.join("audio.mp3"),
+    )?;
+
+    fs::write(audiobook.join("folder.jpg"), b"not a valid jpeg")?;
+    write_test_jpeg(&audiobook.join("cover.jpg"))?;
+
+    let selection = select(&audiobook, None)?.ok_or("No cover selected")?;
+    let Source::File(path) = selection.source else {
+        return Err("Expected file cover art".into());
+    };
+    assert_eq!(
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .ok_or("Bad name")?,
+        "cover.jpg"
+    );
+
+    Ok(())
 }
 
 #[test]
-fn test_cover_priority_order() {
-    // Test that embedded metadata has priority over folder images
-    let priority = ["embedded", "folder.jpg", "cover.jpg", "cover.png"];
+fn test_cover_detection_is_case_insensitive() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let fixtures = TestFixtures::new();
 
-    assert_eq!(priority.first(), Some(&"embedded"));
-    assert!(priority.contains(&"folder.jpg"));
+    let audiobook = temp.path().join("Book");
+    fs::create_dir_all(&audiobook)?;
+    fs::copy(
+        fixtures.audio_path("sample_mp3.mp3"),
+        audiobook.join("audio.mp3"),
+    )?;
+
+    write_test_jpeg(&audiobook.join("COVER.JPG"))?;
+
+    let selection = select(&audiobook, None)?.ok_or("No cover selected")?;
+    let Source::File(path) = selection.source else {
+        return Err("Expected file cover art".into());
+    };
+    assert_eq!(
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .ok_or("Bad name")?,
+        "COVER.JPG"
+    );
+
+    Ok(())
 }
 
 #[test]
@@ -83,115 +139,8 @@ fn test_default_placeholder_when_no_cover() -> Result<(), Box<dyn Error>> {
         audiobook.join("audio.mp3"),
     )?;
 
-    // No cover.jpg or other image files
-    assert!(!audiobook.join("cover.jpg").exists());
-    assert!(!audiobook.join("folder.jpg").exists());
-    assert!(!audiobook.join("cover.png").exists());
-
-    // Application should use default placeholder (tested at UI level)
-
-    Ok(())
-}
-
-#[test]
-fn test_corrupted_image_handled() -> Result<(), Box<dyn Error>> {
-    let temp = TempDir::new()?;
-    let audiobook = temp.path().join("Book");
-    fs::create_dir_all(&audiobook)?;
-
-    // Create corrupted image
-    fs::write(audiobook.join("cover.jpg"), b"not a valid JPEG")?;
-
-    let cover_path = audiobook.join("cover.jpg");
-    assert!(cover_path.exists());
-
-    // Reading should handle gracefully (tested at image loading level)
-
-    Ok(())
-}
-
-#[test]
-fn test_cover_detection_case_insensitive() {
-    let names = vec![
-        "Cover.jpg",
-        "COVER.JPG",
-        "cover.JPG",
-        "folder.PNG",
-        "FOLDER.png",
-    ];
-
-    for name in names {
-        let _path = Path::new(name);
-        let name_lower = name.to_lowercase();
-        assert!(
-            name_lower.contains("cover") || name_lower.contains("folder"),
-            "Name {name} should be recognized"
-        );
-    }
-}
-
-#[test]
-fn test_large_image_exists() -> Result<(), Box<dyn Error>> {
-    let temp = TempDir::new()?;
-    let audiobook = temp.path().join("Book");
-    fs::create_dir_all(&audiobook)?;
-
-    // Create a "large" image file (just fake data for testing)
-    let large_data = vec![0u8; 5 * 1024 * 1024]; // 5MB
-    fs::write(audiobook.join("cover.jpg"), &large_data)?;
-
-    let cover_path = audiobook.join("cover.jpg");
-    assert!(cover_path.exists());
-
-    let metadata = fs::metadata(&cover_path)?;
-    assert!(metadata.len() > 1_000_000, "Image should be large");
-
-    // Application should resize for display (tested at image processing level)
-
-    Ok(())
-}
-
-#[test]
-fn test_various_image_extensions() {
-    let extensions = vec!["jpg", "jpeg", "png", "gif", "webp"];
-
-    for ext in extensions {
-        let filename = format!("cover.{ext}");
-        let path = Path::new(&filename);
-        assert_eq!(path.extension().and_then(|e| e.to_str()), Some(ext));
-    }
-}
-
-#[test]
-fn test_cover_in_nested_directory() -> Result<(), Box<dyn Error>> {
-    let temp = TempDir::new()?;
-    let fixtures = TestFixtures::new();
-
-    let nested = temp.path().join("Series").join("Book1");
-    fs::create_dir_all(&nested)?;
-
-    fs::copy(
-        fixtures.audio_path("sample_mp3.mp3"),
-        nested.join("audio.mp3"),
-    )?;
-    fs::write(nested.join("cover.jpg"), b"fake image")?;
-
-    assert!(nested.join("cover.jpg").exists());
-
-    Ok(())
-}
-
-#[test]
-fn test_cover_cache_directory_concept() -> Result<(), Box<dyn Error>> {
-    // Test the concept of caching covers
-    let temp = TempDir::new()?;
-    let cache_dir = temp.path().join("cover_cache");
-    fs::create_dir_all(&cache_dir)?;
-
-    // Simulated cached cover
-    fs::write(cache_dir.join("audiobook_123.jpg"), b"cached cover")?;
-
-    assert!(cache_dir.join("audiobook_123.jpg").exists());
+    let selection = select(&audiobook, None)?;
+    assert!(selection.is_none());
 
     Ok(())
 }
