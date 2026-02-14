@@ -348,6 +348,114 @@ pub fn set_metadata(conn: &Connection, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
+/// Inserts a new bookmark
+///
+/// # Errors
+///
+/// Returns an error if the database insert fails
+pub fn insert_bookmark(conn: &Connection, bookmark: &crate::models::Bookmark) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO bookmarks (audiobook_id, file_path, position_ms, label, note, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            bookmark.audiobook_id,
+            bookmark.file_path,
+            bookmark.position_ms,
+            bookmark.label,
+            bookmark.note,
+            bookmark.created_at.to_rfc3339(),
+        ],
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+/// Gets all bookmarks for a specific audiobook
+///
+/// # Errors
+///
+/// Returns an error if the database query fails
+pub fn get_bookmarks_for_audiobook(
+    conn: &Connection,
+    audiobook_id: i64,
+) -> Result<Vec<crate::models::Bookmark>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, audiobook_id, file_path, position_ms, label, note, created_at
+         FROM bookmarks WHERE audiobook_id = ?1 ORDER BY created_at",
+    )?;
+
+    let rows = stmt.query_map([audiobook_id], |row| {
+        let created_str: String = row.get(6)?;
+        let created_at = DateTime::parse_from_rfc3339(&created_str)
+            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+
+        Ok(crate::models::Bookmark {
+            id: Some(row.get(0)?),
+            audiobook_id: row.get(1)?,
+            file_path: row.get(2)?,
+            position_ms: row.get(3)?,
+            label: row.get(4)?,
+            note: row.get(5)?,
+            created_at,
+        })
+    })?;
+
+    rows.collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(Into::into)
+}
+
+/// Updates a bookmark
+///
+/// # Errors
+///
+/// Returns an error if the database update fails
+pub fn update_bookmark(conn: &Connection, bookmark: &crate::models::Bookmark) -> Result<()> {
+    let id = bookmark.id.ok_or_else(|| {
+        crate::error::Error::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Bookmark must have an ID to be updated",
+        ))
+    })?;
+
+    conn.execute(
+        "UPDATE bookmarks SET label = ?1, note = ?2 WHERE id = ?3",
+        params![bookmark.label, bookmark.note, id],
+    )?;
+    Ok(())
+}
+
+/// Deletes a bookmark
+///
+/// # Errors
+///
+/// Returns an error if the database delete fails
+pub fn delete_bookmark(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM bookmarks WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+/// Deletes audiobooks by directory path
+///
+/// # Errors
+///
+/// Returns an error if the database delete fails
+pub fn delete_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result<()> {
+    // Get all audiobook IDs in this directory
+    let mut stmt = conn.prepare("SELECT id FROM audiobooks WHERE directory = ?1")?;
+    let ids: Vec<i64> = stmt
+        .query_map([directory], |row| row.get(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+
+    // Delete all files for these audiobooks
+    for id in ids {
+        conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
+    }
+
+    // Delete all audiobooks
+    conn.execute("DELETE FROM audiobooks WHERE directory = ?1", [directory])?;
+
+    Ok(())
+}
+
 /// Deletes a metadata value
 ///
 /// # Errors

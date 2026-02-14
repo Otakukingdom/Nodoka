@@ -48,10 +48,12 @@
 //! 2. VLC metadata extraction (CPU bound)
 //! 3. Database write (I/O bound)
 
+mod archive_handling;
 mod checksum;
 mod player_scan;
 mod scan_directory;
 
+pub use archive_handling::{cleanup_temp_files, extract_zip_for_playback, is_zip_archive};
 pub use checksum::sha256;
 
 #[deprecated(

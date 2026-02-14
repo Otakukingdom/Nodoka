@@ -208,6 +208,23 @@ pub enum Error {
     /// Position must be non-negative and within i64 range.
     #[error("Invalid playback position: value out of range")]
     InvalidPosition,
+
+    /// ZIP archive operation failed.
+    ///
+    /// ## Common Causes
+    ///
+    /// - Corrupted ZIP file
+    /// - Password-protected ZIP file
+    /// - Unsupported compression method
+    /// - Disk full when extracting
+    ///
+    /// ## Troubleshooting
+    ///
+    /// - Verify ZIP file integrity with a ZIP utility
+    /// - Ensure ZIP file is not password-protected
+    /// - Check available disk space for extraction
+    #[error("ZIP archive error: {0}")]
+    Zip(#[from] zip::result::ZipError),
 }
 
 /// Convenience type alias for Results using this crate's error type.

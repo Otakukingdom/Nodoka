@@ -57,6 +57,17 @@ impl Database {
         Ok(Self { conn })
     }
 
+    /// Opens a database at a specific path (for testing)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database cannot be opened
+    pub fn open_with_path(path: &std::path::Path) -> Result<Self> {
+        let conn = Connection::open(path)?;
+        let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |row| row.get(0))?;
+        Ok(Self { conn })
+    }
+
     fn get_db_path() -> Result<PathBuf> {
         let proj_dirs =
             ProjectDirs::from("com", "Otakukingdom", "Nodoka").ok_or(Error::ProjectDirNotFound)?;

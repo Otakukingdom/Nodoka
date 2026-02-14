@@ -91,12 +91,28 @@ pub fn initialize(conn: &Connection) -> Result<()> {
         [],
     )?;
 
+    // Create bookmarks table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS bookmarks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            audiobook_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            position_ms INTEGER NOT NULL,
+            label TEXT NOT NULL,
+            note TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (audiobook_id) REFERENCES audiobooks(id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
     // Create indices using execute_batch to handle DDL statements correctly
     conn.execute_batch(
         "CREATE INDEX IF NOT EXISTS audiobook_dir_index ON audiobooks(directory);
          CREATE INDEX IF NOT EXISTS audiobook_full_path_index ON audiobooks(full_path);
          CREATE INDEX IF NOT EXISTS audiobook_ab_id_index ON audiobook_file(audiobook_id);
-         CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path);",
+         CREATE INDEX IF NOT EXISTS audiobook_file_dir_index ON audiobook_file(full_path);
+         CREATE INDEX IF NOT EXISTS bookmark_audiobook_id_index ON bookmarks(audiobook_id);",
     )?;
 
     Ok(())

@@ -24,6 +24,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 rfd = "0.14"
 image = "0.24"
 parking_lot = "0.12"
+zip = "0.6"
 
 [dev-dependencies]
 temp-dir = "0.1"
