@@ -94,9 +94,9 @@ fn test_bookmarks_listed_chronologically() -> Result<(), Box<dyn Error>> {
     let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
 
     assert_eq!(bookmarks.len(), 3);
-    assert_eq!(bookmarks[0].label, "First");
-    assert_eq!(bookmarks[1].label, "Second");
-    assert_eq!(bookmarks[2].label, "Third");
+    assert_eq!(bookmarks.first().ok_or("No bookmark")?.label, "First");
+    assert_eq!(bookmarks.get(1).ok_or("No bookmark")?.label, "Second");
+    assert_eq!(bookmarks.get(2).ok_or("No bookmark")?.label, "Third");
 
     Ok(())
 }
@@ -146,8 +146,9 @@ fn test_edit_bookmark_label_and_note() -> Result<(), Box<dyn Error>> {
     queries::update_bookmark(db.connection(), &updated)?;
 
     let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert_eq!(bookmarks[0].label, "Updated Label");
-    assert_eq!(bookmarks[0].note, Some("New note".to_string()));
+    let first_bookmark = bookmarks.first().ok_or("No bookmark found")?;
+    assert_eq!(first_bookmark.label, "Updated Label");
+    assert_eq!(first_bookmark.note, Some("New note".to_string()));
 
     Ok(())
 }
@@ -176,12 +177,17 @@ fn test_bookmarks_persist_across_restarts() -> Result<(), Box<dyn Error>> {
     {
         let db = nodoka::Database::open_with_path(&db_path)?;
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
-        let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
+        let audiobook_id = audiobooks
+            .first()
+            .ok_or("No audiobook found")?
+            .id
+            .ok_or("No ID")?;
 
         let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
         assert_eq!(bookmarks.len(), 1);
-        assert_eq!(bookmarks[0].label, "Persistent Bookmark");
-        assert_eq!(bookmarks[0].position_ms, 3000);
+        let first_bookmark = bookmarks.first().ok_or("No bookmark found")?;
+        assert_eq!(first_bookmark.label, "Persistent Bookmark");
+        assert_eq!(first_bookmark.position_ms, 3000);
     }
 
     Ok(())
@@ -239,8 +245,14 @@ fn test_bookmarks_per_audiobook_isolated() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(book1_marks.len(), 1);
     assert_eq!(book2_marks.len(), 1);
-    assert_eq!(book1_marks[0].label, "Book 1 Mark");
-    assert_eq!(book2_marks[0].label, "Book 2 Mark");
+    assert_eq!(
+        book1_marks.first().ok_or("No bookmark for book 1")?.label,
+        "Book 1 Mark"
+    );
+    assert_eq!(
+        book2_marks.first().ok_or("No bookmark for book 2")?.label,
+        "Book 2 Mark"
+    );
 
     Ok(())
 }
@@ -279,7 +291,7 @@ fn test_bookmark_position_stored_accurately() -> Result<(), Box<dyn Error>> {
     let bookmark = Bookmark::new(
         audiobook_id,
         "/test/Book/chapter1.mp3".to_string(),
-        123456,
+        123_456,
         "Precise Position".to_string(),
     );
 
@@ -291,7 +303,7 @@ fn test_bookmark_position_stored_accurately() -> Result<(), Box<dyn Error>> {
         .find(|b| b.id == Some(id))
         .ok_or("Not found")?;
 
-    assert_eq!(saved.position_ms, 123456);
+    assert_eq!(saved.position_ms, 123_456);
 
     Ok(())
 }
@@ -335,12 +347,19 @@ fn test_bookmark_in_deleted_file() -> Result<(), Box<dyn Error>> {
     let file_path = book_dir.join("chapter1.mp3");
     fs::write(&file_path, b"fake audio")?;
 
-    let audiobook_id = create_test_audiobook(&db, temp.path().to_str().unwrap(), "Book")?;
+    let audiobook_id = create_test_audiobook(
+        &db,
+        temp.path().to_str().ok_or("Path conversion failed")?,
+        "Book",
+    )?;
 
     // Create bookmark
     let bookmark = Bookmark::new(
         audiobook_id,
-        file_path.to_str().unwrap().to_string(),
+        file_path
+            .to_str()
+            .ok_or("Path conversion failed")?
+            .to_string(),
         60000,
         "Important".to_string(),
     );
@@ -352,7 +371,10 @@ fn test_bookmark_in_deleted_file() -> Result<(), Box<dyn Error>> {
     // Verify bookmark still exists
     let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
     assert_eq!(bookmarks.len(), 1);
-    assert_eq!(bookmarks[0].id, Some(bookmark_id));
+    assert_eq!(
+        bookmarks.first().ok_or("No bookmark found")?.id,
+        Some(bookmark_id)
+    );
 
     // Application should handle missing file gracefully when trying to use bookmark
 
@@ -380,9 +402,11 @@ fn test_bookmark_position_beyond_file_duration() -> Result<(), Box<dyn Error>> {
 
     if let Ok(bookmark_id) = result {
         let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-        let saved = bookmarks.iter().find(|b| b.id == Some(bookmark_id));
-        assert!(saved.is_some());
-        assert_eq!(saved.unwrap().position_ms, 999_999_999);
+        let saved = bookmarks
+            .iter()
+            .find(|b| b.id == Some(bookmark_id))
+            .ok_or("Bookmark not found")?;
+        assert_eq!(saved.position_ms, 999_999_999);
     }
 
     Ok(())
@@ -396,26 +420,26 @@ fn test_duplicate_bookmarks_same_position() -> Result<(), Box<dyn Error>> {
     let position = 60000;
 
     // Create two bookmarks at same position with different labels
-    let bookmark1 = Bookmark::new(
+    let bm1 = Bookmark::new(
         audiobook_id,
         file_path.to_string(),
         position,
         "Label 1".to_string(),
     );
-    let bookmark2 = Bookmark::new(
+    let bm2 = Bookmark::new(
         audiobook_id,
         file_path.to_string(),
         position,
         "Label 2".to_string(),
     );
 
-    let id1 = queries::insert_bookmark(db.connection(), &bookmark1)?;
-    let id2 = queries::insert_bookmark(db.connection(), &bookmark2)?;
+    let id1 = queries::insert_bookmark(db.connection(), &bm1)?;
+    let id2 = queries::insert_bookmark(db.connection(), &bm2)?;
 
     assert_ne!(id1, id2);
 
-    let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert_eq!(bookmarks.len(), 2);
+    let bookmark_list = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(bookmark_list.len(), 2);
 
     Ok(())
 }
@@ -497,7 +521,10 @@ fn test_bookmark_unicode_in_label() -> Result<(), Box<dyn Error>> {
     let id = queries::insert_bookmark(db.connection(), &bookmark)?;
 
     let bookmarks = queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    let saved = bookmarks.iter().find(|b| b.id == Some(id)).unwrap();
+    let saved = bookmarks
+        .iter()
+        .find(|b| b.id == Some(id))
+        .ok_or("Bookmark not found")?;
 
     assert_eq!(saved.label, unicode_label);
 

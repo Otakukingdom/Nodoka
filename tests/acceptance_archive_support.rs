@@ -10,18 +10,17 @@ use zip::write::FileOptions;
 use zip::ZipWriter;
 
 #[test]
-fn test_zip_files_detected_as_archives() -> Result<(), Box<dyn Error>> {
+fn test_zip_files_detected_as_archives() {
     let fixtures = TestFixtures::new();
     let zip_path = fixtures.archive_path("valid_audiobook.zip");
 
     if zip_path.exists() {
+        // Verify the file is detected as a ZIP
         assert!(is_zip_archive(&zip_path));
     } else {
-        // Test with any .zip extension
+        // If no fixture, test concept with path checking
         assert!(is_zip_archive(std::path::Path::new("test.zip")));
     }
-
-    Ok(())
 }
 
 #[test]
@@ -39,20 +38,37 @@ fn test_zip_playback_progress_tracked() -> Result<(), Box<dyn Error>> {
     zip.finish()?;
 
     // Simulate extracting and tracking progress
-    let audiobook_id = create_test_audiobook(&db, zip_path.to_str().unwrap(), "Audiobook")?;
+    let audiobook_id = create_test_audiobook(
+        &db,
+        zip_path.to_str().ok_or("Path conversion failed")?,
+        "Audiobook",
+    )?;
     let extracted_path = temp.path().join("extracted").join("chapter1.mp3");
-    fs::create_dir_all(extracted_path.parent().unwrap())?;
+    fs::create_dir_all(extracted_path.parent().ok_or("No parent directory")?)?;
     fs::write(&extracted_path, b"fake mp3 data")?;
 
-    insert_test_file(&db, audiobook_id, extracted_path.to_str().unwrap())?;
+    insert_test_file(
+        &db,
+        audiobook_id,
+        extracted_path.to_str().ok_or("Path conversion failed")?,
+    )?;
 
     // Update progress
-    queries::update_file_progress(db.connection(), extracted_path.to_str().unwrap(), 3000.0, 0)?;
+    queries::update_file_progress(
+        db.connection(),
+        extracted_path.to_str().ok_or("Path conversion failed")?,
+        3000.0,
+        0,
+    )?;
 
     // Verify progress is stored
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
     assert!(!files.is_empty());
-    assert!(files[0].seek_position.is_some());
+    assert!(files
+        .first()
+        .ok_or("No file found")?
+        .seek_position
+        .is_some());
 
     Ok(())
 }
@@ -127,12 +143,10 @@ fn test_large_zip_memory_handling() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_non_zip_files_not_detected() -> Result<(), Box<dyn Error>> {
+fn test_non_zip_files_not_detected() {
     assert!(!is_zip_archive(std::path::Path::new("test.mp3")));
     assert!(!is_zip_archive(std::path::Path::new("test.tar.gz")));
     assert!(!is_zip_archive(std::path::Path::new("noextension")));
-
-    Ok(())
 }
 
 #[test]
@@ -160,8 +174,8 @@ fn test_extract_zip_with_audio_files() -> Result<(), Box<dyn Error>> {
     let extracted = extract_zip_for_playback(&zip_path, &extract_dir)?;
 
     assert_eq!(extracted.len(), 2);
-    assert!(extracted[0].exists());
-    assert!(extracted[1].exists());
+    assert!(extracted.first().ok_or("No file at index 0")?.exists());
+    assert!(extracted.get(1).ok_or("No file at index 1")?.exists());
 
     Ok(())
 }
@@ -219,7 +233,11 @@ fn test_zip_with_non_audio_files_ignored() -> Result<(), Box<dyn Error>> {
 
     // Only audio file should be extracted
     assert_eq!(extracted.len(), 1);
-    assert!(extracted[0].to_string_lossy().contains("audio.mp3"));
+    assert!(extracted
+        .first()
+        .ok_or("No file extracted")?
+        .to_string_lossy()
+        .contains("audio.mp3"));
 
     Ok(())
 }
@@ -274,7 +292,7 @@ fn test_cleanup_nonexistent_directory() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_zip_file_name_becomes_audiobook_name() -> Result<(), Box<dyn Error>> {
+fn test_zip_file_name_becomes_audiobook_name() {
     use std::path::Path;
 
     let zip_path = Path::new("/path/to/My Audiobook.zip");
@@ -282,8 +300,6 @@ fn test_zip_file_name_becomes_audiobook_name() -> Result<(), Box<dyn Error>> {
     if let Some(name) = zip_path.file_stem() {
         assert_eq!(name.to_str(), Some("My Audiobook"));
     }
-
-    Ok(())
 }
 
 #[test]
@@ -450,7 +466,7 @@ fn test_zip_extraction_creates_necessary_directories() -> Result<(), Box<dyn Err
 
     assert_eq!(extracted.len(), 1);
     // Verify the file actually exists
-    assert!(extracted[0].exists());
+    assert!(extracted.first().ok_or("No file extracted")?.exists());
 
     Ok(())
 }

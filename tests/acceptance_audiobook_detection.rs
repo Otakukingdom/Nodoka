@@ -25,8 +25,9 @@ async fn test_recursive_scanning_discovers_all_files() -> Result<(), Box<dyn Err
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].files.len(), 3);
-    assert_eq!(discovered[0].name, "book");
+    let first_book = discovered.first().ok_or("No audiobook discovered")?;
+    assert_eq!(first_book.files.len(), 3);
+    assert_eq!(first_book.name, "book");
 
     Ok(())
 }
@@ -139,7 +140,10 @@ async fn test_very_long_filenames() -> Result<(), Box<dyn Error>> {
     if result.is_ok() {
         let discovered = scan_directory(temp.path().to_path_buf()).await?;
         assert_eq!(discovered.len(), 1);
-        assert_eq!(discovered[0].files.len(), 1);
+        assert_eq!(
+            discovered.first().ok_or("No audiobook found")?.files.len(),
+            1
+        );
     }
 
     Ok(())
@@ -166,7 +170,11 @@ async fn test_zero_byte_files_ignored() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(discovered.len(), 1);
     // Should have at least the valid file, empty file handling depends on implementation
-    assert!(!discovered[0].files.is_empty());
+    assert!(!discovered
+        .first()
+        .ok_or("No audiobook found")?
+        .files
+        .is_empty());
 
     Ok(())
 }
@@ -197,13 +205,16 @@ async fn test_case_insensitive_extensions() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(discovered.len(), 1);
     // All three files should be detected regardless of case
-    assert_eq!(discovered[0].files.len(), 3);
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.files.len(),
+        3
+    );
 
     Ok(())
 }
 
 #[test]
-fn test_opus_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_opus_files_detected() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_opus.opus");
 
@@ -211,12 +222,10 @@ fn test_opus_files_detected() -> Result<(), Box<dyn Error>> {
         let extension = audio_file.extension().and_then(|e| e.to_str());
         assert_eq!(extension, Some("opus"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_aac_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_aac_files_detected() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_aac.aac");
 
@@ -224,12 +233,10 @@ fn test_aac_files_detected() -> Result<(), Box<dyn Error>> {
         let extension = audio_file.extension().and_then(|e| e.to_str());
         assert_eq!(extension, Some("aac"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_wma_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_wma_files_detected() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_wma.wma");
 
@@ -237,12 +244,10 @@ fn test_wma_files_detected() -> Result<(), Box<dyn Error>> {
         let extension = audio_file.extension().and_then(|e| e.to_str());
         assert_eq!(extension, Some("wma"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_wav_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_wav_files_detected() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_wav.wav");
 
@@ -250,8 +255,6 @@ fn test_wav_files_detected() -> Result<(), Box<dyn Error>> {
         let extension = audio_file.extension().and_then(|e| e.to_str());
         assert_eq!(extension, Some("wav"));
     }
-
-    Ok(())
 }
 
 #[tokio::test]
@@ -299,19 +302,29 @@ async fn test_rescanning_preserves_playback_progress() -> Result<(), Box<dyn Err
     fs::copy(fixtures.audio_path("sample_mp3.mp3"), &file_path)?;
 
     // Initial scan and setup
-    let audiobook_id = create_test_audiobook(&db, book.to_str().unwrap(), "Book")?;
-    insert_test_file(&db, audiobook_id, file_path.to_str().unwrap())?;
+    let audiobook_id =
+        create_test_audiobook(&db, book.to_str().ok_or("Path conversion failed")?, "Book")?;
+    insert_test_file(
+        &db,
+        audiobook_id,
+        file_path.to_str().ok_or("Path conversion failed")?,
+    )?;
 
     // Set playback progress
-    queries::update_file_progress(db.connection(), file_path.to_str().unwrap(), 5000.0, 0)?;
+    queries::update_file_progress(
+        db.connection(),
+        file_path.to_str().ok_or("Path conversion failed")?,
+        5000.0,
+        0,
+    )?;
 
     // Get progress before rescan
     let files_before = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let progress_before = files_before[0].seek_position;
+    let progress_before = files_before.first().ok_or("No file found")?.seek_position;
 
     // Rescan (simulate by just querying again)
     let files_after = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let progress_after = files_after[0].seek_position;
+    let progress_after = files_after.first().ok_or("No file found")?.seek_position;
 
     // Progress should be preserved
     assert_eq!(progress_before, progress_after);
@@ -339,8 +352,13 @@ async fn test_files_marked_as_missing_when_deleted() -> Result<(), Box<dyn Error
     assert!(!discovered.is_empty());
 
     // Create audiobook and file in database
-    let audiobook_id = create_test_audiobook(&db, book.to_str().unwrap(), "Book")?;
-    insert_test_file(&db, audiobook_id, file_path.to_str().unwrap())?;
+    let audiobook_id =
+        create_test_audiobook(&db, book.to_str().ok_or("Path conversion failed")?, "Book")?;
+    insert_test_file(
+        &db,
+        audiobook_id,
+        file_path.to_str().ok_or("Path conversion failed")?,
+    )?;
 
     // Delete the file
     fs::remove_file(&file_path)?;
@@ -351,7 +369,7 @@ async fn test_files_marked_as_missing_when_deleted() -> Result<(), Box<dyn Error
     // Verify file is marked as missing
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
     assert!(!files.is_empty());
-    assert!(!files[0].file_exists);
+    assert!(!files.first().ok_or("No file found")?.file_exists);
 
     Ok(())
 }
@@ -371,7 +389,10 @@ async fn test_audiobook_name_from_folder() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].name, "The Great Audiobook");
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.name,
+        "The Great Audiobook"
+    );
 
     Ok(())
 }
@@ -396,18 +417,31 @@ async fn test_files_sorted_naturally() -> Result<(), Box<dyn Error>> {
 
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
-    assert_eq!(discovered[0].files.len(), 4);
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 4);
     // Files should be sorted
-    assert!(discovered[0].files[0]
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file at index 0")?
         .to_string_lossy()
         .contains("Chapter 1.mp3"));
-    assert!(discovered[0].files[1]
+    assert!(first_book
+        .files
+        .get(1)
+        .ok_or("No file at index 1")?
         .to_string_lossy()
         .contains("Chapter 2.mp3"));
-    assert!(discovered[0].files[2]
+    assert!(first_book
+        .files
+        .get(2)
+        .ok_or("No file at index 2")?
         .to_string_lossy()
         .contains("Chapter 10.mp3"));
-    assert!(discovered[0].files[3]
+    assert!(first_book
+        .files
+        .get(3)
+        .ok_or("No file at index 3")?
         .to_string_lossy()
         .contains("Chapter 20.mp3"));
 
@@ -415,17 +449,15 @@ async fn test_files_sorted_naturally() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_mp3_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_mp3_files_detected() {
     let fixtures = TestFixtures::new();
     let mp3_path = fixtures.audio_path("sample_mp3.mp3");
 
     assert!(mp3_path.exists(), "MP3 fixture should exist");
-
-    Ok(())
 }
 
 #[test]
-fn test_m4b_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_m4b_files_detected() {
     let fixtures = TestFixtures::new();
     let m4b_path = fixtures.audio_path("sample_m4b.m4b");
 
@@ -433,44 +465,36 @@ fn test_m4b_files_detected() -> Result<(), Box<dyn Error>> {
         // M4B fixture exists and can be detected
         assert!(m4b_path.extension().and_then(|e| e.to_str()) == Some("m4b"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_m4a_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_m4a_files_detected() {
     let fixtures = TestFixtures::new();
     let m4a_path = fixtures.audio_path("sample_m4a.m4a");
 
     if m4a_path.exists() {
         assert!(m4a_path.extension().and_then(|e| e.to_str()) == Some("m4a"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_flac_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_flac_files_detected() {
     let fixtures = TestFixtures::new();
     let flac_path = fixtures.audio_path("sample_flac.flac");
 
     if flac_path.exists() {
         assert!(flac_path.extension().and_then(|e| e.to_str()) == Some("flac"));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_ogg_files_detected() -> Result<(), Box<dyn Error>> {
+fn test_ogg_files_detected() {
     let fixtures = TestFixtures::new();
     let ogg_path = fixtures.audio_path("sample_ogg.ogg");
 
     if ogg_path.exists() {
         assert!(ogg_path.extension().and_then(|e| e.to_str()) == Some("ogg"));
     }
-
-    Ok(())
 }
 
 #[tokio::test]
@@ -494,7 +518,10 @@ async fn test_non_audio_files_ignored() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].files.len(), 1); // Only audio file
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.files.len(),
+        1
+    ); // Only audio file
 
     Ok(())
 }
@@ -518,8 +545,12 @@ async fn test_hidden_files_ignored() -> Result<(), Box<dyn Error>> {
 
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
-    assert_eq!(discovered[0].files.len(), 1);
-    assert!(discovered[0].files[0]
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1);
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file found")?
         .to_string_lossy()
         .contains("visible.mp3"));
 
@@ -559,7 +590,10 @@ async fn test_rescanning_updates_library() -> Result<(), Box<dyn Error>> {
     )?;
 
     let discovered1 = scan_directory(temp.path().to_path_buf()).await?;
-    assert_eq!(discovered1[0].files.len(), 2);
+    assert_eq!(
+        discovered1.first().ok_or("No audiobook found")?.files.len(),
+        2
+    );
 
     // Add a new file
     fs::copy(
@@ -569,7 +603,10 @@ async fn test_rescanning_updates_library() -> Result<(), Box<dyn Error>> {
 
     // Rescan
     let discovered2 = scan_directory(temp.path().to_path_buf()).await?;
-    assert_eq!(discovered2[0].files.len(), 3);
+    assert_eq!(
+        discovered2.first().ok_or("No audiobook found")?.files.len(),
+        3
+    );
 
     Ok(())
 }
@@ -608,7 +645,10 @@ async fn test_various_audio_formats_detected() -> Result<(), Box<dyn Error>> {
     if count > 0 {
         let discovered = scan_directory(temp.path().to_path_buf()).await?;
         assert_eq!(discovered.len(), 1);
-        assert_eq!(discovered[0].files.len(), count);
+        assert_eq!(
+            discovered.first().ok_or("No audiobook found")?.files.len(),
+            count
+        );
     }
 
     Ok(())
@@ -629,8 +669,9 @@ async fn test_single_file_audiobook() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].files.len(), 1);
-    assert_eq!(discovered[0].name, "Single File Book");
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1);
+    assert_eq!(first_book.name, "Single File Book");
 
     Ok(())
 }
@@ -691,7 +732,10 @@ async fn test_mixed_content_folders() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].files.len(), 2); // Only audio files counted
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.files.len(),
+        2
+    ); // Only audio files counted
 
     Ok(())
 }
@@ -711,7 +755,10 @@ async fn test_special_characters_in_names() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].name, "Book: The - Special (2024) [Edition]");
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.name,
+        "Book: The - Special (2024) [Edition]"
+    );
 
     Ok(())
 }
@@ -731,7 +778,10 @@ async fn test_unicode_in_filenames() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1);
-    assert_eq!(discovered[0].name, "日本語の本");
+    assert_eq!(
+        discovered.first().ok_or("No audiobook found")?.name,
+        "日本語の本"
+    );
 
     Ok(())
 }
@@ -758,8 +808,12 @@ async fn test_opus_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
 
     // Verify detection
     assert_eq!(discovered.len(), 1, "OPUS audiobook not detected");
-    assert_eq!(discovered[0].files.len(), 1, "OPUS file not detected");
-    assert!(discovered[0].files[0]
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1, "OPUS file not detected");
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file found")?
         .to_string_lossy()
         .contains("chapter1.opus"));
 
@@ -783,8 +837,12 @@ async fn test_aac_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1, "AAC audiobook not detected");
-    assert_eq!(discovered[0].files.len(), 1, "AAC file not detected");
-    assert!(discovered[0].files[0]
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1, "AAC file not detected");
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file found")?
         .to_string_lossy()
         .contains("chapter1.aac"));
 
@@ -808,8 +866,12 @@ async fn test_wav_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1, "WAV audiobook not detected");
-    assert_eq!(discovered[0].files.len(), 1, "WAV file not detected");
-    assert!(discovered[0].files[0]
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1, "WAV file not detected");
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file found")?
         .to_string_lossy()
         .contains("chapter1.wav"));
 
@@ -833,8 +895,12 @@ async fn test_wma_files_detected_by_scanner() -> Result<(), Box<dyn Error>> {
     let discovered = scan_directory(temp.path().to_path_buf()).await?;
 
     assert_eq!(discovered.len(), 1, "WMA audiobook not detected");
-    assert_eq!(discovered[0].files.len(), 1, "WMA file not detected");
-    assert!(discovered[0].files[0]
+    let first_book = discovered.first().ok_or("No audiobook found")?;
+    assert_eq!(first_book.files.len(), 1, "WMA file not detected");
+    assert!(first_book
+        .files
+        .first()
+        .ok_or("No file found")?
         .to_string_lossy()
         .contains("chapter1.wma"));
 
@@ -880,7 +946,7 @@ async fn test_mixed_format_audiobook() -> Result<(), Box<dyn Error>> {
         "Mixed format audiobook not detected as single book"
     );
     assert_eq!(
-        discovered[0].files.len(),
+        discovered.first().ok_or("No audiobook found")?.files.len(),
         format_count,
         "Not all mixed format files detected"
     );

@@ -27,7 +27,10 @@ fn test_add_directory_via_database() -> Result<(), Box<dyn Error>> {
 
     let directories = queries::get_all_directories(db.connection())?;
     assert_eq!(directories.len(), 1);
-    assert_eq!(directories[0].full_path, dir_path);
+    assert_eq!(
+        directories.first().ok_or("No directory")?.full_path,
+        dir_path
+    );
 
     Ok(())
 }
@@ -85,7 +88,10 @@ fn test_directories_persist_across_restarts() -> Result<(), Box<dyn Error>> {
         let db = nodoka::Database::open_with_path(&db_path)?;
         let directories = queries::get_all_directories(db.connection())?;
         assert_eq!(directories.len(), 1);
-        assert_eq!(directories[0].full_path, "/test/path");
+        assert_eq!(
+            directories.first().ok_or("No directory")?.full_path,
+            "/test/path"
+        );
     }
 
     Ok(())
@@ -157,7 +163,11 @@ fn test_directory_with_special_characters() -> Result<(), Box<dyn Error>> {
 
     let directories = queries::get_all_directories(db.connection())?;
     assert_eq!(directories.len(), 1);
-    assert!(directories[0].full_path.contains("(2024)"));
+    assert!(directories
+        .first()
+        .ok_or("No directory")?
+        .full_path
+        .contains("(2024)"));
 
     Ok(())
 }
@@ -178,14 +188,14 @@ fn test_last_scanned_timestamp_updates() -> Result<(), Box<dyn Error>> {
 
     // Verify initially None
     let dirs = queries::get_all_directories(db.connection())?;
-    assert!(dirs[0].last_scanned.is_none());
+    assert!(dirs.first().ok_or("No directory")?.last_scanned.is_none());
 
     // Update last scanned
     queries::update_directory_last_scanned(db.connection(), dir_path)?;
 
     // Verify updated
     let dirs = queries::get_all_directories(db.connection())?;
-    assert!(dirs[0].last_scanned.is_some());
+    assert!(dirs.first().ok_or("No directory")?.last_scanned.is_some());
 
     Ok(())
 }

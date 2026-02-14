@@ -50,7 +50,7 @@ fn test_cover_from_folder_png() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_multiple_image_formats_supported() -> Result<(), Box<dyn Error>> {
+fn test_multiple_image_formats_supported() {
     let formats = vec!["cover.jpg", "cover.png", "cover.gif", "cover.webp"];
 
     for format in formats {
@@ -60,19 +60,15 @@ fn test_multiple_image_formats_supported() -> Result<(), Box<dyn Error>> {
             "Format {format} should have extension"
         );
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_cover_priority_order() -> Result<(), Box<dyn Error>> {
+fn test_cover_priority_order() {
     // Test that embedded metadata has priority over folder images
     let priority = ["embedded", "folder.jpg", "cover.jpg", "cover.png"];
 
-    assert_eq!(priority[0], "embedded");
+    assert_eq!(priority.first(), Some(&"embedded"));
     assert!(priority.contains(&"folder.jpg"));
-
-    Ok(())
 }
 
 #[test]
@@ -115,7 +111,7 @@ fn test_corrupted_image_handled() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_cover_detection_case_insensitive() -> Result<(), Box<dyn Error>> {
+fn test_cover_detection_case_insensitive() {
     let names = vec![
         "Cover.jpg",
         "COVER.JPG",
@@ -132,8 +128,6 @@ fn test_cover_detection_case_insensitive() -> Result<(), Box<dyn Error>> {
             "Name {name} should be recognized"
         );
     }
-
-    Ok(())
 }
 
 #[test]
@@ -158,7 +152,7 @@ fn test_large_image_exists() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_various_image_extensions() -> Result<(), Box<dyn Error>> {
+fn test_various_image_extensions() {
     let extensions = vec!["jpg", "jpeg", "png", "gif", "webp"];
 
     for ext in extensions {
@@ -166,8 +160,6 @@ fn test_various_image_extensions() -> Result<(), Box<dyn Error>> {
         let path = Path::new(&filename);
         assert_eq!(path.extension().and_then(|e| e.to_str()), Some(ext));
     }
-
-    Ok(())
 }
 
 #[test]

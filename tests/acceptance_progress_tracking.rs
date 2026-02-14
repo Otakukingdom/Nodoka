@@ -21,8 +21,9 @@ fn test_progress_saved_on_file_update() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file_path, 1500.0, 42)?;
 
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].seek_position, Some(1500));
-    assert_eq!(files[0].completeness, 42);
+    let first_file = files.first().ok_or("No file found")?;
+    assert_eq!(first_file.seek_position, Some(1500));
+    assert_eq!(first_file.completeness, 42);
 
     Ok(())
 }
@@ -49,11 +50,16 @@ fn test_progress_persists_across_restarts() -> Result<(), Box<dyn Error>> {
         let db = nodoka::Database::open_with_path(&db_path)?;
 
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
-        let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
+        let audiobook_id = audiobooks
+            .first()
+            .ok_or("No audiobook")?
+            .id
+            .ok_or("No ID")?;
 
         let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-        assert_eq!(files[0].seek_position, Some(2000));
-        assert_eq!(files[0].completeness, 50);
+        let first_file = files.first().ok_or("No file found")?;
+        assert_eq!(first_file.seek_position, Some(2000));
+        assert_eq!(first_file.completeness, 50);
     }
 
     Ok(())
@@ -73,13 +79,13 @@ fn test_independent_progress_per_file() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file1, 1000.0, 100)?;
     queries::update_file_progress(db.connection(), file2, 500.0, 25)?;
 
-    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let file_list = queries::get_audiobook_files(db.connection(), audiobook_id)?;
 
-    let f1 = files
+    let f1 = file_list
         .iter()
         .find(|f| f.full_path == file1)
         .ok_or("File 1 not found")?;
-    let f2 = files
+    let f2 = file_list
         .iter()
         .find(|f| f.full_path == file2)
         .ok_or("File 2 not found")?;
@@ -108,11 +114,12 @@ fn test_reset_progress_clears_all() -> Result<(), Box<dyn Error>> {
     let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
         .ok_or("Audiobook not found")?;
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let first_file = files.first().ok_or("No file found")?;
 
     assert_eq!(audiobook.completeness, 0);
     // After reset, seek_position should be None or 0
-    assert!(files[0].seek_position.is_none() || files[0].seek_position == Some(0));
-    assert_eq!(files[0].completeness, 0);
+    assert!(first_file.seek_position.is_none() || first_file.seek_position == Some(0));
+    assert_eq!(first_file.completeness, 0);
 
     Ok(())
 }
@@ -243,9 +250,9 @@ fn test_progress_with_multiple_files() -> Result<(), Box<dyn Error>> {
 
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
 
-    assert_eq!(files[0].completeness, 100);
-    assert_eq!(files[1].completeness, 50);
-    assert_eq!(files[2].completeness, 0);
+    assert_eq!(files.first().ok_or("No file at index 0")?.completeness, 100);
+    assert_eq!(files.get(1).ok_or("No file at index 1")?.completeness, 50);
+    assert_eq!(files.get(2).ok_or("No file at index 2")?.completeness, 0);
 
     Ok(())
 }
@@ -262,10 +269,11 @@ fn test_file_position_precision() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file_path, 12345.678, 33)?;
 
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let first_file = files.first().ok_or("No file found")?;
 
     // Position stored as milliseconds
-    assert!(files[0].seek_position.is_some());
-    let position = files[0].seek_position.ok_or("No position")?;
+    assert!(first_file.seek_position.is_some());
+    let position = first_file.seek_position.ok_or("No position")?;
 
     // Should be close to 12345 (allowing for conversion precision)
     assert!((position - 12345).abs() < 10);
@@ -290,17 +298,26 @@ fn test_periodic_auto_save_simulation() -> Result<(), Box<dyn Error>> {
     // After 5 seconds of playback
     queries::update_file_progress(db.connection(), file_path, 5000.0, 5)?;
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].seek_position, Some(5000));
+    assert_eq!(
+        files.first().ok_or("No file found")?.seek_position,
+        Some(5000)
+    );
 
     // After 10 seconds
     queries::update_file_progress(db.connection(), file_path, 10000.0, 10)?;
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].seek_position, Some(10000));
+    assert_eq!(
+        files.first().ok_or("No file found")?.seek_position,
+        Some(10000)
+    );
 
     // After 15 seconds
     queries::update_file_progress(db.connection(), file_path, 15000.0, 15)?;
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].seek_position, Some(15000));
+    assert_eq!(
+        files.first().ok_or("No file found")?.seek_position,
+        Some(15000)
+    );
 
     // Progress should be persisted and recoverable even without explicit pause/stop
     Ok(())
@@ -334,13 +351,18 @@ fn test_crash_recovery_via_periodic_save() -> Result<(), Box<dyn Error>> {
         let db = nodoka::Database::open_with_path(&db_path)?;
 
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
-        let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
+        let audiobook_id = audiobooks
+            .first()
+            .ok_or("No audiobook")?
+            .id
+            .ok_or("No ID")?;
 
         let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+        let first_file = files.first().ok_or("No file found")?;
 
         // Should have recovered the last auto-saved position (15 seconds)
-        assert_eq!(files[0].seek_position, Some(15000));
-        assert_eq!(files[0].completeness, 15);
+        assert_eq!(first_file.seek_position, Some(15000));
+        assert_eq!(first_file.completeness, 15);
     }
 
     Ok(())

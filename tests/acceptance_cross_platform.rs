@@ -32,7 +32,10 @@ fn test_file_paths_with_spaces() -> Result<(), Box<dyn Error>> {
     // Verify retrieval
     let audiobooks = nodoka::db::queries::get_all_audiobooks(db.connection())?;
     assert_eq!(audiobooks.len(), 1);
-    assert_eq!(audiobooks[0].name, "Test Book");
+    assert_eq!(
+        audiobooks.first().ok_or("No audiobook found")?.name,
+        "Test Book"
+    );
 
     Ok(())
 }
@@ -51,7 +54,10 @@ fn test_file_paths_with_unicode() -> Result<(), Box<dyn Error>> {
 
     let audiobooks = nodoka::db::queries::get_all_audiobooks(db.connection())?;
     assert_eq!(audiobooks.len(), 1);
-    assert_eq!(audiobooks[0].name, "유니코드 테스트");
+    assert_eq!(
+        audiobooks.first().ok_or("No audiobook found")?.name,
+        "유니코드 테스트"
+    );
 
     Ok(())
 }
@@ -120,7 +126,7 @@ fn test_absolute_paths_stored_correctly() -> Result<(), Box<dyn Error>> {
     let audiobooks = nodoka::db::queries::get_all_audiobooks(db.connection())?;
     assert_eq!(audiobooks.len(), 1);
 
-    let stored_path = Path::new(&audiobooks[0].directory);
+    let stored_path = Path::new(&audiobooks.first().ok_or("No audiobook found")?.directory);
     assert!(
         stored_path.is_absolute(),
         "Path should be stored as absolute"
@@ -145,7 +151,7 @@ fn test_path_separators_normalized() -> Result<(), Box<dyn Error>> {
     assert_eq!(audiobooks.len(), 1);
 
     // Verify path contains proper separators for the platform
-    let stored_path = &audiobooks[0].directory;
+    let stored_path = &audiobooks.first().ok_or("No audiobook found")?.directory;
     assert!(stored_path.contains(std::path::MAIN_SEPARATOR));
 
     Ok(())
@@ -223,7 +229,7 @@ fn test_case_sensitivity_handling() -> Result<(), Box<dyn Error>> {
     std::fs::create_dir(&dir)?;
 
     let dir1 = Directory {
-        full_path: dir.to_str().unwrap().to_string(),
+        full_path: dir.to_str().ok_or("Path conversion failed")?.to_string(),
         created_at: chrono::Utc::now(),
         last_scanned: None,
     };
@@ -231,7 +237,7 @@ fn test_case_sensitivity_handling() -> Result<(), Box<dyn Error>> {
     queries::insert_directory(db.connection(), &dir1)?;
 
     // Try to add same path with different case
-    let dir2_str = dir.to_str().unwrap().to_uppercase();
+    let dir2_str = dir.to_str().ok_or("Path conversion failed")?.to_uppercase();
     let dir2 = Directory {
         full_path: dir2_str,
         created_at: chrono::Utc::now(),
@@ -281,7 +287,7 @@ fn test_path_with_trailing_separator() -> Result<(), Box<dyn Error>> {
     std::fs::create_dir(&dir)?;
 
     // Add path with trailing separator
-    let mut path_str = dir.to_str().unwrap().to_string();
+    let mut path_str = dir.to_str().ok_or("Path conversion failed")?.to_string();
     path_str.push(std::path::MAIN_SEPARATOR);
 
     let result = create_test_audiobook(&db, &path_str, "Trailing Sep Test");

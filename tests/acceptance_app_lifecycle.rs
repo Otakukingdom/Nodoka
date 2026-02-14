@@ -109,7 +109,10 @@ fn test_database_migration_on_version_upgrade() -> Result<(), Box<dyn Error>> {
         // Data should still be accessible
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
         assert_eq!(audiobooks.len(), 1);
-        assert_eq!(audiobooks[0].name, "Test Book");
+        assert_eq!(
+            audiobooks.first().ok_or("No audiobook found")?.name,
+            "Test Book"
+        );
     }
 
     Ok(())
@@ -179,10 +182,17 @@ fn test_graceful_shutdown_saves_progress() -> Result<(), Box<dyn Error>> {
     {
         let db = nodoka::db::Database::open_with_path(&db_path)?;
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
-        let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
+        let audiobook_id = audiobooks
+            .first()
+            .ok_or("No audiobook found")?
+            .id
+            .ok_or("No ID")?;
 
         let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-        assert_eq!(files[0].seek_position, Some(1500));
+        assert_eq!(
+            files.first().ok_or("No file found")?.seek_position,
+            Some(1500)
+        );
     }
 
     Ok(())
@@ -232,6 +242,8 @@ fn test_startup_time_reasonable() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_large_library_startup() -> Result<(), Box<dyn Error>> {
+    use std::time::Instant;
+
     let db = create_test_db()?;
 
     // Create many audiobooks
@@ -240,7 +252,6 @@ fn test_large_library_startup() -> Result<(), Box<dyn Error>> {
     }
 
     // Should still be able to query quickly
-    use std::time::Instant;
     let start = Instant::now();
 
     let audiobooks = queries::get_all_audiobooks(db.connection())?;

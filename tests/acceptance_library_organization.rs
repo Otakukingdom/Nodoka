@@ -19,9 +19,18 @@ fn test_sort_audiobooks_by_name() -> Result<(), Box<dyn Error>> {
     let mut audiobooks = queries::get_all_audiobooks(db.connection())?;
     audiobooks.sort_by(|a, b| a.name.cmp(&b.name));
 
-    assert_eq!(audiobooks[0].name, "Apple Book");
-    assert_eq!(audiobooks[1].name, "Middle Book");
-    assert_eq!(audiobooks[2].name, "Zebra Book");
+    assert_eq!(
+        audiobooks.first().ok_or("No audiobook at index 0")?.name,
+        "Apple Book"
+    );
+    assert_eq!(
+        audiobooks.get(1).ok_or("No audiobook at index 1")?.name,
+        "Middle Book"
+    );
+    assert_eq!(
+        audiobooks.get(2).ok_or("No audiobook at index 2")?.name,
+        "Zebra Book"
+    );
 
     Ok(())
 }
@@ -38,10 +47,7 @@ fn test_search_performance_large_library() -> Result<(), Box<dyn Error>> {
     // Search should be fast (< 100ms)
     let start = std::time::Instant::now();
     let all = queries::get_all_audiobooks(db.connection())?;
-    let results: Vec<_> = all
-        .iter()
-        .filter(|ab| ab.name.to_lowercase().contains("book"))
-        .collect();
+    let has_results = all.iter().any(|ab| ab.name.to_lowercase().contains("book"));
     let duration = start.elapsed();
 
     assert!(
@@ -49,7 +55,7 @@ fn test_search_performance_large_library() -> Result<(), Box<dyn Error>> {
         "Search took {}ms (expected < 100ms)",
         duration.as_millis()
     );
-    assert!(!results.is_empty());
+    assert!(has_results);
 
     Ok(())
 }
@@ -92,7 +98,7 @@ fn test_filter_performance_large_library() -> Result<(), Box<dyn Error>> {
     // Filter by completion status should be fast
     let start = std::time::Instant::now();
     let audiobooks = queries::get_all_audiobooks(db.connection())?;
-    let incomplete: Vec<_> = audiobooks.iter().filter(|ab| !ab.is_complete()).collect();
+    let incomplete_count = audiobooks.iter().filter(|ab| !ab.is_complete()).count();
     let duration = start.elapsed();
 
     assert!(
@@ -100,7 +106,7 @@ fn test_filter_performance_large_library() -> Result<(), Box<dyn Error>> {
         "Filter took {}ms (expected < 50ms)",
         duration.as_millis()
     );
-    assert_eq!(incomplete.len(), 1000); // All incomplete
+    assert_eq!(incomplete_count, 1000); // All incomplete
 
     Ok(())
 }
@@ -116,11 +122,11 @@ fn test_filter_by_completion_status() -> Result<(), Box<dyn Error>> {
     queries::update_audiobook_completeness(db.connection(), id2, 50)?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let complete: Vec<_> = all.iter().filter(|ab| ab.completeness == 100).collect();
-    let incomplete: Vec<_> = all.iter().filter(|ab| ab.completeness < 100).collect();
+    let complete_count = all.iter().filter(|ab| ab.completeness == 100).count();
+    let incomplete_count = all.iter().filter(|ab| ab.completeness < 100).count();
 
-    assert_eq!(complete.len(), 1);
-    assert_eq!(incomplete.len(), 1);
+    assert_eq!(complete_count, 1);
+    assert_eq!(incomplete_count, 1);
 
     Ok(())
 }
@@ -134,12 +140,12 @@ fn test_search_by_name_case_insensitive() -> Result<(), Box<dyn Error>> {
     create_test_audiobook(&db, "/test", "Great Expectations")?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let results: Vec<_> = all
+    let results_count = all
         .iter()
         .filter(|ab| ab.name.to_lowercase().contains("great"))
-        .collect();
+        .count();
 
-    assert_eq!(results.len(), 2);
+    assert_eq!(results_count, 2);
 
     Ok(())
 }
@@ -162,12 +168,12 @@ fn test_search_no_results() -> Result<(), Box<dyn Error>> {
     create_test_audiobook(&db, "/test", "1984")?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let results: Vec<_> = all
+    let results_count = all
         .iter()
         .filter(|ab| ab.name.to_lowercase().contains("nonexistent"))
-        .collect();
+        .count();
 
-    assert_eq!(results.len(), 0);
+    assert_eq!(results_count, 0);
 
     Ok(())
 }
@@ -181,12 +187,12 @@ fn test_search_partial_match() -> Result<(), Box<dyn Error>> {
     create_test_audiobook(&db, "/test", "The Hobbit")?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let results: Vec<_> = all
+    let results_count = all
         .iter()
         .filter(|ab| ab.name.to_lowercase().contains("harry"))
-        .collect();
+        .count();
 
-    assert_eq!(results.len(), 2);
+    assert_eq!(results_count, 2);
 
     Ok(())
 }
@@ -202,9 +208,18 @@ fn test_sort_reverse_alphabetical() -> Result<(), Box<dyn Error>> {
     let mut audiobooks = queries::get_all_audiobooks(db.connection())?;
     audiobooks.sort_by(|a, b| b.name.cmp(&a.name)); // Reverse
 
-    assert_eq!(audiobooks[0].name, "Gamma");
-    assert_eq!(audiobooks[1].name, "Beta");
-    assert_eq!(audiobooks[2].name, "Alpha");
+    assert_eq!(
+        audiobooks.first().ok_or("No audiobook at index 0")?.name,
+        "Gamma"
+    );
+    assert_eq!(
+        audiobooks.get(1).ok_or("No audiobook at index 1")?.name,
+        "Beta"
+    );
+    assert_eq!(
+        audiobooks.get(2).ok_or("No audiobook at index 2")?.name,
+        "Alpha"
+    );
 
     Ok(())
 }
@@ -222,9 +237,9 @@ fn test_filter_incomplete_only() -> Result<(), Box<dyn Error>> {
     queries::update_audiobook_completeness(db.connection(), id3, 0)?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let incomplete: Vec<_> = all.iter().filter(|ab| ab.completeness < 100).collect();
+    let incomplete_count = all.iter().filter(|ab| ab.completeness < 100).count();
 
-    assert_eq!(incomplete.len(), 2);
+    assert_eq!(incomplete_count, 2);
 
     Ok(())
 }
@@ -248,7 +263,10 @@ fn test_filter_in_progress() -> Result<(), Box<dyn Error>> {
         .collect();
 
     assert_eq!(in_progress.len(), 1);
-    assert_eq!(in_progress[0].name, "In Progress");
+    assert_eq!(
+        in_progress.first().ok_or("No audiobook in progress")?.name,
+        "In Progress"
+    );
 
     Ok(())
 }
@@ -262,12 +280,12 @@ fn test_search_special_characters() -> Result<(), Box<dyn Error>> {
     create_test_audiobook(&db, "/test", "Author's Book")?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let results: Vec<_> = all
+    let results_count = all
         .iter()
         .filter(|ab| ab.name.to_lowercase().contains("book"))
-        .collect();
+        .count();
 
-    assert_eq!(results.len(), 3);
+    assert_eq!(results_count, 3);
 
     Ok(())
 }
@@ -304,18 +322,22 @@ fn test_search_with_special_regex_characters() -> Result<(), Box<dyn Error>> {
     let all = queries::get_all_audiobooks(db.connection())?;
 
     // Search should treat special chars as literals
-    let results: Vec<_> = all.iter().filter(|ab| ab.name.contains("(Part")).collect();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].name, "Book (Part 1)");
+    let results_count = all.iter().filter(|ab| ab.name.contains("(Part")).count();
+    assert_eq!(results_count, 1);
+    let result = all
+        .iter()
+        .find(|ab| ab.name.contains("(Part"))
+        .ok_or("No result found")?;
+    assert_eq!(result.name, "Book (Part 1)");
 
-    let results: Vec<_> = all
+    let results_count = all
         .iter()
         .filter(|ab| ab.name.contains("[Complete]"))
-        .collect();
-    assert_eq!(results.len(), 1);
+        .count();
+    assert_eq!(results_count, 1);
 
-    let results: Vec<_> = all.iter().filter(|ab| ab.name.contains("Book+")).collect();
-    assert_eq!(results.len(), 1);
+    let results_count = all.iter().filter(|ab| ab.name.contains("Book+")).count();
+    assert_eq!(results_count, 1);
 
     Ok(())
 }
@@ -361,13 +383,14 @@ fn test_filter_with_no_results() -> Result<(), Box<dyn Error>> {
     // Mark all complete
     let audiobooks = queries::get_all_audiobooks(db.connection())?;
     for book in &audiobooks {
-        queries::update_audiobook_completeness(db.connection(), book.id.unwrap(), 100)?;
+        let book_id = book.id.ok_or("No audiobook ID")?;
+        queries::update_audiobook_completeness(db.connection(), book_id, 100)?;
     }
 
     // Filter for incomplete should return empty
     let all = queries::get_all_audiobooks(db.connection())?;
-    let incomplete: Vec<_> = all.iter().filter(|ab| ab.completeness < 100).collect();
-    assert_eq!(incomplete.len(), 0);
+    let incomplete_count = all.iter().filter(|ab| ab.completeness < 100).count();
+    assert_eq!(incomplete_count, 0);
 
     Ok(())
 }
@@ -381,11 +404,11 @@ fn test_empty_library_operations() -> Result<(), Box<dyn Error>> {
     assert_eq!(audiobooks.len(), 0);
 
     // Search in empty library
-    let results: Vec<_> = audiobooks
+    let results_count = audiobooks
         .iter()
         .filter(|ab| ab.name.contains("test"))
-        .collect();
-    assert_eq!(results.len(), 0);
+        .count();
+    assert_eq!(results_count, 0);
 
     Ok(())
 }
@@ -401,17 +424,17 @@ fn test_search_unicode_characters() -> Result<(), Box<dyn Error>> {
     let audiobooks = queries::get_all_audiobooks(db.connection())?;
 
     // Unicode search
-    let results: Vec<_> = audiobooks
+    let results_count = audiobooks
         .iter()
         .filter(|ab| ab.name.contains("📚"))
-        .collect();
-    assert_eq!(results.len(), 1);
+        .count();
+    assert_eq!(results_count, 1);
 
-    let results: Vec<_> = audiobooks
+    let results_count = audiobooks
         .iter()
         .filter(|ab| ab.name.contains("日本語"))
-        .collect();
-    assert_eq!(results.len(), 1);
+        .count();
+    assert_eq!(results_count, 1);
 
     Ok(())
 }
@@ -427,11 +450,11 @@ fn test_very_long_audiobook_names() -> Result<(), Box<dyn Error>> {
     assert_eq!(audiobooks.len(), 1);
 
     // Search in long name should work
-    let results: Vec<_> = audiobooks
+    let results_count = audiobooks
         .iter()
         .filter(|ab| ab.name.contains("AAA"))
-        .collect();
-    assert_eq!(results.len(), 1);
+        .count();
+    assert_eq!(results_count, 1);
 
     Ok(())
 }

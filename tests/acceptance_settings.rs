@@ -216,10 +216,11 @@ fn test_max_volume_allowed() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_negative_volume_handling() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
     let db = create_test_db()?;
 
     // Test handling of negative volume through metadata
-    use nodoka::db::queries;
     let result = queries::set_metadata(db.connection(), "volume", "-10");
 
     // Should either reject or be handled at player level
@@ -243,7 +244,7 @@ fn test_negative_volume_handling() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_volume_above_maximum_handling() -> Result<(), Box<dyn Error>> {
+fn test_volume_above_maximum_handling() {
     // Specification allows volume up to 200% but not beyond
     // Note: VLC allows volumes outside recommended range
     // Application should validate/clamp at UI level
@@ -254,16 +255,15 @@ fn test_volume_above_maximum_handling() -> Result<(), Box<dyn Error>> {
         // VLC accepts the value - validation should happen at UI level
         assert!(result.is_ok(), "VLC should accept volume values");
     }
-
-    Ok(())
 }
 
 #[test]
 fn test_settings_reset_to_defaults() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
     let db = create_test_db()?;
 
     // Set custom values
-    use nodoka::db::queries;
     queries::set_metadata(db.connection(), "speed", "1.5")?;
     queries::set_metadata(db.connection(), "volume", "150")?;
 
@@ -289,11 +289,11 @@ fn test_settings_reset_to_defaults() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_invalid_speed_string() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
     let db = create_test_db()?;
 
     // Test handling of non-numeric speed value
-    use nodoka::db::queries;
-
     // Store invalid value
     queries::set_metadata(db.connection(), "speed", "not_a_number")?;
 
@@ -316,11 +316,11 @@ fn test_invalid_speed_string() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_invalid_volume_string() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
     let db = create_test_db()?;
 
     // Test handling of non-numeric volume value
-    use nodoka::db::queries;
-
     queries::set_metadata(db.connection(), "volume", "xyz")?;
 
     let settings = Settings::new(db.connection());

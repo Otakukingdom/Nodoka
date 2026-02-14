@@ -65,9 +65,18 @@ fn test_files_sorted_in_list() -> Result<(), Box<dyn Error>> {
     // Sort files by name (as UI would)
     files.sort_by(|a, b| a.name.cmp(&b.name));
 
-    assert_eq!(files[0].name, "chapter_01.mp3");
-    assert_eq!(files[1].name, "chapter_02.mp3");
-    assert_eq!(files[2].name, "chapter_10.mp3");
+    assert_eq!(
+        files.first().ok_or("No file at index 0")?.name,
+        "chapter_01.mp3"
+    );
+    assert_eq!(
+        files.get(1).ok_or("No file at index 1")?.name,
+        "chapter_02.mp3"
+    );
+    assert_eq!(
+        files.get(2).ok_or("No file at index 2")?.name,
+        "chapter_10.mp3"
+    );
 
     Ok(())
 }
@@ -139,7 +148,10 @@ fn test_next_file_navigation() -> Result<(), Box<dyn Error>> {
     let next_index = current_index + 1;
 
     assert!(next_index < files.len());
-    assert_eq!(files[next_index].name, "file2.mp3");
+    assert_eq!(
+        files.get(next_index).ok_or("No file at next index")?.name,
+        "file2.mp3"
+    );
 
     Ok(())
 }
@@ -159,7 +171,10 @@ fn test_previous_file_navigation() -> Result<(), Box<dyn Error>> {
     let current_index = 2;
     let prev_index = current_index - 1;
 
-    assert_eq!(files[prev_index].name, "file2.mp3");
+    assert_eq!(
+        files.get(prev_index).ok_or("No file at prev index")?.name,
+        "file2.mp3"
+    );
 
     Ok(())
 }
@@ -175,7 +190,10 @@ fn test_last_file_detection() -> Result<(), Box<dyn Error>> {
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
     let last_index = files.len() - 1;
 
-    assert_eq!(files[last_index].name, "file2.mp3");
+    assert_eq!(
+        files.get(last_index).ok_or("No file at last index")?.name,
+        "file2.mp3"
+    );
 
     // Check if at last file
     assert!(last_index == files.len() - 1);
@@ -193,7 +211,7 @@ fn test_first_file_detection() -> Result<(), Box<dyn Error>> {
 
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
 
-    assert_eq!(files[0].name, "file1.mp3");
+    assert_eq!(files.first().ok_or("No file found")?.name, "file1.mp3");
 
     // Check if at first file
     let current_index = 0;
@@ -215,7 +233,7 @@ fn test_single_file_audiobook_navigation() -> Result<(), Box<dyn Error>> {
 
     // No next or previous file available
     assert!(0 == files.len() - 1); // At last file
-    assert!(0 == 0); // At first file
+                                   // At first file - index is 0
 
     Ok(())
 }
@@ -235,13 +253,13 @@ fn test_file_progress_independent() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file1, 1000.0, 50)?;
     queries::update_file_progress(db.connection(), file2, 500.0, 25)?;
 
-    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let file_list = queries::get_audiobook_files(db.connection(), audiobook_id)?;
 
-    let f1 = files
+    let f1 = file_list
         .iter()
         .find(|f| f.full_path == file1)
         .ok_or("File 1 not found")?;
-    let f2 = files
+    let f2 = file_list
         .iter()
         .find(|f| f.full_path == file2)
         .ok_or("File 2 not found")?;
@@ -292,10 +310,22 @@ fn test_natural_sort_order() -> Result<(), Box<dyn Error>> {
     // Sort using natural ordering (as the codebase does)
     files.sort_by(|a, b| natord::compare(&a.name, &b.name));
 
-    assert_eq!(files[0].name, "Chapter 1.mp3");
-    assert_eq!(files[1].name, "Chapter 2.mp3");
-    assert_eq!(files[2].name, "Chapter 10.mp3");
-    assert_eq!(files[3].name, "Chapter 20.mp3");
+    assert_eq!(
+        files.first().ok_or("No file at index 0")?.name,
+        "Chapter 1.mp3"
+    );
+    assert_eq!(
+        files.get(1).ok_or("No file at index 1")?.name,
+        "Chapter 2.mp3"
+    );
+    assert_eq!(
+        files.get(2).ok_or("No file at index 2")?.name,
+        "Chapter 10.mp3"
+    );
+    assert_eq!(
+        files.get(3).ok_or("No file at index 3")?.name,
+        "Chapter 20.mp3"
+    );
 
     Ok(())
 }
@@ -318,21 +348,19 @@ fn test_auto_advance_logic() -> Result<(), Box<dyn Error>> {
     // Auto-advance logic: should move to next file
     let next_index = current_index + 1;
     assert!(next_index < files.len(), "Should have next file available");
-    assert_eq!(files[next_index].name, "file2.mp3");
+    let next_file = files.get(next_index).ok_or("No file at next index")?;
+    assert_eq!(next_file.name, "file2.mp3");
 
     // Update selected file to simulate auto-advance
     queries::update_audiobook_selected_file(
         db.connection(),
         audiobook_id,
-        Some(&files[next_index].full_path),
+        Some(&next_file.full_path),
     )?;
 
     let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
         .ok_or("Audiobook not found")?;
-    assert_eq!(
-        audiobook.selected_file,
-        Some(files[next_index].full_path.clone())
-    );
+    assert_eq!(audiobook.selected_file, Some(next_file.full_path.clone()));
 
     Ok(())
 }
@@ -382,8 +410,8 @@ fn test_previous_button_threshold_behavior() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file2, 0.0, 0)?;
     queries::update_audiobook_selected_file(db.connection(), audiobook_id, Some(file2))?;
 
-    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let current_file = files
+    let file_list = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let current_file = file_list
         .iter()
         .find(|f| f.full_path == file2)
         .ok_or("File not found")?;
@@ -401,8 +429,8 @@ fn test_previous_button_threshold_behavior() -> Result<(), Box<dyn Error>> {
     queries::update_file_progress(db.connection(), file2, 5000.0, 25)?;
     queries::update_audiobook_selected_file(db.connection(), audiobook_id, Some(file2))?;
 
-    let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let current_file = files
+    let file_list2 = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let current_file = file_list2
         .iter()
         .find(|f| f.full_path == file2)
         .ok_or("File not found")?;
@@ -411,8 +439,8 @@ fn test_previous_button_threshold_behavior() -> Result<(), Box<dyn Error>> {
     if current_file.seek_position.unwrap_or(0) >= 3000 {
         // Should reset position of current file to 0
         queries::update_file_progress(db.connection(), file2, 0.0, 0)?;
-        let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-        let current_file = files
+        let file_list3 = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+        let current_file = file_list3
             .iter()
             .find(|f| f.full_path == file2)
             .ok_or("File not found")?;

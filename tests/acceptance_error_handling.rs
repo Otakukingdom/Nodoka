@@ -20,7 +20,7 @@ fn test_missing_vlc_handled_gracefully() {
 }
 
 #[test]
-fn test_unplayable_file_shows_error() -> Result<(), Box<dyn Error>> {
+fn test_unplayable_file_shows_error() {
     if let Ok(mut player) = Vlc::new() {
         let fixtures = TestFixtures::new();
         let corrupted = fixtures.audio_path("corrupted.mp3");
@@ -31,8 +31,6 @@ fn test_unplayable_file_shows_error() -> Result<(), Box<dyn Error>> {
             assert!(result.is_ok() || result.is_err());
         }
     }
-
-    Ok(())
 }
 
 #[test]
@@ -42,7 +40,7 @@ fn test_database_errors_return_result() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
 
     // Try to query non-existent ID
-    let result = queries::get_audiobook_by_id(db.connection(), 999999);
+    let result = queries::get_audiobook_by_id(db.connection(), 999_999);
 
     // Should return Ok(None), not error
     assert!(result.is_ok());
@@ -52,7 +50,7 @@ fn test_database_errors_return_result() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_nonexistent_file_handled() -> Result<(), Box<dyn Error>> {
+fn test_nonexistent_file_handled() {
     if let Ok(mut player) = Vlc::new() {
         let nonexistent = Path::new("/nonexistent/path/to/file.mp3");
         let result = player.load_media(nonexistent);
@@ -60,8 +58,6 @@ fn test_nonexistent_file_handled() -> Result<(), Box<dyn Error>> {
         // Should not panic
         assert!(result.is_ok() || result.is_err());
     }
-
-    Ok(())
 }
 
 #[test]
@@ -200,7 +196,7 @@ fn test_very_long_metadata_strings() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_invalid_database_path_handled() -> Result<(), Box<dyn Error>> {
+fn test_invalid_database_path_handled() {
     use std::path::PathBuf;
 
     // Try to open database at invalid location
@@ -210,8 +206,6 @@ fn test_invalid_database_path_handled() -> Result<(), Box<dyn Error>> {
 
     // Should return error, not panic
     assert!(result.is_err());
-
-    Ok(())
 }
 
 #[test]
@@ -361,7 +355,8 @@ fn test_progress_save_error_recovery() -> Result<(), Box<dyn Error>> {
     insert_test_file(&db, audiobook_id, "/test/chapter1.mp3")?;
 
     // Save valid progress
-    let result = queries::update_file_progress(db.connection(), "/test/chapter1.mp3", 100000.0, 50);
+    let result =
+        queries::update_file_progress(db.connection(), "/test/chapter1.mp3", 100_000.0, 50);
 
     assert!(result.is_ok());
 

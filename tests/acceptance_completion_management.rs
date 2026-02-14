@@ -76,9 +76,10 @@ fn test_reset_progress_clears_completion() -> Result<(), Box<dyn Error>> {
     let audiobook = queries::get_audiobook_by_id(db.connection(), audiobook_id)?
         .ok_or("Audiobook not found")?;
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
+    let first_file = files.first().ok_or("No file found")?;
 
     assert_eq!(audiobook.completeness, 0);
-    assert!(files[0].seek_position.is_none() || files[0].seek_position == Some(0));
+    assert!(first_file.seek_position.is_none() || first_file.seek_position == Some(0));
 
     Ok(())
 }
@@ -98,7 +99,8 @@ fn test_completion_percentage_calculated() -> Result<(), Box<dyn Error>> {
 
     // Calculate overall completion
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let avg_completion = files.iter().map(|f| f.completeness).sum::<i32>() / files.len() as i32;
+    let file_count = i32::try_from(files.len()).map_err(|_| "File count conversion failed")?;
+    let avg_completion = files.iter().map(|f| f.completeness).sum::<i32>() / file_count;
 
     assert_eq!(avg_completion, 50); // 50% complete
 
@@ -145,11 +147,11 @@ fn test_filter_by_completion_status() -> Result<(), Box<dyn Error>> {
     queries::update_audiobook_completeness(db.connection(), id3, 0)?;
 
     let all = queries::get_all_audiobooks(db.connection())?;
-    let complete: Vec<_> = all.iter().filter(|ab| ab.completeness == 100).collect();
-    let incomplete: Vec<_> = all.iter().filter(|ab| ab.completeness < 100).collect();
+    let complete_count = all.iter().filter(|ab| ab.completeness == 100).count();
+    let incomplete_count = all.iter().filter(|ab| ab.completeness < 100).count();
 
-    assert_eq!(complete.len(), 1);
-    assert_eq!(incomplete.len(), 2);
+    assert_eq!(complete_count, 1);
+    assert_eq!(incomplete_count, 2);
 
     Ok(())
 }
@@ -238,24 +240,38 @@ fn test_completion_with_missing_files() -> Result<(), Box<dyn Error>> {
         fs::write(book_dir.join(format!("ch{i}.mp3")), b"fake")?;
     }
 
-    let audiobook_id = create_test_audiobook(&db, temp.path().to_str().unwrap(), "Book")?;
+    let audiobook_id = create_test_audiobook(
+        &db,
+        temp.path().to_str().ok_or("Path conversion failed")?,
+        "Book",
+    )?;
 
     // Insert files
     for i in 1..=3 {
         let path = book_dir.join(format!("ch{i}.mp3"));
-        insert_test_file(&db, audiobook_id, path.to_str().unwrap())?;
+        insert_test_file(
+            &db,
+            audiobook_id,
+            path.to_str().ok_or("Path conversion failed")?,
+        )?;
     }
 
     // Mark first two files complete
     queries::update_file_progress(
         db.connection(),
-        book_dir.join("ch1.mp3").to_str().unwrap(),
+        book_dir
+            .join("ch1.mp3")
+            .to_str()
+            .ok_or("Path conversion failed")?,
         1000.0,
         100,
     )?;
     queries::update_file_progress(
         db.connection(),
-        book_dir.join("ch2.mp3").to_str().unwrap(),
+        book_dir
+            .join("ch2.mp3")
+            .to_str()
+            .ok_or("Path conversion failed")?,
         1000.0,
         100,
     )?;
@@ -265,8 +281,9 @@ fn test_completion_with_missing_files() -> Result<(), Box<dyn Error>> {
 
     // Completion calculation should handle missing file gracefully
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    let completion_pct =
-        files.iter().map(|f| f.completeness).sum::<i32>() / files.len().max(1) as i32;
+    let file_count = i32::try_from(files.len().max(1))
+        .map_err(|e| format!("File count conversion failed: {e}"))?;
+    let completion_pct = files.iter().map(|f| f.completeness).sum::<i32>() / file_count;
 
     // Should be 67% (2 out of 3 complete)
     assert!((66..=67).contains(&completion_pct));
@@ -294,7 +311,7 @@ fn test_manually_mark_complete_mid_playback() -> Result<(), Box<dyn Error>> {
 
     // File progress should be preserved (not reset to 100%)
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].completeness, 50);
+    assert_eq!(files.first().ok_or("No file found")?.completeness, 50);
 
     Ok(())
 }
@@ -313,7 +330,7 @@ fn test_completion_with_zero_length_files() -> Result<(), Box<dyn Error>> {
 
     // Should handle without division by zero
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].completeness, 100);
+    assert_eq!(files.first().ok_or("No file found")?.completeness, 100);
 
     Ok(())
 }

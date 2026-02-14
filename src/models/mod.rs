@@ -39,4 +39,4 @@ pub use audiobook_file::AudiobookFile;
 pub use bookmark::Bookmark;
 pub use directory::Directory;
 pub use media_property::MediaProperty;
-pub use sleep_timer::{SleepTimer, SleepTimerMode};
+pub use sleep_timer::{Mode as SleepTimerMode, SleepTimer};

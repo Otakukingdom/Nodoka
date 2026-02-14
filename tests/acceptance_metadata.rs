@@ -6,12 +6,12 @@ use nodoka::player::Scanner;
 use std::error::Error;
 
 #[test]
-fn test_extract_duration() -> Result<(), Box<dyn Error>> {
+fn test_extract_duration() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
     if !audio_file.exists() {
-        return Ok(()); // Skip if no fixture
+        return; // Skip if no fixture
     }
 
     if let Ok(scanner) = Scanner::new() {
@@ -22,17 +22,15 @@ fn test_extract_duration() -> Result<(), Box<dyn Error>> {
             );
         }
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_missing_metadata_handled() -> Result<(), Box<dyn Error>> {
+fn test_missing_metadata_handled() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
     if !audio_file.exists() {
-        return Ok(());
+        return;
     }
 
     if let Ok(scanner) = Scanner::new() {
@@ -40,17 +38,15 @@ fn test_missing_metadata_handled() -> Result<(), Box<dyn Error>> {
         // Should not panic even if metadata is missing
         assert!(result.is_ok() || result.is_err());
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_duration_calculation() -> Result<(), Box<dyn Error>> {
+fn test_duration_calculation() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
     if !audio_file.exists() {
-        return Ok(());
+        return;
     }
 
     if let Ok(scanner) = Scanner::new() {
@@ -63,12 +59,10 @@ fn test_duration_calculation() -> Result<(), Box<dyn Error>> {
             );
         }
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_total_audiobook_duration() -> Result<(), Box<dyn Error>> {
+fn test_total_audiobook_duration() {
     // Test calculating total duration across multiple files
     let durations = [1800, 2100, 1950]; // Example durations in seconds
     let total: i64 = durations.iter().sum();
@@ -83,12 +77,10 @@ fn test_total_audiobook_duration() -> Result<(), Box<dyn Error>> {
     assert_eq!(hours, 1);
     assert_eq!(minutes, 37);
     assert_eq!(seconds, 30);
-
-    Ok(())
 }
 
 #[test]
-fn test_metadata_fields_optional() -> Result<(), Box<dyn Error>> {
+fn test_metadata_fields_optional() {
     // Test that metadata fields can be None
     struct Metadata {
         title: Option<String>,
@@ -105,8 +97,6 @@ fn test_metadata_fields_optional() -> Result<(), Box<dyn Error>> {
     assert!(metadata.title.is_none());
     assert!(metadata.author.is_none());
     assert!(metadata.narrator.is_none());
-
-    Ok(())
 }
 
 #[test]
@@ -126,7 +116,7 @@ fn test_metadata_persistence() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_long_metadata_strings() -> Result<(), Box<dyn Error>> {
+fn test_long_metadata_strings() {
     let long_title = "A".repeat(500);
     let truncated = if long_title.len() > 200 {
         format!("{}...", &long_title[..200])
@@ -135,27 +125,23 @@ fn test_long_metadata_strings() -> Result<(), Box<dyn Error>> {
     };
 
     assert!(truncated.len() <= 203); // 200 chars + "..."
-
-    Ok(())
 }
 
 #[test]
-fn test_metadata_encoding() -> Result<(), Box<dyn Error>> {
+fn test_metadata_encoding() {
     // Test UTF-8 metadata
     let title = "日本語のタイトル";
     assert!(!title.is_ascii());
     assert_eq!(title.chars().count(), 8);
-
-    Ok(())
 }
 
 #[test]
-fn test_file_properties_extraction() -> Result<(), Box<dyn Error>> {
+fn test_file_properties_extraction() {
     let fixtures = TestFixtures::new();
     let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
     if !audio_file.exists() {
-        return Ok(());
+        return;
     }
 
     if let Ok(scanner) = Scanner::new() {
@@ -165,12 +151,10 @@ fn test_file_properties_extraction() -> Result<(), Box<dyn Error>> {
             // Other properties like bitrate, sample_rate may or may not be available
         }
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_multiple_format_metadata() -> Result<(), Box<dyn Error>> {
+fn test_multiple_format_metadata() {
     let fixtures = TestFixtures::new();
 
     let formats = vec![
@@ -189,8 +173,6 @@ fn test_multiple_format_metadata() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-
-    Ok(())
 }
 
 #[test]
@@ -217,20 +199,18 @@ fn test_metadata_caching() -> Result<(), Box<dyn Error>> {
 
     // Retrieve and verify cached value
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].length_of_file, Some(3600));
+    assert_eq!(files.first().ok_or("No file")?.length_of_file, Some(3600));
 
     Ok(())
 }
 
 #[test]
-fn test_zero_duration_handled() -> Result<(), Box<dyn Error>> {
+fn test_zero_duration_handled() {
     // Test that files with zero duration don't cause issues
     let duration: i64 = 0;
 
     assert_eq!(duration, 0);
     assert!(duration >= 0);
-
-    Ok(())
 }
 
 #[test]

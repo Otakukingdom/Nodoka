@@ -6,17 +6,15 @@ use nodoka::models::{SleepTimer, SleepTimerMode};
 use std::error::Error;
 
 #[test]
-fn test_create_timer_with_duration() -> Result<(), Box<dyn Error>> {
+fn test_create_timer_with_duration() {
     let timer = SleepTimer::new(SleepTimerMode::Duration(1800), 5);
 
     assert_eq!(timer.mode, SleepTimerMode::Duration(1800));
     assert_eq!(timer.fade_duration_secs, 5);
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_countdown() -> Result<(), Box<dyn Error>> {
+fn test_timer_countdown() {
     let timer = SleepTimer::new(SleepTimerMode::Duration(2), 5);
 
     assert!(!timer.is_expired());
@@ -24,8 +22,6 @@ fn test_timer_countdown() -> Result<(), Box<dyn Error>> {
     std::thread::sleep(std::time::Duration::from_secs(3));
 
     assert!(timer.is_expired());
-
-    Ok(())
 }
 
 #[test]
@@ -44,30 +40,26 @@ fn test_remaining_time_calculation() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_end_of_chapter_mode() -> Result<(), Box<dyn Error>> {
+fn test_end_of_chapter_mode() {
     let timer = SleepTimer::new(SleepTimerMode::EndOfChapter, 5);
 
     assert_eq!(timer.mode, SleepTimerMode::EndOfChapter);
     assert_eq!(timer.remaining_seconds(), None); // No duration-based countdown
     assert!(!timer.is_expired()); // Never expires on its own
-
-    Ok(())
 }
 
 #[test]
-fn test_predefined_durations() -> Result<(), Box<dyn Error>> {
+fn test_predefined_durations() {
     let durations = vec![15 * 60, 30 * 60, 45 * 60, 60 * 60];
 
     for duration in durations {
         let timer = SleepTimer::new(SleepTimerMode::Duration(duration), 10);
         assert_eq!(timer.mode, SleepTimerMode::Duration(duration));
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_custom_fade_duration() -> Result<(), Box<dyn Error>> {
+fn test_custom_fade_duration() {
     let timer1 = SleepTimer::new(SleepTimerMode::Duration(300), 5);
     let timer2 = SleepTimer::new(SleepTimerMode::Duration(300), 10);
     let timer3 = SleepTimer::new(SleepTimerMode::Duration(300), 15);
@@ -75,12 +67,10 @@ fn test_custom_fade_duration() -> Result<(), Box<dyn Error>> {
     assert_eq!(timer1.fade_duration_secs, 5);
     assert_eq!(timer2.fade_duration_secs, 10);
     assert_eq!(timer3.fade_duration_secs, 15);
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_expiration_boundary() -> Result<(), Box<dyn Error>> {
+fn test_timer_expiration_boundary() {
     let timer = SleepTimer::new(SleepTimerMode::Duration(1), 0);
 
     // Should not be expired immediately
@@ -93,8 +83,6 @@ fn test_timer_expiration_boundary() -> Result<(), Box<dyn Error>> {
     // Wait past duration
     std::thread::sleep(std::time::Duration::from_millis(200));
     assert!(timer.is_expired());
-
-    Ok(())
 }
 
 #[test]
@@ -126,7 +114,7 @@ fn test_remaining_time_bottoms_at_zero() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_timer_mode_equality() -> Result<(), Box<dyn Error>> {
+fn test_timer_mode_equality() {
     let mode1 = SleepTimerMode::Duration(300);
     let mode2 = SleepTimerMode::Duration(300);
     let mode3 = SleepTimerMode::Duration(600);
@@ -135,12 +123,10 @@ fn test_timer_mode_equality() -> Result<(), Box<dyn Error>> {
     assert_eq!(mode1, mode2);
     assert_ne!(mode1, mode3);
     assert_ne!(mode1, mode4);
-
-    Ok(())
 }
 
 #[test]
-fn test_short_duration_timer() -> Result<(), Box<dyn Error>> {
+fn test_short_duration_timer() {
     let timer = SleepTimer::new(SleepTimerMode::Duration(1), 1);
 
     assert!(!timer.is_expired());
@@ -148,12 +134,10 @@ fn test_short_duration_timer() -> Result<(), Box<dyn Error>> {
     std::thread::sleep(std::time::Duration::from_millis(1100));
 
     assert!(timer.is_expired());
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_started_at_timestamp() -> Result<(), Box<dyn Error>> {
+fn test_timer_started_at_timestamp() {
     let before = chrono::Utc::now();
     let timer = SleepTimer::new(SleepTimerMode::Duration(300), 5);
     let after = chrono::Utc::now();
@@ -161,23 +145,19 @@ fn test_timer_started_at_timestamp() -> Result<(), Box<dyn Error>> {
     // started_at should be between before and after
     assert!(timer.started_at >= before);
     assert!(timer.started_at <= after);
-
-    Ok(())
 }
 
 #[test]
-fn test_end_of_chapter_mode_single_file() -> Result<(), Box<dyn Error>> {
+fn test_end_of_chapter_mode_single_file() {
     // End-of-chapter with single-file audiobook should pause at end
     let timer = SleepTimer::new(SleepTimerMode::EndOfChapter, 0);
 
     // Timer should indicate it waits for chapter boundary
     assert!(matches!(timer.mode, SleepTimerMode::EndOfChapter));
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_zero_duration() -> Result<(), Box<dyn Error>> {
+fn test_timer_zero_duration() {
     // Timer with 0 duration should expire immediately or be invalid
     let timer = SleepTimer::new(SleepTimerMode::Duration(0), 0);
 
@@ -185,12 +165,10 @@ fn test_timer_zero_duration() -> Result<(), Box<dyn Error>> {
 
     // Should be expired or handled specially
     assert!(timer.is_expired() || timer.remaining_seconds() == Some(0));
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_very_long_duration() -> Result<(), Box<dyn Error>> {
+fn test_timer_very_long_duration() {
     // Timer with very long duration (e.g., 24 hours)
     let timer = SleepTimer::new(SleepTimerMode::Duration(86400), 0); // 24 hours in seconds
 
@@ -198,12 +176,10 @@ fn test_timer_very_long_duration() -> Result<(), Box<dyn Error>> {
     if let Some(remaining) = timer.remaining_seconds() {
         assert!(remaining > 86390);
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_multiple_timer_instances() -> Result<(), Box<dyn Error>> {
+fn test_multiple_timer_instances() {
     // Multiple timers should be independent
     let timer1 = SleepTimer::new(SleepTimerMode::Duration(60), 5);
     std::thread::sleep(std::time::Duration::from_millis(500)); // Longer delay for more reliable test
@@ -219,28 +195,22 @@ fn test_multiple_timer_instances() -> Result<(), Box<dyn Error>> {
             "Timer1 should have equal or less time remaining"
         );
     }
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_fade_duration_zero() -> Result<(), Box<dyn Error>> {
+fn test_timer_fade_duration_zero() {
     // Timer with zero fade duration
     let timer = SleepTimer::new(SleepTimerMode::Duration(5), 0);
 
     // Should work with immediate cut-off
     assert!(!timer.is_expired());
-
-    Ok(())
 }
 
 #[test]
-fn test_timer_fade_longer_than_duration() -> Result<(), Box<dyn Error>> {
+fn test_timer_fade_longer_than_duration() {
     // Fade duration longer than timer duration (edge case)
     let timer = SleepTimer::new(SleepTimerMode::Duration(5), 10);
 
     // Should handle gracefully
     assert!(!timer.is_expired());
-
-    Ok(())
 }

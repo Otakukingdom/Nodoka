@@ -864,9 +864,10 @@ mod tests {
     }
 
     #[test]
-    fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure() {
-        let db = Database::new_in_memory().expect("db in-memory");
-        db::initialize(db.connection()).expect("db schema init");
+    fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
 
         let mut audiobook = Audiobook::new(
             "/dir".to_string(),
@@ -876,21 +877,20 @@ mod tests {
         );
         let old_path = "/dir/book/old.mp3";
         audiobook.selected_file = Some(old_path.to_string());
-        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)
-            .expect("insert audiobook");
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
 
         let old_file = AudiobookFile::new(audiobook_id, "old".to_string(), old_path.to_string(), 0);
-        crate::db::queries::insert_audiobook_file(db.connection(), &old_file)
-            .expect("insert old file");
+        crate::db::queries::insert_audiobook_file(db.connection(), &old_file)?;
 
         let new_path = "/dir/book/new.mp3";
         let new_file = AudiobookFile::new(audiobook_id, "new".to_string(), new_path.to_string(), 1);
-        crate::db::queries::insert_audiobook_file(db.connection(), &new_file)
-            .expect("insert new file");
+        crate::db::queries::insert_audiobook_file(db.connection(), &new_file)?;
 
-        let mut state = State::default();
-        state.selected_audiobook = Some(audiobook_id);
-        state.selected_file = Some(old_path.to_string());
+        let mut state = State {
+            selected_audiobook: Some(audiobook_id),
+            selected_file: Some(old_path.to_string()),
+            ..Default::default()
+        };
 
         let mut player = Some(FailingLoadPlayer);
 
@@ -902,13 +902,13 @@ mod tests {
             "selection should remain unchanged when load fails"
         );
 
-        let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
-            .expect("get audiobook")
-            .expect("audiobook exists");
+        let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+            .ok_or_else(|| Error::AudiobookNotFound(audiobook_id))?;
         assert_eq!(
             saved.selected_file.as_deref(),
             Some(old_path),
             "db selected_file should not change when load fails"
         );
+        Ok(())
     }
 }

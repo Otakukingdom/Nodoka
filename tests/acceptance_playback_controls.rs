@@ -170,33 +170,31 @@ fn test_stop_resets_position_to_beginning() {
         let fixtures = TestFixtures::new();
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
-        if audio_file.exists() {
-            if player.load_media(&audio_file).is_ok() && player.play().is_ok() {
-                std::thread::sleep(std::time::Duration::from_millis(300));
+        if audio_file.exists() && player.load_media(&audio_file).is_ok() && player.play().is_ok() {
+            std::thread::sleep(std::time::Duration::from_millis(300));
 
-                // Verify we're past the beginning
-                if let Ok(time_before) = player.get_time() {
-                    // Only run the test if playback actually started
-                    if time_before > 0.0 {
-                        // Stop playback
-                        let _ = player.stop();
+            // Verify we're past the beginning
+            if let Ok(time_before) = player.get_time() {
+                // Only run the test if playback actually started
+                if time_before > 0.0 {
+                    // Stop playback
+                    let _ = player.stop();
 
-                        // Position should reset to 0 after stop
-                        // Note: VLC may not immediately report position 0 after stop,
-                        // but on next play it should start from beginning
-                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    // Position should reset to 0 after stop
+                    // Note: VLC may not immediately report position 0 after stop,
+                    // but on next play it should start from beginning
+                    std::thread::sleep(std::time::Duration::from_millis(100));
 
-                        // Play again and check it starts from beginning
-                        let _ = player.play();
-                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    // Play again and check it starts from beginning
+                    let _ = player.play();
+                    std::thread::sleep(std::time::Duration::from_millis(100));
 
-                        if let Ok(time_after) = player.get_time() {
-                            // Should be near beginning (allowing for small startup delay)
-                            assert!(
-                                time_after < 500.0,
-                                "After stop and play, position should start from beginning"
-                            );
-                        }
+                    if let Ok(time_after) = player.get_time() {
+                        // Should be near beginning (allowing for small startup delay)
+                        assert!(
+                            time_after < 500.0,
+                            "After stop and play, position should start from beginning"
+                        );
                     }
                 }
             }
@@ -383,8 +381,8 @@ fn test_playback_state_indicators() {
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             // State should be determinable (playing or paused/stopped)
-            let is_playing = player.is_playing();
-            assert!(is_playing || !is_playing); // Always true, just checking no panic
+            let _is_playing = player.is_playing();
+            // VLC state check - ensuring no panic on state query
         }
     }
 }
@@ -422,9 +420,11 @@ fn test_volume_boundary_values() {
 #[test]
 fn test_speed_increments() {
     if let Some(mut player) = skip_if_vlc_unavailable() {
-        // Test 0.1x increments
-        for i in 5..=20 {
-            let speed = i as f32 / 10.0;
+        // Test 0.1x increments from 0.5 to 2.0
+        let speeds = [
+            0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
+        ];
+        for speed in speeds {
             let _ = player.set_rate(speed);
             let rate = player.get_rate();
             assert!(
@@ -505,7 +505,7 @@ fn test_seek_beyond_duration_handled() {
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             // Try to seek way beyond the file duration
-            let _ = player.set_time(999999999);
+            let _ = player.set_time(999_999_999);
 
             // Should handle gracefully without crash
             assert!(player.get_time().is_ok() || player.get_time().is_err());
@@ -585,6 +585,8 @@ fn test_speed_above_maximum() {
 
 #[test]
 fn test_speed_persists_per_audiobook() -> Result<(), Box<dyn Error>> {
+    use nodoka::db::queries;
+
     // Test per-audiobook speed preference storage
     let db = create_test_db()?;
 
@@ -593,7 +595,6 @@ fn test_speed_persists_per_audiobook() -> Result<(), Box<dyn Error>> {
     let ab2_id = create_test_audiobook(&db, "/test/dir2", "Book Two")?;
 
     // Set different speeds via metadata
-    use nodoka::db::queries;
     queries::set_metadata(db.connection(), &format!("speed_audiobook_{ab1_id}"), "1.5")?;
     queries::set_metadata(db.connection(), &format!("speed_audiobook_{ab2_id}"), "2.0")?;
 
@@ -636,10 +637,10 @@ fn test_keyboard_shortcuts_documented() {
 
     // Implementation verified via:
     // 1. Code review of message handling
-    // 2. Manual testing checklist (see tests/MANUAL_TESTING.md)
+    // 2. Manual testing with the application UI
 
     println!("Keyboard shortcuts to verify manually:");
     println!("  Space: Play/Pause");
     println!("  Ctrl+B: Create bookmark");
-    println!("See tests/MANUAL_TESTING.md for full checklist");
+    println!("These require manual testing in the running application.");
 }
