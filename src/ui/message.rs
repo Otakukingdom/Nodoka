@@ -12,6 +12,15 @@ pub enum Message {
     // Shortcuts
     CreateBookmark,
 
+    // Bookmarks UI
+    BookmarkEdit(i64),
+    BookmarkDelete(i64),
+    BookmarkJump(i64),
+    BookmarkEditorLabelChanged(String),
+    BookmarkEditorNoteChanged(String),
+    BookmarkEditorSave,
+    BookmarkEditorCancel,
+
     // Audiobook list
     AudiobookSelected(i64),
     AudiobookRemove(i64),

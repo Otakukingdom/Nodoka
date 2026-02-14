@@ -236,16 +236,16 @@ echo ""
 
 # Test release build
 echo -n "Testing release build... "
-if cargo build --release --quiet 2>&1 | grep -q "error"; then
-    check_fail "Release build failed"
-else
+if cargo build --release --quiet > /dev/null 2>&1; then
     check_pass "Release build succeeded"
-    
+
     # Check binary size (should be reasonable)
     if [ -f "target/release/nodoka" ]; then
         BINARY_SIZE=$(du -h target/release/nodoka | cut -f1)
         echo "   Binary size: $BINARY_SIZE"
     fi
+else
+    check_fail "Release build failed"
 fi
 
 echo ""

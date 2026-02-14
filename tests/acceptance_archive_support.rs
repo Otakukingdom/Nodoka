@@ -1,6 +1,7 @@
 mod acceptance_support;
 use acceptance_support::*;
 
+use nodoka::tasks::scan_directory;
 use nodoka::tasks::{cleanup_temp_files, extract_zip_for_playback, is_zip_archive};
 use std::error::Error;
 use std::fs;
@@ -21,6 +22,27 @@ fn test_zip_files_detected_as_archives() {
         // If no fixture, test concept with path checking
         assert!(is_zip_archive(std::path::Path::new("test.zip")));
     }
+}
+
+#[tokio::test]
+async fn test_scan_directory_detects_zip_audiobook() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("audiobook.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+    zip.start_file("chapter1.mp3", FileOptions::default())?;
+    zip.write_all(b"fake mp3 data")?;
+    zip.finish()?;
+
+    let discovered = scan_directory(temp.path().to_path_buf()).await?;
+
+    assert_eq!(discovered.len(), 1);
+    let book = discovered.first().ok_or("No audiobook discovered")?;
+    assert_eq!(book.name, "audiobook");
+    assert_eq!(book.path, zip_path);
+    assert_eq!(book.files.len(), 1);
+
+    Ok(())
 }
 
 #[test]

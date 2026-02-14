@@ -53,7 +53,7 @@
 //!
 //! Run all acceptance tests:
 //! ```bash
-//! cargo test --test 'acceptance_*'
+//! cargo test --tests
 //! ```
 //!
 //! Run comprehensive validation script:

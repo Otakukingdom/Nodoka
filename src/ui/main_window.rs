@@ -1,12 +1,17 @@
-use crate::ui::components::{audiobook_list, file_list, player_controls};
+use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
 use crate::ui::{settings_form, Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, text};
 use iced::{Element, Length};
 
 #[must_use]
 pub fn view(state: &State) -> Element<'static, Message> {
-    let audiobook_list_widget = audiobook_list::view(&state.audiobooks, state.selected_audiobook);
+    let audiobook_list_widget = audiobook_list::view(
+        &state.audiobooks,
+        state.selected_audiobook,
+        &state.cover_thumbnails,
+    );
     let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
+    let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
     let player_widget = player_controls::view(state);
 
     let main_content = container(column![
@@ -26,7 +31,7 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 .width(Length::FillPortion(2))
                 .height(Length::Fill),
             // File list (right panel)
-            container(file_list_widget)
+            container(column![file_list_widget, bookmarks_widget])
                 .width(Length::FillPortion(3))
                 .height(Length::Fill),
         ]
@@ -35,14 +40,19 @@ pub fn view(state: &State) -> Element<'static, Message> {
         container(player_widget),
     ]);
 
-    // Overlay settings dialog if open
+    let mut content: Element<'static, Message> = main_content.into();
+
     if state.settings_open {
-        container(column![
-            main_content,
+        content = container(column![
+            content,
             settings_form::build_settings_dialog(state)
         ])
-        .into()
-    } else {
-        main_content.into()
+        .into();
     }
+
+    if let Some(editor) = state.bookmark_editor.as_ref() {
+        content = container(column![content, bookmarks::editor(editor)]).into();
+    }
+
+    content
 }

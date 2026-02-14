@@ -58,19 +58,40 @@ if command -v ffmpeg &> /dev/null; then
     echo "Audio fixtures generated successfully"
 else
     echo "Warning: ffmpeg not found. Creating placeholder files."
-    echo "Tests requiring real audio files will be skipped."
-    
-    # Create minimal placeholder files
-    echo "PLACEHOLDER_MP3" > "$FIXTURES_DIR/audio/sample_mp3.mp3"
-    echo "PLACEHOLDER_M4B" > "$FIXTURES_DIR/audio/sample_m4b.m4b"
-    echo "PLACEHOLDER_M4A" > "$FIXTURES_DIR/audio/sample_m4a.m4a"
-    echo "PLACEHOLDER_FLAC" > "$FIXTURES_DIR/audio/sample_flac.flac"
-    echo "PLACEHOLDER_OGG" > "$FIXTURES_DIR/audio/sample_ogg.ogg"
-    echo "PLACEHOLDER_OPUS" > "$FIXTURES_DIR/audio/sample_opus.opus"
-    echo "PLACEHOLDER_WAV" > "$FIXTURES_DIR/audio/sample_wav.wav"
-    echo "PLACEHOLDER_WMA" > "$FIXTURES_DIR/audio/sample_wma.wma"
-    echo "PLACEHOLDER_AAC" > "$FIXTURES_DIR/audio/sample_aac.aac"
-    echo "PLACEHOLDER_M4B_COVER" > "$FIXTURES_DIR/audio/with_cover.m4b"
+    echo "FFmpeg not available; generating valid WAV-based fixtures via Python."
+
+    python3 - <<'PY'
+import wave
+from pathlib import Path
+
+fixtures_dir = Path('tests/fixtures/audio')
+fixtures_dir.mkdir(parents=True, exist_ok=True)
+
+wav_path = fixtures_dir / 'sample_wav.wav'
+
+sample_rate = 44100
+duration_seconds = 1
+num_frames = sample_rate * duration_seconds
+
+with wave.open(str(wav_path), 'wb') as wf:
+    wf.setnchannels(1)
+    wf.setsampwidth(2)
+    wf.setframerate(sample_rate)
+    wf.writeframes(b'\x00\x00' * num_frames)
+
+print(f'Generated {wav_path} ({wav_path.stat().st_size} bytes)')
+PY
+
+    # Copy the valid WAV bytes to other extensions so VLC can still play them.
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_mp3.mp3"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_m4b.m4b"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_m4a.m4a"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_flac.flac"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_ogg.ogg"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_opus.opus"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_wma.wma"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/sample_aac.aac"
+    cp "$FIXTURES_DIR/audio/sample_wav.wav" "$FIXTURES_DIR/audio/with_cover.m4b"
 fi
 
 # Create corrupted file for error handling tests

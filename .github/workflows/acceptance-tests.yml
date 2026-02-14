@@ -78,7 +78,7 @@ jobs:
       run: cargo test --lib
       
     - name: Run acceptance tests
-      run: cargo test --test 'acceptance_*' -- --nocapture
+      run: cargo test --tests -- --nocapture
       
     - name: Generate test summary
       if: always()

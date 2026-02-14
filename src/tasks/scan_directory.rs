@@ -3,6 +3,8 @@ use chrono::Utc;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+use super::archive_handling;
+
 #[derive(Debug, Clone)]
 pub struct DiscoveredAudiobook {
     pub path: PathBuf,
@@ -54,6 +56,12 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
                 continue;
             }
 
+            if entry.file_type().is_file() {
+                if let Some(zip_book) = discover_zip_audiobook(entry.path()) {
+                    audiobooks.push(zip_book);
+                }
+            }
+
             if entry.file_type().is_dir() {
                 if let Some(audiobook) = discover_audiobook(entry.path()) {
                     audiobooks.push(audiobook);
@@ -65,6 +73,49 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
     })
     .await
     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+}
+
+fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {
+    if !archive_handling::is_zip_archive(zip_path) {
+        return None;
+    }
+
+    let entries = match archive_handling::list_zip_audio_entries(zip_path) {
+        Ok(entries) => entries,
+        Err(e) => {
+            tracing::warn!("Failed to read ZIP archive {}: {e}", zip_path.display());
+            return None;
+        }
+    };
+
+    if entries.is_empty() {
+        return None;
+    }
+
+    let files: Vec<PathBuf> = entries
+        .into_iter()
+        .filter_map(|entry| {
+            archive_handling::to_zip_virtual_path(zip_path, &entry)
+                .ok()
+                .map(PathBuf::from)
+        })
+        .collect();
+
+    if files.is_empty() {
+        return None;
+    }
+
+    let name = zip_path
+        .file_stem()
+        .or_else(|| zip_path.file_name())?
+        .to_string_lossy()
+        .to_string();
+
+    Some(DiscoveredAudiobook {
+        path: zip_path.to_path_buf(),
+        name,
+        files,
+    })
 }
 
 fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {

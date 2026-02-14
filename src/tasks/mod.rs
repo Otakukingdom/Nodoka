@@ -53,7 +53,11 @@ mod checksum;
 mod player_scan;
 mod scan_directory;
 
-pub use archive_handling::{cleanup_temp_files, extract_zip_for_playback, is_zip_archive};
+pub use archive_handling::{
+    cleanup_temp_files, extract_zip_entry_for_playback, extract_zip_for_playback, is_zip_archive,
+    list_zip_audio_entries, materialize_zip_virtual_path, parse_zip_virtual_path,
+    to_zip_virtual_path, zip_temp_dir, zip_temp_root,
+};
 pub use checksum::sha256;
 
 #[deprecated(

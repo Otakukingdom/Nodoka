@@ -1,4 +1,16 @@
-use crate::models::{Audiobook, AudiobookFile, Directory};
+use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory};
+use std::collections::HashMap;
+use std::path::PathBuf;
+
+#[derive(Debug, Clone)]
+pub struct BookmarkEditor {
+    pub id: Option<i64>,
+    pub audiobook_id: i64,
+    pub file_path: String,
+    pub position_ms: i64,
+    pub label: String,
+    pub note: String,
+}
 
 #[derive(Debug, Clone)]
 pub struct State {
@@ -7,6 +19,11 @@ pub struct State {
     pub current_files: Vec<AudiobookFile>,
     pub selected_file: Option<String>,
     pub directories: Vec<Directory>,
+
+    pub cover_thumbnails: HashMap<i64, PathBuf>,
+
+    pub bookmarks: Vec<Bookmark>,
+    pub bookmark_editor: Option<BookmarkEditor>,
 
     pub is_playing: bool,
     pub current_time: f64,
@@ -26,6 +43,9 @@ impl Default for State {
             current_files: Vec::new(),
             selected_file: None,
             directories: Vec::new(),
+            cover_thumbnails: HashMap::new(),
+            bookmarks: Vec::new(),
+            bookmark_editor: None,
             is_playing: false,
             current_time: 0.0,
             total_duration: 0.0,
@@ -49,6 +69,9 @@ mod tests {
         assert!(state.current_files.is_empty());
         assert_eq!(state.selected_file, None);
         assert!(state.directories.is_empty());
+        assert!(state.cover_thumbnails.is_empty());
+        assert!(state.bookmarks.is_empty());
+        assert!(state.bookmark_editor.is_none());
         assert!(!state.is_playing);
         assert!(state.current_time.abs() < f64::EPSILON);
         assert!(state.total_duration.abs() < f64::EPSILON);
@@ -64,6 +87,7 @@ mod tests {
         assert_eq!(state.volume, state.volume);
         assert!((state.speed - state.speed).abs() < f32::EPSILON);
         assert_eq!(state.is_playing, state.is_playing);
+        assert_eq!(state.cover_thumbnails.len(), state.cover_thumbnails.len());
     }
 
     #[test]

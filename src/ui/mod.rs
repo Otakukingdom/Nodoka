@@ -42,6 +42,7 @@
 
 pub mod components;
 pub mod main_window;
+mod media_paths;
 mod message;
 pub mod settings_form;
 pub mod shortcuts;

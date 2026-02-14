@@ -202,7 +202,7 @@
 //!
 //! Run tests:
 //! ```sh
-//! cargo test --test 'acceptance_*'  # Acceptance tests
+//! cargo test --tests                # Integration tests (includes acceptance_*)
 //! cargo test --all                  # All tests
 //! ```
 //!
@@ -215,6 +215,7 @@
 pub mod app;
 pub mod conversions;
 pub mod cover_art;
+pub mod cover_cache;
 pub mod db;
 pub mod error;
 pub mod models;
@@ -283,7 +284,7 @@ pub use error::{Error, Result};
 ///
 /// Run acceptance tests:
 /// ```bash
-/// cargo test --test 'acceptance_*'
+/// cargo test --tests
 /// ```
 ///
 /// ### Contributing Tests

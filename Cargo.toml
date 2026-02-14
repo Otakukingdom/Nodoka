@@ -8,7 +8,7 @@ description = "A free and open source cross-platform audiobook reader"
 license = "MIT"
 
 [dependencies]
-iced = { version = "0.12", features = ["tokio", "advanced"] }
+iced = { version = "0.12", features = ["tokio", "advanced", "image"] }
 vlc-rs = "0.3"
 rusqlite = { version = "0.31", features = ["bundled"] }
 tokio = { version = "1.35", features = ["full"] }

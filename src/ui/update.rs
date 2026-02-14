@@ -3,10 +3,14 @@ use crate::db::Database;
 use crate::error::Result;
 use crate::models::Bookmark;
 use crate::player::{PlaybackState, Vlc};
-use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook};
+use crate::tasks::{
+    cleanup_temp_files, materialize_zip_virtual_path, parse_zip_virtual_path, zip_temp_dir,
+};
 use crate::ui::{Message, State};
 use iced::Command;
 use std::path::Path;
+
+mod directories;
 
 trait MediaControl {
     fn load_media(&mut self, path: &Path) -> Result<()>;
@@ -52,15 +56,30 @@ pub fn update(
         // Shortcut actions
         Message::CreateBookmark => handle_create_bookmark(state, db),
 
+        // Bookmarks UI
+        Message::BookmarkEdit(id) => handle_bookmark_edit(state, id),
+        Message::BookmarkDelete(id) => handle_bookmark_delete(state, db, id),
+        Message::BookmarkJump(id) => handle_bookmark_jump(state, player, db, id),
+        Message::BookmarkEditorLabelChanged(value) => {
+            handle_bookmark_editor_label_changed(state, &value)
+        }
+        Message::BookmarkEditorNoteChanged(value) => {
+            handle_bookmark_editor_note_changed(state, &value)
+        }
+        Message::BookmarkEditorSave => handle_bookmark_editor_save(state, db),
+        Message::BookmarkEditorCancel => handle_bookmark_editor_cancel(state),
+
         // Selection messages
         Message::AudiobookSelected(id) => handle_audiobook_selected(state, player, db, id),
         Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
 
         // Directory management messages
-        Message::DirectoryAdd => handle_directory_add(),
-        Message::DirectoryAdded(path) => handle_directory_added(state, db, &path),
-        Message::DirectoryRemove(path) => handle_directory_remove(state, player, db, &path),
-        Message::DirectoryRescan(path) => handle_directory_rescan(state, db, &path),
+        Message::DirectoryAdd => directories::handle_directory_add(),
+        Message::DirectoryAdded(path) => directories::handle_directory_added(state, db, &path),
+        Message::DirectoryRemove(path) => {
+            directories::handle_directory_remove(state, player, db, &path)
+        }
+        Message::DirectoryRescan(path) => directories::handle_directory_rescan(state, db, &path),
 
         // Settings messages
         Message::OpenSettings => handle_open_settings(state),
@@ -68,9 +87,9 @@ pub fn update(
 
         // Scan messages
         Message::ScanComplete(directory, discovered) => {
-            handle_scan_complete(state, db, &directory, discovered)
+            directories::handle_scan_complete(state, db, &directory, discovered)
         }
-        Message::ScanError(error) => handle_scan_error(&error),
+        Message::ScanError(error) => directories::handle_scan_error(&error),
 
         // Lifecycle messages
         Message::InitialLoadComplete => handle_initial_load_complete(state),
@@ -80,7 +99,7 @@ pub fn update(
     }
 }
 
-fn handle_create_bookmark(state: &State, db: &Database) -> Command<Message> {
+fn handle_create_bookmark(state: &mut State, db: &Database) -> Command<Message> {
     let (Some(audiobook_id), Some(file_path)) =
         (state.selected_audiobook, state.selected_file.clone())
     else {
@@ -97,16 +116,178 @@ fn handle_create_bookmark(state: &State, db: &Database) -> Command<Message> {
 
     let bookmark = Bookmark::new(
         audiobook_id,
-        file_path,
+        file_path.clone(),
         position_ms,
         String::from("Bookmark"),
     );
 
-    if let Err(e) = crate::db::queries::insert_bookmark(db.connection(), &bookmark) {
-        tracing::error!("Failed to create bookmark: {e}");
+    let created_id = match crate::db::queries::insert_bookmark(db.connection(), &bookmark) {
+        Ok(id) => id,
+        Err(e) => {
+            tracing::error!("Failed to create bookmark: {e}");
+            return Command::none();
+        }
+    };
+
+    if let Ok(bookmarks) =
+        crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)
+    {
+        state.bookmarks = bookmarks;
+    }
+
+    // Open editor to allow immediate label/note customization.
+    state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
+        id: Some(created_id),
+        audiobook_id,
+        file_path,
+        position_ms,
+        label: String::from("Bookmark"),
+        note: String::new(),
+    });
+
+    Command::none()
+}
+
+fn handle_bookmark_editor_label_changed(state: &mut State, value: &str) -> Command<Message> {
+    if let Some(editor) = state.bookmark_editor.as_mut() {
+        editor.label = value.to_string();
+    }
+    Command::none()
+}
+
+fn handle_bookmark_editor_note_changed(state: &mut State, value: &str) -> Command<Message> {
+    if let Some(editor) = state.bookmark_editor.as_mut() {
+        editor.note = value.to_string();
+    }
+    Command::none()
+}
+
+fn handle_bookmark_editor_cancel(state: &mut State) -> Command<Message> {
+    state.bookmark_editor = None;
+    Command::none()
+}
+
+fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> Command<Message> {
+    let Some(editor) = state.bookmark_editor.clone() else {
+        return Command::none();
+    };
+
+    let label = if editor.label.trim().is_empty() {
+        String::from("Bookmark")
+    } else {
+        editor.label.clone()
+    };
+
+    let note = if editor.note.trim().is_empty() {
+        None
+    } else {
+        Some(editor.note.clone())
+    };
+
+    if let Some(id) = editor.id {
+        let Some(existing) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
+            tracing::warn!("Bookmark {id} not found in state; cannot edit");
+            return Command::none();
+        };
+
+        let updated = Bookmark {
+            id: Some(id),
+            audiobook_id: existing.audiobook_id,
+            file_path: existing.file_path,
+            position_ms: existing.position_ms,
+            label,
+            note,
+            created_at: existing.created_at,
+        };
+
+        if let Err(e) = crate::db::queries::update_bookmark(db.connection(), &updated) {
+            tracing::error!("Failed to update bookmark: {e}");
+            return Command::none();
+        }
+    } else {
+        let mut bookmark = Bookmark::new(
+            editor.audiobook_id,
+            editor.file_path,
+            editor.position_ms,
+            label,
+        );
+        bookmark.note = note;
+
+        if let Err(e) = crate::db::queries::insert_bookmark(db.connection(), &bookmark) {
+            tracing::error!("Failed to create bookmark: {e}");
+            return Command::none();
+        }
+    }
+
+    match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), editor.audiobook_id) {
+        Ok(bms) => state.bookmarks = bms,
+        Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
+    }
+
+    state.bookmark_editor = None;
+
+    Command::none()
+}
+
+fn handle_bookmark_edit(state: &mut State, id: i64) -> Command<Message> {
+    let Some(bm) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
+        tracing::warn!("Bookmark {id} not found for edit");
+        return Command::none();
+    };
+
+    state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
+        id: Some(id),
+        audiobook_id: bm.audiobook_id,
+        file_path: bm.file_path,
+        position_ms: bm.position_ms,
+        label: bm.label,
+        note: bm.note.unwrap_or_default(),
+    });
+
+    Command::none()
+}
+
+fn handle_bookmark_delete(state: &mut State, db: &Database, id: i64) -> Command<Message> {
+    let audiobook_id = state.selected_audiobook;
+    if let Err(e) = crate::db::queries::delete_bookmark(db.connection(), id) {
+        tracing::error!("Failed to delete bookmark: {e}");
+        return Command::none();
+    }
+
+    if let Some(audiobook_id) = audiobook_id {
+        match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id) {
+            Ok(bms) => state.bookmarks = bms,
+            Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
+        }
+    } else {
+        state.bookmarks.clear();
     }
 
     Command::none()
+}
+
+fn handle_bookmark_jump(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+    id: i64,
+) -> Command<Message> {
+    let Some(bm) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
+        tracing::warn!("Bookmark {id} not found for jump");
+        return Command::none();
+    };
+
+    let cmd = handle_file_selected(state, player, db, &bm.file_path);
+
+    if let Some(ref p) = player {
+        if let Err(e) = p.set_time(bm.position_ms) {
+            tracing::error!("Failed to seek to bookmark: {e}");
+        } else if let Ok(pos) = ms_to_f64(bm.position_ms) {
+            state.current_time = pos;
+        }
+    }
+
+    cmd
 }
 
 fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {
@@ -134,6 +315,17 @@ fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> 
         state.is_playing = false;
         state.current_time = 0.0;
     }
+
+    if let Some(selected) = state.selected_file.as_deref() {
+        if let Some((zip_path, _entry)) = parse_zip_virtual_path(selected) {
+            if let Ok(dir) = zip_temp_dir(&zip_path) {
+                if let Err(e) = cleanup_temp_files(&dir) {
+                    tracing::warn!("Failed to cleanup ZIP temp dir {}: {e}", dir.display());
+                }
+            }
+        }
+    }
+
     Command::none()
 }
 
@@ -264,8 +456,14 @@ fn handle_audiobook_selected(
     db: &Database,
     id: i64,
 ) -> Command<Message> {
-    let is_new_selection = state.selected_audiobook != Some(id);
+    let old_selection = state.selected_audiobook;
+    let is_new_selection = old_selection != Some(id);
     if is_new_selection {
+        if let Some(old_id) = old_selection {
+            if let Some(old_ab) = state.audiobooks.iter().find(|a| a.id == Some(old_id)) {
+                super::media_paths::cleanup_zip_temp_for_path(&old_ab.full_path);
+            }
+        }
         reset_playback_state(state, player);
         state.selected_file = None;
         state.current_files.clear();
@@ -281,6 +479,16 @@ fn handle_audiobook_selected(
             tracing::error!("Failed to load audiobook files: {e}");
         }
     }
+
+    match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), id) {
+        Ok(bookmarks) => {
+            state.bookmarks = bookmarks;
+        }
+        Err(e) => {
+            tracing::error!("Failed to load bookmarks: {e}");
+        }
+    }
+    state.bookmark_editor = None;
 
     if let Err(e) =
         crate::db::queries::set_metadata(db.connection(), "current_audiobook_id", &id.to_string())
@@ -359,7 +567,19 @@ fn handle_file_selected<P: MediaControl>(
 
     match player.as_mut() {
         Some(p) => {
-            if let Err(e) = p.load_media(Path::new(path)) {
+            let playback_path = if parse_zip_virtual_path(path).is_some() {
+                match materialize_zip_virtual_path(path) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::error!("Failed to extract ZIP entry for playback: {e}");
+                        return Command::none();
+                    }
+                }
+            } else {
+                std::path::PathBuf::from(path)
+            };
+
+            if let Err(e) = p.load_media(&playback_path) {
                 tracing::error!("Failed to load media: {e}");
                 return Command::none();
             }
@@ -381,101 +601,6 @@ fn handle_file_selected<P: MediaControl>(
     Command::none()
 }
 
-fn handle_directory_add() -> Command<Message> {
-    Command::perform(
-        async {
-            rfd::AsyncFileDialog::new()
-                .pick_folder()
-                .await
-                .map(|handle| handle.path().to_string_lossy().to_string())
-        },
-        |result| result.map_or(Message::DirectoryAddCancelled, Message::DirectoryAdded),
-    )
-}
-
-fn handle_directory_added(state: &mut State, db: &Database, path: &str) -> Command<Message> {
-    if state.directories.iter().any(|d| d.full_path == path) {
-        tracing::info!("Directory already added: {path}. Skipping.");
-        return Command::none();
-    }
-
-    let directory = crate::models::Directory {
-        full_path: path.to_string(),
-        created_at: chrono::Utc::now(),
-        last_scanned: None,
-    };
-
-    if let Err(e) = crate::db::queries::insert_directory(db.connection(), &directory) {
-        tracing::error!("Failed to insert directory: {e}");
-        return Command::none();
-    }
-
-    state.directories.push(directory);
-    tracing::info!("Directory added: {path}. Starting scan.");
-
-    start_directory_scan(path.to_string())
-}
-
-fn handle_directory_remove(
-    state: &mut State,
-    player: &mut Option<Vlc>,
-    db: &Database,
-    path: &str,
-) -> Command<Message> {
-    let selected_audiobook_in_directory = state
-        .selected_audiobook
-        .and_then(|id| state.audiobooks.iter().find(|a| a.id == Some(id)))
-        .is_some_and(|audiobook| audiobook.directory == path);
-
-    let selected_file_in_directory = state
-        .selected_file
-        .as_ref()
-        .is_some_and(|file_path| std::path::Path::new(file_path).starts_with(path));
-
-    let current_files_in_directory = state
-        .current_files
-        .iter()
-        .any(|file| std::path::Path::new(&file.full_path).starts_with(path));
-
-    let should_clear_selection =
-        selected_audiobook_in_directory || selected_file_in_directory || current_files_in_directory;
-
-    if let Err(e) = crate::db::queries::delete_directory(db.connection(), path) {
-        tracing::error!("Failed to delete directory: {e}");
-    } else {
-        state.directories.retain(|d| d.full_path != path);
-        state.audiobooks.retain(|a| a.directory != path);
-        if should_clear_selection {
-            reset_playback_state(state, player);
-            state.selected_audiobook = None;
-            state.selected_file = None;
-            state.current_files.clear();
-            if let Err(e) =
-                crate::db::queries::delete_metadata(db.connection(), "current_audiobook_id")
-            {
-                tracing::error!("Failed to clear current audiobook metadata: {e}");
-            }
-        }
-    }
-    Command::none()
-}
-
-fn handle_directory_rescan(_state: &mut State, db: &Database, path: &str) -> Command<Message> {
-    tracing::info!("Directory rescan requested: {path}");
-    if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path) {
-        for audiobook in audiobooks {
-            if let Some(id) = audiobook.id {
-                if let Err(e) =
-                    crate::db::queries::mark_audiobook_files_missing(db.connection(), id)
-                {
-                    tracing::error!("Failed to mark audiobook files missing: {e}");
-                }
-            }
-        }
-    }
-    start_directory_scan(path.to_string())
-}
-
 fn handle_open_settings(state: &mut State) -> Command<Message> {
     state.settings_open = true;
     Command::none()
@@ -483,186 +608,6 @@ fn handle_open_settings(state: &mut State) -> Command<Message> {
 
 fn handle_close_settings(state: &mut State) -> Command<Message> {
     state.settings_open = false;
-    Command::none()
-}
-
-fn handle_scan_complete(
-    state: &mut State,
-    db: &Database,
-    directory: &str,
-    discovered: Vec<DiscoveredAudiobook>,
-) -> Command<Message> {
-    let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
-
-    update_state_with_discovered_audiobooks(state, &audiobooks);
-
-    for (idx, disc) in discovered.into_iter().enumerate() {
-        process_discovered_audiobook(state, db, directory, &audiobooks, idx, disc);
-    }
-
-    finalize_directory_scan(state, db, directory);
-
-    Command::none()
-}
-
-fn update_state_with_discovered_audiobooks(
-    state: &mut State,
-    audiobooks: &[crate::models::Audiobook],
-) {
-    for audiobook in audiobooks {
-        let exists = state
-            .audiobooks
-            .iter()
-            .any(|a| a.full_path == audiobook.full_path);
-
-        if !exists {
-            state.audiobooks.push(audiobook.clone());
-        }
-    }
-}
-
-fn process_discovered_audiobook(
-    state: &mut State,
-    db: &Database,
-    directory: &str,
-    audiobooks: &[crate::models::Audiobook],
-    idx: usize,
-    disc: DiscoveredAudiobook,
-) {
-    let disc_path = disc.path.display().to_string();
-    let mut resolved_audiobook = audiobooks.get(idx).cloned().unwrap_or_else(|| {
-        crate::models::Audiobook::new(
-            directory.to_string(),
-            disc.name.clone(),
-            disc_path.clone(),
-            i32::try_from(idx).unwrap_or(i32::MAX),
-        )
-    });
-
-    let Some(audiobook_id) = resolve_audiobook_id(db, &disc_path, &mut resolved_audiobook) else {
-        return;
-    };
-
-    update_state_audiobook_id(state, &resolved_audiobook, audiobook_id);
-    process_audiobook_files(db, audiobook_id, disc.files);
-}
-
-fn resolve_audiobook_id(
-    db: &Database,
-    disc_path: &str,
-    resolved_audiobook: &mut crate::models::Audiobook,
-) -> Option<i64> {
-    let existing = match crate::db::queries::get_audiobook_by_path(db.connection(), disc_path) {
-        Ok(existing) => existing,
-        Err(e) => {
-            tracing::error!("Failed to lookup audiobook by path {disc_path}: {e}");
-            return None;
-        }
-    };
-
-    let audiobook_id = if let Some(existing_ab) = existing {
-        if let Some(id) = existing_ab.id {
-            resolved_audiobook.id = Some(id);
-            id
-        } else if let Ok(id) =
-            crate::db::queries::insert_audiobook(db.connection(), resolved_audiobook)
-        {
-            resolved_audiobook.id = Some(id);
-            id
-        } else {
-            return None;
-        }
-    } else {
-        match crate::db::queries::insert_audiobook(db.connection(), resolved_audiobook) {
-            Ok(id) => {
-                resolved_audiobook.id = Some(id);
-                id
-            }
-            Err(e) => {
-                tracing::error!("Failed to insert audiobook: {e}");
-                return None;
-            }
-        }
-    };
-
-    Some(audiobook_id)
-}
-
-fn update_state_audiobook_id(
-    state: &mut State,
-    resolved_audiobook: &crate::models::Audiobook,
-    audiobook_id: i64,
-) {
-    if let Some(entry) = state
-        .audiobooks
-        .iter_mut()
-        .find(|a| a.full_path == resolved_audiobook.full_path)
-    {
-        entry.id = Some(audiobook_id);
-    } else {
-        let mut ab = resolved_audiobook.clone();
-        ab.id = Some(audiobook_id);
-        state.audiobooks.push(ab);
-    }
-}
-
-fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<std::path::PathBuf>) {
-    let mut sorted_files = files;
-    sorted_files.sort_by(|a, b| {
-        let a_name = a.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        let b_name = b.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        natord::compare(a_name, b_name)
-    });
-
-    for (pos, file_path) in sorted_files.iter().enumerate() {
-        process_single_file(db, audiobook_id, pos, file_path);
-    }
-}
-
-fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, file_path: &std::path::Path) {
-    let name = file_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("Unknown")
-        .to_string();
-    let full_path = file_path.display().to_string();
-    let mut file = crate::models::AudiobookFile::new(
-        audiobook_id,
-        name,
-        full_path.clone(),
-        i32::try_from(pos).unwrap_or(i32::MAX),
-    );
-
-    if let Ok(Some(existing_file)) =
-        crate::db::queries::get_audiobook_file_by_path(db.connection(), &full_path)
-    {
-        file.length_of_file = existing_file.length_of_file;
-        file.seek_position = existing_file.seek_position;
-        file.completeness = existing_file.completeness;
-        file.file_exists = true;
-    }
-
-    if let Err(e) = crate::db::queries::insert_audiobook_file(db.connection(), &file) {
-        tracing::error!("Failed to insert audiobook file: {e}");
-    }
-}
-
-fn finalize_directory_scan(state: &mut State, db: &Database, directory: &str) {
-    if let Err(e) = crate::db::queries::update_directory_last_scanned(db.connection(), directory) {
-        tracing::error!("Failed to update directory scan timestamp: {e}");
-    }
-
-    if let Some(dir) = state
-        .directories
-        .iter_mut()
-        .find(|d| d.full_path == directory)
-    {
-        dir.last_scanned = Some(chrono::Utc::now());
-    }
-}
-
-fn handle_scan_error(error: &str) -> Command<Message> {
-    tracing::error!("Scan error: {error}");
     Command::none()
 }
 
@@ -762,20 +707,6 @@ fn mark_current_file_complete(state: &mut State, db: &Database, file_path: &str)
 
     update_current_file_progress(state, file_path, final_time, 100);
     update_audiobook_completeness_after_file_change(state, db, file_path);
-}
-
-fn start_directory_scan(path: String) -> Command<Message> {
-    Command::perform(
-        async move {
-            scan_directory(path.clone().into())
-                .await
-                .map(|discovered| (path, discovered))
-        },
-        |result| match result {
-            Ok((path, discovered)) => Message::ScanComplete(path, discovered),
-            Err(error) => Message::ScanError(error.to_string()),
-        },
-    )
 }
 
 fn update_current_file_progress(
@@ -942,6 +873,92 @@ mod tests {
             Some(old_path),
             "db selected_file should not change when load fails"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_create_bookmark_opens_editor() -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        let audiobook = Audiobook::new(
+            "/dir".to_string(),
+            "Test".to_string(),
+            "/dir/book".to_string(),
+            0,
+        );
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+        let file_path = "/dir/book/ch1.mp3";
+        let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+        crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+        let mut state = State {
+            selected_audiobook: Some(audiobook_id),
+            selected_file: Some(file_path.to_string()),
+            current_time: 1500.0,
+            ..Default::default()
+        };
+
+        let mut player: Option<Vlc> = None;
+        let _cmd = update(&mut state, Message::CreateBookmark, &mut player, &db);
+
+        let editor = state.bookmark_editor.as_ref().ok_or("expected editor")?;
+        assert_eq!(editor.audiobook_id, audiobook_id);
+        assert_eq!(editor.file_path, file_path);
+        assert_eq!(editor.position_ms, 1500);
+        assert_eq!(editor.label, "Bookmark");
+        assert!(editor.note.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn test_bookmark_editor_save_inserts_and_closes(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        let audiobook = Audiobook::new(
+            "/dir".to_string(),
+            "Test".to_string(),
+            "/dir/book".to_string(),
+            0,
+        );
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+        let file_path = "/dir/book/ch1.mp3";
+        let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+        crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+        let mut state = State {
+            selected_audiobook: Some(audiobook_id),
+            selected_file: Some(file_path.to_string()),
+            current_time: 2000.0,
+            ..Default::default()
+        };
+        let mut player: Option<Vlc> = None;
+
+        let _ = update(&mut state, Message::CreateBookmark, &mut player, &db);
+        let _ = update(
+            &mut state,
+            Message::BookmarkEditorLabelChanged("Chapter 1".to_string()),
+            &mut player,
+            &db,
+        );
+        let _ = update(
+            &mut state,
+            Message::BookmarkEditorNoteChanged("note".to_string()),
+            &mut player,
+            &db,
+        );
+        let _ = update(&mut state, Message::BookmarkEditorSave, &mut player, &db);
+
+        assert!(state.bookmark_editor.is_none());
+
+        let saved = crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+        let first = saved.first().ok_or("no bookmark")?;
+        assert_eq!(first.label, "Chapter 1");
+        assert_eq!(first.note.as_deref(), Some("note"));
         Ok(())
     }
 }

@@ -74,7 +74,7 @@ jobs:
       run: cargo test --all --verbose
 
     - name: Run acceptance tests
-      run: cargo test --test 'acceptance_*' --verbose
+      run: cargo test --tests --verbose
 
     - name: Check code formatting
       run: cargo fmt -- --check

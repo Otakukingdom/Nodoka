@@ -89,7 +89,7 @@ cargo build --release
 **Running Tests:**
 ```bash
 # Run all acceptance tests
-cargo test --test 'acceptance_*'
+cargo test --tests
 
 # Run comprehensive validation
 ./scripts/run_acceptance_tests.sh
@@ -100,7 +100,7 @@ cargo test --test 'acceptance_*'
 Run the comprehensive acceptance test suite:
 ```bash
 # All acceptance tests
-cargo test --test 'acceptance_*'
+cargo test --tests
 
 # Specific category
 cargo test --test acceptance_playback_controls

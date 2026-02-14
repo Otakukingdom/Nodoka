@@ -28,6 +28,7 @@ use crate::db::Database;
 use crate::player::Vlc;
 use crate::ui::{main_window, update, Message, State};
 use iced::{Application, Command, Element, Settings, Subscription, Theme};
+use std::path::Path;
 use std::time::Duration;
 
 /// Main application state for the Nodoka audiobook reader.
@@ -43,6 +44,24 @@ pub struct App {
     state: State,
     player: Option<Vlc>,
     db: Database,
+}
+
+impl Drop for App {
+    fn drop(&mut self) {
+        match crate::tasks::zip_temp_root() {
+            Ok(root) => {
+                if let Err(e) = crate::tasks::cleanup_temp_files(&root) {
+                    tracing::warn!(
+                        "Failed to cleanup ZIP temp root on shutdown ({}): {e}",
+                        root.display()
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::warn!("Failed to resolve ZIP temp root on shutdown: {e}");
+            }
+        }
+    }
 }
 
 /// Initialization flags passed to [`App`] on startup.
@@ -82,6 +101,21 @@ impl Application for App {
             }
         }
 
+        for ab in &state.audiobooks {
+            let Some(id) = ab.id else {
+                continue;
+            };
+            match crate::cover_cache::ensure_cover_thumbnail(id, Path::new(&ab.full_path)) {
+                Ok(Some(path)) => {
+                    state.cover_thumbnails.insert(id, path);
+                }
+                Ok(None) => {}
+                Err(e) => {
+                    tracing::warn!("Failed to prepare cover thumbnail for audiobook {id}: {e}");
+                }
+            }
+        }
+
         // Load settings
         if let Ok(Some(volume_str)) =
             crate::db::queries::get_metadata(flags.db.connection(), "volume")
@@ -111,6 +145,12 @@ impl Application for App {
                     crate::db::queries::get_audiobook_files(flags.db.connection(), id)
                 {
                     state.current_files = files;
+                }
+
+                if let Ok(bookmarks) =
+                    crate::db::queries::get_bookmarks_for_audiobook(flags.db.connection(), id)
+                {
+                    state.bookmarks = bookmarks;
                 }
             }
         }
