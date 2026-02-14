@@ -87,6 +87,9 @@ pub(super) fn handle_sleep_timer_tick(state: &mut State, player: &mut Option<Vlc
     if fade > 0 && remaining <= fade {
         let base = i64::from(state.sleep_timer_base_volume.unwrap_or(state.volume).max(0));
         let scaled_i64 = base.saturating_mul(remaining) / fade;
+        // Conversion cannot overflow: base <= 200 (max volume), remaining <= fade,
+        // so scaled_i64 = (base * remaining) / fade <= base <= 200, which fits in i32.
+        // The unwrap_or(0) is a defensive fallback that should never execute.
         let scaled = i32::try_from(scaled_i64).ok().unwrap_or(0);
         if let Some(ref mut p) = player {
             if let Err(e) = p.set_volume(scaled.clamp(0, 200)) {
