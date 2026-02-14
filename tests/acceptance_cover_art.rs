@@ -126,7 +126,7 @@ fn test_cover_detection_case_insensitive() -> Result<(), Box<dyn Error>> {
     ];
 
     for name in names {
-        let path = Path::new(name);
+        let _path = Path::new(name);
         let name_lower = name.to_lowercase();
         assert!(
             name_lower.contains("cover") || name_lower.contains("folder"),

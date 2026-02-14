@@ -11,7 +11,7 @@ fn test_settings_persist_across_restarts() -> Result<(), Box<dyn Error>> {
 
     // First session
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let settings = Settings::new(db.connection());
@@ -21,7 +21,7 @@ fn test_settings_persist_across_restarts() -> Result<(), Box<dyn Error>> {
 
     // Second session
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
         assert!((settings.get_speed()? - 1.5).abs() < 0.01);
@@ -147,7 +147,7 @@ fn test_volume_persists() -> Result<(), Box<dyn Error>> {
     let db_path = temp_db_dir.path().join("volume_test.db");
 
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let settings = Settings::new(db.connection());
@@ -155,7 +155,7 @@ fn test_volume_persists() -> Result<(), Box<dyn Error>> {
     }
 
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
         assert_eq!(settings.get_volume()?, 75);
     }
@@ -169,7 +169,7 @@ fn test_speed_persists() -> Result<(), Box<dyn Error>> {
     let db_path = temp_db_dir.path().join("speed_test.db");
 
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let settings = Settings::new(db.connection());
@@ -177,7 +177,7 @@ fn test_speed_persists() -> Result<(), Box<dyn Error>> {
     }
 
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
         assert!((settings.get_speed()? - 1.8).abs() < 0.01);
     }

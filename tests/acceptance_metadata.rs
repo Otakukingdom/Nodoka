@@ -13,9 +13,9 @@ fn test_extract_duration() -> Result<(), Box<dyn Error>> {
         return Ok(()); // Skip if no fixture
     }
 
-    if let Ok(mut scanner) = Scanner::new() {
-        if let Ok(properties) = scanner.scan_file(&audio_file) {
-            assert!(properties.duration >= 0, "Duration should be non-negative");
+    if let Ok(scanner) = Scanner::new() {
+        if let Ok(properties) = scanner.scan_media(&audio_file) {
+            assert!(properties.duration_ms >= 0, "Duration should be non-negative");
         }
     }
 
@@ -31,8 +31,8 @@ fn test_missing_metadata_handled() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    if let Ok(mut scanner) = Scanner::new() {
-        let result = scanner.scan_file(&audio_file);
+    if let Ok(scanner) = Scanner::new() {
+        let result = scanner.scan_media(&audio_file);
         // Should not panic even if metadata is missing
         assert!(result.is_ok() || result.is_err());
     }
@@ -49,13 +49,13 @@ fn test_duration_calculation() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    if let Ok(mut scanner) = Scanner::new() {
-        if let Ok(properties) = scanner.scan_file(&audio_file) {
+    if let Ok(scanner) = Scanner::new() {
+        if let Ok(properties) = scanner.scan_media(&audio_file) {
             // Duration should be sensible for a 1-second file
             assert!(
-                properties.duration >= 0 && properties.duration <= 10000,
+                properties.duration_ms >= 0 && properties.duration_ms <= 10000,
                 "Duration {} out of expected range for test file",
-                properties.duration
+                properties.duration_ms
             );
         }
     }
@@ -154,10 +154,10 @@ fn test_file_properties_extraction() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    if let Ok(mut scanner) = Scanner::new() {
-        if let Ok(properties) = scanner.scan_file(&audio_file) {
+    if let Ok(scanner) = Scanner::new() {
+        if let Ok(properties) = scanner.scan_media(&audio_file) {
             // Check that basic properties are present
-            assert!(properties.duration >= 0);
+            assert!(properties.duration_ms >= 0);
             // Other properties like bitrate, sample_rate may or may not be available
         }
     }
@@ -179,9 +179,9 @@ fn test_multiple_format_metadata() -> Result<(), Box<dyn Error>> {
     for (file, _format) in formats {
         let audio_file = fixtures.audio_path(file);
         if audio_file.exists() {
-            if let Ok(mut scanner) = Scanner::new() {
+            if let Ok(scanner) = Scanner::new() {
                 // Should be able to extract metadata from all formats
-                let _ = scanner.scan_file(&audio_file);
+                let _ = scanner.scan_media(&audio_file);
             }
         }
     }
@@ -208,7 +208,8 @@ fn test_metadata_caching() -> Result<(), Box<dyn Error>> {
 
     file.length_of_file = Some(3600); // 1 hour duration
 
-    queries::update_audiobook_file(db.connection(), &file)?;
+    // Use INSERT OR REPLACE to update
+    queries::insert_audiobook_file(db.connection(), &file)?;
 
     // Retrieve and verify cached value
     let files = queries::get_audiobook_files(db.connection(), audiobook_id)?;

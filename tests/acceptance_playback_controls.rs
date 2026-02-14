@@ -15,7 +15,7 @@ fn test_play_starts_playback() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let result = player.play_file(&audio_file);
+            let result = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             if result.is_ok() {
@@ -32,18 +32,18 @@ fn test_pause_maintains_position() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(200));
 
             let _ = player.pause();
-            let time_before = player.get_time().unwrap_or(0);
+            let time_before = player.get_time().unwrap_or(0.0);
 
             std::thread::sleep(std::time::Duration::from_millis(100));
-            let time_after = player.get_time().unwrap_or(0);
+            let time_after = player.get_time().unwrap_or(0.0);
 
             // Position should not advance significantly while paused
-            let diff = (time_after as i64 - time_before as i64).abs();
-            assert!(diff < 100, "Position changed by {} ms while paused", diff);
+            let diff = (time_after - time_before).abs();
+            assert!(diff < 100.0, "Position changed by {} ms while paused", diff);
         }
     }
 }
@@ -55,7 +55,7 @@ fn test_stop_stops_playback() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(200));
             let _ = player.stop();
 
@@ -88,7 +88,7 @@ fn test_volume_adjusts_during_playback() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             let _ = player.set_volume(75);
@@ -127,7 +127,7 @@ fn test_speed_changes_during_playback() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             let _ = player.set_rate(1.5);
@@ -145,7 +145,9 @@ fn test_volume_persists_across_files() {
 
         let fixtures = TestFixtures::new();
         if fixtures.audio_path("sample_mp3.mp3").exists() {
-            let _ = player.play_file(&fixtures.audio_path("sample_mp3.mp3"));
+            let _ = player
+                .load_media(&fixtures.audio_path("sample_mp3.mp3"))
+                .and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(50));
             assert_eq!(player.get_volume(), 75);
         }
@@ -161,7 +163,9 @@ fn test_speed_persists_across_files() {
 
         let fixtures = TestFixtures::new();
         if fixtures.audio_path("sample_mp3.mp3").exists() {
-            let _ = player.play_file(&fixtures.audio_path("sample_mp3.mp3"));
+            let _ = player
+                .load_media(&fixtures.audio_path("sample_mp3.mp3"))
+                .and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(50));
             let rate = player.get_rate();
             assert!((rate - 1.25).abs() < 0.01);
@@ -176,12 +180,13 @@ fn test_get_duration() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(200));
 
-            let duration = player.get_length();
-            // Duration should be positive for valid audio file
-            assert!(duration >= 0);
+            if let Ok(duration) = player.get_length() {
+                // Duration should be positive for valid audio file
+                assert!(duration >= 0);
+            }
         }
     }
 }
@@ -193,12 +198,12 @@ fn test_get_current_time() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(200));
 
             let time = player.get_time();
             // Time should be non-negative
-            assert!(time.is_some());
+            assert!(time.is_ok());
         }
     }
 }
@@ -210,16 +215,16 @@ fn test_seek_to_position() {
         let audio_file = fixtures.audio_path("sample_mp3.mp3");
 
         if audio_file.exists() {
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             let _ = player.set_time(500);
             std::thread::sleep(std::time::Duration::from_millis(100));
 
-            if let Some(time) = player.get_time() {
+            if let Ok(time) = player.get_time() {
                 // Allow some tolerance for seek accuracy
                 assert!(
-                    time >= 400 && time <= 600,
+                    time >= 400.0 && time <= 600.0,
                     "Seek position {} not near 500",
                     time
                 );
@@ -238,7 +243,7 @@ fn test_playback_state_indicators() {
             // Initially not playing
             assert!(!player.is_playing());
 
-            let _ = player.play_file(&audio_file);
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             // State should be determinable (playing or paused/stopped)
@@ -252,7 +257,7 @@ fn test_playback_state_indicators() {
 fn test_invalid_file_handled_gracefully() {
     if let Some(mut player) = skip_if_vlc_unavailable() {
         let nonexistent = Path::new("/nonexistent/file.mp3");
-        let result = player.play_file(nonexistent);
+        let result = player.load_media(nonexistent);
 
         // Should either error or handle gracefully, not panic
         assert!(result.is_ok() || result.is_err());
@@ -292,5 +297,109 @@ fn test_speed_increments() {
                 speed
             );
         }
+    }
+}
+
+#[test]
+fn test_seek_to_specific_position() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            // Seek to 2.5 seconds (2500ms)
+            let _ = player.set_time(2500);
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            if let Ok(time) = player.get_time() {
+                // Allow tolerance for seek accuracy
+                assert!(
+                    time >= 2400.0 && time <= 2600.0,
+                    "Seek did not reach target position"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn test_get_total_duration() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file);
+            std::thread::sleep(std::time::Duration::from_millis(200));
+
+            if let Ok(duration) = player.get_length() {
+                // Duration should be positive for valid audio
+                assert!(duration >= 0, "Duration should be non-negative");
+            }
+        }
+    }
+}
+
+#[test]
+fn test_current_time_updates_during_playback() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            let time1 = player.get_time().unwrap_or(0.0);
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            let time2 = player.get_time().unwrap_or(0.0);
+
+            // Time should advance during playback (or be same if paused/stopped)
+            assert!(time2 >= time1, "Time should not go backwards");
+        }
+    }
+}
+
+#[test]
+fn test_seek_beyond_duration_handled() {
+    if let Some(mut player) = skip_if_vlc_unavailable() {
+        let fixtures = TestFixtures::new();
+        let audio_file = fixtures.audio_path("sample_mp3.mp3");
+
+        if audio_file.exists() {
+            let _ = player.load_media(&audio_file).and_then(|()| player.play());
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            // Try to seek way beyond the file duration
+            let _ = player.set_time(999999999);
+
+            // Should handle gracefully without crash
+            assert!(player.get_time().is_ok() || player.get_time().is_err());
+        }
+    }
+}
+
+#[test]
+fn test_playback_state_values() {
+    use nodoka::player::PlaybackState;
+
+    if let Some(player) = skip_if_vlc_unavailable() {
+        let state = player.get_state();
+
+        // State should be one of the defined states
+        assert!(matches!(
+            state,
+            PlaybackState::NothingSpecial
+                | PlaybackState::Opening
+                | PlaybackState::Buffering
+                | PlaybackState::Playing
+                | PlaybackState::Paused
+                | PlaybackState::Stopped
+                | PlaybackState::Ended
+                | PlaybackState::Error
+        ));
     }
 }

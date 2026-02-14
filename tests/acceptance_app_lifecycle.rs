@@ -12,7 +12,7 @@ fn test_first_launch_creates_database() -> Result<(), Box<dyn Error>> {
 
     assert!(!db_path.exists());
 
-    let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+    let db = nodoka::db::Database::open_with_path(&db_path)?;
     nodoka::db::initialize(db.connection())?;
 
     assert!(db_path.exists());
@@ -25,7 +25,7 @@ fn test_first_launch_creates_database() -> Result<(), Box<dyn Error>> {
         .collect::<Result<Vec<_>, _>>()?;
 
     assert!(tables.contains(&"audiobooks".to_string()));
-    assert!(tables.contains(&"audiobook_files".to_string()));
+    assert!(tables.contains(&"audiobook_file".to_string()));
 
     Ok(())
 }
@@ -37,7 +37,7 @@ fn test_restore_last_selected_audiobook() -> Result<(), Box<dyn Error>> {
 
     // Session 1: Select audiobook
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let audiobook_id = create_test_audiobook(&db, "/test", "Last Book")?;
@@ -48,7 +48,7 @@ fn test_restore_last_selected_audiobook() -> Result<(), Box<dyn Error>> {
 
     // Session 2: Restore
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
         let last_id = settings.get_last_audiobook_id()?;
@@ -88,7 +88,7 @@ fn test_database_schema_has_required_tables() -> Result<(), Box<dyn Error>> {
 
     let required_tables = vec![
         "audiobooks",
-        "audiobook_files",
+        "audiobook_file",
         "directories",
         "metadata",
         "bookmarks",
@@ -112,7 +112,7 @@ fn test_graceful_shutdown_saves_progress() -> Result<(), Box<dyn Error>> {
 
     // Simulate application session
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
@@ -125,7 +125,7 @@ fn test_graceful_shutdown_saves_progress() -> Result<(), Box<dyn Error>> {
 
     // Verify progress saved
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let audiobooks = queries::get_all_audiobooks(db.connection())?;
         let audiobook_id = audiobooks[0].id.ok_or("No ID")?;
 
@@ -164,7 +164,7 @@ fn test_startup_time_reasonable() -> Result<(), Box<dyn Error>> {
 
     let start = Instant::now();
 
-    let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+    let db = nodoka::db::Database::open_with_path(&db_path)?;
     nodoka::db::initialize(db.connection())?;
 
     let elapsed = start.elapsed();
@@ -226,7 +226,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
 
     // First launch
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         nodoka::db::initialize(db.connection())?;
 
         let settings = Settings::new(db.connection());
@@ -235,7 +235,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
 
     // Second launch
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
         assert_eq!(settings.get_default_volume()?, Some(125));
@@ -243,7 +243,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
 
     // Third launch
     {
-        let db = nodoka::db::connection::Database::open_with_path(&db_path)?;
+        let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
         assert_eq!(settings.get_default_volume()?, Some(125));

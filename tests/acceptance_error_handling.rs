@@ -9,14 +9,12 @@ use std::path::Path;
 fn test_missing_vlc_handled_gracefully() {
     // If VLC not available, constructors should return Err
     let result = Vlc::new();
-    if result.is_err() {
+    if let Err(e) = result {
         // Error should be informative
-        let err = result.unwrap_err();
-        let err_str = err.to_string().to_lowercase();
+        let err_str = format!("{:?}", e).to_lowercase();
         assert!(
             err_str.contains("vlc") || err_str.contains("library") || err_str.contains("not found"),
-            "Error message should mention VLC: {}",
-            err
+            "Error message should mention VLC"
         );
     }
 }
@@ -28,7 +26,7 @@ fn test_unplayable_file_shows_error() -> Result<(), Box<dyn Error>> {
         let corrupted = fixtures.audio_path("corrupted.mp3");
 
         if corrupted.exists() {
-            let result = player.play_file(&corrupted);
+            let result = player.load_media(&corrupted);
             // Should handle gracefully, not crash
             assert!(result.is_ok() || result.is_err());
         }
@@ -48,7 +46,7 @@ fn test_database_errors_return_result() -> Result<(), Box<dyn Error>> {
 
     // Should return Ok(None), not error
     assert!(result.is_ok());
-    assert_eq!(result?, None);
+    assert!(result?.is_none());
 
     Ok(())
 }
@@ -57,7 +55,7 @@ fn test_database_errors_return_result() -> Result<(), Box<dyn Error>> {
 fn test_nonexistent_file_handled() -> Result<(), Box<dyn Error>> {
     if let Ok(mut player) = Vlc::new() {
         let nonexistent = Path::new("/nonexistent/path/to/file.mp3");
-        let result = player.play_file(nonexistent);
+        let result = player.load_media(nonexistent);
 
         // Should not panic
         assert!(result.is_ok() || result.is_err());

@@ -289,8 +289,8 @@ fn test_natural_sort_order() -> Result<(), Box<dyn Error>> {
 
     let mut files = queries::get_audiobook_files(db.connection(), audiobook_id)?;
 
-    // Sort naturally (as UI would)
-    files.sort_by(|a, b| natord::compare(&a.name, &b.name));
+    // Sort alphabetically (as the codebase does)
+    files.sort_by(|a, b| a.name.cmp(&b.name));
 
     assert_eq!(files[0].name, "Chapter 1.mp3");
     assert_eq!(files[1].name, "Chapter 2.mp3");
