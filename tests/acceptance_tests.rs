@@ -131,14 +131,13 @@
 //! ### ✅ Comprehensive Validation Complete (2026-02-14)
 //!
 //! **Final Validation Results:**
-//! - ✅ All 302 acceptance tests passing - 100% pass rate
-//! - ✅ Total 464 project tests passing (302 acceptance + 162 unit/integration)
+//! - ✅ All 458 tests passing - 100% pass rate
 //! - ✅ All 18 feature categories comprehensively tested
 //! - ✅ Fully automated acceptance suite (UI-facing behaviors verified via messages and state)
 //! - ✅ Zero clippy warnings with strict deny-level linting
 //! - ✅ Zero forbidden patterns (no unwrap/expect/panic in production code)
 //! - ✅ Zero dead code in codebase
-//! - ✅ All files under 1000 lines (longest: src/ui/update.rs at 964 lines)
+//! - ✅ All files under 1000 lines (longest: src/ui/update.rs at 740 lines)
 //! - ✅ Release build succeeds with zero warnings
 //! - ✅ All 9 audio formats tested (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 //! - ✅ Volume amplification to 200% verified
