@@ -41,7 +41,7 @@ fn test_startup_time_with_1000_audiobooks() -> Result<(), Box<dyn Error>> {
         nodoka::db::initialize(db.connection())?;
 
         for i in 0..1000 {
-            create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+            create_test_audiobook(&db, "/test/library", &format!("Book {i:04}"))?;
         }
     }
 
@@ -69,7 +69,7 @@ fn test_large_library_query_performance() -> Result<(), Box<dyn Error>> {
 
     // Create 1000 audiobooks
     for i in 0..1000 {
-        create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+        create_test_audiobook(&db, "/test/library", &format!("Book {i:04}"))?;
     }
 
     // Query should be fast
@@ -150,8 +150,7 @@ fn test_database_schema_has_required_tables() -> Result<(), Box<dyn Error>> {
     for table in required_tables {
         assert!(
             tables.contains(&table.to_string()),
-            "Missing required table: {}",
-            table
+            "Missing required table: {table}"
         );
     }
 
@@ -225,8 +224,7 @@ fn test_startup_time_reasonable() -> Result<(), Box<dyn Error>> {
     // Database initialization should be fast (< 1 second for empty DB)
     assert!(
         elapsed.as_secs() < 5,
-        "Database initialization took too long: {:?}",
-        elapsed
+        "Database initialization took too long: {elapsed:?}"
     );
 
     Ok(())
@@ -238,7 +236,7 @@ fn test_large_library_startup() -> Result<(), Box<dyn Error>> {
 
     // Create many audiobooks
     for i in 0..100 {
-        create_test_audiobook(&db, "/test", &format!("Book {}", i))?;
+        create_test_audiobook(&db, "/test", &format!("Book {i}"))?;
     }
 
     // Should still be able to query quickly
@@ -250,7 +248,7 @@ fn test_large_library_startup() -> Result<(), Box<dyn Error>> {
     let elapsed = start.elapsed();
 
     assert_eq!(audiobooks.len(), 100);
-    assert!(elapsed.as_secs() < 1, "Query took too long: {:?}", elapsed);
+    assert!(elapsed.as_secs() < 1, "Query took too long: {elapsed:?}");
 
     Ok(())
 }

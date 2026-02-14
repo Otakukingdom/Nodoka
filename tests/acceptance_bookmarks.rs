@@ -197,7 +197,7 @@ fn test_multiple_bookmarks_same_audiobook() -> Result<(), Box<dyn Error>> {
         let bookmark = Bookmark::new(
             audiobook_id,
             format!("/test/Book/chapter{}.mp3", i % 2 + 1),
-            (i * 1000) as i64,
+            i64::from(i * 1000),
             format!("Bookmark {}", i + 1),
         );
         queries::insert_bookmark(db.connection(), &bookmark)?;
@@ -449,7 +449,7 @@ fn test_bookmark_empty_label() -> Result<(), Box<dyn Error>> {
         audiobook_id,
         "/test/Book/chapter1.mp3".to_string(),
         1000,
-        "".to_string(), // Empty label
+        String::new(), // Empty label
     );
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);
@@ -470,7 +470,7 @@ fn test_bookmark_very_long_label() -> Result<(), Box<dyn Error>> {
         audiobook_id,
         "/test/Book/chapter1.mp3".to_string(),
         1000,
-        long_label.clone(),
+        long_label,
     );
 
     let result = queries::insert_bookmark(db.connection(), &bookmark);

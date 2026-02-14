@@ -70,7 +70,7 @@ fn test_duration_calculation() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_total_audiobook_duration() -> Result<(), Box<dyn Error>> {
     // Test calculating total duration across multiple files
-    let durations = vec![1800, 2100, 1950]; // Example durations in seconds
+    let durations = [1800, 2100, 1950]; // Example durations in seconds
     let total: i64 = durations.iter().sum();
 
     assert_eq!(total, 5850);
@@ -131,7 +131,7 @@ fn test_long_metadata_strings() -> Result<(), Box<dyn Error>> {
     let truncated = if long_title.len() > 200 {
         format!("{}...", &long_title[..200])
     } else {
-        long_title.clone()
+        long_title
     };
 
     assert!(truncated.len() <= 203); // 200 chars + "..."
@@ -143,7 +143,7 @@ fn test_long_metadata_strings() -> Result<(), Box<dyn Error>> {
 fn test_metadata_encoding() -> Result<(), Box<dyn Error>> {
     // Test UTF-8 metadata
     let title = "日本語のタイトル";
-    assert!(title.is_ascii() == false);
+    assert!(!title.is_ascii());
     assert_eq!(title.chars().count(), 8);
 
     Ok(())

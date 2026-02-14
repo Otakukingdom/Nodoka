@@ -16,7 +16,7 @@ fn test_file_list_shows_all_files() -> Result<(), Box<dyn Error>> {
 
     // Insert files
     for i in 1..=5 {
-        let file_path = audiobook_dir.join(format!("chapter_{:02}.mp3", i));
+        let file_path = audiobook_dir.join(format!("chapter_{i:02}.mp3"));
         insert_test_file(&db, audiobook_id, file_path.to_str().ok_or("Invalid path")?)?;
     }
 

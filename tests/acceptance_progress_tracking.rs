@@ -217,7 +217,7 @@ fn test_progress_with_multiple_files() -> Result<(), Box<dyn Error>> {
 
     // Insert multiple files
     for i in 1..=5 {
-        let file_path = format!("/test/Multi-File Book/chapter{}.mp3", i);
+        let file_path = format!("/test/Multi-File Book/chapter{i}.mp3");
         insert_test_file(&db, audiobook_id, &file_path)?;
     }
 

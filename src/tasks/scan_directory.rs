@@ -25,9 +25,7 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
             .into_iter()
             .filter_entry(|e| {
                 // Filter out hidden files and directories (starting with '.')
-                e.file_name()
-                    .to_str()
-                    .is_some_and(|s| !s.starts_with('.'))
+                e.file_name().to_str().is_some_and(|s| !s.starts_with('.'))
             })
             .filter_map(std::result::Result::ok)
         {
@@ -83,7 +81,7 @@ fn is_audio_file(path: &Path) -> bool {
         if let Some(ext_str) = ext.to_str() {
             return matches!(
                 ext_str.to_lowercase().as_str(),
-                "mp3" | "m4a" | "m4b" | "ogg" | "flac" | "opus" | "aac" | "wma"
+                "mp3" | "m4a" | "m4b" | "ogg" | "flac" | "opus" | "aac" | "wma" | "wav"
             );
         }
     }

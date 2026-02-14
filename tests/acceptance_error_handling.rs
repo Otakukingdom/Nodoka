@@ -11,7 +11,7 @@ fn test_missing_vlc_handled_gracefully() {
     let result = Vlc::new();
     if let Err(e) = result {
         // Error should be informative
-        let err_str = format!("{:?}", e).to_lowercase();
+        let err_str = format!("{e:?}").to_lowercase();
         assert!(
             err_str.contains("vlc") || err_str.contains("library") || err_str.contains("not found"),
             "Error message should mention VLC"
@@ -107,7 +107,7 @@ fn test_very_long_paths_handled() -> Result<(), Box<dyn Error>> {
     let long_path = "/".to_string() + &"very_long_directory_name/".repeat(50);
 
     let dir = Directory {
-        full_path: long_path.clone(),
+        full_path: long_path,
         created_at: chrono::Utc::now(),
         last_scanned: None,
     };
@@ -222,7 +222,7 @@ fn test_concurrent_database_writes() -> Result<(), Box<dyn Error>> {
 
     // Perform multiple writes
     for i in 0..10 {
-        let _ = create_test_audiobook(&db, "/test", &format!("Book {}", i))?;
+        let _ = create_test_audiobook(&db, "/test", &format!("Book {i}"))?;
     }
 
     let audiobooks = queries::get_all_audiobooks(db.connection())?;
@@ -251,7 +251,7 @@ fn test_extremely_deep_path_nesting() -> Result<(), Box<dyn Error>> {
     // Test handling of very deep directory structures
     let mut deep_path = String::from("/root");
     for i in 0..100 {
-        deep_path.push_str(&format!("/level{}", i));
+        deep_path.push_str(&format!("/level{i}"));
     }
 
     let db = create_test_db()?;
@@ -269,12 +269,11 @@ fn test_vlc_not_installed_error_message() {
     let result = Vlc::new();
 
     if let Err(e) = result {
-        let error_msg = format!("{}", e);
+        let error_msg = format!("{e}");
         // Error should mention VLC and be actionable
         assert!(
             error_msg.to_lowercase().contains("vlc") || error_msg.to_lowercase().contains("libvlc"),
-            "Error should mention VLC: {}",
-            error_msg
+            "Error should mention VLC: {error_msg}"
         );
     }
 }

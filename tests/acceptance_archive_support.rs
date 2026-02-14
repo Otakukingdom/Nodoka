@@ -331,10 +331,10 @@ fn test_zip_with_deeply_nested_structure() -> Result<(), Box<dyn Error>> {
 
     // Create deeply nested path: level1/level2/.../level10/audio.mp3
     let deep_path = (1..=10)
-        .map(|i| format!("level{}", i))
+        .map(|i| format!("level{i}"))
         .collect::<Vec<_>>()
         .join("/");
-    let file_path = format!("{}/audio.mp3", deep_path);
+    let file_path = format!("{deep_path}/audio.mp3");
 
     zip.start_file(&file_path, FileOptions::default())?;
     zip.write_all(b"fake audio")?;
@@ -451,6 +451,98 @@ fn test_zip_extraction_creates_necessary_directories() -> Result<(), Box<dyn Err
     assert_eq!(extracted.len(), 1);
     // Verify the file actually exists
     assert!(extracted[0].exists());
+
+    Ok(())
+}
+
+#[test]
+fn test_zip_with_mixed_content() -> Result<(), Box<dyn Error>> {
+    // ZIP with audio + non-audio files
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("mixed.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    let options = FileOptions::default();
+
+    // Add audio files
+    zip.start_file("chapter1.mp3", options)?;
+    zip.write_all(b"audio1")?;
+
+    zip.start_file("chapter2.mp3", options)?;
+    zip.write_all(b"audio2")?;
+
+    // Add non-audio files that should be ignored or included
+    zip.start_file("cover.jpg", options)?;
+    zip.write_all(b"image")?;
+
+    zip.start_file("readme.txt", options)?;
+    zip.write_all(b"text")?;
+
+    zip.start_file(".hidden", options)?;
+    zip.write_all(b"hidden")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let extracted = extract_zip_for_playback(&zip_path, &extract_dir)?;
+
+    // Should extract only audio files
+    assert_eq!(extracted.len(), 2, "Should only extract audio files");
+
+    Ok(())
+}
+
+#[test]
+fn test_corrupted_zip_file_handling() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    // Create a corrupted ZIP file
+    let zip_path = temp.path().join("corrupted.zip");
+    fs::write(&zip_path, b"PK\x03\x04 CORRUPTED DATA NOT A VALID ZIP")?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    // Should handle error gracefully
+    let result = extract_zip_for_playback(&zip_path, &extract_dir);
+
+    assert!(result.is_err(), "Should error on corrupted ZIP");
+
+    Ok(())
+}
+
+#[test]
+fn test_zip_with_no_audio_files() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+
+    let zip_path = temp.path().join("no_audio.zip");
+    let mut zip = ZipWriter::new(fs::File::create(&zip_path)?);
+
+    let options = FileOptions::default();
+
+    // Only non-audio files
+    zip.start_file("readme.txt", options)?;
+    zip.write_all(b"text")?;
+
+    zip.start_file("image.jpg", options)?;
+    zip.write_all(b"image")?;
+
+    zip.finish()?;
+
+    let extract_dir = temp.path().join("extracted");
+    fs::create_dir(&extract_dir)?;
+
+    let extracted = extract_zip_for_playback(&zip_path, &extract_dir)?;
+
+    // Should return empty list
+    assert_eq!(
+        extracted.len(),
+        0,
+        "Should extract no files from ZIP without audio"
+    );
 
     Ok(())
 }

@@ -66,7 +66,7 @@ cargo build --release
 **Version**: 0.2.0  
 **Status**: Production Ready
 
-- ✅ **264 acceptance tests** (all passing)
+- ✅ **284 acceptance tests** (all passing)
 - ✅ ~98% specification coverage across all 18 feature areas
 - ✅ Comprehensive test suite with extensive edge case coverage
 - ✅ Strict Rust idioms (no unwrap/expect/panic in production code)
@@ -117,7 +117,8 @@ cargo doc --no-deps --open
 ```
 
 Test coverage:
-- **220 total tests** across 18 test files
+- **284 acceptance tests** across 18 test files
+- **440 total tests** including unit and integration tests
 - Library Management: 53 tests (directory management, scanning, archives)
 - Playback: 53 tests (controls, navigation, progress tracking)
 - User Features: 32 tests (bookmarks, completion, cover art)

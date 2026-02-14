@@ -57,8 +57,7 @@ fn test_multiple_image_formats_supported() -> Result<(), Box<dyn Error>> {
         let path = Path::new(format);
         assert!(
             path.extension().is_some(),
-            "Format {} should have extension",
-            format
+            "Format {format} should have extension"
         );
     }
 
@@ -68,7 +67,7 @@ fn test_multiple_image_formats_supported() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_cover_priority_order() -> Result<(), Box<dyn Error>> {
     // Test that embedded metadata has priority over folder images
-    let priority = vec!["embedded", "folder.jpg", "cover.jpg", "cover.png"];
+    let priority = ["embedded", "folder.jpg", "cover.jpg", "cover.png"];
 
     assert_eq!(priority[0], "embedded");
     assert!(priority.contains(&"folder.jpg"));
@@ -130,8 +129,7 @@ fn test_cover_detection_case_insensitive() -> Result<(), Box<dyn Error>> {
         let name_lower = name.to_lowercase();
         assert!(
             name_lower.contains("cover") || name_lower.contains("folder"),
-            "Name {} should be recognized",
-            name
+            "Name {name} should be recognized"
         );
     }
 
@@ -164,7 +162,7 @@ fn test_various_image_extensions() -> Result<(), Box<dyn Error>> {
     let extensions = vec!["jpg", "jpeg", "png", "gif", "webp"];
 
     for ext in extensions {
-        let filename = format!("cover.{}", ext);
+        let filename = format!("cover.{ext}");
         let path = Path::new(&filename);
         assert_eq!(path.extension().and_then(|e| e.to_str()), Some(ext));
     }

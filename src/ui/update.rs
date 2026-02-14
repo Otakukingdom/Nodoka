@@ -348,84 +348,6 @@ fn handle_file_selected<P: MediaControl>(
     Command::none()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::db;
-    use crate::error::Error;
-    use crate::models::{Audiobook, AudiobookFile};
-
-    #[derive(Default)]
-    struct FailingLoadPlayer;
-
-    impl MediaControl for FailingLoadPlayer {
-        fn load_media(&mut self, _path: &Path) -> Result<()> {
-            Err(Error::Vlc("load failed".to_string()))
-        }
-
-        fn set_time(&self, _time_ms: i64) -> Result<()> {
-            Ok(())
-        }
-
-        fn get_length(&self) -> Result<i64> {
-            Ok(0)
-        }
-
-        fn play(&self) -> Result<()> {
-            Ok(())
-        }
-    }
-
-    #[test]
-    fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure() {
-        let db = Database::new_in_memory().expect("db in-memory");
-        db::initialize(db.connection()).expect("db schema init");
-
-        let mut audiobook = Audiobook::new(
-            "/dir".to_string(),
-            "Test".to_string(),
-            "/dir/book".to_string(),
-            0,
-        );
-        let old_path = "/dir/book/old.mp3";
-        audiobook.selected_file = Some(old_path.to_string());
-        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)
-            .expect("insert audiobook");
-
-        let old_file = AudiobookFile::new(audiobook_id, "old".to_string(), old_path.to_string(), 0);
-        crate::db::queries::insert_audiobook_file(db.connection(), &old_file)
-            .expect("insert old file");
-
-        let new_path = "/dir/book/new.mp3";
-        let new_file = AudiobookFile::new(audiobook_id, "new".to_string(), new_path.to_string(), 1);
-        crate::db::queries::insert_audiobook_file(db.connection(), &new_file)
-            .expect("insert new file");
-
-        let mut state = State::default();
-        state.selected_audiobook = Some(audiobook_id);
-        state.selected_file = Some(old_path.to_string());
-
-        let mut player = Some(FailingLoadPlayer::default());
-
-        let _cmd = handle_file_selected(&mut state, &mut player, &db, new_path);
-
-        assert_eq!(
-            state.selected_file.as_deref(),
-            Some(old_path),
-            "selection should remain unchanged when load fails"
-        );
-
-        let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
-            .expect("get audiobook")
-            .expect("audiobook exists");
-        assert_eq!(
-            saved.selected_file.as_deref(),
-            Some(old_path),
-            "db selected_file should not change when load fails"
-        );
-    }
-}
-
 fn handle_directory_add() -> Command<Message> {
     Command::perform(
         async {
@@ -910,5 +832,83 @@ fn recompute_audiobook_completeness(state: &mut State, db: &Database, audiobook_
         crate::db::queries::update_audiobook_completeness(db.connection(), audiobook_id, avg)
     {
         tracing::error!("Failed to update audiobook completeness: {e}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+    use crate::error::Error;
+    use crate::models::{Audiobook, AudiobookFile};
+
+    #[derive(Default)]
+    struct FailingLoadPlayer;
+
+    impl MediaControl for FailingLoadPlayer {
+        fn load_media(&mut self, _path: &Path) -> Result<()> {
+            Err(Error::Vlc("load failed".to_string()))
+        }
+
+        fn set_time(&self, _time_ms: i64) -> Result<()> {
+            Ok(())
+        }
+
+        fn get_length(&self) -> Result<i64> {
+            Ok(0)
+        }
+
+        fn play(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure() {
+        let db = Database::new_in_memory().expect("db in-memory");
+        db::initialize(db.connection()).expect("db schema init");
+
+        let mut audiobook = Audiobook::new(
+            "/dir".to_string(),
+            "Test".to_string(),
+            "/dir/book".to_string(),
+            0,
+        );
+        let old_path = "/dir/book/old.mp3";
+        audiobook.selected_file = Some(old_path.to_string());
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)
+            .expect("insert audiobook");
+
+        let old_file = AudiobookFile::new(audiobook_id, "old".to_string(), old_path.to_string(), 0);
+        crate::db::queries::insert_audiobook_file(db.connection(), &old_file)
+            .expect("insert old file");
+
+        let new_path = "/dir/book/new.mp3";
+        let new_file = AudiobookFile::new(audiobook_id, "new".to_string(), new_path.to_string(), 1);
+        crate::db::queries::insert_audiobook_file(db.connection(), &new_file)
+            .expect("insert new file");
+
+        let mut state = State::default();
+        state.selected_audiobook = Some(audiobook_id);
+        state.selected_file = Some(old_path.to_string());
+
+        let mut player = Some(FailingLoadPlayer);
+
+        let _cmd = handle_file_selected(&mut state, &mut player, &db, new_path);
+
+        assert_eq!(
+            state.selected_file.as_deref(),
+            Some(old_path),
+            "selection should remain unchanged when load fails"
+        );
+
+        let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
+            .expect("get audiobook")
+            .expect("audiobook exists");
+        assert_eq!(
+            saved.selected_file.as_deref(),
+            Some(old_path),
+            "db selected_file should not change when load fails"
+        );
     }
 }

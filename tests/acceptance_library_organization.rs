@@ -32,7 +32,7 @@ fn test_search_performance_large_library() -> Result<(), Box<dyn Error>> {
 
     // Create 1000 audiobooks
     for i in 0..1000 {
-        create_test_audiobook(&db, "/test/library", &format!("Audiobook {:04}", i))?;
+        create_test_audiobook(&db, "/test/library", &format!("Audiobook {i:04}"))?;
     }
 
     // Search should be fast (< 100ms)
@@ -49,7 +49,7 @@ fn test_search_performance_large_library() -> Result<(), Box<dyn Error>> {
         "Search took {}ms (expected < 100ms)",
         duration.as_millis()
     );
-    assert!(results.len() > 0);
+    assert!(!results.is_empty());
 
     Ok(())
 }
@@ -86,7 +86,7 @@ fn test_filter_performance_large_library() -> Result<(), Box<dyn Error>> {
 
     // Create 1000 audiobooks
     for i in 0..1000 {
-        create_test_audiobook(&db, "/test/library", &format!("Book {:04}", i))?;
+        create_test_audiobook(&db, "/test/library", &format!("Book {i:04}"))?;
     }
 
     // Filter by completion status should be fast

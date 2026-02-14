@@ -101,7 +101,7 @@ pub fn create_test_audiobook(
     let audiobook = Audiobook::new(
         directory.to_string(),
         name.to_string(),
-        format!("{}/{}", directory, name),
+        format!("{directory}/{name}"),
         0,
     );
 
@@ -148,7 +148,7 @@ pub mod assertions {
         let found = audiobooks
             .iter()
             .find(|ab| ab.name == name)
-            .ok_or_else(|| format!("Audiobook '{}' not found", name))?;
+            .ok_or_else(|| format!("Audiobook '{name}' not found"))?;
         found.id.ok_or_else(|| "Audiobook has no ID".into())
     }
 
@@ -183,7 +183,7 @@ pub mod assertions {
         let _found = files
             .iter()
             .find(|f| f.name == filename)
-            .ok_or_else(|| format!("File '{}' not found", filename))?;
+            .ok_or_else(|| format!("File '{filename}' not found"))?;
         Ok(())
     }
 
@@ -200,8 +200,7 @@ pub mod assertions {
         let diff = (actual - expected).abs();
         if diff > tolerance {
             return Err(format!(
-                "Position {} not near expected {} (tolerance {})",
-                actual, expected, tolerance
+                "Position {actual} not near expected {expected} (tolerance {tolerance})"
             )
             .into());
         }
@@ -248,7 +247,7 @@ pub mod assertions {
         let _found = bookmarks
             .iter()
             .find(|b| (b.position_ms - position_ms).abs() < tolerance_ms)
-            .ok_or_else(|| format!("No bookmark near position {}ms", position_ms))?;
+            .ok_or_else(|| format!("No bookmark near position {position_ms}ms"))?;
         Ok(())
     }
 }

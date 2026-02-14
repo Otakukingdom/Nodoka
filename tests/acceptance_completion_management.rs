@@ -235,14 +235,14 @@ fn test_completion_with_missing_files() -> Result<(), Box<dyn Error>> {
 
     // Create 3 files
     for i in 1..=3 {
-        fs::write(book_dir.join(format!("ch{}.mp3", i)), b"fake")?;
+        fs::write(book_dir.join(format!("ch{i}.mp3")), b"fake")?;
     }
 
     let audiobook_id = create_test_audiobook(&db, temp.path().to_str().unwrap(), "Book")?;
 
     // Insert files
     for i in 1..=3 {
-        let path = book_dir.join(format!("ch{}.mp3", i));
+        let path = book_dir.join(format!("ch{i}.mp3"));
         insert_test_file(&db, audiobook_id, path.to_str().unwrap())?;
     }
 
@@ -269,7 +269,7 @@ fn test_completion_with_missing_files() -> Result<(), Box<dyn Error>> {
         files.iter().map(|f| f.completeness).sum::<i32>() / files.len().max(1) as i32;
 
     // Should be 67% (2 out of 3 complete)
-    assert!(completion_pct >= 66 && completion_pct <= 67);
+    assert!((66..=67).contains(&completion_pct));
 
     Ok(())
 }
