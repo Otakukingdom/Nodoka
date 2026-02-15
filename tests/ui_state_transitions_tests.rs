@@ -8,7 +8,7 @@ use nodoka::ui::{PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
-use acceptance_support::{create_test_audiobook, create_test_db};
+use acceptance_support::{create_test_audiobook, create_test_db, insert_test_file};
 
 #[test]
 fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn Error>> {
@@ -80,42 +80,87 @@ fn test_error_banner_during_scanning() {
 }
 
 #[test]
-fn test_file_selection_with_missing_file() {
-    // Test file selection when file doesn't exist
+fn test_file_selected_updates_state_even_without_player() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
     let mut state = State {
-        selected_file: Some("/nonexistent/file.mp3".to_string()),
+        selected_audiobook: Some(audiobook_id),
         ..State::default()
     };
+    let mut player = None;
 
-    // State should accept the selection (file existence checked elsewhere)
-    assert_eq!(
-        state.selected_file.as_deref(),
-        Some("/nonexistent/file.mp3")
+    let path = "/nonexistent/file.mp3";
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        nodoka::ui::Message::FileSelected(path.to_string()),
+        &mut player,
+        &db,
     );
 
-    // Clear selection
-    state.selected_file = None;
-    assert!(state.selected_file.is_none());
+    assert_eq!(state.selected_file.as_deref(), Some(path));
+    Ok(())
 }
 
 #[test]
-fn test_audiobook_switch_clears_playback_state() {
-    // Test that switching audiobooks resets playback state
+fn test_audiobook_switch_resets_playback_and_clears_file_selection() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let ab1_id = create_test_audiobook(&db, "/test", "Book1")?;
+    let ab2_id = create_test_audiobook(&db, "/test", "Book2")?;
+
+    let ab1_file = "/test/Book1/ch1.mp3";
+    let ab2_file = "/test/Book2/ch1.mp3";
+    insert_test_file(&db, ab1_id, ab1_file)?;
+    insert_test_file(&db, ab2_id, ab2_file)?;
+
     let mut state = State {
-        selected_audiobook: Some(1),
-        selected_file: Some("/book1/chapter1.mp3".to_string()),
+        audiobooks: vec![
+            nodoka::models::Audiobook {
+                id: Some(ab1_id),
+                directory: "/test".to_string(),
+                name: "Book1".to_string(),
+                full_path: "/test/Book1".to_string(),
+                completeness: 0,
+                default_order: 0,
+                selected_file: Some(ab1_file.to_string()),
+                created_at: chrono::Utc::now(),
+            },
+            nodoka::models::Audiobook {
+                id: Some(ab2_id),
+                directory: "/test".to_string(),
+                name: "Book2".to_string(),
+                full_path: "/test/Book2".to_string(),
+                completeness: 0,
+                default_order: 0,
+                selected_file: Some(ab2_file.to_string()),
+                created_at: chrono::Utc::now(),
+            },
+        ],
+        selected_audiobook: Some(ab1_id),
+        selected_file: Some(ab1_file.to_string()),
         playback: PlaybackStatus::Playing,
         current_time: 5000.0,
+        total_duration: 10_000.0,
         ..State::default()
     };
+    let mut player = None;
 
-    // Switch to audiobook 2
-    state.selected_audiobook = Some(2);
-    state.selected_file = Some("/book2/chapter1.mp3".to_string());
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        nodoka::ui::Message::AudiobookSelected(ab2_id),
+        &mut player,
+        &db,
+    );
 
-    // Playback state should be updated (in real app, would reset or restore)
-    assert_eq!(state.selected_audiobook, Some(2));
-    assert_eq!(state.selected_file.as_deref(), Some("/book2/chapter1.mp3"));
+    assert_eq!(state.selected_audiobook, Some(ab2_id));
+    assert!(
+        state.selected_file.is_none(),
+        "switch should clear file selection"
+    );
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!((state.current_time - 0.0).abs() < f64::EPSILON);
+    assert!((state.total_duration - 0.0).abs() < f64::EPSILON);
+    Ok(())
 }
 
 #[test]

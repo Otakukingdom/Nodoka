@@ -440,6 +440,29 @@ pub fn format_time_ms(ms: i64) -> String {
 mod tests {
     use super::*;
 
+    fn srgb_to_linear(channel: f64) -> f64 {
+        if channel <= 0.04045 {
+            channel / 12.92
+        } else {
+            ((channel + 0.055) / 1.055).powf(2.4)
+        }
+    }
+
+    fn wcag_relative_luminance(color: iced::Color) -> f64 {
+        // WCAG 2.1 relative luminance for sRGB.
+        let r = srgb_to_linear(f64::from(color.r));
+        let g = srgb_to_linear(f64::from(color.g));
+        let b = srgb_to_linear(f64::from(color.b));
+        (0.2126_f64).mul_add(r, (0.7152_f64).mul_add(g, 0.0722_f64 * b))
+    }
+
+    fn wcag_contrast_ratio(foreground: iced::Color, background: iced::Color) -> f64 {
+        let fg = wcag_relative_luminance(foreground);
+        let bg = wcag_relative_luminance(background);
+        let (lighter, darker) = if fg >= bg { (fg, bg) } else { (bg, fg) };
+        (lighter + 0.05) / (darker + 0.05)
+    }
+
     #[test]
     fn test_format_duration_with_hours() {
         assert_eq!(format_duration(Some(3_661_000)), "1:01:01");
@@ -518,29 +541,30 @@ mod tests {
 
     #[test]
     fn test_color_contrast_meets_wcag_aa() {
-        // Verify primary text on primary background has sufficient contrast
-        // TEXT_PRIMARY (#730F2E) on BG_PRIMARY (#FFF1F2) should have > 4.5:1 ratio
-        // This is a simplified check - in production, use a proper contrast ratio calculator
-
-        let text_r = 0.45_f32;
-        let text_g = 0.06_f32;
-        let text_b = 0.18_f32;
-
-        let bg_r = 1.0_f32;
-        let bg_g = 0.945_f32;
-        let bg_b = 0.949_f32;
-
-        // Calculate relative luminance (simplified)
-        let text_lum = (0.2126_f32).mul_add(text_r, (0.7152_f32).mul_add(text_g, 0.0722 * text_b));
-        let bg_lum = (0.2126_f32).mul_add(bg_r, (0.7152_f32).mul_add(bg_g, 0.0722 * bg_b));
-
-        // Contrast ratio
-        let contrast = (bg_lum + 0.05) / (text_lum + 0.05);
+        // Verify primary text on primary background has sufficient contrast.
+        let contrast = wcag_contrast_ratio(colors::TEXT_PRIMARY, colors::BG_PRIMARY);
 
         // WCAG AA requires 4.5:1 for normal text
         assert!(
             contrast >= 4.5,
             "Text contrast ratio {contrast} does not meet WCAG AA (4.5:1)"
+        );
+    }
+
+    #[test]
+    fn test_wcag_contrast_ratio_uses_srgb_linearization() {
+        // If we skip sRGB linearization, contrast can be wildly overestimated
+        // for some saturated colors.
+        let fg = iced::Color::from_rgb8(3, 0, 136);
+        let bg = iced::Color::from_rgb8(107, 90, 201);
+
+        let contrast = wcag_contrast_ratio(fg, bg);
+
+        // With the correct WCAG formula this pair is ~2.89:1.
+        // The simplified formula incorrectly reports ~4.93:1.
+        assert!(
+            (contrast - 2.89).abs() < 0.05,
+            "Expected WCAG contrast ratio around 2.89:1, got {contrast}"
         );
     }
 

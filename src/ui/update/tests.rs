@@ -886,14 +886,9 @@ fn test_stop_message_stops_playback() -> std::result::Result<(), Box<dyn std::er
 
     let _cmd = update(&mut state, Message::Stop, &mut player, &db);
 
-    // Note: Stop only updates state if there's an actual player to stop
-    // Without a player, state remains unchanged (by design)
-    // This test verifies the message doesn't panic without a player
-    // In real usage, playback would be set to paused when a player exists
-    assert!(
-        state.playback == PlaybackStatus::Playing,
-        "State unchanged without player (expected behavior)"
-    );
+    // Stop should reset UI playback state even when VLC isn't available.
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!((state.current_time - 0.0).abs() < 0.0001);
 
     Ok(())
 }
