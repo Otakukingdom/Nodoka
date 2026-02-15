@@ -1,10 +1,10 @@
-//! UI state transition integration tests
+//! UI state transition integration tests.
 //!
-//! Tests complex multi-step state transitions and workflows that involve
-//! multiple UI components and state changes working together.
+//! These tests exercise real message-driven transitions by routing `Message` inputs through
+//! `nodoka::ui::update::update` and asserting on resulting observable state/DB effects.
 
-use nodoka::models::{AudiobookFile, Bookmark, SleepTimer, SleepTimerMode};
-use nodoka::ui::{PlaybackStatus, ScanState, State};
+use nodoka::models::{Audiobook, Directory};
+use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
@@ -63,20 +63,53 @@ fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn 
 }
 
 #[test]
-fn test_error_banner_during_scanning() {
-    // Test that error banner and scanning state can coexist
-    let state = State {
+fn test_scan_error_sets_error_and_stops_scanning() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut player = None;
+    let mut state = State {
         scan_state: ScanState::Scanning {
             directory: Some("/test/audiobooks".to_string()),
         },
-        error_message: Some("Failed to read directory".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
         ..State::default()
     };
 
-    // Both should be visible
-    assert!(matches!(state.scan_state, ScanState::Scanning { .. }));
-    assert!(state.error_message.is_some(), "Error should be displayed");
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanError("boom".to_string()),
+        &mut player,
+        &db,
+    );
+
+    assert_eq!(state.scan_state, ScanState::Idle);
+    assert!(
+        state
+            .error_message
+            .as_deref()
+            .is_some_and(|m| m.contains("Failed to scan directory")),
+        "ScanError should produce a user-facing error message"
+    );
+    assert!(state.error_timestamp.is_some());
+
+    Ok(())
+}
+
+#[test]
+fn test_dismiss_error_clears_message_and_timestamp() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut player = None;
+    let now = chrono::Utc::now();
+    let mut state = State {
+        error_message: Some("Test error".to_string()),
+        error_timestamp: Some(now),
+        ..State::default()
+    };
+
+    let _task = nodoka::ui::update::update(&mut state, Message::DismissError, &mut player, &db);
+
+    assert!(state.error_message.is_none());
+    assert!(state.error_timestamp.is_none());
+
+    Ok(())
 }
 
 #[test]
@@ -86,6 +119,8 @@ fn test_file_selected_updates_state_even_without_player() -> Result<(), Box<dyn 
 
     let mut state = State {
         selected_audiobook: Some(audiobook_id),
+        volume: 75,
+        speed: 1.5,
         ..State::default()
     };
     let mut player = None;
@@ -93,12 +128,14 @@ fn test_file_selected_updates_state_even_without_player() -> Result<(), Box<dyn 
     let path = "/nonexistent/file.mp3";
     let _task = nodoka::ui::update::update(
         &mut state,
-        nodoka::ui::Message::FileSelected(path.to_string()),
+        Message::FileSelected(path.to_string()),
         &mut player,
         &db,
     );
 
     assert_eq!(state.selected_file.as_deref(), Some(path));
+    assert_eq!(state.volume, 75);
+    assert!((state.speed - 1.5).abs() < f32::EPSILON);
     Ok(())
 }
 
@@ -164,359 +201,255 @@ fn test_audiobook_switch_resets_playback_and_clears_file_selection() -> Result<(
 }
 
 #[test]
-fn test_directory_removal_with_selected_audiobook() -> Result<(), Box<dyn Error>> {
-    // Test that removing a directory clears selection if affected
+fn test_directory_remove_clears_selection_when_in_directory() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
-    let temp_dir = std::env::temp_dir().join("nodoka_state_test");
-    std::fs::create_dir_all(&temp_dir)?;
+    let mut player = None;
 
-    // Create audiobook in directory
-    let dir = temp_dir.to_string_lossy();
-    let audiobook_id = create_test_audiobook(&db, dir.as_ref(), "Test Book")?;
+    let temp_dir = temp_dir::TempDir::new()?;
+    let dir_path = temp_dir.path().join("library");
+    std::fs::create_dir_all(&dir_path)?;
+    let dir_str = dir_path.to_string_lossy().to_string();
 
-    // Create state with selection
+    // Directory must exist on disk for insert_directory validation.
+    let directory = Directory {
+        full_path: dir_str.clone(),
+        created_at: chrono::Utc::now(),
+        last_scanned: None,
+    };
+    nodoka::db::queries::insert_directory(db.connection(), &directory)?;
+
+    let audiobook_id = create_test_audiobook(&db, &dir_str, "Test Book")?;
+    let file_path = format!("{dir_str}/Test Book/ch1.mp3");
+    insert_test_file(&db, audiobook_id, &file_path)?;
+
     let mut state = State {
+        directories: vec![directory],
+        audiobooks: vec![Audiobook {
+            id: Some(audiobook_id),
+            directory: dir_str.clone(),
+            name: "Test Book".to_string(),
+            full_path: format!("{dir_str}/Test Book"),
+            completeness: 0,
+            default_order: 0,
+            selected_file: Some(file_path.clone()),
+            created_at: chrono::Utc::now(),
+        }],
         selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path),
+        playback: PlaybackStatus::Playing,
+        current_time: 123.0,
+        total_duration: 456.0,
         ..State::default()
     };
 
-    // In real app, removing directory would trigger state update
-    // Here we just verify the state can be cleared
-    state.selected_audiobook = None;
-    state.current_files.clear();
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::DirectoryRemove(dir_str),
+        &mut player,
+        &db,
+    );
 
+    assert!(state.directories.is_empty());
+    assert!(state.audiobooks.is_empty());
     assert!(state.selected_audiobook.is_none());
+    assert!(state.selected_file.is_none());
     assert!(state.current_files.is_empty());
-
-    // Cleanup
-    let _ = std::fs::remove_dir_all(&temp_dir);
+    assert!(state.bookmarks.is_empty());
+    assert!(state.bookmark_editor.is_none());
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!((state.current_time - 0.0).abs() < f64::EPSILON);
+    assert!((state.total_duration - 0.0).abs() < f64::EPSILON);
 
     Ok(())
 }
 
 #[test]
-fn test_sleep_timer_expiration_during_file_boundary() {
-    // Test sleep timer expiring during file transition
-    let state = State {
+fn test_sleep_timer_duration_expires_on_tick_pauses_and_clears() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut player = None;
+    let mut state = State {
         playback: PlaybackStatus::Playing,
-        current_time: 3_595_000.0, // 5 seconds before end of 1-hour file
-        total_duration: 3_600_000.0,
-        sleep_timer: Some(SleepTimer::new(SleepTimerMode::Duration(10), 30)),
+        volume: 100,
         ..State::default()
     };
 
-    // In real app, sleep timer would pause playback
-    // File advance would be prevented or handled
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerSetDurationSeconds(0),
+        &mut player,
+        &db,
+    );
     assert!(state.sleep_timer.is_some());
-    assert_eq!(state.playback, PlaybackStatus::Playing);
+    assert!(state.sleep_timer_base_volume.is_some());
+
+    let _task = nodoka::ui::update::update(&mut state, Message::PlayerTick, &mut player, &db);
+
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!(state.sleep_timer.is_none());
+    assert!(state.sleep_timer_base_volume.is_none());
+
+    Ok(())
 }
 
 #[test]
-fn test_volume_speed_persistence_across_file_changes() {
-    // Test that volume and speed settings persist when changing files
+fn test_volume_speed_persist_across_file_selected_message() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
+
+    let mut player = None;
     let mut state = State {
+        selected_audiobook: Some(audiobook_id),
         volume: 75,
         speed: 1.5,
         selected_file: Some("/book/chapter1.mp3".to_string()),
         ..State::default()
     };
 
-    // Change file
-    state.selected_file = Some("/book/chapter2.mp3".to_string());
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::FileSelected("/book/chapter2.mp3".to_string()),
+        &mut player,
+        &db,
+    );
 
-    // Volume and speed should persist
     assert_eq!(state.volume, 75);
     assert!((state.speed - 1.5).abs() < f32::EPSILON);
+    Ok(())
 }
 
 #[test]
-fn test_bookmark_creation_during_playback() -> Result<(), Box<dyn Error>> {
-    // Test creating bookmark while playing
+fn test_create_bookmark_message_persists_and_opens_editor() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
-
     let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
+    let file_path = "/test/Test Book/chapter1.mp3";
+    insert_test_file(&db, audiobook_id, file_path)?;
 
-    let file = AudiobookFile {
-        audiobook_id,
-        name: "chapter1.mp3".to_string(),
-        full_path: "/test/chapter1.mp3".to_string(),
-        length_of_file: Some(3_600_000),
-        seek_position: Some(120_000),
-        checksum: None,
-        position: 0,
-        completeness: 0,
-        file_exists: true,
-        created_at: chrono::Utc::now(),
-    };
-    nodoka::db::queries::insert_audiobook_file(db.connection(), &file)?;
-
-    // Create bookmark at current position
-    let bookmark = Bookmark {
-        id: None,
-        audiobook_id,
-        file_path: "/test/chapter1.mp3".to_string(),
-        position_ms: 120_000,
-        label: "Interesting moment".to_string(),
-        note: None,
-        created_at: chrono::Utc::now(),
+    let mut player = None;
+    let mut state = State {
+        settings_open: true,
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 12.0,
+        ..State::default()
     };
 
-    let bookmark_id = nodoka::db::queries::insert_bookmark(db.connection(), &bookmark)?;
-    assert!(bookmark_id > 0);
+    let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
 
-    // Verify bookmark exists
+    assert!(!state.settings_open);
+    assert!(state.bookmark_editor.is_some());
+
     let bookmarks =
         nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
     assert_eq!(bookmarks.len(), 1);
-    let first = bookmarks.first().ok_or("missing bookmark")?;
-    assert_eq!(first.position_ms, 120_000);
 
     Ok(())
 }
 
 #[test]
-fn test_rapid_audiobook_selection_convergence() -> Result<(), Box<dyn Error>> {
-    // Test that rapid selections converge to final state
+fn test_rapid_audiobook_selected_messages_converge_to_last() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
+    let mut player = None;
 
-    // Create multiple audiobooks
     let mut ids = Vec::new();
+    let mut audiobooks = Vec::new();
     for i in 0..5 {
-        let id = create_test_audiobook(&db, "/test", &format!("Book {i}"))?;
+        let name = format!("Book {i}");
+        let id = create_test_audiobook(&db, "/test", &name)?;
         ids.push(id);
+        audiobooks.push(Audiobook {
+            id: Some(id),
+            directory: "/test".to_string(),
+            name: name.clone(),
+            full_path: format!("/test/{name}"),
+            completeness: 0,
+            default_order: i,
+            selected_file: None,
+            created_at: chrono::Utc::now(),
+        });
     }
 
+    // Seed state with list so update can find items for cleanup/thumbnail paths.
     let first = ids.first().copied().ok_or("missing audiobook ids")?;
     let mut state = State {
+        audiobooks,
         selected_audiobook: Some(first),
         ..State::default()
     };
 
-    // Rapidly change selection
     for id in ids.iter().copied().skip(1) {
-        state.selected_audiobook = Some(id);
+        let _task = nodoka::ui::update::update(
+            &mut state,
+            Message::AudiobookSelected(id),
+            &mut player,
+            &db,
+        );
     }
 
-    // Should converge to last selection
     let expected = ids.last().copied().ok_or("missing audiobook ids")?;
     assert_eq!(state.selected_audiobook, Some(expected));
+    Ok(())
+}
+
+#[test]
+fn test_stop_resets_playback_state_without_player() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut player = None;
+    let mut state = State {
+        playback: PlaybackStatus::Playing,
+        current_time: 123.0,
+        total_duration: 456.0,
+        ..State::default()
+    };
+
+    let _task = nodoka::ui::update::update(&mut state, Message::Stop, &mut player, &db);
+
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!((state.current_time - 0.0).abs() < f64::EPSILON);
 
     Ok(())
 }
 
 #[test]
-fn test_playback_state_transitions() {
-    // Test complete playback state machine
-    let mut state = State::default();
+fn test_bookmark_editor_edit_and_save_via_messages_defaults_label() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
+    let file_path = "/test/Test Book/chapter1.mp3";
+    insert_test_file(&db, audiobook_id, file_path)?;
 
-    // Paused → Playing
-    assert_eq!(state.playback, PlaybackStatus::Paused);
-    state.playback = PlaybackStatus::Playing;
-    assert_eq!(state.playback, PlaybackStatus::Playing);
-
-    // Playing → Paused
-    state.playback = PlaybackStatus::Paused;
-    let paused_position = state.current_time;
-
-    // Paused → Playing (resume)
-    state.playback = PlaybackStatus::Playing;
-    assert!((state.current_time - paused_position).abs() < f64::EPSILON);
-
-    // Playing → Paused (stop without player in this state-only test)
-    state.playback = PlaybackStatus::Paused;
-    state.current_time = 0.0;
-    assert!(state.current_time.abs() < f64::EPSILON);
-}
-
-#[test]
-fn test_error_dismissal_workflow() {
-    // Test error banner display and dismissal
+    let mut player = None;
     let mut state = State {
-        error_message: Some("Test error".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
-        ..State::default()
-    };
-    assert!(state.error_message.is_some());
-
-    // Dismiss error
-    state.error_message = None;
-    state.error_timestamp = None;
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
-}
-
-#[test]
-fn test_multiple_modal_close_sequence() {
-    // Test closing multiple modals in sequence
-    let mut state = State {
-        settings_open: true,
-        bookmark_editor: Some(nodoka::ui::BookmarkEditor {
-            id: None,
-            audiobook_id: 1,
-            file_path: "/test/file.mp3".to_string(),
-            position_ms: 0,
-            label: String::new(),
-            note: String::new(),
-        }),
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 1.0,
         ..State::default()
     };
 
-    // Close settings first
-    state.settings_open = false;
-    assert!(!state.settings_open);
+    let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
     assert!(state.bookmark_editor.is_some());
 
-    // Close bookmark editor
-    state.bookmark_editor = None;
-    assert!(state.bookmark_editor.is_none());
-}
-
-#[test]
-fn test_scanning_state_management() {
-    // Test directory scanning state transitions
-    let idle = State::default();
-    assert_eq!(idle.scan_state, ScanState::Idle);
-
-    let mut state = State {
-        scan_state: ScanState::Scanning {
-            directory: Some("/test/audiobooks".to_string()),
-        },
-        ..State::default()
-    };
-
-    // Complete scanning
-    state.scan_state = ScanState::Idle;
-
-    assert_eq!(state.scan_state, ScanState::Idle);
-}
-
-#[test]
-fn test_focus_tracking_workflow() {
-    // Test keyboard focus tracking
-    let mut state = State::default();
-
-    // Initial focus
-    assert_eq!(state.focused_element, nodoka::ui::FocusedElement::None);
-
-    // Focus play button
-    state.focused_element = nodoka::ui::FocusedElement::PlayPauseButton;
-    assert_eq!(
-        state.focused_element,
-        nodoka::ui::FocusedElement::PlayPauseButton
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::BookmarkEditorLabelChanged("   ".to_string()),
+        &mut player,
+        &db,
     );
-
-    // Tab to volume slider
-    state.focused_element = nodoka::ui::FocusedElement::VolumeSlider;
-    assert_eq!(
-        state.focused_element,
-        nodoka::ui::FocusedElement::VolumeSlider
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::BookmarkEditorNoteChanged("note".to_string()),
+        &mut player,
+        &db,
     );
+    let _task =
+        nodoka::ui::update::update(&mut state, Message::BookmarkEditorSave, &mut player, &db);
 
-    // Tab to file list
-    state.focused_element = nodoka::ui::FocusedElement::FileList;
-    assert_eq!(state.focused_element, nodoka::ui::FocusedElement::FileList);
-}
-
-#[test]
-fn test_bookmark_editor_state_workflow() {
-    // Test bookmark editor opening, editing, and closing
-    let mut state = State::default();
-
-    // Editor closed initially
     assert!(state.bookmark_editor.is_none());
 
-    // Open editor for new bookmark
-    state.bookmark_editor = Some(nodoka::ui::BookmarkEditor {
-        id: None,
-        audiobook_id: 1,
-        file_path: "/test/file.mp3".to_string(),
-        position_ms: 120_000,
-        label: String::new(),
-        note: String::new(),
-    });
-
-    // Edit label
-    if let Some(editor) = &mut state.bookmark_editor {
-        editor.label = "Important scene".to_string();
-        editor.note = "This is interesting".to_string();
-    }
-
-    // Verify edits
-    if let Some(editor) = &state.bookmark_editor {
-        assert_eq!(editor.label, "Important scene");
-        assert_eq!(editor.note, "This is interesting");
-    }
-
-    // Close editor
-    state.bookmark_editor = None;
-    assert!(state.bookmark_editor.is_none());
-}
-
-#[test]
-fn test_sleep_timer_mode_transitions() {
-    // Test switching between sleep timer modes
-    let mut state = State::default();
-
-    // No timer initially
-    assert!(state.sleep_timer.is_none());
-
-    // Set duration timer
-    state.sleep_timer = Some(SleepTimer::new(SleepTimerMode::Duration(900), 30));
-    assert!(state.sleep_timer.is_some());
-
-    // Change to end of chapter
-    state.sleep_timer = Some(SleepTimer::new(SleepTimerMode::EndOfChapter, 30));
-    if let Some(timer) = &state.sleep_timer {
-        assert!(matches!(timer.mode, SleepTimerMode::EndOfChapter));
-    }
-
-    // Change back to duration timer with different duration
-    state.sleep_timer = Some(SleepTimer::new(SleepTimerMode::Duration(1800), 30));
-    if let Some(timer) = &state.sleep_timer {
-        assert!(matches!(timer.mode, SleepTimerMode::Duration(1800)));
-    }
-
-    // Cancel timer
-    state.sleep_timer = None;
-    assert!(state.sleep_timer.is_none());
-}
-
-#[test]
-fn test_file_list_update_on_audiobook_selection() -> Result<(), Box<dyn Error>> {
-    // Test that file list updates when audiobook is selected
-    let db = create_test_db()?;
-
-    // Create audiobook with files
-    let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
-
-    for i in 0..3 {
-        let file = AudiobookFile {
-            audiobook_id,
-            name: format!("chapter{i}.mp3"),
-            full_path: format!("/test/chapter{i}.mp3"),
-            length_of_file: Some(3_600_000),
-            seek_position: None,
-            checksum: None,
-            position: i,
-            completeness: 0,
-            file_exists: true,
-            created_at: chrono::Utc::now(),
-        };
-        nodoka::db::queries::insert_audiobook_file(db.connection(), &file)?;
-    }
-
-    // Retrieve files
-    let files = nodoka::db::queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files.len(), 3);
-
-    // Update state
-    let state = State {
-        selected_audiobook: Some(audiobook_id),
-        current_files: files,
-        ..State::default()
-    };
-
-    assert_eq!(state.current_files.len(), 3);
+    let bookmarks =
+        nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(bookmarks.len(), 1);
+    let first = bookmarks.first().ok_or("missing bookmark")?;
+    assert_eq!(first.label, "Bookmark");
+    assert_eq!(first.note.as_deref(), Some("note"));
 
     Ok(())
 }

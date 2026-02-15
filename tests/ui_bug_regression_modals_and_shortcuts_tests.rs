@@ -4,6 +4,7 @@
 
 use nodoka::models::AudiobookFile;
 use nodoka::ui::{BookmarkEditor, PlaybackStatus, ScanState, State};
+use std::error::Error;
 
 mod acceptance_support;
 use acceptance_support::{create_test_audiobook, create_test_db, insert_test_file};
@@ -14,11 +15,11 @@ use acceptance_support::{create_test_audiobook, create_test_db, insert_test_file
 ///
 /// Expected: Only one modal should be open at a time.
 #[test]
-fn test_bug_0005_single_modal_invariant() {
-    let db = create_test_db().expect("create test db");
-    let audiobook_id = create_test_audiobook(&db, "/test", "Book").expect("create audiobook");
+fn test_bug_0005_single_modal_invariant() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
     let file_path = "/test/Book/ch1.mp3";
-    insert_test_file(&db, audiobook_id, file_path).expect("insert file");
+    insert_test_file(&db, audiobook_id, file_path)?;
 
     let mut state = State {
         settings_open: true,
@@ -44,12 +45,14 @@ fn test_bug_0005_single_modal_invariant() {
         state.bookmark_editor.is_some(),
         "CreateBookmark should open the bookmark editor"
     );
+
+    Ok(())
 }
 
 /// Bug #0016: Escape key closes correct modal
 #[test]
-fn test_bug_0016_escape_closes_topmost_modal() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0016_escape_closes_topmost_modal() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut state = State {
         settings_open: false,
         bookmark_editor: Some(BookmarkEditor {
@@ -75,12 +78,14 @@ fn test_bug_0016_escape_closes_topmost_modal() {
         state.bookmark_editor.is_none(),
         "Escape should close the editor"
     );
+
+    Ok(())
 }
 
 /// Bug #0020: Keyboard shortcuts respect modal state
 #[test]
-fn test_bug_0020_keyboard_shortcuts_respect_modal_state() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0020_keyboard_shortcuts_respect_modal_state() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut state = State {
         settings_open: true,
         playback: PlaybackStatus::Playing,
@@ -101,15 +106,17 @@ fn test_bug_0020_keyboard_shortcuts_respect_modal_state() {
         (state.current_time - 123.0).abs() < f64::EPSILON,
         "Shortcut should not mutate unrelated state"
     );
+
+    Ok(())
 }
 
 /// Bug #0021: Multiple modals cannot be open simultaneously
 #[test]
-fn test_bug_0021_single_modal_invariant() {
-    let db = create_test_db().expect("create test db");
-    let audiobook_id = create_test_audiobook(&db, "/test", "Book").expect("create audiobook");
+fn test_bug_0021_single_modal_invariant() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
     let file_path = "/test/Book/ch1.mp3";
-    insert_test_file(&db, audiobook_id, file_path).expect("insert file");
+    insert_test_file(&db, audiobook_id, file_path)?;
 
     let mut state = State {
         settings_open: true,
@@ -139,12 +146,14 @@ fn test_bug_0021_single_modal_invariant() {
 
     assert!(state.settings_open);
     assert!(state.bookmark_editor.is_none());
+
+    Ok(())
 }
 
 /// Bug #0028: Play/pause shortcut (Space) blocked when modal open
 #[test]
-fn test_bug_0028_play_pause_blocked_when_modal_open() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0028_play_pause_blocked_when_modal_open() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut player = None;
 
     let mut state = State {
@@ -183,12 +192,14 @@ fn test_bug_0028_play_pause_blocked_when_modal_open() {
         PlaybackStatus::Playing,
         "PlayPause should be blocked when bookmark editor is open"
     );
+
+    Ok(())
 }
 
 /// Bug #0029: Seek shortcuts blocked when modal open
 #[test]
-fn test_bug_0029_seek_blocked_when_modal_open() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0029_seek_blocked_when_modal_open() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut player = None;
 
     let mut state = State {
@@ -225,11 +236,13 @@ fn test_bug_0029_seek_blocked_when_modal_open() {
         &db,
     );
     assert!((state.current_time - 100.0).abs() < f64::EPSILON);
+
+    Ok(())
 }
 
 /// Bug #0030: File navigation shortcuts blocked when modal open
 #[test]
-fn test_bug_0030_file_navigation_blocked_when_modal_open() {
+fn test_bug_0030_file_navigation_blocked_when_modal_open() -> Result<(), Box<dyn Error>> {
     let files = vec![
         AudiobookFile {
             audiobook_id: 1,
@@ -257,7 +270,7 @@ fn test_bug_0030_file_navigation_blocked_when_modal_open() {
         },
     ];
 
-    let db = create_test_db().expect("create test db");
+    let db = create_test_db()?;
     let mut player = None;
 
     let mut state = State {
@@ -290,12 +303,14 @@ fn test_bug_0030_file_navigation_blocked_when_modal_open() {
         &db,
     );
     assert_eq!(state.selected_file.as_deref(), Some("/test/file1.mp3"));
+
+    Ok(())
 }
 
 /// Bug #0038: Rapid modal open/close cycles
 #[test]
-fn test_bug_0038_rapid_modal_toggle() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0038_rapid_modal_toggle() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut player = None;
     let mut state = State::default();
 
@@ -316,12 +331,14 @@ fn test_bug_0038_rapid_modal_toggle() {
         );
         assert!(!state.settings_open);
     }
+
+    Ok(())
 }
 
 /// Bug #0051: Settings modal opened while scanning
 #[test]
-fn test_bug_0051_modal_during_scanning() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_0051_modal_during_scanning() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut player = None;
     let mut state = State {
         scan_state: ScanState::Scanning {
@@ -340,12 +357,15 @@ fn test_bug_0051_modal_during_scanning() {
 
     assert!(matches!(state.scan_state, ScanState::Scanning { .. }));
     assert!(state.settings_open);
+
+    Ok(())
 }
 
 /// Bug FIX #004 (Feb 2026): Single modal invariant enforcement
 #[test]
-fn test_bug_fix_feb2026_004_single_modal_invariant_settings_over_bookmark() {
-    let db = create_test_db().expect("create test db");
+fn test_bug_fix_feb2026_004_single_modal_invariant_settings_over_bookmark(
+) -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
     let mut player = None;
     let mut state = State {
         bookmark_editor: Some(BookmarkEditor {
@@ -369,14 +389,17 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_settings_over_bookmark() {
 
     assert!(state.settings_open);
     assert!(state.bookmark_editor.is_none());
+
+    Ok(())
 }
 
 #[test]
-fn test_bug_fix_feb2026_004_single_modal_invariant_bookmark_over_settings() {
-    let db = create_test_db().expect("create test db");
-    let audiobook_id = create_test_audiobook(&db, "/test", "Book").expect("create audiobook");
+fn test_bug_fix_feb2026_004_single_modal_invariant_bookmark_over_settings(
+) -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Book")?;
     let file_path = "/test/Book/ch1.mp3";
-    insert_test_file(&db, audiobook_id, file_path).expect("insert file");
+    insert_test_file(&db, audiobook_id, file_path)?;
 
     let mut player = None;
     let mut state = State {
@@ -396,4 +419,6 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_bookmark_over_settings() {
 
     assert!(state.bookmark_editor.is_some());
     assert!(!state.settings_open);
+
+    Ok(())
 }
