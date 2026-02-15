@@ -1,6 +1,6 @@
 use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
 use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
-use crate::ui::{settings_form, Message, State};
+use crate::ui::{settings_form, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, row, stack, text, Space};
 use iced::{Border, Color, Element, Length};
 
@@ -14,18 +14,56 @@ use iced::{Border, Color, Element, Length};
 /// - Consistent spacing and design system colors throughout
 #[must_use]
 pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
-    let audiobook_list_widget = audiobook_list::view(
-        &state.audiobooks,
-        state.selected_audiobook,
-        &state.cover_thumbnails,
-    );
-    let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
-    let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
-    let player_widget = player_controls::view(state);
+    let main_content = container(column![
+        error_banner(state),
+        scan_status_banner(state),
+        top_bar(),
+        library_panels(state),
+        container(player_controls::view(state)).padding(spacing::SM),
+    ])
+    .padding(spacing::SM);
 
-    // Error banner at top of screen
-    let error_banner = state.error_message.as_ref().map_or_else(
-        || container(text("")).height(Length::Shrink),
+    let mut content: Element<'a, Message> = main_content.into();
+
+    // Settings modal overlay with backdrop (iced 0.14)
+    //
+    // Uses the stack widget to layer the main content, a semi-transparent backdrop,
+    // and the settings dialog. The backdrop provides visual indication that a modal
+    // is active and can be clicked to dismiss the modal (click-outside-to-dismiss pattern).
+    if state.settings_open {
+        let settings_dialog = modal_card(settings_form::build_settings_dialog(state));
+        content = stack![
+            content,
+            modal_backdrop(Message::CloseSettings),
+            settings_dialog
+        ]
+        .into();
+    }
+
+    // Bookmark editor modal overlay with backdrop (iced 0.14)
+    if let Some(editor) = state.bookmark_editor.as_ref() {
+        let editor_dialog = modal_card(bookmarks::editor(editor));
+        content = stack![
+            content,
+            modal_backdrop(Message::BookmarkEditorCancel),
+            editor_dialog
+        ]
+        .into();
+    }
+
+    // Loading state indicator with backdrop (iced 0.14)
+    if state.load_state == LoadState::Loading {
+        let backdrop = modal_backdrop_without_click();
+        let loading_message = modal_card(text("Loading...").size(typography::SIZE_LG));
+        content = stack![content, backdrop, loading_message].into();
+    }
+
+    content
+}
+
+fn error_banner(state: &State) -> Element<'_, Message> {
+    state.error_message.as_ref().map_or_else(
+        || container(text("")).height(Length::Shrink).into(),
         |error| {
             container(
                 row![
@@ -45,159 +83,114 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
                 ..Default::default()
             })
             .width(Length::Fill)
+            .into()
         },
-    );
+    )
+}
 
-    // Loading/scanning indicator below error banner
-    let status_message = if state.is_scanning {
-        state.scanning_directory.as_ref().map_or_else(
-            || container(text("")),
-            |dir| {
-                container(
-                    row![
-                        text("Scanning: ").size(typography::SIZE_SM),
-                        text(dir).size(typography::SIZE_XS),
-                    ]
-                    .spacing(spacing::SM),
-                )
-                .padding(spacing::MD)
-                .style(|_theme: &iced::Theme| container::Style {
-                    background: Some(colors::INFO.into()),
-                    text_color: Some(colors::TEXT_ON_PRIMARY),
-                    ..Default::default()
-                })
-                .width(Length::Fill)
-            },
-        )
-    } else {
-        container(text(""))
+fn scan_status_banner(state: &State) -> Element<'_, Message> {
+    let (prefix, dir_text) = match &state.scan_state {
+        ScanState::Idle => return container(text("")).into(),
+        ScanState::Scanning { directory } => directory
+            .as_deref()
+            .map_or(("Scanning...", ""), |dir| ("Scanning: ", dir)),
     };
 
-    let main_content = container(column![
-        error_banner,
-        status_message,
-        // Top bar with improved styling and spacing
-        container(
-            row![
-                text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
-                Space::new().width(Length::Fill),
-                button(text("Settings").size(typography::SIZE_SM))
-                    .on_press(Message::OpenSettings)
-                    .padding(spacing::MD),
-            ]
-            .padding(spacing::MD)
-        ),
-        // Main content area with better proportions
+    container(
         row![
-            // Audiobook list (left panel) with consistent background
-            container(audiobook_list_widget)
-                .width(Length::FillPortion(2))
-                .height(Length::Fill)
-                .padding(spacing::SM),
-            // File list and bookmarks (right panel) with visual separation
-            container(column![file_list_widget, bookmarks_widget,].spacing(spacing::SM))
-                .width(Length::FillPortion(3))
-                .height(Length::Fill)
-                .padding(spacing::SM),
+            text(prefix).size(typography::SIZE_SM),
+            text(dir_text).size(typography::SIZE_XS),
         ]
-        .height(Length::Fill)
         .spacing(spacing::SM),
-        // Player controls (bottom) with elevation effect
-        container(player_widget).padding(spacing::SM),
-    ])
-    .padding(spacing::SM);
+    )
+    .padding(spacing::MD)
+    .style(|_theme: &iced::Theme| container::Style {
+        background: Some(colors::INFO.into()),
+        text_color: Some(colors::TEXT_ON_PRIMARY),
+        ..Default::default()
+    })
+    .width(Length::Fill)
+    .into()
+}
 
-    let mut content: Element<'a, Message> = main_content.into();
+fn top_bar() -> Element<'static, Message> {
+    container(
+        row![
+            text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
+            Space::new().width(Length::Fill),
+            button(text("Settings").size(typography::SIZE_SM))
+                .on_press(Message::OpenSettings)
+                .padding(spacing::MD),
+        ]
+        .padding(spacing::MD),
+    )
+    .into()
+}
 
-    // Settings modal overlay with backdrop (iced 0.14)
-    //
-    // Uses the stack widget to layer the main content, a semi-transparent backdrop,
-    // and the settings dialog. The backdrop provides visual indication that a modal
-    // is active and can be clicked to dismiss the modal (click-outside-to-dismiss pattern).
-    if state.settings_open {
-        // Semi-transparent backdrop that dims the background and handles click-to-dismiss
-        let backdrop = button(container(text("")).width(Length::Fill).height(Length::Fill))
-            .style(|_theme: &iced::Theme, _status| button::Style {
-                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
-                ..Default::default()
-            })
-            .on_press(Message::CloseSettings)
-            .width(Length::Fill)
-            .height(Length::Fill);
+fn library_panels(state: &State) -> Element<'_, Message> {
+    let audiobook_list_widget = audiobook_list::view(
+        &state.audiobooks,
+        state.selected_audiobook,
+        &state.cover_thumbnails,
+    );
+    let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
+    let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
 
-        let settings_dialog = container(settings_form::build_settings_dialog(state))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BG_SECONDARY.into()),
-                border: Border {
-                    color: shadows::MD_BORDER,
-                    width: 1.0,
-                    radius: border_radius::LG.into(),
-                },
-                ..Default::default()
-            })
-            .padding(spacing::MD)
-            .center_x(Length::Fill);
+    row![
+        container(audiobook_list_widget)
+            .width(Length::FillPortion(2))
+            .height(Length::Fill)
+            .padding(spacing::SM),
+        container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
+            .width(Length::FillPortion(3))
+            .height(Length::Fill)
+            .padding(spacing::SM),
+    ]
+    .height(Length::Fill)
+    .spacing(spacing::SM)
+    .into()
+}
 
-        content = stack![content, backdrop, settings_dialog].into();
-    }
+fn modal_backdrop(on_press: Message) -> Element<'static, Message> {
+    button(container(text("")).width(Length::Fill).height(Length::Fill))
+        .style(|_theme: &iced::Theme, _status| button::Style {
+            background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+            ..Default::default()
+        })
+        .on_press(on_press)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+}
 
-    // Bookmark editor modal overlay with backdrop (iced 0.14)
-    if let Some(editor) = state.bookmark_editor.as_ref() {
-        // Semi-transparent backdrop that dims the background and handles click-to-dismiss
-        let backdrop = button(container(text("")).width(Length::Fill).height(Length::Fill))
-            .style(|_theme: &iced::Theme, _status| button::Style {
-                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
-                ..Default::default()
-            })
-            .on_press(Message::BookmarkEditorCancel)
-            .width(Length::Fill)
-            .height(Length::Fill);
+fn modal_backdrop_without_click() -> Element<'static, Message> {
+    container(text(""))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+            ..Default::default()
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+}
 
-        let editor_dialog = container(bookmarks::editor(editor))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BG_SECONDARY.into()),
-                border: Border {
-                    color: shadows::MD_BORDER,
-                    width: 1.0,
-                    radius: border_radius::LG.into(),
-                },
-                ..Default::default()
-            })
-            .padding(spacing::MD)
-            .center_x(Length::Fill);
-
-        content = stack![content, backdrop, editor_dialog].into();
-    }
-
-    // Loading state indicator with backdrop (iced 0.14)
-    if state.is_loading {
-        // Semi-transparent backdrop that dims the background (no click handler for loading state)
-        let backdrop = container(text(""))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
-                ..Default::default()
-            })
-            .width(Length::Fill)
-            .height(Length::Fill);
-
-        let loading_message = container(text("Loading...").size(typography::SIZE_LG))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BG_SECONDARY.into()),
-                text_color: Some(colors::TEXT_PRIMARY),
-                border: Border {
-                    color: shadows::MD_BORDER,
-                    width: 1.0,
-                    radius: border_radius::LG.into(),
-                },
-                ..Default::default()
-            })
-            .padding(spacing::XL)
-            .center_x(Length::Fill);
-
-        content = stack![content, backdrop, loading_message].into();
-    }
-
-    content
+fn modal_card<'a, E>(content: E) -> Element<'a, Message>
+where
+    E: Into<Element<'a, Message>>,
+{
+    container(content)
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::BG_SECONDARY.into()),
+            border: Border {
+                color: shadows::MD_BORDER,
+                width: 1.0,
+                radius: border_radius::LG.into(),
+            },
+            ..Default::default()
+        })
+        .padding(spacing::MD)
+        .center_x(Length::Fill)
+        .into()
 }
 
 #[cfg(test)]
@@ -342,7 +335,7 @@ mod tests {
     #[test]
     fn test_view_renders_with_loading_state() {
         let state = State {
-            is_loading: true,
+            load_state: LoadState::Loading,
             ..Default::default()
         };
         let element = view(&state);
@@ -416,7 +409,7 @@ mod tests {
     #[test]
     fn test_view_renders_with_playing_state() {
         let state = State {
-            is_playing: true,
+            playback: crate::ui::PlaybackStatus::Playing,
             selected_file: Some("/test/file.mp3".to_string()),
             current_time: 30000.0,
             total_duration: 3_600_000.0,
@@ -497,7 +490,7 @@ mod tests {
             directories: vec![Directory::new("/test".to_string())],
             selected_audiobook: Some(1),
             selected_file: Some("/test/book1/chapter1.mp3".to_string()),
-            is_playing: true,
+            playback: crate::ui::PlaybackStatus::Playing,
             current_time: 1500.0,
             total_duration: 3_600_000.0,
             volume: 100,

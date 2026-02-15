@@ -1,7 +1,7 @@
 use crate::db::Database;
 use crate::player::Vlc;
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile};
-use crate::ui::{Message, State};
+use crate::ui::{Message, ScanState, State};
 use iced::Task;
 
 pub(super) fn handle_directory_add() -> Task<Message> {
@@ -48,8 +48,9 @@ pub(super) fn handle_directory_added(
     tracing::info!("Directory added: {stored_path}. Starting scan.");
 
     // Set scanning state
-    state.is_scanning = true;
-    state.scanning_directory = Some(stored_path.clone());
+    state.scan_state = ScanState::Scanning {
+        directory: Some(stored_path.clone()),
+    };
 
     start_directory_scan(stored_path)
 }
@@ -108,8 +109,9 @@ pub(super) fn handle_directory_rescan(
     tracing::info!("Directory rescan requested: {path}");
 
     // Set scanning state
-    state.is_scanning = true;
-    state.scanning_directory = Some(path.to_string());
+    state.scan_state = ScanState::Scanning {
+        directory: Some(path.to_string()),
+    };
 
     if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path) {
         for audiobook in audiobooks {
@@ -132,8 +134,7 @@ pub(super) fn handle_scan_complete(
     discovered: Vec<DiscoveredAudiobook>,
 ) -> Task<Message> {
     // Clear scanning state and any previous errors
-    state.is_scanning = false;
-    state.scanning_directory = None;
+    state.scan_state = ScanState::Idle;
     state.error_message = None;
     state.error_timestamp = None;
 
@@ -157,8 +158,7 @@ pub(super) fn handle_scan_complete(
 }
 
 pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Task<Message> {
-    state.is_scanning = false;
-    state.scanning_directory = None;
+    state.scan_state = ScanState::Idle;
     state.error_message = Some(format!("Failed to scan directory: {error}"));
     state.error_timestamp = Some(chrono::Utc::now());
 

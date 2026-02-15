@@ -164,5 +164,5 @@ mod styles;
 pub mod update;
 
 pub use message::Message;
-pub use state::{BookmarkEditor, FocusedElement, State};
+pub use state::{BookmarkEditor, FocusedElement, LoadState, PlaybackStatus, ScanState, State};
 pub use styles::*;

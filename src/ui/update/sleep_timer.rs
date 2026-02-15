@@ -1,6 +1,6 @@
 use crate::models::{SleepTimer, SleepTimerMode};
 use crate::player::Vlc;
-use crate::ui::{Message, State};
+use crate::ui::{Message, PlaybackStatus, State};
 use iced::Task;
 
 const DEFAULT_SLEEP_TIMER_FADE_SECS: u32 = 30;
@@ -145,7 +145,7 @@ pub(super) fn handle_sleep_timer_tick(state: &mut State, player: &mut Option<Vlc
         }
     }
 
-    state.is_playing = false;
+    state.playback = PlaybackStatus::Paused;
     state.sleep_timer = None;
     state.sleep_timer_base_volume = None;
     true

@@ -3,16 +3,8 @@
 //! Tests complex multi-step state transitions and workflows that involve
 //! multiple UI components and state changes working together.
 
-#![allow(
-    clippy::indexing_slicing,
-    clippy::unwrap_used,
-    clippy::float_cmp,
-    clippy::cast_precision_loss,
-    clippy::field_reassign_with_default
-)]
-
 use nodoka::models::{AudiobookFile, Bookmark, SleepTimer, SleepTimerMode};
-use nodoka::ui::State;
+use nodoka::ui::{PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
@@ -21,20 +13,18 @@ use acceptance_support::{create_test_audiobook, create_test_db};
 #[test]
 fn test_modal_priority_settings_over_bookmark_editor() {
     // Test modal priority: settings modal takes precedence over bookmark editor
-    let mut state = State::default();
-
-    // Open bookmark editor first
-    state.bookmark_editor = Some(nodoka::ui::BookmarkEditor {
-        id: None,
-        audiobook_id: 1,
-        file_path: "/test/file.mp3".to_string(),
-        position_ms: 0,
-        label: String::new(),
-        note: String::new(),
-    });
-
-    // Then open settings
-    state.settings_open = true;
+    let state = State {
+        bookmark_editor: Some(nodoka::ui::BookmarkEditor {
+            id: None,
+            audiobook_id: 1,
+            file_path: "/test/file.mp3".to_string(),
+            position_ms: 0,
+            label: String::new(),
+            note: String::new(),
+        }),
+        settings_open: true,
+        ..State::default()
+    };
 
     assert!(state.bookmark_editor.is_some(), "Editor should remain open");
     assert!(state.settings_open, "Settings should be open");
@@ -46,28 +36,27 @@ fn test_modal_priority_settings_over_bookmark_editor() {
 #[test]
 fn test_error_banner_during_scanning() {
     // Test that error banner and scanning state can coexist
-    let mut state = State::default();
-
-    // Start scanning
-    state.is_scanning = true;
-    state.scanning_directory = Some("/test/audiobooks".to_string());
-
-    // Then encounter an error
-    state.error_message = Some("Failed to read directory".to_string());
-    state.error_timestamp = Some(chrono::Utc::now());
+    let state = State {
+        scan_state: ScanState::Scanning {
+            directory: Some("/test/audiobooks".to_string()),
+        },
+        error_message: Some("Failed to read directory".to_string()),
+        error_timestamp: Some(chrono::Utc::now()),
+        ..State::default()
+    };
 
     // Both should be visible
-    assert!(state.is_scanning, "Should still be scanning");
+    assert!(matches!(state.scan_state, ScanState::Scanning { .. }));
     assert!(state.error_message.is_some(), "Error should be displayed");
 }
 
 #[test]
 fn test_file_selection_with_missing_file() {
     // Test file selection when file doesn't exist
-    let mut state = State::default();
-
-    // Select a non-existent file
-    state.selected_file = Some("/nonexistent/file.mp3".to_string());
+    let mut state = State {
+        selected_file: Some("/nonexistent/file.mp3".to_string()),
+        ..State::default()
+    };
 
     // State should accept the selection (file existence checked elsewhere)
     assert_eq!(
@@ -83,13 +72,13 @@ fn test_file_selection_with_missing_file() {
 #[test]
 fn test_audiobook_switch_clears_playback_state() {
     // Test that switching audiobooks resets playback state
-    let mut state = State::default();
-
-    // Setup playback state for audiobook 1
-    state.selected_audiobook = Some(1);
-    state.selected_file = Some("/book1/chapter1.mp3".to_string());
-    state.is_playing = true;
-    state.current_time = 5000.0;
+    let mut state = State {
+        selected_audiobook: Some(1),
+        selected_file: Some("/book1/chapter1.mp3".to_string()),
+        playback: PlaybackStatus::Playing,
+        current_time: 5000.0,
+        ..State::default()
+    };
 
     // Switch to audiobook 2
     state.selected_audiobook = Some(2);
@@ -108,11 +97,14 @@ fn test_directory_removal_with_selected_audiobook() -> Result<(), Box<dyn Error>
     std::fs::create_dir_all(&temp_dir)?;
 
     // Create audiobook in directory
-    let audiobook_id = create_test_audiobook(&db, temp_dir.to_str().unwrap(), "Test Book")?;
+    let dir = temp_dir.to_string_lossy();
+    let audiobook_id = create_test_audiobook(&db, dir.as_ref(), "Test Book")?;
 
     // Create state with selection
-    let mut state = State::default();
-    state.selected_audiobook = Some(audiobook_id);
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        ..State::default()
+    };
 
     // In real app, removing directory would trigger state update
     // Here we just verify the state can be cleared
@@ -131,38 +123,36 @@ fn test_directory_removal_with_selected_audiobook() -> Result<(), Box<dyn Error>
 #[test]
 fn test_sleep_timer_expiration_during_file_boundary() {
     // Test sleep timer expiring during file transition
-    let mut state = State::default();
-
-    // Setup playback near end of file
-    state.is_playing = true;
-    state.current_time = 3_595_000.0; // 5 seconds before end of 1-hour file
-    state.total_duration = 3_600_000.0;
-
-    // Set sleep timer
-    state.sleep_timer = Some(SleepTimer::new(SleepTimerMode::Duration(10), 30));
+    let state = State {
+        playback: PlaybackStatus::Playing,
+        current_time: 3_595_000.0, // 5 seconds before end of 1-hour file
+        total_duration: 3_600_000.0,
+        sleep_timer: Some(SleepTimer::new(SleepTimerMode::Duration(10), 30)),
+        ..State::default()
+    };
 
     // In real app, sleep timer would pause playback
     // File advance would be prevented or handled
     assert!(state.sleep_timer.is_some());
-    assert!(state.is_playing);
+    assert_eq!(state.playback, PlaybackStatus::Playing);
 }
 
 #[test]
 fn test_volume_speed_persistence_across_file_changes() {
     // Test that volume and speed settings persist when changing files
-    let mut state = State::default();
-
-    // Set volume and speed
-    state.volume = 75;
-    state.speed = 1.5;
-    state.selected_file = Some("/book/chapter1.mp3".to_string());
+    let mut state = State {
+        volume: 75,
+        speed: 1.5,
+        selected_file: Some("/book/chapter1.mp3".to_string()),
+        ..State::default()
+    };
 
     // Change file
     state.selected_file = Some("/book/chapter2.mp3".to_string());
 
     // Volume and speed should persist
     assert_eq!(state.volume, 75);
-    assert_eq!(state.speed, 1.5);
+    assert!((state.speed - 1.5).abs() < f32::EPSILON);
 }
 
 #[test]
@@ -204,7 +194,8 @@ fn test_bookmark_creation_during_playback() -> Result<(), Box<dyn Error>> {
     let bookmarks =
         nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
     assert_eq!(bookmarks.len(), 1);
-    assert_eq!(bookmarks[0].position_ms, 120_000);
+    let first = bookmarks.first().ok_or("missing bookmark")?;
+    assert_eq!(first.position_ms, 120_000);
 
     Ok(())
 }
@@ -221,15 +212,20 @@ fn test_rapid_audiobook_selection_convergence() -> Result<(), Box<dyn Error>> {
         ids.push(id);
     }
 
-    let mut state = State::default();
+    let first = ids.first().copied().ok_or("missing audiobook ids")?;
+    let mut state = State {
+        selected_audiobook: Some(first),
+        ..State::default()
+    };
 
     // Rapidly change selection
-    for id in &ids {
-        state.selected_audiobook = Some(*id);
+    for id in ids.iter().copied().skip(1) {
+        state.selected_audiobook = Some(id);
     }
 
     // Should converge to last selection
-    assert_eq!(state.selected_audiobook, Some(ids[4]));
+    let expected = ids.last().copied().ok_or("missing audiobook ids")?;
+    assert_eq!(state.selected_audiobook, Some(expected));
 
     Ok(())
 }
@@ -239,33 +235,33 @@ fn test_playback_state_transitions() {
     // Test complete playback state machine
     let mut state = State::default();
 
-    // Stopped → Playing
-    assert!(!state.is_playing);
-    state.is_playing = true;
-    assert!(state.is_playing);
+    // Paused → Playing
+    assert_eq!(state.playback, PlaybackStatus::Paused);
+    state.playback = PlaybackStatus::Playing;
+    assert_eq!(state.playback, PlaybackStatus::Playing);
 
     // Playing → Paused
-    state.is_playing = false;
+    state.playback = PlaybackStatus::Paused;
     let paused_position = state.current_time;
 
     // Paused → Playing (resume)
-    state.is_playing = true;
-    assert_eq!(state.current_time, paused_position);
+    state.playback = PlaybackStatus::Playing;
+    assert!((state.current_time - paused_position).abs() < f64::EPSILON);
 
-    // Playing → Stopped
-    state.is_playing = false;
+    // Playing → Paused (stop without player in this state-only test)
+    state.playback = PlaybackStatus::Paused;
     state.current_time = 0.0;
-    assert_eq!(state.current_time, 0.0);
+    assert!(state.current_time.abs() < f64::EPSILON);
 }
 
 #[test]
 fn test_error_dismissal_workflow() {
     // Test error banner display and dismissal
-    let mut state = State::default();
-
-    // Display error
-    state.error_message = Some("Test error".to_string());
-    state.error_timestamp = Some(chrono::Utc::now());
+    let mut state = State {
+        error_message: Some("Test error".to_string()),
+        error_timestamp: Some(chrono::Utc::now()),
+        ..State::default()
+    };
     assert!(state.error_message.is_some());
 
     // Dismiss error
@@ -278,18 +274,18 @@ fn test_error_dismissal_workflow() {
 #[test]
 fn test_multiple_modal_close_sequence() {
     // Test closing multiple modals in sequence
-    let mut state = State::default();
-
-    // Open both modals
-    state.settings_open = true;
-    state.bookmark_editor = Some(nodoka::ui::BookmarkEditor {
-        id: None,
-        audiobook_id: 1,
-        file_path: "/test/file.mp3".to_string(),
-        position_ms: 0,
-        label: String::new(),
-        note: String::new(),
-    });
+    let mut state = State {
+        settings_open: true,
+        bookmark_editor: Some(nodoka::ui::BookmarkEditor {
+            id: None,
+            audiobook_id: 1,
+            file_path: "/test/file.mp3".to_string(),
+            position_ms: 0,
+            label: String::new(),
+            note: String::new(),
+        }),
+        ..State::default()
+    };
 
     // Close settings first
     state.settings_open = false;
@@ -304,22 +300,20 @@ fn test_multiple_modal_close_sequence() {
 #[test]
 fn test_scanning_state_management() {
     // Test directory scanning state transitions
-    let mut state = State::default();
+    let idle = State::default();
+    assert_eq!(idle.scan_state, ScanState::Idle);
 
-    // Not scanning initially
-    assert!(!state.is_scanning);
-    assert!(state.scanning_directory.is_none());
-
-    // Start scanning
-    state.is_scanning = true;
-    state.scanning_directory = Some("/test/audiobooks".to_string());
+    let mut state = State {
+        scan_state: ScanState::Scanning {
+            directory: Some("/test/audiobooks".to_string()),
+        },
+        ..State::default()
+    };
 
     // Complete scanning
-    state.is_scanning = false;
-    state.scanning_directory = None;
+    state.scan_state = ScanState::Idle;
 
-    assert!(!state.is_scanning);
-    assert!(state.scanning_directory.is_none());
+    assert_eq!(state.scan_state, ScanState::Idle);
 }
 
 #[test]
@@ -442,9 +436,11 @@ fn test_file_list_update_on_audiobook_selection() -> Result<(), Box<dyn Error>> 
     assert_eq!(files.len(), 3);
 
     // Update state
-    let mut state = State::default();
-    state.selected_audiobook = Some(audiobook_id);
-    state.current_files = files;
+    let state = State {
+        selected_audiobook: Some(audiobook_id),
+        current_files: files,
+        ..State::default()
+    };
 
     assert_eq!(state.current_files.len(), 3);
 

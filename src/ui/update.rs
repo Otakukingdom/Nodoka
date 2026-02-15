@@ -5,7 +5,7 @@ use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{
     cleanup_temp_files, materialize_zip_virtual_path, parse_zip_virtual_path, zip_temp_dir,
 };
-use crate::ui::{Message, State};
+use crate::ui::{LoadState, Message, PlaybackStatus, State};
 use iced::Task;
 use std::path::{Path, PathBuf};
 
@@ -176,16 +176,16 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
     }
 
     if let Some(ref mut p) = player {
-        if state.is_playing {
+        if state.playback == PlaybackStatus::Playing {
             if let Err(e) = p.pause() {
                 tracing::error!("Failed to pause: {e}");
             } else {
-                state.is_playing = false;
+                state.playback = PlaybackStatus::Paused;
             }
         } else if let Err(e) = p.play() {
             tracing::error!("Failed to play: {e}");
         } else {
-            state.is_playing = true;
+            state.playback = PlaybackStatus::Playing;
         }
     }
     Task::none()
@@ -196,7 +196,7 @@ fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
         }
-        state.is_playing = false;
+        state.playback = PlaybackStatus::Paused;
         state.current_time = 0.0;
     }
 
@@ -219,7 +219,7 @@ fn reset_playback_state(state: &mut State, player: &mut Option<Vlc>) {
             tracing::error!("Failed to stop: {e}");
         }
     }
-    state.is_playing = false;
+    state.playback = PlaybackStatus::Paused;
     state.current_time = 0.0;
     state.total_duration = 0.0;
 }
@@ -284,18 +284,23 @@ fn handle_player_tick(state: &mut State, player: &mut Option<Vlc>, db: &Database
         None => return Task::none(),
     };
 
-    // Synchronize is_playing with actual player state to prevent drift
+    // Synchronize playback status with actual player state to prevent drift
     let should_be_playing = matches!(
         player_state,
         PlaybackState::Playing | PlaybackState::Buffering
     );
-    if state.is_playing != should_be_playing {
+    let is_playing = state.playback == PlaybackStatus::Playing;
+    if is_playing != should_be_playing {
         tracing::debug!(
-            "Synchronizing is_playing: {} -> {}",
-            state.is_playing,
+            "Synchronizing playback: {} -> {}",
+            is_playing,
             should_be_playing
         );
-        state.is_playing = should_be_playing;
+        state.playback = if should_be_playing {
+            PlaybackStatus::Playing
+        } else {
+            PlaybackStatus::Paused
+        };
     }
 
     let command = handle_time_updated(state, db, time);
@@ -315,7 +320,7 @@ fn handle_player_tick(state: &mut State, player: &mut Option<Vlc>, db: &Database
                 }
             }
 
-            state.is_playing = false;
+            state.playback = PlaybackStatus::Paused;
             state.current_time = state.total_duration;
             state.sleep_timer = None;
             state.sleep_timer_base_volume = None;
@@ -355,9 +360,10 @@ fn sanitize_speed(speed: f32) -> f32 {
         return 1.0;
     }
 
+    // Quantize to match the UI slider step (0.05x) while preserving preset values like 0.75x.
     let clamped = speed.clamp(0.5, 2.0);
-    let formatted = format!("{clamped:.1}");
-    formatted.parse::<f32>().ok().unwrap_or(1.0).clamp(0.5, 2.0)
+    let step = (clamped * 20.0).round();
+    (step / 20.0).clamp(0.5, 2.0)
 }
 
 fn handle_speed_changed(
@@ -369,9 +375,7 @@ fn handle_speed_changed(
     let speed = sanitize_speed(speed);
 
     state.speed = speed;
-    if let Err(e) =
-        crate::db::queries::set_metadata(db.connection(), "speed", &format!("{speed:.1}"))
-    {
+    if let Err(e) = crate::db::queries::set_metadata(db.connection(), "speed", &speed.to_string()) {
         tracing::error!("Failed to save speed setting: {e}");
     }
 
@@ -554,7 +558,7 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                 state.error_message = Some(format!("Failed to start playback: {e}"));
                 state.error_timestamp = Some(chrono::Utc::now());
             } else {
-                state.is_playing = true;
+                state.playback = PlaybackStatus::Playing;
             }
         }
         None => {
@@ -586,7 +590,7 @@ fn handle_dismiss_error(state: &mut State) -> Task<Message> {
 }
 
 fn handle_initial_load_complete(state: &mut State) -> Task<Message> {
-    state.is_loading = false;
+    state.load_state = LoadState::Ready;
 
     let cmds: Vec<Task<Message>> = state
         .audiobooks
@@ -690,7 +694,7 @@ fn should_auto_advance(state: &State, player_state: PlaybackState, time: f64) ->
         return true;
     }
 
-    if !state.is_playing || state.total_duration <= 0.0 {
+    if state.playback != PlaybackStatus::Playing || state.total_duration <= 0.0 {
         return false;
     }
 
@@ -725,7 +729,7 @@ fn advance_to_next_file(
             tracing::error!("Failed to stop after final file: {e}");
         }
     }
-    state.is_playing = false;
+    state.playback = PlaybackStatus::Paused;
     state.current_time = state.total_duration;
     Task::none()
 }

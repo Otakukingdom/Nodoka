@@ -258,12 +258,21 @@ fn percent_encode_component(input: &str) -> String {
                 out.push(char::from(*b));
             }
             _ => {
-                use std::fmt::Write;
-                let _ = write!(out, "%{b:02X}");
+                out.push('%');
+                out.push(hex_upper((b >> 4) & 0x0F));
+                out.push(hex_upper(b & 0x0F));
             }
         }
     }
     out
+}
+
+const fn hex_upper(nibble: u8) -> char {
+    match nibble {
+        0..=9 => (b'0' + nibble) as char,
+        10..=15 => (b'A' + (nibble - 10)) as char,
+        _ => '?',
+    }
 }
 
 fn percent_decode_component(input: &str) -> Option<String> {

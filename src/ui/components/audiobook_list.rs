@@ -64,7 +64,8 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     );
 
     // Progress bar for visual representation of completeness
-    let progress = progress_bar(0.0..=100.0, completeness as f32);
+    let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
+    let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
 
     // Main content with improved typography and spacing
     let content_row = row![

@@ -9,7 +9,7 @@
 //! iced 0.14 API usage and functionality.
 
 use nodoka::ui::button_styles;
-use nodoka::ui::{BookmarkEditor, State};
+use nodoka::ui::{BookmarkEditor, LoadState, State};
 
 #[test]
 fn test_native_button_styling_compiles() {
@@ -194,22 +194,22 @@ fn test_all_modals_have_backdrop_support() {
     };
 
     let state_with_loading = State {
-        is_loading: true,
+        load_state: LoadState::Loading,
         ..Default::default()
     };
 
     // All modal states should be representable
     assert!(state_with_settings.settings_open);
     assert!(state_with_bookmark_editor.bookmark_editor.is_some());
-    assert!(state_with_loading.is_loading);
+    assert_eq!(state_with_loading.load_state, LoadState::Loading);
 
     // Modals should be mutually exclusive in typical usage
     // (though technically multiple can be open)
-    // Note: Default state has is_loading=true for initial app load
+    // Note: Default state starts in LoadState::Loading for initial app load
     let state_default = State::default();
     assert!(!state_default.settings_open);
     assert!(state_default.bookmark_editor.is_none());
-    assert!(state_default.is_loading); // True during initial load
+    assert_eq!(state_default.load_state, LoadState::Loading);
 }
 
 #[test]

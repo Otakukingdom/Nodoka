@@ -56,8 +56,8 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
 
     // Progress bar for files with partial progress
     let progress_element = if has_progress && !is_complete && !is_missing {
-        let progress_value = completeness as f32;
-        container(progress_bar(0.0..=100.0, progress_value)).width(Length::Fill)
+        let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
+        container(progress_bar(0.0..=100.0, f32::from(completeness_u8))).width(Length::Fill)
     } else {
         container(text("").size(1)).width(Length::Fill)
     };

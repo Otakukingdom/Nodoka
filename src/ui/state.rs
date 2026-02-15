@@ -36,6 +36,29 @@ pub struct BookmarkEditor {
     pub note: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PlaybackStatus {
+    Playing,
+    #[default]
+    Paused,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LoadState {
+    #[default]
+    Loading,
+    Ready,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum ScanState {
+    #[default]
+    Idle,
+    Scanning {
+        directory: Option<String>,
+    },
+}
+
 #[derive(Debug, Clone)]
 pub struct State {
     pub audiobooks: Vec<Audiobook>,
@@ -49,7 +72,7 @@ pub struct State {
     pub bookmarks: Vec<Bookmark>,
     pub bookmark_editor: Option<BookmarkEditor>,
 
-    pub is_playing: bool,
+    pub playback: PlaybackStatus,
     pub current_time: f64,
     pub total_duration: f64,
     pub volume: i32,
@@ -61,15 +84,14 @@ pub struct State {
     pub sleep_timer_custom_error: Option<String>,
 
     pub settings_open: bool,
-    pub is_loading: bool,
+    pub load_state: LoadState,
 
     // Error handling state
     pub error_message: Option<String>,
     pub error_timestamp: Option<chrono::DateTime<chrono::Utc>>,
 
     // Directory scanning state
-    pub is_scanning: bool,
-    pub scanning_directory: Option<String>,
+    pub scan_state: ScanState,
 
     // Focus tracking for keyboard navigation accessibility
     pub focused_element: FocusedElement,
@@ -89,7 +111,7 @@ impl Default for State {
             cover_thumbnails: HashMap::new(),
             bookmarks: Vec::new(),
             bookmark_editor: None,
-            is_playing: false,
+            playback: PlaybackStatus::Paused,
             current_time: 0.0,
             total_duration: 0.0,
             volume: 100,
@@ -99,11 +121,10 @@ impl Default for State {
             sleep_timer_custom_minutes: String::new(),
             sleep_timer_custom_error: None,
             settings_open: false,
-            is_loading: true,
+            load_state: LoadState::Loading,
             error_message: None,
             error_timestamp: None,
-            is_scanning: false,
-            scanning_directory: None,
+            scan_state: ScanState::Idle,
             focused_element: FocusedElement::None,
             operation_in_progress: false,
         }
@@ -125,7 +146,7 @@ mod tests {
         assert!(state.cover_thumbnails.is_empty());
         assert!(state.bookmarks.is_empty());
         assert!(state.bookmark_editor.is_none());
-        assert!(!state.is_playing);
+        assert_eq!(state.playback, PlaybackStatus::Paused);
         assert!(state.current_time.abs() < f64::EPSILON);
         assert!(state.total_duration.abs() < f64::EPSILON);
         assert_eq!(state.volume, 100);
@@ -135,11 +156,10 @@ mod tests {
         assert!(state.sleep_timer_custom_minutes.is_empty());
         assert!(state.sleep_timer_custom_error.is_none());
         assert!(!state.settings_open);
-        assert!(state.is_loading);
+        assert_eq!(state.load_state, LoadState::Loading);
         assert!(state.error_message.is_none());
         assert!(state.error_timestamp.is_none());
-        assert!(!state.is_scanning);
-        assert!(state.scanning_directory.is_none());
+        assert_eq!(state.scan_state, ScanState::Idle);
         assert_eq!(state.focused_element, FocusedElement::None);
         assert!(!state.operation_in_progress);
     }
@@ -149,14 +169,14 @@ mod tests {
         let state = State::default();
         assert_eq!(state.volume, state.volume);
         assert!((state.speed - state.speed).abs() < f32::EPSILON);
-        assert_eq!(state.is_playing, state.is_playing);
+        assert_eq!(state.playback, state.playback);
         assert_eq!(state.cover_thumbnails.len(), state.cover_thumbnails.len());
     }
 
     #[test]
     fn test_state_mutation() {
         let state = State {
-            is_playing: true,
+            playback: PlaybackStatus::Playing,
             current_time: 100.0,
             total_duration: 3600.0,
             volume: 75,
@@ -164,7 +184,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert!(state.is_playing);
+        assert_eq!(state.playback, PlaybackStatus::Playing);
         assert!((state.current_time - 100.0).abs() < f64::EPSILON);
         assert!((state.total_duration - 3600.0).abs() < f64::EPSILON);
         assert_eq!(state.volume, 75);
@@ -199,10 +219,10 @@ mod tests {
     #[test]
     fn test_state_loading_flag() {
         let mut state = State::default();
-        assert!(state.is_loading);
+        assert_eq!(state.load_state, LoadState::Loading);
 
-        state.is_loading = false;
-        assert!(!state.is_loading);
+        state.load_state = LoadState::Ready;
+        assert_eq!(state.load_state, LoadState::Ready);
     }
 
     #[test]

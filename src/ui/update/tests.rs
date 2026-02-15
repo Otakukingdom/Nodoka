@@ -3,7 +3,7 @@ use crate::db::{self, Database};
 use crate::error::{Error, Result};
 use crate::models::{Audiobook, AudiobookFile, SleepTimer, SleepTimerMode};
 use crate::player::Vlc;
-use crate::ui::{Message, State};
+use crate::ui::{Message, PlaybackStatus, State};
 use std::path::Path;
 
 #[derive(Default)]
@@ -192,11 +192,30 @@ fn test_speed_changed_quantizes_and_persists_without_player(
 
     let _ = update(&mut state, Message::SpeedChanged(1.26), &mut player, &db);
 
-    assert!((state.speed - 1.3).abs() < 0.0001);
+    assert!((state.speed - 1.25).abs() < 0.0001);
 
     let saved = crate::db::queries::get_metadata(db.connection(), "speed")?
         .ok_or("missing speed metadata")?;
-    assert_eq!(saved, "1.3");
+    assert_eq!(saved, "1.25");
+    Ok(())
+}
+
+#[test]
+fn test_speed_preset_values_are_preserved_exactly(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(&mut state, Message::SpeedChanged(0.75), &mut player, &db);
+
+    assert!((state.speed - 0.75).abs() < 0.0001);
+
+    let saved = crate::db::queries::get_metadata(db.connection(), "speed")?
+        .ok_or("missing speed metadata")?;
+    assert_eq!(saved, "0.75");
     Ok(())
 }
 
@@ -249,7 +268,7 @@ fn test_play_pause_toggles_state() -> std::result::Result<(), Box<dyn std::error
     db::initialize(db.connection())?;
 
     let mut state = State {
-        is_playing: false,
+        playback: PlaybackStatus::Paused,
         ..Default::default()
     };
     let mut player: Option<Vlc> = None;
@@ -433,7 +452,7 @@ fn test_stop_message_stops_playback() -> std::result::Result<(), Box<dyn std::er
     db::initialize(db.connection())?;
 
     let mut state = State {
-        is_playing: true,
+        playback: PlaybackStatus::Playing,
         current_time: 1500.0,
         ..Default::default()
     };
@@ -444,9 +463,9 @@ fn test_stop_message_stops_playback() -> std::result::Result<(), Box<dyn std::er
     // Note: Stop only updates state if there's an actual player to stop
     // Without a player, state remains unchanged (by design)
     // This test verifies the message doesn't panic without a player
-    // In real usage, state.is_playing would be set to false when a player exists
+    // In real usage, playback would be set to paused when a player exists
     assert!(
-        state.is_playing,
+        state.playback == PlaybackStatus::Playing,
         "State unchanged without player (expected behavior)"
     );
 

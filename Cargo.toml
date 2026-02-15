@@ -8,7 +8,7 @@ description = "A free and open source cross-platform audiobook reader"
 license = "MIT"
 
 [dependencies]
-iced = { version = "0.14", features = ["tokio", "advanced", "image"] }
+iced = { version = "0.14.0", features = ["tokio", "advanced", "image"] }
 vlc-rs = "0.3"
 rusqlite = { version = "0.31", features = ["bundled"] }
 tokio = { version = "1.35", features = ["full"] }
@@ -49,14 +49,6 @@ panic = { level = "deny", priority = 0 }
 indexing_slicing = { level = "deny", priority = 0 }
 missing_errors_doc = { level = "deny", priority = 0 }
 missing_panics_doc = { level = "deny", priority = 0 }
-
-# Allow pedantic/nursery lints that are too strict or have false positives
-cast_precision_loss = { level = "allow", priority = 1 }
-too_many_lines = { level = "allow", priority = 1 }
-struct_excessive_bools = { level = "allow", priority = 1 }
-missing_const_for_fn = { level = "allow", priority = 1 }
-module_name_repetitions = { level = "allow", priority = 1 }
-
 
 [lints.rust]
 unsafe_code = { level = "deny", priority = -1 }

@@ -3,7 +3,7 @@
 //! Tests sleep timer countdown, end-of-chapter mode, and expiration logic.
 
 use nodoka::models::{SleepTimer, SleepTimerMode};
-use nodoka::ui::{Message, State};
+use nodoka::ui::{Message, PlaybackStatus, State};
 use std::error::Error;
 
 #[test]
@@ -221,7 +221,7 @@ fn test_sleep_timer_expires_and_pauses_playback_state() -> Result<(), Box<dyn Er
 
     let mut state = State {
         selected_file: Some("/tmp/book/ch1.mp3".to_string()),
-        is_playing: true,
+        playback: PlaybackStatus::Playing,
         ..State::default()
     };
 
@@ -242,6 +242,6 @@ fn test_sleep_timer_expires_and_pauses_playback_state() -> Result<(), Box<dyn Er
     let _ = nodoka::ui::update::update(&mut state, Message::PlayerTick, &mut player, &db);
 
     assert!(state.sleep_timer.is_none());
-    assert!(!state.is_playing);
+    assert_eq!(state.playback, PlaybackStatus::Paused);
     Ok(())
 }

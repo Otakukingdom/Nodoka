@@ -111,9 +111,9 @@
 //!
 //! ### Known Limitations
 //!
-//! - Focus indicators for keyboard navigation have limited visibility due to iced 0.12 framework constraints
-//! - Modal backdrops cannot intercept clicks (iced 0.12 lacks stack widget support)
-//! - Upgrading to iced 0.13+ would resolve these accessibility limitations
+//! - Focus indicators for keyboard navigation have limited visibility due to iced 0.14 framework constraints
+//! - Modal backdrops cannot intercept clicks (iced 0.14 lacks stack widget support)
+//! - Upgrading to a newer iced release may resolve these accessibility limitations
 //!
 //! ## Architecture
 //!

@@ -3,16 +3,8 @@
 //! Tests simulate complete user workflows through the application,
 //! verifying all UI interactions work together correctly.
 
-#![allow(
-    clippy::indexing_slicing,
-    clippy::unwrap_used,
-    clippy::float_cmp,
-    clippy::cast_precision_loss,
-    clippy::field_reassign_with_default
-)]
-
 use nodoka::models::{AudiobookFile, Bookmark, SleepTimer, SleepTimerMode};
-use nodoka::ui::{BookmarkEditor, State};
+use nodoka::ui::{BookmarkEditor, PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
@@ -79,17 +71,19 @@ fn test_bookmark_workflow() -> Result<(), Box<dyn Error>> {
     let bookmarks =
         nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
     assert_eq!(bookmarks.len(), 1, "Should have one bookmark");
-    assert_eq!(bookmarks[0].label, "Important moment");
+    let first = bookmarks.first().ok_or("missing bookmark")?;
+    assert_eq!(first.label, "Important moment");
 
     // 4. Update bookmark label
-    let mut updated = bookmarks[0].clone();
+    let mut updated = first.clone();
     updated.label = "Even more important".to_string();
     nodoka::db::queries::update_bookmark(db.connection(), &updated)?;
 
     // 5. Verify update
     let bookmarks =
         nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert_eq!(bookmarks[0].label, "Even more important");
+    let first = bookmarks.first().ok_or("missing bookmark")?;
+    assert_eq!(first.label, "Even more important");
 
     // 6. Delete bookmark
     nodoka::db::queries::delete_bookmark(db.connection(), bookmark_id)?;
@@ -133,19 +127,18 @@ fn test_multi_file_audiobook_workflow() -> Result<(), Box<dyn Error>> {
     assert_eq!(db_files.len(), 5, "Should have 5 files");
 
     // 3. Mark first file as complete
+    let first = files.first().ok_or("missing first file")?;
     nodoka::db::queries::update_file_progress(
         db.connection(),
-        &files[0].full_path,
-        files[0].length_of_file.unwrap_or(0) as f64,
+        &first.full_path,
+        nodoka::conversions::ms_to_f64(first.length_of_file.unwrap_or(0))?,
         100,
     )?;
 
     // 4. Verify completion
     let db_files = nodoka::db::queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(
-        db_files[0].completeness, 100,
-        "First file should be complete"
-    );
+    let first = db_files.first().ok_or("missing first file")?;
+    assert_eq!(first.completeness, 100, "First file should be complete");
 
     // 5. Simulate navigation between files (would be done via UI messages)
     // User would use Up/Down arrows or click to navigate
@@ -156,12 +149,12 @@ fn test_multi_file_audiobook_workflow() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_sleep_timer_workflow() {
     // Sleep timer with extensions and cancellation
-    let mut state = State::default();
-
-    // 1. Start playback
-    state.is_playing = true;
-    state.current_time = 0.0;
-    state.total_duration = 3_600_000.0;
+    let mut state = State {
+        playback: PlaybackStatus::Playing,
+        current_time: 0.0,
+        total_duration: 3_600_000.0,
+        ..State::default()
+    };
 
     // 2. Set 15-minute timer
     let timer = SleepTimer::new(SleepTimerMode::Duration(15 * 60), 30);
@@ -219,7 +212,8 @@ fn test_settings_workflow() -> Result<(), Box<dyn Error>> {
     assert_eq!(directories.len(), 2, "Should have two directories");
 
     // 5. Remove first directory
-    nodoka::db::queries::delete_directory(db.connection(), &directories[0].full_path)?;
+    let first = directories.first().ok_or("missing directory")?;
+    nodoka::db::queries::delete_directory(db.connection(), &first.full_path)?;
 
     // 6. Verify removal
     let directories = nodoka::db::queries::get_all_directories(db.connection())?;
@@ -238,182 +232,134 @@ fn test_settings_workflow() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_playback_state_workflow() {
     // Test playback state transitions
-    let mut state = State::default();
+    let initial = State::default();
+    assert_eq!(initial.playback, PlaybackStatus::Paused);
+    assert!(initial.current_time.abs() < f64::EPSILON);
 
-    // 1. Initial state (stopped)
-    assert!(!state.is_playing, "Should start not playing");
-    assert_eq!(state.current_time, 0.0, "Should start at time 0");
+    let paused_position = 5_000.0;
+    let paused = State {
+        playback: PlaybackStatus::Paused,
+        current_time: paused_position,
+        ..State::default()
+    };
+    assert!((paused.current_time - paused_position).abs() < f64::EPSILON);
 
-    // 2. Start playback (Message::PlayPause)
-    state.is_playing = true;
-
-    // 3. Simulate time progress
-    state.current_time = 5_000.0; // 5 seconds
-
-    // 4. Pause (Message::PlayPause)
-    state.is_playing = false;
-
-    // 5. Verify position maintained
-    assert_eq!(state.current_time, 5_000.0, "Position should be maintained");
-
-    // 6. Resume playback
-    state.is_playing = true;
-
-    // 7. Stop (Message::Stop)
-    state.is_playing = false;
-    state.current_time = 0.0;
-
-    assert_eq!(state.current_time, 0.0, "Stop should reset position");
+    let stopped = State {
+        playback: PlaybackStatus::Paused,
+        current_time: 0.0,
+        ..State::default()
+    };
+    assert!(stopped.current_time.abs() < f64::EPSILON);
 }
 
 #[test]
 fn test_volume_and_speed_workflow() {
     // Test volume and speed adjustments
-    let mut state = State::default();
+    let state = State {
+        volume: 75,
+        speed: 1.5,
+        ..State::default()
+    };
+    assert_eq!(state.volume, 75);
+    assert!((state.speed - 1.5).abs() < f32::EPSILON);
 
-    // 1. Initial values
-    let initial_volume = state.volume;
-    let initial_speed = state.speed;
-
-    // 2. Adjust volume (Message::VolumeChanged)
-    state.volume = 75;
-    assert_eq!(state.volume, 75, "Volume should update");
-
-    // 3. Adjust speed (Message::SpeedChanged)
-    state.speed = 1.5;
-    assert_eq!(state.speed, 1.5, "Speed should update");
-
-    // 4. Reset to defaults
-    state.volume = initial_volume;
-    state.speed = initial_speed;
+    let state = State::default();
+    assert_eq!(state.volume, 100);
+    assert!((state.speed - 1.0).abs() < f32::EPSILON);
 
     // 5. Test preset speeds
     let speed_presets = vec![0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
     for speed in speed_presets {
-        state.speed = speed;
-        assert_eq!(state.speed, speed, "Preset speed {speed} should work");
+        let state = State {
+            speed,
+            ..State::default()
+        };
+        assert!((state.speed - speed).abs() < f32::EPSILON);
     }
 }
 
 #[test]
 fn test_file_selection_workflow() {
     // Test file selection changes
-    let mut state = State::default();
+    let state = State::default();
+    assert!(state.selected_file.is_none());
 
-    // 1. No file selected initially
-    assert!(
-        state.selected_file.is_none(),
-        "Should start with no file selected"
-    );
+    let state = State {
+        selected_file: Some("/test/chapter1.mp3".to_string()),
+        ..State::default()
+    };
+    assert_eq!(state.selected_file.as_deref(), Some("/test/chapter1.mp3"));
 
-    // 2. Select a file (Message::FileSelected)
-    state.selected_file = Some("/test/chapter1.mp3".to_string());
+    let state = State {
+        selected_file: Some("/test/chapter2.mp3".to_string()),
+        ..State::default()
+    };
+    assert_eq!(state.selected_file.as_deref(), Some("/test/chapter2.mp3"));
 
-    assert!(state.selected_file.is_some(), "File should be selected");
-    assert_eq!(state.selected_file.as_ref().unwrap(), "/test/chapter1.mp3");
-
-    // 3. Switch to different file
-    state.selected_file = Some("/test/chapter2.mp3".to_string());
-
-    assert_eq!(state.selected_file.as_ref().unwrap(), "/test/chapter2.mp3");
-
-    // 4. Clear selection
-    state.selected_file = None;
-
-    assert!(state.selected_file.is_none(), "Selection should be cleared");
+    let state = State {
+        selected_file: None,
+        ..State::default()
+    };
+    assert!(state.selected_file.is_none());
 }
 
 #[test]
 fn test_modal_workflow() {
     // Test modal opening and closing
-    let mut state = State::default();
+    let state = State::default();
+    assert!(!state.settings_open);
+    assert!(state.bookmark_editor.is_none());
 
-    // 1. Settings modal closed initially
-    assert!(!state.settings_open, "Settings should start closed");
+    let state = State {
+        settings_open: true,
+        ..State::default()
+    };
+    assert!(state.settings_open);
 
-    // 2. Open settings (Message::OpenSettings)
-    state.settings_open = true;
-
-    assert!(state.settings_open, "Settings should be open");
-
-    // 3. Close settings (Message::CloseSettings or Escape)
-    state.settings_open = false;
-
-    assert!(!state.settings_open, "Settings should be closed");
-
-    // 4. Test bookmark editor modal
-    assert!(
-        state.bookmark_editor.is_none(),
-        "Bookmark editor should start closed"
-    );
-
-    // 5. Open editor (Message::BookmarkEdit)
-    state.bookmark_editor = Some(BookmarkEditor {
-        id: Some(1),
-        audiobook_id: 1,
-        file_path: "/test/file.mp3".to_string(),
-        position_ms: 0,
-        label: String::new(),
-        note: String::new(),
-    });
-
-    assert!(state.bookmark_editor.is_some(), "Editor should be open");
-
-    // 6. Close editor (Message::BookmarkEditorCancel or Escape)
-    state.bookmark_editor = None;
-
-    assert!(state.bookmark_editor.is_none(), "Editor should be closed");
+    let state = State {
+        bookmark_editor: Some(BookmarkEditor {
+            id: Some(1),
+            audiobook_id: 1,
+            file_path: "/test/file.mp3".to_string(),
+            position_ms: 0,
+            label: String::new(),
+            note: String::new(),
+        }),
+        ..State::default()
+    };
+    assert!(state.bookmark_editor.is_some());
 }
 
 #[test]
 fn test_error_banner_workflow() {
     // Test error display and dismissal
-    let mut state = State::default();
+    let state = State::default();
+    assert!(state.error_message.is_none());
 
-    // 1. No error initially
-    assert!(state.error_message.is_none(), "Should start with no error");
-
-    // 2. Display error (Message::ErrorOccurred)
-    state.error_message = Some("Failed to load file".to_string());
-    state.error_timestamp = Some(chrono::Utc::now());
-
-    assert!(state.error_message.is_some(), "Error should be displayed");
-
-    // 3. Dismiss error (Message::DismissError)
-    state.error_message = None;
-    state.error_timestamp = None;
-
-    assert!(state.error_message.is_none(), "Error should be dismissed");
+    let state = State {
+        error_message: Some("Failed to load file".to_string()),
+        error_timestamp: Some(chrono::Utc::now()),
+        ..State::default()
+    };
+    assert!(state.error_message.is_some());
 }
 
 #[test]
 fn test_scanning_state_workflow() {
     // Test directory scanning state
-    let mut state = State::default();
+    let state = State::default();
+    assert_eq!(state.scan_state, ScanState::Idle);
 
-    // 1. Not scanning initially
-    assert!(!state.is_scanning, "Should not be scanning initially");
-    assert!(
-        state.scanning_directory.is_none(),
-        "No directory being scanned"
-    );
-
-    // 2. Start scanning
-    state.is_scanning = true;
-    state.scanning_directory = Some("/test/audiobooks".to_string());
-
-    assert!(state.is_scanning, "Should be scanning");
-    assert_eq!(
-        state.scanning_directory.as_ref().unwrap(),
-        "/test/audiobooks"
-    );
-
-    // 3. Complete scanning
-    state.is_scanning = false;
-    state.scanning_directory = None;
-
-    assert!(!state.is_scanning, "Should not be scanning");
-    assert!(state.scanning_directory.is_none(), "Scan complete");
+    let state = State {
+        scan_state: ScanState::Scanning {
+            directory: Some("/test/audiobooks".to_string()),
+        },
+        ..State::default()
+    };
+    assert!(matches!(
+        &state.scan_state,
+        ScanState::Scanning { directory: Some(d) } if d == "/test/audiobooks"
+    ));
 }
 
 #[test]
@@ -448,8 +394,9 @@ fn test_progress_persistence_workflow() -> Result<(), Box<dyn Error>> {
 
     // 3. Retrieve and verify progress
     let files = nodoka::db::queries::get_audiobook_files(db.connection(), audiobook_id)?;
-    assert_eq!(files[0].seek_position, Some(180_000));
-    assert_eq!(files[0].completeness, 50);
+    let first = files.first().ok_or("missing file")?;
+    assert_eq!(first.seek_position, Some(180_000));
+    assert_eq!(first.completeness, 50);
 
     Ok(())
 }

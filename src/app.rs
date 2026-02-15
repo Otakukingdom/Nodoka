@@ -255,18 +255,15 @@ impl iced::Program for App {
                     text: _,
                     repeat: _,
                 }) => map_key_press(key, modifiers),
-                iced::Event::Window(iced::window::Event::Moved(point)) =>
-                {
-                    #[allow(clippy::cast_possible_truncation)]
-                    Some(Message::WindowMoved(point.x as i32, point.y as i32))
+                iced::Event::Window(iced::window::Event::Moved(point)) => {
+                    let x = f32_to_i32(point.x)?;
+                    let y = f32_to_i32(point.y)?;
+                    Some(Message::WindowMoved(x, y))
                 }
-                iced::Event::Window(iced::window::Event::Resized(size)) =>
-                {
-                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                    Some(Message::WindowResized(
-                        size.width as u32,
-                        size.height as u32,
-                    ))
+                iced::Event::Window(iced::window::Event::Resized(size)) => {
+                    let width = f32_to_u32(size.width)?;
+                    let height = f32_to_u32(size.height)?;
+                    Some(Message::WindowResized(width, height))
                 }
                 _ => None,
             },
@@ -278,6 +275,37 @@ impl iced::Program for App {
     fn theme(&self, _state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
         Some(crate::ui::nodoka_theme())
     }
+}
+
+fn f32_to_i32(value: f32) -> Option<i32> {
+    if !value.is_finite() {
+        return None;
+    }
+
+    let value_f64 = f64::from(value);
+    if value_f64 < f64::from(i32::MIN) || value_f64 > f64::from(i32::MAX) {
+        return None;
+    }
+
+    // Preserve the previous semantics of truncation toward zero.
+    let truncated = value.trunc();
+    let text = format!("{truncated:.0}");
+    text.parse::<i32>().ok()
+}
+
+fn f32_to_u32(value: f32) -> Option<u32> {
+    if !value.is_finite() {
+        return None;
+    }
+
+    let value_f64 = f64::from(value);
+    if value_f64 < 0.0 || value_f64 > f64::from(u32::MAX) {
+        return None;
+    }
+
+    let truncated = value.trunc();
+    let text = format!("{truncated:.0}");
+    text.parse::<u32>().ok()
 }
 
 impl App {
@@ -373,4 +401,33 @@ pub fn run(db: Database) -> iced::Result {
         view_fn, // View function with explicit lifetime
     )
     .run()
+}
+
+#[cfg(test)]
+mod conversion_tests {
+    use super::{f32_to_i32, f32_to_u32};
+
+    #[test]
+    fn test_f32_to_i32_rejects_non_finite_and_out_of_range() {
+        assert_eq!(f32_to_i32(f32::NAN), None);
+        assert_eq!(f32_to_i32(f32::INFINITY), None);
+        assert_eq!(f32_to_i32(f32::NEG_INFINITY), None);
+        assert_eq!(f32_to_i32(1.0e20), None);
+        assert_eq!(f32_to_i32(-1.0e20), None);
+
+        assert_eq!(f32_to_i32(12.9), Some(12));
+        assert_eq!(f32_to_i32(-12.9), Some(-12));
+    }
+
+    #[test]
+    fn test_f32_to_u32_rejects_negative_non_finite_and_out_of_range() {
+        assert_eq!(f32_to_u32(f32::NAN), None);
+        assert_eq!(f32_to_u32(f32::INFINITY), None);
+        assert_eq!(f32_to_u32(f32::NEG_INFINITY), None);
+        assert_eq!(f32_to_u32(-1.0), None);
+        assert_eq!(f32_to_u32(1.0e20), None);
+
+        assert_eq!(f32_to_u32(12.9), Some(12));
+        assert_eq!(f32_to_u32(0.0), Some(0));
+    }
 }

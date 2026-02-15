@@ -1,7 +1,7 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
 use crate::ui::styles::{button_styles, spacing, typography};
-use crate::ui::{Message, State};
+use crate::ui::{Message, PlaybackStatus, State};
 use iced::widget::{button, column, container, row, slider, text, text_input, Space};
 use iced::{Element, Length};
 
@@ -22,7 +22,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .and_then(|f| f.to_str())
         .unwrap_or("No file selected");
 
-    let play_pause_label = if state.is_playing {
+    let play_pause_label = if state.playback == PlaybackStatus::Playing {
         "Pause" // Accessible label instead of emoji
     } else {
         "Play"
@@ -53,74 +53,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .padding(spacing::XS),
         // Control buttons and volume with improved visual grouping
         row![
-            // Playback controls group
-            container(
-                row![
-                    button(text(play_pause_label).size(typography::SIZE_BASE))
-                        .on_press(Message::PlayPause)
-                        .padding(spacing::SM)
-                        .style(button_styles::primary),
-                    button(text("Stop").size(typography::SIZE_BASE))
-                        .on_press(Message::Stop)
-                        .padding(spacing::SM)
-                        .style(button_styles::secondary),
-                ]
-                .spacing(spacing::SM)
-            ),
+            playback_controls(play_pause_label),
             Space::new().width(Length::Fill),
-            // Speed controls group with visual hierarchy
-            container(
-                column![
-                    row![
-                        text("Speed:").size(typography::SIZE_SM),
-                        text(format!("{:.1}x", state.speed)).size(typography::SIZE_BASE),
-                    ]
-                    .spacing(spacing::XS),
-                    slider(5..=20, speed_step, |step| Message::SpeedChanged(
-                        speed_from_step(step)
-                    ))
-                    .width(Length::Fixed(120.0)),
-                    row![
-                        button(text("0.5x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(0.5))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                        button(text("0.75x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(0.75))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                        button(text("1.0x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.0))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                        button(text("1.25x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.25))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                        button(text("1.5x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.5))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                        button(text("2.0x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(2.0))
-                            .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                            .style(button_styles::secondary),
-                    ]
-                    .spacing(spacing::XS)
-                ]
-                .spacing(spacing::XS)
-            ),
+            speed_controls(state, speed_step),
             Space::new().width(Length::Fill),
-            // Volume controls group
-            container(
-                row![
-                    text("Volume:").size(typography::SIZE_SM),
-                    slider(0..=200, state.volume, Message::VolumeChanged)
-                        .width(Length::Fixed(150.0)),
-                    text(format!("{}%", state.volume)).size(typography::SIZE_SM),
-                ]
-                .spacing(spacing::SM)
-            ),
+            volume_controls(state),
         ]
         .padding(spacing::MD)
         .spacing(spacing::MD),
@@ -132,20 +69,104 @@ pub fn view(state: &State) -> Element<'_, Message> {
     .into()
 }
 
+const SPEED_STEP_MIN: i32 = 10;
+const SPEED_STEP_MAX: i32 = 40;
+
+fn playback_controls(play_pause_label: &'static str) -> Element<'static, Message> {
+    container(
+        row![
+            button(text(play_pause_label).size(typography::SIZE_BASE))
+                .on_press(Message::PlayPause)
+                .padding(spacing::SM)
+                .style(button_styles::primary),
+            button(text("Stop").size(typography::SIZE_BASE))
+                .on_press(Message::Stop)
+                .padding(spacing::SM)
+                .style(button_styles::secondary),
+        ]
+        .spacing(spacing::SM),
+    )
+    .into()
+}
+
+fn speed_controls(state: &State, speed_step: i32) -> Element<'_, Message> {
+    container(
+        column![
+            row![
+                text("Speed:").size(typography::SIZE_SM),
+                text(format_speed_label(state.speed)).size(typography::SIZE_BASE),
+            ]
+            .spacing(spacing::XS),
+            slider(SPEED_STEP_MIN..=SPEED_STEP_MAX, speed_step, |step| {
+                Message::SpeedChanged(speed_from_step(step))
+            })
+            .width(Length::Fixed(120.0)),
+            row![
+                button(text("0.5x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(0.5))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+                button(text("0.75x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(0.75))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+                button(text("1.0x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(1.0))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+                button(text("1.25x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(1.25))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+                button(text("1.5x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(1.5))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+                button(text("2.0x").size(typography::SIZE_SM))
+                    .on_press(Message::SpeedChanged(2.0))
+                    .padding(iced::Padding::from([spacing::SM, spacing::XS]))
+                    .style(button_styles::secondary),
+            ]
+            .spacing(spacing::XS)
+        ]
+        .spacing(spacing::XS),
+    )
+    .into()
+}
+
+fn volume_controls(state: &State) -> Element<'_, Message> {
+    container(
+        row![
+            text("Volume:").size(typography::SIZE_SM),
+            slider(0..=200, state.volume, Message::VolumeChanged).width(Length::Fixed(150.0)),
+            text(format!("{}%", state.volume)).size(typography::SIZE_SM),
+        ]
+        .spacing(spacing::SM),
+    )
+    .into()
+}
+
+fn format_speed_label(speed: f32) -> String {
+    let fixed = format!("{speed:.2}");
+    let trimmed = fixed.trim_end_matches('0').trim_end_matches('.');
+    format!("{trimmed}x")
+}
+
 fn speed_step_from_speed(speed: f32) -> i32 {
-    let formatted = format!("{speed:.1}");
-    let digits = formatted.replace('.', "");
-    match digits.parse::<i32>() {
-        Ok(v) => v.clamp(5, 20),
-        Err(_e) => 10,
+    if !speed.is_finite() {
+        return 20;
     }
+
+    let clamped = speed.clamp(0.5, 2.0);
+    let step_f = (clamped * 20.0).round();
+    let step = format!("{step_f:.0}").parse::<i32>().ok().unwrap_or(20);
+    step.clamp(SPEED_STEP_MIN, SPEED_STEP_MAX)
 }
 
 fn speed_from_step(step: i32) -> f32 {
-    let step_u16 = u16::try_from(step).unwrap_or(10);
-    let raw = f32::from(step_u16) / 10.0;
-    let formatted = format!("{raw:.1}");
-    formatted.parse::<f32>().ok().unwrap_or(1.0).clamp(0.5, 2.0)
+    let clamped = step.clamp(SPEED_STEP_MIN, SPEED_STEP_MAX);
+    let clamped_u8 = u8::try_from(clamped).unwrap_or(20);
+    (f32::from(clamped_u8) / 20.0).clamp(0.5, 2.0)
 }
 
 /// Renders sleep timer controls with improved visual hierarchy
@@ -303,16 +324,14 @@ mod tests {
 
     #[test]
     fn test_speed_step_conversion_round_trip() {
-        // Test speeds that round-trip correctly with .1 precision formatting
-        // Note: 0.75 becomes "0.7" with .1 precision, which becomes step 7, then back to 0.7
         let test_cases = vec![
-            (0.5, 5),
-            (0.7, 7), // 0.75 rounds to 0.7 with .1 precision
-            (1.0, 10),
-            (1.2, 12), // 1.25 rounds to 1.2 with .1 precision
-            (1.5, 15),
-            (1.8, 18), // 1.75 rounds to 1.8 with .1 precision
-            (2.0, 20),
+            (0.5, 10),
+            (0.75, 15),
+            (1.0, 20),
+            (1.25, 25),
+            (1.5, 30),
+            (1.75, 35),
+            (2.0, 40),
         ];
 
         for (expected_speed, expected_step) in test_cases {
@@ -332,15 +351,15 @@ mod tests {
 
     #[test]
     fn test_speed_step_from_speed_clamps_values() {
-        // Test that speed_step_from_speed returns values in valid range [5, 20]
+        // Test that speed_step_from_speed returns values in valid range [10, 40]
         let step = speed_step_from_speed(0.3); // Below minimum
-        assert!((5..=20).contains(&step));
+        assert!((SPEED_STEP_MIN..=SPEED_STEP_MAX).contains(&step));
 
         let step = speed_step_from_speed(3.0); // Above maximum
-        assert!((5..=20).contains(&step));
+        assert!((SPEED_STEP_MIN..=SPEED_STEP_MAX).contains(&step));
 
         let step = speed_step_from_speed(1.0); // Normal value
-        assert_eq!(step, 10);
+        assert_eq!(step, 20);
     }
 
     #[test]
@@ -348,22 +367,22 @@ mod tests {
         // Test that speed_from_step returns values in valid range [0.5, 2.0]
         const EPSILON: f32 = 1e-6;
 
-        assert!((speed_from_step(5) - 0.5).abs() < EPSILON);
-        assert!((speed_from_step(10) - 1.0).abs() < EPSILON);
-        assert!((speed_from_step(20) - 2.0).abs() < EPSILON);
+        assert!((speed_from_step(SPEED_STEP_MIN) - 0.5).abs() < EPSILON);
+        assert!((speed_from_step(20) - 1.0).abs() < EPSILON);
+        assert!((speed_from_step(SPEED_STEP_MAX) - 2.0).abs() < EPSILON);
 
         // Edge cases
         let speed = speed_from_step(3); // Below minimum
         assert!((0.5..=2.0).contains(&speed));
 
-        let speed = speed_from_step(25); // Above maximum
+        let speed = speed_from_step(100); // Above maximum
         assert!((0.5..=2.0).contains(&speed));
     }
 
     #[test]
     fn test_view_renders_play_button_when_paused() {
         let state = State {
-            is_playing: false,
+            playback: PlaybackStatus::Paused,
             ..Default::default()
         };
 
@@ -375,7 +394,7 @@ mod tests {
     #[test]
     fn test_view_renders_pause_button_when_playing() {
         let state = State {
-            is_playing: true,
+            playback: PlaybackStatus::Playing,
             ..Default::default()
         };
 
