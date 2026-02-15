@@ -131,9 +131,11 @@ pub(super) fn handle_scan_complete(
     directory: &str,
     discovered: Vec<DiscoveredAudiobook>,
 ) -> Task<Message> {
-    // Clear scanning state
+    // Clear scanning state and any previous errors
     state.is_scanning = false;
     state.scanning_directory = None;
+    state.error_message = None;
+    state.error_timestamp = None;
 
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
 

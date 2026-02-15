@@ -170,6 +170,11 @@ fn handle_window_resized(db: &Database, width: u32, height: u32) -> Task<Message
 }
 
 fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
+    // Don't process play/pause when a modal is open (keyboard shortcut should not work in modal context)
+    if state.settings_open || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+    
     if let Some(ref mut p) = player {
         if state.is_playing {
             if let Err(e) = p.pause() {
@@ -283,6 +288,20 @@ fn handle_player_tick(
         None => return Task::none(),
     };
 
+    // Synchronize is_playing with actual player state to prevent drift
+    let should_be_playing = matches!(
+        player_state,
+        PlaybackState::Playing | PlaybackState::Buffering
+    );
+    if state.is_playing != should_be_playing {
+        tracing::debug!(
+            "Synchronizing is_playing: {} -> {}",
+            state.is_playing,
+            should_be_playing
+        );
+        state.is_playing = should_be_playing;
+    }
+
     let command = handle_time_updated(state, db, time);
 
     if should_auto_advance(state, player_state, time) {
@@ -385,29 +404,37 @@ fn handle_audiobook_selected(
         reset_playback_state(state, player);
         state.selected_file = None;
         state.current_files.clear();
+        // Clear bookmark editor early to ensure it's closed even if loading fails
+        state.bookmark_editor = None;
     }
 
-    state.selected_audiobook = Some(id);
-
-    match crate::db::queries::get_audiobook_files(db.connection(), id) {
-        Ok(files) => {
-            state.current_files = files;
-        }
+    // Load files first, only update selection if successful
+    let files = match crate::db::queries::get_audiobook_files(db.connection(), id) {
+        Ok(files) => files,
         Err(e) => {
             tracing::error!("Failed to load audiobook files: {e}");
+            state.error_message = Some("Failed to load audiobook files".to_string());
+            state.error_timestamp = Some(chrono::Utc::now());
+            return Task::none();
         }
-    }
+    };
 
-    match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), id) {
-        Ok(bookmarks) => {
-            state.bookmarks = bookmarks;
-        }
+    let bookmarks = match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), id) {
+        Ok(bookmarks) => bookmarks,
         Err(e) => {
             tracing::error!("Failed to load bookmarks: {e}");
+            state.error_message = Some("Failed to load bookmarks".to_string());
+            state.error_timestamp = Some(chrono::Utc::now());
+            return Task::none();
         }
-    }
-    state.bookmark_editor = None;
+    };
 
+    // Only now update state after successful loading
+    state.selected_audiobook = Some(id);
+    state.current_files = files;
+    state.bookmarks = bookmarks;
+
+    // Only save metadata after successful state update
     if let Err(e) =
         crate::db::queries::set_metadata(db.connection(), "current_audiobook_id", &id.to_string())
     {
@@ -507,6 +534,8 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                     Ok(p) => p,
                     Err(e) => {
                         tracing::error!("Failed to extract ZIP entry for playback: {e}");
+                        state.error_message = Some(format!("Failed to extract audio file: {e}"));
+                        state.error_timestamp = Some(chrono::Utc::now());
                         return Task::none();
                     }
                 }
@@ -516,6 +545,8 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
             if let Err(e) = p.load_media(&playback_path) {
                 tracing::error!("Failed to load media: {e}");
+                state.error_message = Some(format!("Failed to load audio file: {e}"));
+                state.error_timestamp = Some(chrono::Utc::now());
                 return Task::none();
             }
 
@@ -524,6 +555,8 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
             if let Err(e) = p.play() {
                 tracing::error!("Failed to auto-play: {e}");
+                state.error_message = Some(format!("Failed to start playback: {e}"));
+                state.error_timestamp = Some(chrono::Utc::now());
             } else {
                 state.is_playing = true;
             }
@@ -538,6 +571,8 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
 // Cannot be const fn because Task::none() is not const
 fn handle_open_settings(state: &mut State) -> Task<Message> {
+    // Close any other open modals to maintain single modal invariant
+    state.bookmark_editor = None;
     state.settings_open = true;
     Task::none()
 }
@@ -614,24 +649,29 @@ fn generate_cover_thumbnail_command(audiobook_id: i64, full_path: String) -> Tas
 }
 
 fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Task<Message> {
-    state.current_time = time;
+    // Clamp current_time to not exceed total_duration to maintain state invariants
+    state.current_time = if state.total_duration > 0.0 {
+        time.min(state.total_duration)
+    } else {
+        time
+    };
 
     if let Some(ref file_path) = state.selected_file {
         let file_path_owned = file_path.clone();
 
         if state.total_duration > 0.0 {
-            let percentage = (time * 100.0) / state.total_duration;
+            let percentage = (state.current_time * 100.0) / state.total_duration;
             let completeness = percentage_to_i32(percentage);
 
             if let Err(e) = crate::db::queries::update_file_progress(
                 db.connection(),
                 &file_path_owned,
-                time,
+                state.current_time,
                 completeness,
             ) {
                 tracing::error!("Failed to update file progress: {e}");
             } else {
-                update_current_file_progress(state, &file_path_owned, time, completeness);
+                update_current_file_progress(state, &file_path_owned, state.current_time, completeness);
                 update_audiobook_completeness_after_file_change(state, db, &file_path_owned);
             }
         }
@@ -802,6 +842,11 @@ fn handle_seek_forward(
     player: &mut Option<Vlc>,
     seconds: i64,
 ) -> Task<Message> {
+    // Don't process seek when a modal is open (keyboard shortcut should not work in modal context)
+    if state.settings_open || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+    
     let Some(_) = player else {
         return Task::none();
     };
@@ -824,6 +869,11 @@ fn handle_seek_backward(
     player: &mut Option<Vlc>,
     seconds: i64,
 ) -> Task<Message> {
+    // Don't process seek when a modal is open (keyboard shortcut should not work in modal context)
+    if state.settings_open || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+    
     let Some(_) = player else {
         return Task::none();
     };
@@ -846,6 +896,11 @@ fn handle_next_file(
     player: &mut Option<Vlc>,
     db: &Database,
 ) -> Task<Message> {
+    // Don't process file navigation when a modal is open (keyboard shortcut should not work in modal context)
+    if state.settings_open || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+    
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
     };
@@ -868,6 +923,11 @@ fn handle_previous_file(
     player: &mut Option<Vlc>,
     db: &Database,
 ) -> Task<Message> {
+    // Don't process file navigation when a modal is open (keyboard shortcut should not work in modal context)
+    if state.settings_open || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+    
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
     };

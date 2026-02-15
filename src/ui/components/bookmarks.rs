@@ -92,9 +92,9 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
         .is_some_and(|f| !f.file_exists);
 
     let label_text = if is_missing {
-        format!("⚠ {} (missing)", bm.label)
+        format!("[MISSING] {}", bm.label)
     } else if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
-        format!("📝 {}", bm.label) // Icon indicator for bookmarks with notes
+        format!("[NOTE] {}", bm.label) // Text indicator for bookmarks with notes
     } else {
         bm.label.clone()
     };

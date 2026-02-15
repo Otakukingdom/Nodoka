@@ -77,7 +77,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 text(format!("{completeness}%")).size(typography::SIZE_SM),
                 Space::new().width(Length::Fill),
                 if is_complete {
-                    text("✓ Complete").size(typography::SIZE_SM)
+                    text("[COMPLETE]").size(typography::SIZE_SM)
                 } else {
                     text("").size(typography::SIZE_SM)
                 }

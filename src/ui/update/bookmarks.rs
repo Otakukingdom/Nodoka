@@ -41,6 +41,9 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         state.bookmarks = bookmarks;
     }
 
+    // Close any other open modals to maintain single modal invariant
+    state.settings_open = false;
+
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
         id: Some(created_id),
         audiobook_id,
@@ -141,6 +144,9 @@ pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> 
         tracing::warn!("Bookmark {id} not found for edit");
         return Task::none();
     };
+
+    // Close any other open modals to maintain single modal invariant
+    state.settings_open = false;
 
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
         id: Some(id),

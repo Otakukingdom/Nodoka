@@ -73,6 +73,9 @@ pub struct State {
 
     // Focus tracking for keyboard navigation accessibility
     pub focused_element: FocusedElement,
+
+    // Operation in progress flag to prevent duplicate operations from rapid input
+    pub operation_in_progress: bool,
 }
 
 impl Default for State {
@@ -102,6 +105,7 @@ impl Default for State {
             is_scanning: false,
             scanning_directory: None,
             focused_element: FocusedElement::None,
+            operation_in_progress: false,
         }
     }
 }
@@ -137,6 +141,7 @@ mod tests {
         assert!(!state.is_scanning);
         assert!(state.scanning_directory.is_none());
         assert_eq!(state.focused_element, FocusedElement::None);
+        assert!(!state.operation_in_progress);
     }
 
     #[test]

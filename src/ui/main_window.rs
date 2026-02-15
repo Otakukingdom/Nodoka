@@ -29,7 +29,7 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
         |error| {
             container(
                 row![
-                    text("⚠ ").size(typography::SIZE_BASE),
+                    text("[ERROR] ").size(typography::SIZE_BASE),
                     text(error).size(typography::SIZE_SM),
                     Space::new().width(Length::Fill),
                     button(text("Dismiss").size(typography::SIZE_XS))

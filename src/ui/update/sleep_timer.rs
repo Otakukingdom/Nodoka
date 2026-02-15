@@ -3,7 +3,7 @@ use crate::player::Vlc;
 use crate::ui::{Message, State};
 use iced::Task;
 
-const DEFAULT_SLEEP_TIMER_FADE_SECS: u32 = 7;
+const DEFAULT_SLEEP_TIMER_FADE_SECS: u32 = 30;
 
 pub(super) fn handle_sleep_timer_set_duration(state: &mut State, secs: i64) -> Task<Message> {
     let secs = secs.max(0);

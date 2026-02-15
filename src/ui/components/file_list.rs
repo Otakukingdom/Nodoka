@@ -43,11 +43,11 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
     let is_complete = completeness >= 100;
     let path = file.full_path.clone();
 
-    // Status indicator with semantic colors
+    // Status indicator with semantic colors (using text labels instead of emojis per design system)
     let status_indicator = if is_missing {
-        text("⚠ Missing").size(typography::SIZE_SM)
+        text("[MISSING]").size(typography::SIZE_SM)
     } else if is_complete {
-        text("✓ Complete").size(typography::SIZE_SM)
+        text("[COMPLETE]").size(typography::SIZE_SM)
     } else if has_progress {
         text(format!("{completeness}%")).size(typography::SIZE_SM)
     } else {

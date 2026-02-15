@@ -37,11 +37,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
         container(text(format!("Now Playing: {current_file_text}")).size(typography::SIZE_SM))
             .padding(spacing::SM),
         // Progress slider with larger touch target for accessibility
-        container(slider(
-            0.0..=state.total_duration.max(1.0),
-            state.current_time.min(state.total_duration),
-            Message::SeekTo
-        ))
+        // BUG FIX #001: Ensure slider range and value are consistent to prevent invalid seeks
+        container({
+            let max_duration = state.total_duration.max(1.0);
+            let current_time = state.current_time.clamp(0.0, max_duration);
+            slider(0.0..=max_duration, current_time, Message::SeekTo)
+        })
         .padding(iced::Padding::from([spacing::SM, 0.0])),
         // Time markers with better spacing
         row![
