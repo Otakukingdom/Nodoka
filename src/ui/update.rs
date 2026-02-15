@@ -254,13 +254,27 @@ fn reset_playback_state(state: &mut State, player: &mut Option<Vlc>) {
 }
 
 fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) -> Task<Message> {
+    handle_seek_to_media_control(state, player, position)
+}
+
+fn handle_seek_to_media_control<P: MediaControl>(
+    state: &mut State,
+    player: &mut Option<P>,
+    position: f64,
+) -> Task<Message> {
+    let clamped = if state.total_duration > 0.0 {
+        position.clamp(0.0, state.total_duration)
+    } else {
+        position.max(0.0)
+    };
+
     if let Some(ref mut p) = player {
-        match f64_to_ms(position) {
+        match f64_to_ms(clamped) {
             Ok(position_ms) => {
                 if let Err(e) = p.set_time(position_ms) {
                     tracing::error!("Failed to seek: {e}");
                 } else {
-                    state.current_time = position;
+                    state.current_time = clamped;
                 }
             }
             Err(e) => {

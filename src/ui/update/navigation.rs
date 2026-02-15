@@ -23,7 +23,14 @@ pub(super) fn handle_seek_forward(
         return Task::none();
     };
 
-    let seek_ms = current_ms + (seconds * 1000);
+    let seek_ms_unclamped = current_ms.saturating_add(seconds.saturating_mul(1000));
+    let seek_ms = if state.total_duration > 0.0 {
+        f64_to_ms(state.total_duration)
+            .ok()
+            .map_or(seek_ms_unclamped, |max| seek_ms_unclamped.min(max))
+    } else {
+        seek_ms_unclamped
+    };
     let Ok(seek_f64) = ms_to_f64(seek_ms) else {
         return Task::none();
     };

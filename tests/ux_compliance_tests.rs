@@ -5,6 +5,28 @@
 
 use nodoka::ui::*;
 
+fn srgb_to_linear(channel: f64) -> f64 {
+    if channel <= 0.04045 {
+        channel / 12.92
+    } else {
+        ((channel + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+fn wcag_relative_luminance(color: iced::Color) -> f64 {
+    let r = srgb_to_linear(f64::from(color.r));
+    let g = srgb_to_linear(f64::from(color.g));
+    let b = srgb_to_linear(f64::from(color.b));
+    (0.2126_f64).mul_add(r, (0.7152_f64).mul_add(g, 0.0722_f64 * b))
+}
+
+fn wcag_contrast_ratio(foreground: iced::Color, background: iced::Color) -> f64 {
+    let fg = wcag_relative_luminance(foreground);
+    let bg = wcag_relative_luminance(background);
+    let (lighter, darker) = if fg >= bg { (fg, bg) } else { (bg, fg) };
+    (lighter + 0.05) / (darker + 0.05)
+}
+
 #[test]
 fn test_spacing_follows_4px_grid() {
     // Verify all spacing constants are multiples of 4
@@ -199,15 +221,12 @@ fn test_format_time_ms_consistency() {
 
 #[test]
 fn test_selection_colors_contrast() {
-    // Selection background and text should have good contrast
     let selection_bg = colors::SELECTION_BG;
     let selection_text = colors::SELECTION_TEXT;
 
-    // Background should be darker, text should be lighter
+    let contrast = wcag_contrast_ratio(selection_text, selection_bg);
     assert!(
-        selection_bg.r < selection_text.r
-            || selection_bg.g < selection_text.g
-            || selection_bg.b < selection_text.b,
-        "Selection text should contrast with background"
+        contrast >= 4.5,
+        "Selection text contrast ratio {contrast} does not meet WCAG AA (4.5:1)"
     );
 }

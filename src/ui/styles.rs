@@ -39,7 +39,7 @@ pub mod colors {
     pub const ACTIVE_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
     pub const FOCUS_RING: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB (blue for focus states)
     pub const SELECTION_BG: Color = Color::from_rgb(0.882, 0.114, 0.282); // Primary color for selections
-    pub const SELECTION_TEXT: Color = Color::from_rgb(1.0, 0.945, 0.949); // Light text on selection
+    pub const SELECTION_TEXT: Color = TEXT_ON_PRIMARY; // White text on selection (WCAG AA contrast)
 
     // Border colors
     pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9); // #E5E5E5
@@ -548,6 +548,16 @@ mod tests {
         assert!(
             contrast >= 4.5,
             "Text contrast ratio {contrast} does not meet WCAG AA (4.5:1)"
+        );
+    }
+
+    #[test]
+    fn test_selection_color_contrast_meets_wcag_aa() {
+        let contrast = wcag_contrast_ratio(colors::SELECTION_TEXT, colors::SELECTION_BG);
+
+        assert!(
+            contrast >= 4.5,
+            "Selection text contrast ratio {contrast} does not meet WCAG AA (4.5:1)"
         );
     }
 

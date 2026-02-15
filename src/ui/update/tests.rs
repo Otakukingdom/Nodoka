@@ -100,6 +100,31 @@ impl MediaControl for FailingPlayPlayer {
 }
 
 #[derive(Clone)]
+struct RecordingSeekPlayer {
+    last_set_time_ms: Rc<Cell<i64>>,
+    length_ms: i64,
+}
+
+impl MediaControl for RecordingSeekPlayer {
+    fn load_media(&mut self, _path: &Path) -> Result<()> {
+        Ok(())
+    }
+
+    fn set_time(&self, time_ms: i64) -> Result<()> {
+        self.last_set_time_ms.set(time_ms);
+        Ok(())
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Ok(self.length_ms)
+    }
+
+    fn play(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
 struct CountingLoadPlayer {
     load_calls: Rc<Cell<u32>>,
 }
@@ -238,6 +263,102 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
         "bookmark jump should not update current_time when load fails"
     );
     Ok(())
+}
+
+#[test]
+fn test_bookmark_jump_clamps_seek_target_to_known_duration(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let mut file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    file.length_of_file = Some(10_000);
+    file.seek_position = None;
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let bookmark_id = 77;
+    let mut bookmark = Bookmark::new(
+        audiobook_id,
+        file_path.to_string(),
+        50_000,
+        "Too far".to_string(),
+    );
+    bookmark.id = Some(bookmark_id);
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: None,
+        bookmarks: vec![bookmark],
+        ..Default::default()
+    };
+
+    let last_set_time_ms = Rc::new(Cell::new(-1));
+    let mut player = Some(RecordingSeekPlayer {
+        last_set_time_ms: last_set_time_ms.clone(),
+        length_ms: 10_000,
+    });
+
+    let _ = super::bookmarks::handle_bookmark_jump(&mut state, &mut player, &db, bookmark_id);
+
+    assert_eq!(
+        last_set_time_ms.get(),
+        10_000,
+        "bookmark jump should clamp seek target to duration"
+    );
+    assert!(
+        (state.current_time - 10_000.0).abs() < 0.0001,
+        "bookmark jump should clamp state.current_time to duration"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_seek_to_clamps_to_total_duration_when_known() {
+    let mut state = State {
+        total_duration: 10_000.0,
+        current_time: 123.0,
+        ..Default::default()
+    };
+
+    let last_set_time_ms = Rc::new(Cell::new(-1));
+    let mut player = Some(RecordingSeekPlayer {
+        last_set_time_ms: last_set_time_ms.clone(),
+        length_ms: 0,
+    });
+
+    let _ = super::handle_seek_to_media_control(&mut state, &mut player, 50_000.0);
+
+    assert_eq!(last_set_time_ms.get(), 10_000);
+    assert!((state.current_time - 10_000.0).abs() < 0.0001);
+}
+
+#[test]
+fn test_seek_to_clamps_negative_to_zero_when_duration_known() {
+    let mut state = State {
+        total_duration: 10_000.0,
+        current_time: 123.0,
+        ..Default::default()
+    };
+
+    let last_set_time_ms = Rc::new(Cell::new(-1));
+    let mut player = Some(RecordingSeekPlayer {
+        last_set_time_ms: last_set_time_ms.clone(),
+        length_ms: 0,
+    });
+
+    let _ = super::handle_seek_to_media_control(&mut state, &mut player, -100.0);
+
+    assert_eq!(last_set_time_ms.get(), 0);
+    assert!(state.current_time.abs() < 0.0001);
 }
 
 #[test]

@@ -196,10 +196,36 @@ pub(super) fn handle_bookmark_jump<P: super::MediaControl>(
     let selected_target = state.selected_file.as_deref() == Some(bm.file_path.as_str());
 
     if !load_failed && selected_target {
+        fn clamp_seek_target_ms(
+            state: &State,
+            db: &Database,
+            file_path: &str,
+            desired_ms: i64,
+        ) -> i64 {
+            let desired_ms = desired_ms.max(0);
+
+            let max_ms_from_state = if state.total_duration > 0.0 {
+                crate::conversions::f64_to_ms(state.total_duration).ok()
+            } else {
+                None
+            };
+
+            let max_ms = max_ms_from_state.or_else(|| {
+                crate::db::queries::get_audiobook_file_by_path(db.connection(), file_path)
+                    .ok()
+                    .flatten()
+                    .and_then(|f| f.length_of_file)
+                    .filter(|v| *v > 0)
+            });
+
+            max_ms.map_or(desired_ms, |max| desired_ms.min(max))
+        }
+
         if let Some(p) = player.as_ref() {
-            if let Err(e) = p.set_time(bm.position_ms) {
+            let target_ms = clamp_seek_target_ms(state, db, &bm.file_path, bm.position_ms);
+            if let Err(e) = p.set_time(target_ms) {
                 tracing::error!("Failed to seek to bookmark: {e}");
-            } else if let Ok(pos) = ms_to_f64(bm.position_ms) {
+            } else if let Ok(pos) = ms_to_f64(target_ms) {
                 state.current_time = pos;
             }
         }

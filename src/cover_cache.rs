@@ -32,17 +32,34 @@ pub fn ensure_cover_thumbnail_with_embedded(
     audiobook_path: &Path,
     embedded_image: Option<&[u8]>,
 ) -> Result<Option<PathBuf>> {
+    ensure_cover_thumbnail_with_embedded_in_cache_dir(
+        audiobook_id,
+        audiobook_path,
+        embedded_image,
+        &default_cover_cache_dir()?,
+    )
+}
+
+fn default_cover_cache_dir() -> Result<PathBuf> {
     use directories::ProjectDirs;
 
+    let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
+        .ok_or(crate::error::Error::ProjectDirNotFound)?;
+    Ok(proj_dirs.data_dir().join("cover-cache"))
+}
+
+fn ensure_cover_thumbnail_with_embedded_in_cache_dir(
+    audiobook_id: i64,
+    audiobook_path: &Path,
+    embedded_image: Option<&[u8]>,
+    cache_dir: &Path,
+) -> Result<Option<PathBuf>> {
     let selection_root: &Path = if audiobook_path.is_dir() {
         audiobook_path
     } else {
         audiobook_path.parent().unwrap_or(audiobook_path)
     };
 
-    let proj_dirs = ProjectDirs::from("com", "Otakukingdom", "Nodoka")
-        .ok_or(crate::error::Error::ProjectDirNotFound)?;
-    let cache_dir = proj_dirs.data_dir().join("cover-cache");
     let out_path = cache_dir.join(format!("{audiobook_id}.png"));
 
     // Fast path: avoid repeated filesystem decoding and VLC probing if a cached thumbnail exists
@@ -71,7 +88,7 @@ pub fn ensure_cover_thumbnail_with_embedded(
         return Ok(None);
     };
 
-    std::fs::create_dir_all(&cache_dir)?;
+    std::fs::create_dir_all(cache_dir)?;
 
     let img = match selection.source {
         crate::cover_art::Source::Embedded => {
@@ -295,6 +312,8 @@ mod tests {
         let book_dir = temp.path().join("Book");
         fs::create_dir_all(&book_dir)?;
 
+        let cache_dir = temp.path().join("cover-cache");
+
         // Create a minimal valid JPEG using the image crate.
         let img = image::RgbImage::from_pixel(2, 2, image::Rgb([255, 0, 0]));
         let dyn_img = image::DynamicImage::ImageRgb8(img);
@@ -303,8 +322,11 @@ mod tests {
         encoder.encode_image(&dyn_img)?;
         fs::write(book_dir.join("folder.jpg"), bytes)?;
 
-        let thumb = ensure_cover_thumbnail(42, &book_dir)?;
-        assert!(thumb.is_some(), "expected a thumbnail to be generated");
+        let thumb =
+            ensure_cover_thumbnail_with_embedded_in_cache_dir(42, &book_dir, None, &cache_dir)?;
+        let thumb = thumb.ok_or("expected a thumbnail to be generated")?;
+        assert!(thumb.starts_with(&cache_dir));
+        assert!(thumb.exists());
         Ok(())
     }
 
@@ -328,12 +350,21 @@ mod tests {
         let book_dir = temp.path().join("Book");
         fs::create_dir_all(&book_dir)?;
 
+        let cache_dir = temp.path().join("cover-cache");
+
         let cover_path = book_dir.join("embedded.png");
         let cover_bytes = write_test_png(&cover_path)?;
         fs::remove_file(&cover_path)?;
 
-        let thumb = ensure_cover_thumbnail_with_embedded(7, &book_dir, Some(&cover_bytes))?;
-        assert!(thumb.is_some(), "expected thumbnail from embedded cover");
+        let thumb = ensure_cover_thumbnail_with_embedded_in_cache_dir(
+            7,
+            &book_dir,
+            Some(&cover_bytes),
+            &cache_dir,
+        )?;
+        let thumb = thumb.ok_or("expected thumbnail from embedded cover")?;
+        assert!(thumb.starts_with(&cache_dir));
+        assert!(thumb.exists());
         Ok(())
     }
 }

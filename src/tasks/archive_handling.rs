@@ -200,9 +200,14 @@ pub fn parse_zip_virtual_path(value: &str) -> Option<(PathBuf, PathBuf)> {
 /// Returns an error if the virtual path is invalid, extraction fails, or the project data
 /// directory cannot be determined.
 pub fn materialize_zip_virtual_path(value: &str) -> Result<PathBuf> {
+    let root = zip_temp_root()?;
+    materialize_zip_virtual_path_in_root(value, &root)
+}
+
+fn materialize_zip_virtual_path_in_root(value: &str, root: &Path) -> Result<PathBuf> {
     let (zip_path, entry_path) = parse_zip_virtual_path(value)
         .ok_or_else(|| crate::error::Error::InvalidInput("Invalid ZIP virtual path".to_string()))?;
-    let temp_dir = zip_temp_dir(&zip_path)?;
+    let temp_dir = zip_temp_dir_in_root(&zip_path, root)?;
     extract_zip_entry_for_playback(&zip_path, &entry_path, &temp_dir)
 }
 
@@ -216,6 +221,10 @@ pub fn materialize_zip_virtual_path(value: &str) -> Result<PathBuf> {
 /// Returns an error if the project data directory cannot be determined or created.
 pub fn zip_temp_dir(zip_path: &Path) -> Result<PathBuf> {
     let root = zip_temp_root()?;
+    zip_temp_dir_in_root(zip_path, &root)
+}
+
+fn zip_temp_dir_in_root(zip_path: &Path, root: &Path) -> Result<PathBuf> {
     let zip_abs = zip_path.canonicalize()?;
     let hash = sha256_hex(&zip_abs.to_string_lossy());
     Ok(root.join(hash))
@@ -482,9 +491,14 @@ mod tests {
             .ok_or_else(|| crate::error::Error::InvalidState("no entries".to_string()))?;
         let virtual_path = to_zip_virtual_path(&zip_path, first)?;
 
-        let extracted = materialize_zip_virtual_path(&virtual_path)?;
+        let test_root = temp.path().join("zip-temp");
+        std::fs::create_dir_all(&test_root)?;
+        let extracted = materialize_zip_virtual_path_in_root(&virtual_path, &test_root)?;
         assert!(extracted.exists());
         assert!(extracted.is_file());
+
+        let dir = zip_temp_dir_in_root(&zip_path, &test_root)?;
+        cleanup_temp_files(&dir)?;
         Ok(())
     }
 

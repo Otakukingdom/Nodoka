@@ -2,8 +2,11 @@
 //!
 //! Each test documents a specific bug scenario and verifies correct behavior.
 
-use nodoka::models::AudiobookFile;
-use nodoka::ui::{PlaybackStatus, State};
+use nodoka::db::{self, Database};
+use nodoka::models::{Audiobook, AudiobookFile};
+use nodoka::player::Vlc;
+use nodoka::ui::update::update;
+use nodoka::ui::{Message, PlaybackStatus, State};
 
 /// Bug #0001: Speed slider conversion handles edge cases correctly
 ///
@@ -100,20 +103,41 @@ fn test_bug_0009_zero_duration_handling() {
 ///
 /// Expected: Time values are clamped to non-negative.
 #[test]
-fn test_bug_0010_negative_time_clamping() {
+fn test_bug_0010_negative_time_clamping() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = nodoka::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    nodoka::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
     let mut state = State {
-        current_time: 5.0,
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
         total_duration: 3600.0,
+        current_time: 5.0,
         ..Default::default()
     };
+    let mut player: Option<Vlc> = None;
 
-    // Simulate seeking backward beyond start
-    let seek_amount = -10.0;
-    let new_time = (state.current_time + seek_amount).max(0.0);
-    state.current_time = new_time;
+    let _ = update(
+        &mut state,
+        Message::PlayerTimeUpdated(-10.0),
+        &mut player,
+        &db,
+    );
 
-    // Verify time is clamped to zero
     assert!(state.current_time.abs() < f64::EPSILON);
+
+    Ok(())
 }
 
 /// Bug #0011: Volume clamping to valid range
@@ -122,16 +146,23 @@ fn test_bug_0010_negative_time_clamping() {
 ///
 /// Expected: Volume is always in valid range [0, 200].
 #[test]
-fn test_bug_0011_volume_clamping() {
-    let test_cases = [(-10, 0), (0, 0), (100, 100), (200, 200), (250, 200)];
+fn test_bug_0011_volume_clamping() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
 
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let test_cases = [(-10, 0), (0, 0), (100, 100), (200, 200), (250, 200)];
     for (input, expected) in test_cases {
-        let clamped = input.clamp(0, 200);
+        let _ = update(&mut state, Message::VolumeChanged(input), &mut player, &db);
         assert_eq!(
-            clamped, expected,
+            state.volume, expected,
             "Volume {input} should clamp to {expected}"
         );
     }
+
+    Ok(())
 }
 
 /// Bug #0012: Speed clamping to valid range
@@ -140,7 +171,13 @@ fn test_bug_0011_volume_clamping() {
 ///
 /// Expected: Speed is always in valid range [0.5, 2.0].
 #[test]
-fn test_bug_0012_speed_clamping() {
+fn test_bug_0012_speed_clamping() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
     let test_cases = [
         (0.3, 0.5),
         (0.5, 0.5),
@@ -152,16 +189,15 @@ fn test_bug_0012_speed_clamping() {
     ];
 
     for (input, expected) in test_cases {
-        let sanitized = if input.is_finite() {
-            input.clamp(0.5, 2.0)
-        } else {
-            1.0
-        };
+        let _ = update(&mut state, Message::SpeedChanged(input), &mut player, &db);
         assert!(
-            (sanitized - expected).abs() < f32::EPSILON,
-            "Speed {input} should sanitize to {expected}, got {sanitized}"
+            (state.speed - expected).abs() < f32::EPSILON,
+            "Speed {input} should sanitize to {expected}, got {}",
+            state.speed
         );
     }
+
+    Ok(())
 }
 
 /// Bug #0017: Player state synchronization after file switch
@@ -189,74 +225,93 @@ fn test_bug_0017_player_state_sync_on_file_switch() {
 
 /// Bug #0019: Auto-advance to next file preserves playback
 #[test]
-fn test_bug_0019_auto_advance_preserves_playback() {
+fn test_bug_0019_auto_advance_preserves_playback(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/test".to_string(),
+        "Book".to_string(),
+        "/test/Book".to_string(),
+        0,
+    );
+    let audiobook_id = nodoka::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
     let files = vec![
-        AudiobookFile {
-            audiobook_id: 1,
-            name: "chapter1.mp3".to_string(),
-            full_path: "/test/chapter1.mp3".to_string(),
-            length_of_file: Some(3_600_000),
-            seek_position: Some(3_600_000),
-            checksum: None,
-            position: 0,
-            completeness: 100,
-            file_exists: true,
-            created_at: chrono::Utc::now(),
-        },
-        AudiobookFile {
-            audiobook_id: 1,
-            name: "chapter2.mp3".to_string(),
-            full_path: "/test/chapter2.mp3".to_string(),
-            length_of_file: Some(3_600_000),
-            seek_position: None,
-            checksum: None,
-            position: 1,
-            completeness: 0,
-            file_exists: true,
-            created_at: chrono::Utc::now(),
-        },
+        AudiobookFile::new(
+            audiobook_id,
+            "chapter1.mp3".to_string(),
+            "/test/chapter1.mp3".to_string(),
+            0,
+        ),
+        AudiobookFile::new(
+            audiobook_id,
+            "chapter2.mp3".to_string(),
+            "/test/chapter2.mp3".to_string(),
+            1,
+        ),
     ];
 
-    let state = State {
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
         playback: PlaybackStatus::Playing,
         selected_file: Some("/test/chapter1.mp3".to_string()),
         current_files: files,
-        current_time: 3600.0,
-        total_duration: 3600.0,
         ..Default::default()
     };
+    let mut player: Option<Vlc> = None;
 
-    let current_path = state.selected_file.as_deref().unwrap_or("");
-    let next_file = state
-        .current_files
-        .iter()
-        .position(|f| f.full_path == current_path)
-        .and_then(|idx| state.current_files.get(idx + 1));
+    let _ = update(&mut state, Message::NextFile, &mut player, &db);
 
-    assert!(matches!(
-        next_file,
-        Some(f) if f.full_path == "/test/chapter2.mp3"
-    ));
+    assert_eq!(
+        state.selected_file.as_deref(),
+        Some("/test/chapter2.mp3"),
+        "NextFile should select the next file"
+    );
+
+    Ok(())
 }
 
 /// Bug #0022: Current time never exceeds total duration
 #[test]
-fn test_bug_0022_current_time_clamped_to_duration() {
+fn test_bug_0022_current_time_clamped_to_duration(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = nodoka::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    nodoka::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
     let mut state = State {
-        current_time: 0.0,
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
         total_duration: 3600.0,
+        current_time: 0.0,
         ..Default::default()
     };
+    let mut player: Option<Vlc> = None;
 
-    let reported_time: f64 = 3700.0;
-    state.current_time = if state.total_duration > 0.0 {
-        reported_time.min(state.total_duration)
-    } else {
-        reported_time
-    };
+    let _ = update(
+        &mut state,
+        Message::PlayerTimeUpdated(3700.0),
+        &mut player,
+        &db,
+    );
 
     assert!(state.current_time <= state.total_duration);
     assert!((state.current_time - state.total_duration).abs() < f64::EPSILON);
+
+    Ok(())
 }
 
 /// Bug #0031: Progress slider accepts values when `total_duration` is zero
