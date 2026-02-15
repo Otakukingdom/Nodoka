@@ -377,6 +377,10 @@ fn map_key_press(
     crate::ui::shortcuts::message_for_key_chord(shortcut_key, modifiers)
 }
 
+fn view_fn(state: &State) -> Element<'_, Message> {
+    main_window::view(state)
+}
+
 /// Runs the Nodoka application
 ///
 /// # Errors
@@ -386,10 +390,14 @@ pub fn run(db: Database) -> iced::Result {
     use iced::Program;
     use std::rc::Rc;
 
-    // Helper function with explicit lifetime to satisfy ViewFn trait
-    fn view_fn(state: &State) -> Element<'_, Message> {
-        main_window::view(state)
-    }
+    // Restore persisted window geometry (size/position/min size) before starting the event loop.
+    let window_settings = window_settings_from_storage(db.connection(), None);
+
+    // Apply a consistent default text size for the UI.
+    let iced_settings = Settings {
+        default_text_size: crate::ui::typography::SIZE_BASE.into(),
+        ..Settings::default()
+    };
 
     // Create app instance with flags wrapped in Rc for sharing across closures
     let app = Rc::new(App::new_from_flags(Flags { db }));
@@ -399,8 +407,10 @@ pub fn run(db: Database) -> iced::Result {
     iced::application(
         move || app_boot.boot(), // Boot just returns (State, Task)
         move |state: &mut State, message: Message| app.update(state, message),
-        view_fn, // View function with explicit lifetime
+        view_fn,
     )
+    .settings(iced_settings)
+    .window(window_settings)
     .run()
 }
 

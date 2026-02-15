@@ -53,7 +53,7 @@ fn test_bug_fix_feb2026_005_time_format_consistency_negative() {
     let time_neg = format_time_ms(-1000);
 
     assert_eq!(duration_neg, "--:--");
-    assert_eq!(time_neg, "0:-1");
+    assert_eq!(time_neg, "0:00");
 }
 
 /// Bug FIX #005 (variant): Large time values consistency

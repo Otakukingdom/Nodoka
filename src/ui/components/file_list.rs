@@ -103,9 +103,8 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
 
 /// Formats duration in milliseconds to human-readable time string
 fn format_duration(duration_ms: Option<i64>) -> String {
-    duration_ms.map_or_else(
-        || "Unknown".to_string(),
-        |ms| {
+    match duration_ms {
+        Some(ms) if ms > 0 => {
             let seconds = ms / 1000;
             let minutes = seconds / 60;
             let hours = minutes / 60;
@@ -115,8 +114,9 @@ fn format_duration(duration_ms: Option<i64>) -> String {
             } else {
                 format!("{}:{:02}", minutes, seconds % 60)
             }
-        },
-    )
+        }
+        _ => "Unknown".to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -241,7 +241,12 @@ mod tests {
 
     #[test]
     fn test_format_duration_with_zero() {
-        assert_eq!(format_duration(Some(0)), "0:00");
+        assert_eq!(format_duration(Some(0)), "Unknown");
+    }
+
+    #[test]
+    fn test_format_duration_with_negative() {
+        assert_eq!(format_duration(Some(-1)), "Unknown");
     }
 
     #[test]

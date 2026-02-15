@@ -237,62 +237,8 @@ mod tests {
     //!    (requires rendering engine integration)
     //! 2. **Property-based testing**: Use quickcheck/proptest for state transition testing
     //! 3. **Performance testing**: Measure rendering time for large lists (1000+ items)
-    //! 4. **Manual accessibility testing**: Checklist for screen reader testing
-    //! 5. **Integration tests**: Test full user workflows end-to-end
-    //! 6. **Contrast ratio verification**: Automated WCAG compliance checking
-    //!
-    //! ## Manual Testing Checklist
-    //!
-    //! Since automated UI testing has limitations, manual verification is required for:
-    //!
-    //! ### Selection States
-    //! - [ ] Click audiobook in list - item has visible selection background color
-    //! - [ ] Click file in list - item has visible selection background with border
-    //! - [ ] Selected items remain highlighted after clicking elsewhere
-    //!
-    //! ### Hover States
-    //! - [ ] Hover over any button - button shows visual feedback (color change or highlight)
-    //! - [ ] Hover transitions are smooth (150-300ms duration)
-    //!
-    //! ### Button Hierarchy
-    //! - [ ] Primary buttons are visually distinct (Play, Save, Add use primary color)
-    //! - [ ] Secondary buttons have different style (Cancel, Close have borders)
-    //! - [ ] Danger buttons use error color (Delete, Remove are red/error colored)
-    //!
-    //! ### Modal Backdrops
-    //! - [ ] Open settings - modal appears centered with border, elevation, and dimmed background
-    //! - [ ] Click outside modal - modal closes (click-outside-to-dismiss pattern)
-    //! - [ ] Open bookmark editor - modal appears centered with backdrop
-    //!
-    //! ### Loading States
-    //! - [ ] Add/rescan directory - "Scanning..." message appears during operation
-    //! - [ ] Scanning message shows directory path being scanned
-    //! - [ ] Scanning message disappears when operation completes
-    //!
-    //! ### Error Messages
-    //! - [ ] Trigger scan error - error banner appears at top with message
-    //! - [ ] Click "Dismiss" on error - error banner disappears
-    //! - [ ] Error banner has warning icon and proper error color
-    //!
-    //! ### Keyboard Navigation
-    //! - [ ] Press Space - play/pause toggles
-    //! - [ ] Press ← while playing - seeks back 5 seconds
-    //! - [ ] Press → while playing - seeks forward 5 seconds
-    //! - [ ] Press ↓ with multiple files - next file plays
-    //! - [ ] Press ↑ with multiple files - previous file plays
-    //! - [ ] Press Escape with modal open - modal closes
-    //!
-    //! ### Accessibility
-    //! - [ ] Tab through interface - all interactive elements reachable
-    //! - [ ] Focus indicators visible on interactive elements (framework-dependent)
-    //! - [ ] Text contrast meets WCAG AA (4.5:1 for body text)
-    //! - [ ] All buttons have descriptive labels (not just icons)
-    //! - [ ] Error messages are clear and actionable
-    //!
-    //! ### Resolved in iced 0.14
-    //! - Modal backdrops now use stack widget for proper layering and click handling
-    //! - Focus indicators available through native button theme focus state
-    //! - Native button styling eliminates container-based workarounds
+    //! 4. **Integration tests**: Test full user workflows end-to-end
+    //! 5. **Contrast ratio verification**: Automated WCAG compliance checking
 
     use super::*;
 

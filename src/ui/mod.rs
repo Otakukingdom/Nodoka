@@ -136,17 +136,10 @@
 //! - **Rust**: 1.93.1 (pinned in `rust-toolchain.toml` and `Cargo.toml`)
 //! - **iced**: 0.14.0 (latest, using stack widget for modals)
 //!
-//! ### Manual Testing Checklist
+//! ### Test Limitations
 //!
-//! While automated tests cover functional correctness, manual testing is required for:
-//!
-//! - Visual design verification (colors, spacing, typography)
-//! - Platform-specific behavior (Windows, macOS, Linux)
-//! - Screen reader compatibility (`VoiceOver`, `NVDA`, `Orca`)
-//! - High contrast mode support
-//! - Hover state transitions (smoothness)
-//!
-//! The manual testing checklist is documented in [`main_window`] module (lines 250-303).
+//! iced's `Element` type is intentionally opaque, so most UI tests assert behavior by
+//! exercising message handling (state transitions) and formatting helpers.
 //!
 //! ## Usage
 //!

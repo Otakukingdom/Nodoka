@@ -17,7 +17,9 @@ pub mod colors {
     // Semantic colors
     pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133); // #228B22
     pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376); // #F4A460
-    pub const ERROR: Color = Color::from_rgb(0.882, 0.114, 0.282); // Same as primary for consistency
+    pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149); // #DC2626
+    pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110); // #B91C1C
+    pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106); // #991B1B
     pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922); // Same as accent
 
     // Background colors (light mode optimized)
@@ -42,7 +44,7 @@ pub mod colors {
     // Border colors
     pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9); // #E5E5E5
     pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB
-    pub const BORDER_ERROR: Color = Color::from_rgb(0.882, 0.114, 0.282); // #E11D48
+    pub const BORDER_ERROR: Color = ERROR;
 
     // Legacy colors for backwards compatibility (deprecated, use design system colors instead)
     pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325); // #FEDB53 (legacy)
@@ -257,7 +259,7 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                background: Some(colors::PRIMARY_HOVER.into()),
+                background: Some(colors::ERROR_HOVER.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: iced::Color::TRANSPARENT,
@@ -267,7 +269,7 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
-                background: Some(colors::PRIMARY_ACTIVE.into()),
+                background: Some(colors::ERROR_ACTIVE.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: iced::Color::TRANSPARENT,
@@ -421,6 +423,7 @@ pub fn format_duration(ms: Option<i64>) -> String {
 /// Formats time in milliseconds to human-readable time string (H:MM:SS or M:SS)
 #[must_use]
 pub fn format_time_ms(ms: i64) -> String {
+    let ms = ms.max(0);
     let total_seconds = ms / 1000;
     let hours = total_seconds / 3600;
     let minutes = (total_seconds % 3600) / 60;
@@ -481,6 +484,23 @@ mod tests {
     fn test_format_time_ms_with_seconds_only() {
         assert_eq!(format_time_ms(30000), "0:30");
         assert_eq!(format_time_ms(1000), "0:01");
+    }
+
+    #[test]
+    fn test_format_time_ms_clamps_negative_to_zero() {
+        assert_eq!(format_time_ms(-1000), "0:00");
+    }
+
+    #[test]
+    fn test_danger_button_uses_error_palette_for_interaction_states() {
+        use iced::widget::button;
+
+        let theme = nodoka_theme();
+        let hovered = button_styles::danger(&theme, button::Status::Hovered);
+        let pressed = button_styles::danger(&theme, button::Status::Pressed);
+
+        assert_eq!(hovered.background, Some(colors::ERROR_HOVER.into()));
+        assert_eq!(pressed.background, Some(colors::ERROR_ACTIVE.into()));
     }
 
     #[test]

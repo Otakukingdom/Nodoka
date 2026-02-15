@@ -881,9 +881,9 @@ fn handle_seek_forward(state: &mut State, player: &mut Option<Vlc>, seconds: i64
         return Task::none();
     }
 
-    let Some(_) = player else {
+    if player.is_none() {
         return Task::none();
-    };
+    }
 
     let Ok(current_ms) = f64_to_ms(state.current_time) else {
         return Task::none();
@@ -908,9 +908,9 @@ fn handle_seek_backward(
         return Task::none();
     }
 
-    let Some(_) = player else {
+    if player.is_none() {
         return Task::none();
-    };
+    }
 
     let Ok(current_ms) = f64_to_ms(state.current_time) else {
         return Task::none();
