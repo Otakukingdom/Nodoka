@@ -97,7 +97,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 background: Some(colors::SELECTION_BG.into()),
                 text_color: Some(colors::SELECTION_TEXT),
                 border: Border {
-                    color: colors::PRIMARY,
+                    color: colors::BORDER_FOCUS,
                     width: 2.0,
                     radius: 0.0.into(),
                 },

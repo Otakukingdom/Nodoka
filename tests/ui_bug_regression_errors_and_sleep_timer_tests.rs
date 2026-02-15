@@ -15,21 +15,30 @@ mod acceptance_support;
 ///
 /// Expected: Only the most recent error is displayed.
 #[test]
-fn test_bug_0002_error_messages_replace_not_accumulate() {
-    let mut state = State {
-        error_message: Some("First error".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
-        ..Default::default()
-    };
+fn test_bug_0002_error_messages_replace_not_accumulate() -> Result<(), Box<dyn Error>> {
+    let db = crate::acceptance_support::create_test_db()?;
 
-    assert_eq!(state.error_message, Some("First error".to_string()));
+    let mut state = State::default();
+    let mut player = None;
 
-    // Simulate new error (in real app, this would happen via message handler)
-    state.error_message = Some("Second error".to_string());
-    state.error_timestamp = Some(chrono::Utc::now());
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanError("First error".to_string()),
+        &mut player,
+        &db,
+    );
+    assert!(matches!(state.error_message.as_deref(), Some(m) if m.contains("First error")));
 
-    // Verify only the new error is present
-    assert_eq!(state.error_message, Some("Second error".to_string()));
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanError("Second error".to_string()),
+        &mut player,
+        &db,
+    );
+
+    assert!(matches!(state.error_message.as_deref(), Some(m) if m.contains("Second error")));
+
+    Ok(())
 }
 
 /// Bug #0006: Sleep timer cancellation restores volume
@@ -38,7 +47,7 @@ fn test_bug_0002_error_messages_replace_not_accumulate() {
 ///
 /// Expected: Volume is restored to original level.
 #[test]
-fn test_bug_0006_sleep_timer_cancel_restores_volume() {
+fn test_bug_0006_sleep_timer_cancel_restores_volume() -> Result<(), Box<dyn Error>> {
     let mut state = State {
         volume: 100,
         sleep_timer: Some(SleepTimer::new(SleepTimerMode::Duration(60), 7)),
@@ -46,18 +55,15 @@ fn test_bug_0006_sleep_timer_cancel_restores_volume() {
         ..Default::default()
     };
 
-    assert!(state.sleep_timer.is_some());
-    assert_eq!(state.sleep_timer_base_volume, Some(100));
-
-    // Simulate sleep timer cancellation
-    let base_volume = state.sleep_timer_base_volume.unwrap_or(state.volume);
-    state.sleep_timer = None;
-    state.sleep_timer_base_volume = None;
-    state.volume = base_volume;
+    let db = crate::acceptance_support::create_test_db()?;
+    let mut player = None;
+    let _ = nodoka::ui::update::update(&mut state, Message::SleepTimerCancel, &mut player, &db);
 
     assert_eq!(state.volume, 100);
     assert!(state.sleep_timer.is_none());
     assert!(state.sleep_timer_base_volume.is_none());
+
+    Ok(())
 }
 
 /// Bug #0018: Sleep timer custom input validation
@@ -66,35 +72,81 @@ fn test_bug_0006_sleep_timer_cancel_restores_volume() {
 ///
 /// Expected: Helpful error message, timer not set.
 #[test]
-fn test_bug_0018_sleep_timer_custom_input_validation() {
-    let mut state = State {
-        sleep_timer_custom_minutes: String::new(),
-        ..Default::default()
-    };
+fn test_bug_0018_sleep_timer_custom_input_validation() -> Result<(), Box<dyn Error>> {
+    let db = crate::acceptance_support::create_test_db()?;
+    let mut player = None;
+    let mut state = State::default();
 
-    // Test empty input
-    state.sleep_timer_custom_minutes = String::new();
-    let error = if state.sleep_timer_custom_minutes.trim().is_empty() {
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomMinutesChanged(String::new()),
+        &mut player,
+        &db,
+    );
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+    assert_eq!(
+        state.sleep_timer_custom_error.as_deref(),
         Some("Enter minutes")
-    } else {
-        None
-    };
-    assert_eq!(error, Some("Enter minutes"));
+    );
+    assert!(state.sleep_timer.is_none());
 
-    // Test non-numeric input
-    state.sleep_timer_custom_minutes = "abc".to_string();
-    let parse_result: Result<i64, _> = state.sleep_timer_custom_minutes.parse();
-    assert!(parse_result.is_err());
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomMinutesChanged("abc".to_string()),
+        &mut player,
+        &db,
+    );
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+    assert_eq!(
+        state.sleep_timer_custom_error.as_deref(),
+        Some("Minutes must be a whole number")
+    );
+    assert!(state.sleep_timer.is_none());
 
-    // Test negative input
-    state.sleep_timer_custom_minutes = "-5".to_string();
-    let minutes: i64 = state.sleep_timer_custom_minutes.parse().unwrap_or(0);
-    assert!(minutes <= 0);
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomMinutesChanged("-5".to_string()),
+        &mut player,
+        &db,
+    );
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+    assert_eq!(
+        state.sleep_timer_custom_error.as_deref(),
+        Some("Minutes must be greater than zero")
+    );
+    assert!(state.sleep_timer.is_none());
 
-    // Test valid input
-    state.sleep_timer_custom_minutes = "45".to_string();
-    let minutes: i64 = state.sleep_timer_custom_minutes.parse().unwrap_or(0);
-    assert_eq!(minutes, 45);
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomMinutesChanged("45".to_string()),
+        &mut player,
+        &db,
+    );
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::SleepTimerCustomSubmit,
+        &mut player,
+        &db,
+    );
+    assert!(state.sleep_timer_custom_error.is_none());
+    assert!(state.sleep_timer.is_some());
+
+    Ok(())
 }
 
 /// Bug #0023: Error messages shown for file load failures
@@ -102,33 +154,6 @@ fn test_bug_0018_sleep_timer_custom_input_validation() {
 /// Scenario: User selects a file that fails to load.
 ///
 /// Expected: Error message is set in state so UI can display it to user.
-#[test]
-fn test_bug_0023_file_load_errors_visible_to_user() {
-    let mut state = State {
-        error_message: None,
-        error_timestamp: None,
-        selected_file: Some("/test/missing.mp3".to_string()),
-        ..Default::default()
-    };
-
-    // Simulate file load failure
-    state.error_message = Some("Failed to load audio file: File not found".to_string());
-    state.error_timestamp = Some(chrono::Utc::now());
-
-    assert!(state.error_message.is_some(), "Error message should be set");
-    assert!(
-        matches!(
-            state.error_message.as_deref(),
-            Some(m) if m.contains("Failed to load audio file")
-        ),
-        "Error message should be descriptive"
-    );
-    assert!(
-        state.error_timestamp.is_some(),
-        "Error timestamp should be set"
-    );
-}
-
 /// Bug #0024: Audiobook selection only updates after successful loading
 ///
 /// Scenario: User selects audiobook but file loading fails.

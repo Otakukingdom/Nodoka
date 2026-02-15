@@ -5,7 +5,7 @@ use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{
     cleanup_temp_files, materialize_zip_virtual_path, parse_zip_virtual_path, zip_temp_dir,
 };
-use crate::ui::{LoadState, Message, PlaybackStatus, ScanState, State};
+use crate::ui::{FocusedElement, LoadState, Message, PlaybackStatus, ScanState, State};
 use iced::Task;
 use std::path::{Path, PathBuf};
 
@@ -202,6 +202,8 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
         return Task::none();
     }
 
+    state.focused_element = FocusedElement::PlayPauseButton;
+
     if let Some(ref mut p) = player {
         if state.playback == PlaybackStatus::Playing {
             if let Err(e) = p.pause() {
@@ -219,6 +221,8 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
 }
 
 fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
+    state.focused_element = FocusedElement::StopButton;
+
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -262,6 +266,8 @@ fn handle_seek_to_media_control<P: MediaControl>(
     player: &mut Option<P>,
     position: f64,
 ) -> Task<Message> {
+    state.focused_element = FocusedElement::ProgressSlider;
+
     let clamped = if state.total_duration > 0.0 {
         position.clamp(0.0, state.total_duration)
     } else {
@@ -382,6 +388,7 @@ fn handle_volume_changed(
     db: &Database,
     volume: i32,
 ) -> Task<Message> {
+    state.focused_element = FocusedElement::VolumeSlider;
     let volume = volume.clamp(0, 200);
 
     state.volume = volume;
@@ -415,6 +422,7 @@ fn handle_speed_changed(
     db: &Database,
     speed: f32,
 ) -> Task<Message> {
+    state.focused_element = FocusedElement::SpeedSlider;
     let speed = sanitize_speed(speed);
 
     state.speed = speed;
@@ -436,6 +444,8 @@ fn handle_audiobook_selected(
     db: &Database,
     id: i64,
 ) -> Task<Message> {
+    state.focused_element = FocusedElement::AudiobookList;
+
     let old_selection = state.selected_audiobook;
     let is_new_selection = old_selection != Some(id);
 
@@ -573,6 +583,8 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
         }
     }
 
+    state.focused_element = FocusedElement::FileList;
+
     if let Some(p) = player.as_mut() {
         let playback_path = if path.starts_with("zip://") {
             if parse_zip_virtual_path(path).is_none() {
@@ -629,12 +641,14 @@ fn handle_open_settings(state: &mut State) -> Task<Message> {
     // Close any other open modals to maintain single modal invariant
     state.bookmark_editor = None;
     state.settings_open = true;
+    state.focused_element = FocusedElement::SettingsButton;
     Task::none()
 }
 
 // Cannot be const fn because Task::none() is not const
 fn handle_close_settings(state: &mut State) -> Task<Message> {
     state.settings_open = false;
+    state.focused_element = FocusedElement::None;
     Task::none()
 }
 

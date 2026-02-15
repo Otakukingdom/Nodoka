@@ -1,7 +1,7 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
-use crate::ui::styles::{button_styles, spacing, typography};
-use crate::ui::{Message, PlaybackStatus, State};
+use crate::ui::styles::{button_styles, focus_indicator, spacing, typography};
+use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{button, column, container, row, slider, text, text_input, Space};
 use iced::{Element, Length};
 
@@ -43,6 +43,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
             let current_time = state.current_time.clamp(0.0, max_duration);
             slider(0.0..=max_duration, current_time, Message::SeekTo)
         })
+        .style(focus_indicator(
+            state.focused_element == FocusedElement::ProgressSlider,
+        ))
         .padding(iced::Padding::from([spacing::SM, 0.0])),
         // Time markers with better spacing
         row![
@@ -53,11 +56,19 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .padding(spacing::XS),
         // Control buttons and volume with improved visual grouping
         row![
-            playback_controls(play_pause_label),
+            playback_controls(
+                play_pause_label,
+                state.focused_element == FocusedElement::PlayPauseButton,
+                state.focused_element == FocusedElement::StopButton,
+            ),
             Space::new().width(Length::Fill),
-            speed_controls(state, speed_step),
+            speed_controls(
+                state,
+                speed_step,
+                state.focused_element == FocusedElement::SpeedSlider,
+            ),
             Space::new().width(Length::Fill),
-            volume_controls(state),
+            volume_controls(state, state.focused_element == FocusedElement::VolumeSlider),
         ]
         .padding(spacing::MD)
         .spacing(spacing::MD),
@@ -72,24 +83,36 @@ pub fn view(state: &State) -> Element<'_, Message> {
 const SPEED_STEP_MIN: i32 = 10;
 const SPEED_STEP_MAX: i32 = 40;
 
-fn playback_controls(play_pause_label: &'static str) -> Element<'static, Message> {
+fn playback_controls(
+    play_pause_label: &'static str,
+    play_pause_focused: bool,
+    stop_focused: bool,
+) -> Element<'static, Message> {
     container(
         row![
             button(text(play_pause_label).size(typography::SIZE_BASE))
                 .on_press(Message::PlayPause)
                 .padding(spacing::SM)
-                .style(button_styles::primary),
+                .style(if play_pause_focused {
+                    button_styles::primary_focused
+                } else {
+                    button_styles::primary
+                }),
             button(text("Stop").size(typography::SIZE_BASE))
                 .on_press(Message::Stop)
                 .padding(spacing::SM)
-                .style(button_styles::secondary),
+                .style(if stop_focused {
+                    button_styles::secondary_focused
+                } else {
+                    button_styles::secondary
+                }),
         ]
         .spacing(spacing::SM),
     )
     .into()
 }
 
-fn speed_controls(state: &State, speed_step: i32) -> Element<'_, Message> {
+fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'_, Message> {
     container(
         column![
             row![
@@ -131,10 +154,11 @@ fn speed_controls(state: &State, speed_step: i32) -> Element<'_, Message> {
         ]
         .spacing(spacing::XS),
     )
+    .style(focus_indicator(is_focused))
     .into()
 }
 
-fn volume_controls(state: &State) -> Element<'_, Message> {
+fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     container(
         row![
             text("Volume:").size(typography::SIZE_SM),
@@ -143,6 +167,7 @@ fn volume_controls(state: &State) -> Element<'_, Message> {
         ]
         .spacing(spacing::SM),
     )
+    .style(focus_indicator(is_focused))
     .into()
 }
 

@@ -16,31 +16,43 @@ use nodoka::ui::{Message, PlaybackStatus, State};
 /// Expected: Speed conversion functions handle all edge cases gracefully
 /// without panics or unexpected behavior.
 #[test]
-fn test_bug_0001_speed_conversion_edge_cases() {
-    let state = State {
-        speed: 0.5,
-        ..Default::default()
-    };
+fn test_bug_0001_speed_conversion_edge_cases() -> std::result::Result<(), Box<dyn std::error::Error>>
+{
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(&mut state, Message::SpeedChanged(0.5), &mut player, &db);
     assert!((state.speed - 0.5).abs() < f32::EPSILON);
 
-    let state = State {
-        speed: 2.0,
-        ..Default::default()
-    };
+    let _ = update(&mut state, Message::SpeedChanged(2.0), &mut player, &db);
     assert!((state.speed - 2.0).abs() < f32::EPSILON);
 
-    // Test boundary values
-    let state = State {
-        speed: 0.49, // Just below minimum
-        ..Default::default()
-    };
-    assert!(state.speed > 0.0);
+    let _ = update(&mut state, Message::SpeedChanged(0.49), &mut player, &db);
+    assert!((state.speed - 0.5).abs() < f32::EPSILON);
 
-    let state = State {
-        speed: 2.01, // Just above maximum
-        ..Default::default()
-    };
-    assert!(state.speed > 0.0);
+    let _ = update(&mut state, Message::SpeedChanged(2.01), &mut player, &db);
+    assert!((state.speed - 2.0).abs() < f32::EPSILON);
+
+    let _ = update(
+        &mut state,
+        Message::SpeedChanged(f32::NAN),
+        &mut player,
+        &db,
+    );
+    assert!((state.speed - 1.0).abs() < f32::EPSILON);
+
+    let _ = update(
+        &mut state,
+        Message::SpeedChanged(f32::INFINITY),
+        &mut player,
+        &db,
+    );
+    assert!((state.speed - 1.0).abs() < f32::EPSILON);
+
+    Ok(())
 }
 
 /// Bug #0007: Rapid keyboard input handling remains stable
@@ -49,26 +61,27 @@ fn test_bug_0001_speed_conversion_edge_cases() {
 ///
 /// Expected: State remains consistent, no race conditions or crashes.
 #[test]
-fn test_bug_0007_rapid_keyboard_input_stability() {
-    let mut state = State {
-        playback: PlaybackStatus::Paused,
-        selected_file: Some("/test/file.mp3".to_string()),
-        ..Default::default()
-    };
+fn test_bug_0007_rapid_keyboard_input_stability(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
 
-    // Simulate 20 rapid play/pause toggles
-    for _ in 0..20 {
-        state.playback = match state.playback {
-            PlaybackStatus::Playing => PlaybackStatus::Paused,
-            PlaybackStatus::Paused => PlaybackStatus::Playing,
-        };
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    // Exercise the real update path repeatedly; this previously surfaced state drift
+    // issues when handling bursts of input.
+    for i in 0..20 {
+        let vol = if i % 2 == 0 { 250 } else { -10 };
+        let _ = update(&mut state, Message::VolumeChanged(vol), &mut player, &db);
+        let _ = update(&mut state, Message::SpeedChanged(1.26), &mut player, &db);
+        let _ = update(&mut state, Message::SeekTo(0.0), &mut player, &db);
     }
 
-    // State should be consistent (even number of toggles = back to paused)
-    assert_eq!(state.playback, PlaybackStatus::Paused);
+    assert!((0..=200).contains(&state.volume));
+    assert!((0.5..=2.0).contains(&state.speed));
 
-    // Verify state is still valid
-    assert!(state.selected_file.is_some());
+    Ok(())
 }
 
 /// Bug #0009: Zero duration handling doesn't cause division by zero
@@ -84,17 +97,9 @@ fn test_bug_0009_zero_duration_handling() {
         ..Default::default()
     };
 
-    // Verify state can handle zero duration
-    assert!(state.total_duration.abs() < f64::EPSILON);
-
-    // Progress calculation should handle zero duration
-    let progress_percent = if state.total_duration > 0.0 {
-        (state.current_time / state.total_duration) * 100.0
-    } else {
-        0.0
-    };
-
-    assert!(progress_percent.abs() < f64::EPSILON);
+    // Exercise the real UI component path; the view must not panic on zero duration.
+    let element = nodoka::ui::components::player_controls::view(&state);
+    drop(element);
 }
 
 /// Bug #0010: Negative time values are clamped

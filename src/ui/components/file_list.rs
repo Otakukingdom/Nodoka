@@ -81,7 +81,7 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
                 background: Some(colors::SELECTION_BG.into()),
                 text_color: Some(colors::SELECTION_TEXT),
                 border: Border {
-                    color: colors::PRIMARY,
+                    color: colors::BORDER_FOCUS,
                     width: 2.0,
                     radius: 0.0.into(),
                 },

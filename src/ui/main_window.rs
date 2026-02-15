@@ -1,6 +1,8 @@
 use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
-use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
-use crate::ui::{settings_form, LoadState, Message, ScanState, State};
+use crate::ui::styles::{
+    border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
+};
+use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, row, stack, text, Space};
 use iced::{Border, Color, Element, Length};
 
@@ -17,7 +19,7 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     let main_content = container(column![
         error_banner(state),
         scan_status_banner(state),
-        top_bar(),
+        top_bar(state),
         library_panels(state),
         container(player_controls::view(state)).padding(spacing::SM),
     ])
@@ -113,14 +115,20 @@ fn scan_status_banner(state: &State) -> Element<'_, Message> {
     .into()
 }
 
-fn top_bar() -> Element<'static, Message> {
+fn top_bar(state: &State) -> Element<'static, Message> {
+    let settings_focused = state.focused_element == FocusedElement::SettingsButton;
     container(
         row![
             text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
             Space::new().width(Length::Fill),
             button(text("Settings").size(typography::SIZE_SM))
                 .on_press(Message::OpenSettings)
-                .padding(spacing::MD),
+                .padding(spacing::MD)
+                .style(if settings_focused {
+                    button_styles::secondary_focused
+                } else {
+                    button_styles::secondary
+                }),
         ]
         .padding(spacing::MD),
     )
@@ -136,15 +144,23 @@ fn library_panels(state: &State) -> Element<'_, Message> {
     let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
     let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
 
+    let audiobook_panel_focused = state.focused_element == FocusedElement::AudiobookList;
+    let right_panel_focused = matches!(
+        state.focused_element,
+        FocusedElement::FileList | FocusedElement::BookmarkList
+    );
+
     row![
         container(audiobook_list_widget)
             .width(Length::FillPortion(2))
             .height(Length::Fill)
-            .padding(spacing::SM),
+            .padding(spacing::SM)
+            .style(focus_indicator(audiobook_panel_focused)),
         container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
             .width(Length::FillPortion(3))
             .height(Length::Fill)
-            .padding(spacing::SM),
+            .padding(spacing::SM)
+            .style(focus_indicator(right_panel_focused)),
     ]
     .height(Length::Fill)
     .spacing(spacing::SM)

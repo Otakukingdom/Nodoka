@@ -1,7 +1,7 @@
 use crate::conversions::{f64_to_ms, ms_to_f64};
 use crate::db::Database;
 use crate::player::Vlc;
-use crate::ui::{Message, State};
+use crate::ui::{FocusedElement, Message, State};
 use iced::Task;
 
 /// Keyboard navigation and shortcut-driven state transitions.
@@ -14,6 +14,8 @@ pub(super) fn handle_seek_forward(
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
+
+    state.focused_element = FocusedElement::ProgressSlider;
 
     if player.is_none() {
         return Task::none();
@@ -48,6 +50,8 @@ pub(super) fn handle_seek_backward(
         return Task::none();
     }
 
+    state.focused_element = FocusedElement::ProgressSlider;
+
     if player.is_none() {
         return Task::none();
     }
@@ -74,6 +78,8 @@ pub(super) fn handle_next_file(
         return Task::none();
     }
 
+    state.focused_element = FocusedElement::FileList;
+
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
     };
@@ -99,6 +105,8 @@ pub(super) fn handle_previous_file(
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
+
+    state.focused_element = FocusedElement::FileList;
 
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
@@ -128,5 +136,6 @@ pub(super) fn handle_close_modal(state: &mut State) -> Task<Message> {
     } else if state.settings_open {
         state.settings_open = false;
     }
+    state.focused_element = FocusedElement::None;
     Task::none()
 }
