@@ -3,20 +3,20 @@ use crate::db::Database;
 use crate::models::Bookmark;
 use crate::player::Vlc;
 use crate::ui::{Message, State};
-use iced::Command;
+use iced::Task;
 
-pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Command<Message> {
+pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<Message> {
     let (Some(audiobook_id), Some(file_path)) =
         (state.selected_audiobook, state.selected_file.clone())
     else {
-        return Command::none();
+        return Task::none();
     };
 
     let position_ms = match f64_to_ms(state.current_time) {
         Ok(ms) => ms,
         Err(e) => {
             tracing::error!("Failed to convert bookmark position: {e}");
-            return Command::none();
+            return Task::none();
         }
     };
 
@@ -31,7 +31,7 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Comman
         Ok(id) => id,
         Err(e) => {
             tracing::error!("Failed to create bookmark: {e}");
-            return Command::none();
+            return Task::none();
         }
     };
 
@@ -50,37 +50,34 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Comman
         note: String::new(),
     });
 
-    Command::none()
+    Task::none()
 }
 
 pub(super) fn handle_bookmark_editor_label_changed(
     state: &mut State,
     value: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     if let Some(editor) = state.bookmark_editor.as_mut() {
         editor.label = value.to_string();
     }
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_bookmark_editor_note_changed(
-    state: &mut State,
-    value: &str,
-) -> Command<Message> {
+pub(super) fn handle_bookmark_editor_note_changed(state: &mut State, value: &str) -> Task<Message> {
     if let Some(editor) = state.bookmark_editor.as_mut() {
         editor.note = value.to_string();
     }
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_bookmark_editor_cancel(state: &mut State) -> Command<Message> {
+pub(super) fn handle_bookmark_editor_cancel(state: &mut State) -> Task<Message> {
     state.bookmark_editor = None;
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> Command<Message> {
+pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> Task<Message> {
     let Some(editor) = state.bookmark_editor.clone() else {
-        return Command::none();
+        return Task::none();
     };
 
     let label = if editor.label.trim().is_empty() {
@@ -98,7 +95,7 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> C
     if let Some(id) = editor.id {
         let Some(existing) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
             tracing::warn!("Bookmark {id} not found in state; cannot edit");
-            return Command::none();
+            return Task::none();
         };
 
         let updated = Bookmark {
@@ -113,7 +110,7 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> C
 
         if let Err(e) = crate::db::queries::update_bookmark(db.connection(), &updated) {
             tracing::error!("Failed to update bookmark: {e}");
-            return Command::none();
+            return Task::none();
         }
     } else {
         let mut bookmark = Bookmark::new(
@@ -126,7 +123,7 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> C
 
         if let Err(e) = crate::db::queries::insert_bookmark(db.connection(), &bookmark) {
             tracing::error!("Failed to create bookmark: {e}");
-            return Command::none();
+            return Task::none();
         }
     }
 
@@ -136,13 +133,13 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> C
     }
 
     state.bookmark_editor = None;
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Command<Message> {
+pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> {
     let Some(bm) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
         tracing::warn!("Bookmark {id} not found for edit");
-        return Command::none();
+        return Task::none();
     };
 
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
@@ -154,18 +151,14 @@ pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Command<Messag
         note: bm.note.unwrap_or_default(),
     });
 
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_bookmark_delete(
-    state: &mut State,
-    db: &Database,
-    id: i64,
-) -> Command<Message> {
+pub(super) fn handle_bookmark_delete(state: &mut State, db: &Database, id: i64) -> Task<Message> {
     let audiobook_id = state.selected_audiobook;
     if let Err(e) = crate::db::queries::delete_bookmark(db.connection(), id) {
         tracing::error!("Failed to delete bookmark: {e}");
-        return Command::none();
+        return Task::none();
     }
 
     if let Some(audiobook_id) = audiobook_id {
@@ -177,7 +170,7 @@ pub(super) fn handle_bookmark_delete(
         state.bookmarks.clear();
     }
 
-    Command::none()
+    Task::none()
 }
 
 pub(super) fn handle_bookmark_jump(
@@ -185,10 +178,10 @@ pub(super) fn handle_bookmark_jump(
     player: &mut Option<Vlc>,
     db: &Database,
     id: i64,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(bm) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
         tracing::warn!("Bookmark {id} not found for jump");
-        return Command::none();
+        return Task::none();
     };
 
     let cmd = super::handle_file_selected(state, player, db, &bm.file_path);

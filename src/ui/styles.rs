@@ -69,21 +69,22 @@ pub mod spacing {
 }
 
 /// Typography scale for consistent text sizing
+/// iced 0.14 requires f32 for Pixels type
 pub mod typography {
     /// Extra small text: 11px
-    pub const SIZE_XS: u16 = 11;
+    pub const SIZE_XS: f32 = 11.0;
     /// Small text: 13px
-    pub const SIZE_SM: u16 = 13;
+    pub const SIZE_SM: f32 = 13.0;
     /// Base text size: 14px
-    pub const SIZE_BASE: u16 = 14;
+    pub const SIZE_BASE: f32 = 14.0;
     /// Large text: 16px
-    pub const SIZE_LG: u16 = 16;
+    pub const SIZE_LG: f32 = 16.0;
     /// Extra large text: 20px
-    pub const SIZE_XL: u16 = 20;
+    pub const SIZE_XL: f32 = 20.0;
     /// Extra extra large text: 24px
-    pub const SIZE_XXL: u16 = 24;
+    pub const SIZE_XXL: f32 = 24.0;
     /// Heading text: 32px
-    pub const SIZE_HEADING: u16 = 32;
+    pub const SIZE_HEADING: f32 = 32.0;
 }
 
 /// Border radius constants for consistent rounded corners
@@ -120,214 +121,219 @@ pub mod shadows {
     pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
 }
 
-/// Button style utilities for consistent interactive element styling
-/// Provides primary, secondary, and danger button theme functions
+/// Native iced 0.14 button styling using the new Style API
 ///
-/// # iced 0.12 Limitation - Button Styling NOT FUNCTIONAL
+/// iced 0.14 provides proper button theming through the `button::Style` type
+/// and closures that receive both `theme` and `status` parameters.
 ///
-/// **Status**: Steps 4 and 10 from the implementation plan attempted to apply button styles
-/// but failed compilation. Custom button styles cannot be applied in iced 0.12.
+/// # Focus Indicators
 ///
-/// **Issue**: The `.style()` method on buttons expects `impl Into<iced::theme::Button>`,
-/// but the functions below return `impl Fn(&Theme) -> button::Appearance`. The closure
-/// type cannot be converted to `iced::theme::Button` without implementing a custom theme.
+/// iced 0.14's `button::Status` enum does not include a Focused state, so focus
+/// indicators must be implemented through the shadow property when focus state
+/// is tracked separately in application state.
 ///
-/// **Attempted**: Button style applications were added to `player_controls.rs`, `bookmarks.rs`,
-/// and `settings_form.rs` but resulted in 27 compilation errors (trait bound not satisfied).
-///
-/// **Resolution**: Removed all `.style(button_styles::*)` calls. Buttons use default iced
-/// theme styling. The `button_styles` module remains as documentation for future upgrades.
-///
-/// **Recommended Fix**: Upgrade to iced 0.13+ which may have improved styling APIs, or
-/// implement a full custom theme. Alternatively, use iced's built-in theme variants or
-/// container-based styling workarounds (as done for selection states).
-///
-/// **Impact**: Moderate UX issue. All buttons look identical, violating button hierarchy
-/// principles. Primary actions (Play, Save) should be visually prominent, destructive
-/// actions (Delete, Remove) should use warning colors. Current UI lacks this visual hierarchy.
-///
-/// # Focus Indicator Limitations (iced 0.12)
-///
-/// **Current Status**: Focus indicators for keyboard navigation are **not fully implemented**
-/// due to iced 0.12 framework limitations.
-///
-/// **Issue**: The iced 0.12 button styling system does not provide direct access to focus
-/// state in the style function signature. Focus state would need to be passed through the
-/// application state or require a custom theme implementation.
-///
-/// **Accessibility Impact**: Users navigating with keyboard (Tab key) may not see visual
-/// focus indicators on buttons, making it difficult to track which element is currently
-/// focused. This is a **WCAG 2.1 Level AA violation** (Success Criterion 2.4.7).
-///
-/// **Recommended Workarounds**:
-/// 1. **Framework Upgrade**: Upgrade to iced 0.13+ which has improved focus handling
-/// 2. **Custom Theme**: Implement full custom theme with focus state tracking
-/// 3. **Visual Cues**: Use color changes on button hover as partial substitute
-/// 4. **Screen Reader**: Rely on screen reader announcements for focus tracking
-///
-/// **Planned Fix**: When upgrading iced, add focus indicator styling:
-/// ```rust,ignore
-/// pub fn primary_focused() -> button::Appearance {
-///     button::Appearance {
-///         border: Border {
-///             color: colors::FOCUS_RING, // Blue #2563EB
-///             width: 3.0,
-///             radius: border_radius::MD.into(),
-///         },
-///         ..primary()
-///     }
-/// }
-/// ```
-///
-/// **Manual Testing**: Use Test Case 15 in `tests/manual_ui_checklist.md` to verify
-/// focus indicators after implementing the fix.
-///
-/// # Workaround
-/// For custom button styling in iced 0.12, consider:
-/// - Wrapping buttons in styled containers (see `audiobook_list.rs` and `file_list.rs`)
-/// - Using iced's built-in theme variants
-/// - Upgrading to newer iced versions with better styling support
-///
-/// # Usage (when iced theme system supports it)
+/// # Usage
 /// ```rust,ignore
 /// button(text("Save"))
 ///     .on_press(Message::Save)
-///     .style(button_styles::primary())
+///     .style(button_styles::primary)
 /// ```
 pub mod button_styles {
     use iced::widget::button;
-    use iced::Border;
+    use iced::{Border, Shadow};
 
     use super::{border_radius, colors};
 
     /// Primary action button style (e.g., Play, Save, Add)
     /// Uses primary brand color with white text
-    /// Provides hover state with slightly darker background
-    pub fn primary() -> impl Fn(&iced::Theme) -> button::Appearance {
-        move |_theme: &iced::Theme| button::Appearance {
-            background: Some(colors::PRIMARY.into()),
-            text_color: colors::TEXT_ON_PRIMARY,
-            border: Border {
-                color: iced::Color::TRANSPARENT,
-                width: 0.0,
-                radius: border_radius::MD.into(),
+    /// Provides hover/pressed/focus states
+    #[must_use]
+    pub fn primary(_theme: &iced::Theme, status: button::Status) -> button::Style {
+        match status {
+            button::Status::Active => button::Style {
+                background: Some(colors::PRIMARY.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
             },
-            ..Default::default()
+            button::Status::Hovered => button::Style {
+                background: Some(colors::PRIMARY_HOVER.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+            button::Status::Pressed => button::Style {
+                background: Some(colors::PRIMARY_ACTIVE.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+            button::Status::Disabled => button::Style {
+                background: Some(colors::PRIMARY.into()),
+                text_color: colors::TEXT_DISABLED,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
         }
     }
 
     /// Secondary action button style (e.g., Cancel, Close, Stop)
     /// Uses elevated background with primary text color and border
-    pub fn secondary() -> impl Fn(&iced::Theme) -> button::Appearance {
-        move |_theme: &iced::Theme| button::Appearance {
-            background: Some(colors::BG_ELEVATED.into()),
-            text_color: colors::TEXT_PRIMARY,
-            border: Border {
-                color: colors::BORDER_DEFAULT,
-                width: 1.0,
-                radius: border_radius::MD.into(),
+    #[must_use]
+    pub fn secondary(_theme: &iced::Theme, status: button::Status) -> button::Style {
+        match status {
+            button::Status::Active => button::Style {
+                background: Some(colors::BG_ELEVATED.into()),
+                text_color: colors::TEXT_PRIMARY,
+                border: Border {
+                    color: colors::BORDER_DEFAULT,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
             },
-            ..Default::default()
+            button::Status::Hovered => button::Style {
+                background: Some(colors::BG_HOVER.into()),
+                text_color: colors::TEXT_PRIMARY,
+                border: Border {
+                    color: colors::BORDER_DEFAULT,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+            button::Status::Pressed => button::Style {
+                background: Some(colors::BG_ELEVATED.into()),
+                text_color: colors::TEXT_PRIMARY,
+                border: Border {
+                    color: colors::BORDER_FOCUS,
+                    width: 2.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+            button::Status::Disabled => button::Style {
+                background: Some(colors::BG_ELEVATED.into()),
+                text_color: colors::TEXT_DISABLED,
+                border: Border {
+                    color: colors::BORDER_DEFAULT,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
         }
     }
 
     /// Danger action button style (e.g., Delete, Remove)
     /// Uses error/danger color with white text
-    pub fn danger() -> impl Fn(&iced::Theme) -> button::Appearance {
-        move |_theme: &iced::Theme| button::Appearance {
-            background: Some(colors::ERROR.into()),
-            text_color: colors::TEXT_ON_PRIMARY,
-            border: Border {
-                color: iced::Color::TRANSPARENT,
-                width: 0.0,
-                radius: border_radius::MD.into(),
+    #[must_use]
+    pub fn danger(_theme: &iced::Theme, status: button::Status) -> button::Style {
+        match status {
+            button::Status::Active => button::Style {
+                background: Some(colors::ERROR.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
             },
-            ..Default::default()
-        }
-    }
-}
-
-/// Container-based button styling workaround for iced 0.12
-///
-/// Since `.style()` on buttons is not functional in iced 0.12, wrap buttons in containers
-/// with appropriate backgrounds and borders to achieve visual hierarchy.
-///
-/// # Usage
-///
-/// Instead of:
-/// ```ignore
-/// button(text("Save")).style(button_styles::primary())
-/// ```
-///
-/// Use:
-/// ```ignore
-/// container(button(text("Save")).on_press(Message::Save))
-///     .style(button_containers::primary())
-///     .padding(spacing::SM)
-/// ```
-pub mod button_containers {
-    use iced::widget::container;
-    use iced::Border;
-
-    use super::{border_radius, colors};
-
-    /// Primary action button container style (vibrant rose background)
-    ///
-    /// Use for the most important actions in a context:
-    /// - Play/Pause (main action)
-    /// - Save (confirmation dialog)
-    /// - Add (adding new items)
-    /// - Set (sleep timer)
-    pub fn primary() -> impl Fn(&iced::Theme) -> container::Appearance {
-        move |_theme: &iced::Theme| container::Appearance {
-            background: Some(iced::Background::Color(colors::PRIMARY)),
-            border: Border {
-                color: colors::PRIMARY,
-                width: 2.0,
-                radius: border_radius::MD.into(),
+            button::Status::Hovered => button::Style {
+                background: Some(colors::PRIMARY_HOVER.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
             },
-            text_color: Some(colors::TEXT_ON_PRIMARY),
-            ..Default::default()
+            button::Status::Pressed => button::Style {
+                background: Some(colors::PRIMARY_ACTIVE.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+            button::Status::Disabled => button::Style {
+                background: Some(colors::ERROR.into()),
+                text_color: colors::TEXT_DISABLED,
+                border: Border {
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
         }
     }
 
-    /// Secondary action button container style (elevated with border)
-    ///
-    /// Use for secondary actions:
-    /// - Stop (less important than play/pause)
-    /// - Cancel (dismissive action)
-    /// - Close (modal dismiss)
-    /// - Edit (non-primary modification)
-    pub fn secondary() -> impl Fn(&iced::Theme) -> container::Appearance {
-        move |_theme: &iced::Theme| container::Appearance {
-            background: Some(iced::Background::Color(colors::BG_ELEVATED)),
-            border: Border {
-                color: colors::BORDER_DEFAULT,
-                width: 1.0,
-                radius: border_radius::MD.into(),
-            },
-            text_color: Some(colors::TEXT_PRIMARY),
-            ..Default::default()
-        }
+    /// Primary button style with focus indicator
+    /// Adds a blue shadow/ring for WCAG 2.1 AA compliance (3px minimum)
+    #[must_use]
+    pub fn primary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
+        let mut style = primary(theme, status);
+        style.shadow = Shadow {
+            color: colors::FOCUS_RING,
+            offset: iced::Vector::ZERO,
+            blur_radius: 0.0,
+        };
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
     }
 
-    /// Danger/destructive action button container style (error color)
-    ///
-    /// Use for destructive actions that cannot be undone:
-    /// - Delete (permanent removal)
-    /// - Remove (removing from list)
-    /// - Cancel timer (destructive in some contexts)
-    pub fn danger() -> impl Fn(&iced::Theme) -> container::Appearance {
-        move |_theme: &iced::Theme| container::Appearance {
-            background: Some(iced::Background::Color(colors::ERROR)),
-            border: Border {
-                color: colors::BORDER_ERROR,
-                width: 2.0,
-                radius: border_radius::MD.into(),
-            },
-            text_color: Some(colors::TEXT_ON_PRIMARY),
-            ..Default::default()
-        }
+    /// Secondary button style with focus indicator
+    #[must_use]
+    pub fn secondary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
+        let mut style = secondary(theme, status);
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
+    }
+
+    /// Danger button style with focus indicator
+    #[must_use]
+    pub fn danger_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
+        let mut style = danger(theme, status);
+        style.shadow = Shadow {
+            color: colors::FOCUS_RING,
+            offset: iced::Vector::ZERO,
+            blur_radius: 0.0,
+        };
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
     }
 }
 
@@ -350,11 +356,11 @@ pub mod button_containers {
 /// - **Width**: 3px (WCAG recommends minimum 3px for visibility)
 /// - **Radius**: Medium border radius (8px)
 /// - **Contrast**: High contrast against all backgrounds
-pub fn focus_indicator(is_focused: bool) -> impl Fn(&iced::Theme) -> container::Appearance {
+pub fn focus_indicator(is_focused: bool) -> impl Fn(&iced::Theme) -> container::Style {
     use iced::widget::container;
     move |_theme: &iced::Theme| {
         if is_focused {
-            container::Appearance {
+            container::Style {
                 border: Border {
                     color: colors::FOCUS_RING,
                     width: 3.0,
@@ -363,7 +369,7 @@ pub fn focus_indicator(is_focused: bool) -> impl Fn(&iced::Theme) -> container::
                 ..Default::default()
             }
         } else {
-            container::Appearance::default()
+            container::Style::default()
         }
     }
 }
@@ -386,6 +392,7 @@ pub fn nodoka_theme() -> Theme {
         primary: colors::PRIMARY,
         success: colors::SUCCESS,
         danger: colors::ERROR,
+        warning: colors::WARNING,
     };
 
     Theme::custom("Nodoka".to_string(), palette)

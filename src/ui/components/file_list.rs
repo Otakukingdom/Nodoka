@@ -1,9 +1,7 @@
 use crate::models::AudiobookFile;
 use crate::ui::styles::{spacing, typography};
 use crate::ui::Message;
-use iced::widget::{
-    button, column, container, horizontal_space, progress_bar, row, scrollable, text,
-};
+use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Element, Length};
 
 /// Renders the file list with improved UX patterns
@@ -16,7 +14,10 @@ use iced::{Element, Length};
 /// - Improved completion indicators with semantic colors
 /// - Duration alignment for better scannability
 #[must_use]
-pub fn view(files: &[AudiobookFile], selected_path: Option<&String>) -> Element<'static, Message> {
+pub fn view<'a>(
+    files: &'a [AudiobookFile],
+    selected_path: Option<&String>,
+) -> Element<'a, Message> {
     let items: Element<_> = files
         .iter()
         .fold(column![].spacing(spacing::XS), |col, file| {
@@ -66,7 +67,7 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
         progress_element,
         row![
             text(duration).size(typography::SIZE_XS),
-            horizontal_space(),
+            Space::new().width(Length::Fill),
             status_indicator,
         ]
     ]
@@ -76,18 +77,16 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
     // Apply selection styling using container background
     let content_container = if selected {
         container(content_column)
-            .style(
-                move |_theme: &iced::Theme| iced::widget::container::Appearance {
-                    background: Some(colors::SELECTION_BG.into()),
-                    text_color: Some(colors::SELECTION_TEXT),
-                    border: Border {
-                        color: colors::PRIMARY,
-                        width: 2.0,
-                        radius: 0.0.into(),
-                    },
-                    ..Default::default()
+            .style(move |_theme: &iced::Theme| iced::widget::container::Style {
+                background: Some(colors::SELECTION_BG.into()),
+                text_color: Some(colors::SELECTION_TEXT),
+                border: Border {
+                    color: colors::PRIMARY,
+                    width: 2.0,
+                    radius: 0.0.into(),
                 },
-            )
+                ..Default::default()
+            })
             .width(Length::Fill)
     } else {
         container(content_column).width(Length::Fill)

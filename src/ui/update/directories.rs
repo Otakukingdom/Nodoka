@@ -2,10 +2,10 @@ use crate::db::Database;
 use crate::player::Vlc;
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile};
 use crate::ui::{Message, State};
-use iced::Command;
+use iced::Task;
 
-pub(super) fn handle_directory_add() -> Command<Message> {
-    Command::perform(
+pub(super) fn handle_directory_add() -> Task<Message> {
+    Task::perform(
         async {
             rfd::AsyncFileDialog::new()
                 .pick_folder()
@@ -20,7 +20,7 @@ pub(super) fn handle_directory_added(
     state: &mut State,
     db: &Database,
     path: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     let stored_path = normalize_directory_path_for_storage(path);
     let compare_key = normalize_directory_path_for_compare(&stored_path);
 
@@ -30,7 +30,7 @@ pub(super) fn handle_directory_added(
         .any(|d| normalize_directory_path_for_compare(&d.full_path) == compare_key)
     {
         tracing::info!("Directory already added: {stored_path}. Skipping.");
-        return Command::none();
+        return Task::none();
     }
 
     let directory = crate::models::Directory {
@@ -41,12 +41,12 @@ pub(super) fn handle_directory_added(
 
     if let Err(e) = crate::db::queries::insert_directory(db.connection(), &directory) {
         tracing::error!("Failed to insert directory: {e}");
-        return Command::none();
+        return Task::none();
     }
 
     state.directories.push(directory);
     tracing::info!("Directory added: {stored_path}. Starting scan.");
-    
+
     // Set scanning state
     state.is_scanning = true;
     state.scanning_directory = Some(stored_path.clone());
@@ -59,7 +59,7 @@ pub(super) fn handle_directory_remove(
     player: &mut Option<Vlc>,
     db: &Database,
     path: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     let selected_audiobook_in_directory = state
         .selected_audiobook
         .and_then(|id| state.audiobooks.iter().find(|a| a.id == Some(id)))
@@ -97,20 +97,20 @@ pub(super) fn handle_directory_remove(
             }
         }
     }
-    Command::none()
+    Task::none()
 }
 
 pub(super) fn handle_directory_rescan(
     state: &mut State,
     db: &Database,
     path: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     tracing::info!("Directory rescan requested: {path}");
-    
+
     // Set scanning state
     state.is_scanning = true;
     state.scanning_directory = Some(path.to_string());
-    
+
     if let Ok(audiobooks) = crate::db::queries::get_audiobooks_by_directory(db.connection(), path) {
         for audiobook in audiobooks {
             if let Some(id) = audiobook.id {
@@ -130,16 +130,16 @@ pub(super) fn handle_scan_complete(
     db: &Database,
     directory: &str,
     discovered: Vec<DiscoveredAudiobook>,
-) -> Command<Message> {
+) -> Task<Message> {
     // Clear scanning state
     state.is_scanning = false;
     state.scanning_directory = None;
-    
+
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
 
     update_state_with_discovered_audiobooks(state, &audiobooks);
 
-    let mut cmds: Vec<Command<Message>> = Vec::new();
+    let mut cmds: Vec<Task<Message>> = Vec::new();
 
     for (idx, disc) in discovered.into_iter().enumerate() {
         if let Some(cmd) =
@@ -151,17 +151,17 @@ pub(super) fn handle_scan_complete(
 
     finalize_directory_scan(state, db, directory);
 
-    Command::batch(cmds)
+    Task::batch(cmds)
 }
 
-pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Command<Message> {
+pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Task<Message> {
     state.is_scanning = false;
     state.scanning_directory = None;
     state.error_message = Some(format!("Failed to scan directory: {error}"));
     state.error_timestamp = Some(chrono::Utc::now());
-    
+
     tracing::error!("Scan error: {error}");
-    Command::none()
+    Task::none()
 }
 
 fn update_state_with_discovered_audiobooks(
@@ -187,7 +187,7 @@ fn process_discovered_audiobook(
     audiobooks: &[crate::models::Audiobook],
     idx: usize,
     disc: DiscoveredAudiobook,
-) -> Option<Command<Message>> {
+) -> Option<Task<Message>> {
     let disc_path = disc.path.display().to_string();
     let mut resolved_audiobook = audiobooks.get(idx).cloned().unwrap_or_else(|| {
         crate::models::Audiobook::new(
@@ -251,7 +251,7 @@ fn update_state_audiobook_id(
     state: &mut State,
     resolved_audiobook: &crate::models::Audiobook,
     audiobook_id: i64,
-) -> Option<Command<Message>> {
+) -> Option<Task<Message>> {
     if let Some(entry) = state
         .audiobooks
         .iter_mut()
@@ -364,8 +364,8 @@ fn finalize_directory_scan(state: &mut State, db: &Database, directory: &str) {
     }
 }
 
-fn start_directory_scan(path: String) -> Command<Message> {
-    Command::perform(
+fn start_directory_scan(path: String) -> Task<Message> {
+    Task::perform(
         async move {
             scan_directory(path.clone().into())
                 .await

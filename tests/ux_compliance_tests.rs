@@ -121,7 +121,7 @@ fn test_color_palette_consistency() {
 fn test_typography_base_size_readability() {
     // Base text size should be at least 14px for readability
     assert!(
-        typography::SIZE_BASE >= 14,
+        typography::SIZE_BASE >= 14.0,
         "Base text size should be at least 14px for readability"
     );
 }

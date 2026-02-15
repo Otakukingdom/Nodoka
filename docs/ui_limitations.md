@@ -1,195 +1,173 @@
-# UI Limitations in iced 0.12
+# UI Implementation with iced 0.14
 
-This document describes known limitations of the iced 0.12 GUI framework and provides workarounds for achieving desired UX patterns in Nodoka Audiobook Player.
+This document describes the UI implementation in Nodoka Audiobook Player using iced 0.14, including resolved limitations from iced 0.12 and remaining considerations.
 
 ## Overview
 
-Nodoka uses iced 0.12 for its cross-platform GUI. While iced provides excellent cross-platform support and performance, version 0.12 has several limitations that affect UI/UX implementation. This document serves as a guide for developers working on the UI.
+Nodoka uses iced 0.14 for its cross-platform GUI. The upgrade from iced 0.12 to 0.14 resolved several major UI/UX limitations while introducing new capabilities for native button styling, modal backdrops, and improved focus handling. This document serves as a guide for developers working on the UI.
 
-## Button Styling Limitations
+## ✅ Native Button Styling (Resolved in iced 0.14)
 
-### Issue
+### Previous Issue (iced 0.12)
 
-Custom button styles cannot be applied via the `.style()` method in iced 0.12. The method expects `impl Into<iced::theme::Button>`, but custom styling functions return `impl Fn(&Theme) -> button::Appearance`, which is incompatible.
+Custom button styles could not be applied via the `.style()` method. Required container-based workarounds.
 
-### Impact
+### Resolution (iced 0.14)
 
-- **Severity**: Moderate UX issue
-- All buttons look identical, violating visual hierarchy principles
-- Primary, secondary, and danger actions are not visually distinguished
-- Users may have difficulty identifying the most important action in a context
+iced 0.14 provides native button styling through the `button::Style` API and closures that receive both `theme` and `status` parameters.
 
-### Code Example (Non-functional)
+### Current Implementation
 
 ```rust
-// This does NOT work in iced 0.12
+use iced::widget::{button, text};
+use crate::ui::styles::button_styles;
+
+// ✅ This works in iced 0.14
 button(text("Save"))
     .on_press(Message::Save)
-    .style(button_styles::primary())  // ❌ Compilation error
+    .style(button_styles::primary)
 ```
 
-### Workaround: Container-Based Styling
+### Available Button Styles
 
-Wrap buttons in styled containers to achieve visual hierarchy:
+- `button_styles::primary` - Vibrant rose background for primary actions (Play, Save, Add)
+- `button_styles::secondary` - Elevated background with border for secondary actions (Cancel, Close)
+- `button_styles::danger` - Error color for destructive actions (Delete, Remove)
+- `button_styles::primary_focused` - Primary style with 3px focus ring (WCAG compliant)
+- `button_styles::secondary_focused` - Secondary style with focus indicator
+- `button_styles::danger_focused` - Danger style with focus indicator
 
-```rust
-use iced::widget::{button, container, text};
-use crate::ui::styles::{button_containers, spacing};
+All styles support hover, pressed, and disabled states automatically.
 
-// ✅ This works in iced 0.12
-container(
-    button(text("Save"))
-        .on_press(Message::Save)
-)
-.style(button_containers::primary())
-.padding(spacing::SM)
-```
+See `src/ui/styles.rs` for complete implementation.
 
-### Available Container Styles
+## ⚠️ Focus Indicators (Partial Resolution in iced 0.14)
 
-- `button_containers::primary()` - Vibrant rose background for primary actions
-- `button_containers::secondary()` - Elevated background with border for secondary actions
-- `button_containers::danger()` - Error color for destructive actions
+### Previous Issue (iced 0.12)
 
-See `src/ui/styles.rs` for complete documentation.
+iced 0.12 did not expose focus state to custom styling functions, making WCAG-compliant focus indicators impossible.
 
-## Focus Indicator Limitations
+### Current Status (iced 0.14)
 
-### Issue
+iced 0.14's `button::Status` enum still does not include a `Focused` variant, so focus state is not automatically exposed to styling functions. However, focus indicators can now be implemented using:
 
-iced 0.12 does not expose focus state to custom styling functions. Applications cannot programmatically determine which widget currently has keyboard focus.
+1. **Button shadow property** - Available in `button::Style` for visual effects
+2. **Application state tracking** - Manual focus state management (same as 0.12)
+3. **Focused button style variants** - Pre-defined styles with focus rings
 
-### Impact
+### Current Implementation
 
-- **Severity**: High accessibility issue (WCAG 2.1 AA 2.4.7 violation)
-- Keyboard users cannot see which element is focused
-- Tab navigation is functional but invisible
-- Screen reader users are unaffected (focus is tracked internally)
-
-### Workaround 1: Application State Tracking
-
-Track focus manually in application state:
+Focused button styles with WCAG-compliant 3px focus rings:
 
 ```rust
-pub struct State {
-    pub focused_element: FocusedElement,
-    // ... other fields
-}
-
-pub enum FocusedElement {
-    None,
-    PlayPauseButton,
-    VolumeSlider,
-    AudiobookList,
-    // ... other focusable elements
-}
-```
-
-Apply conditional styling based on focus state:
-
-```rust
-let play_button_style = if state.focused_element == FocusedElement::PlayPauseButton {
-    container::Appearance {
-        border: Border {
-            color: colors::FOCUS_RING,
-            width: 3.0,
-            radius: border_radius::MD.into(),
-        },
-        ..Default::default()
-    }
+// When focus state is tracked in application state
+let button_style = if state.focused_element == FocusedElement::PlayPauseButton {
+    button_styles::primary_focused
 } else {
-    container::Appearance::default()
+    button_styles::primary
 };
+
+button(text("Play/Pause"))
+    .on_press(Message::PlayPause)
+    .style(button_style)
 ```
 
-### Workaround 2: Color-Based Cues
+### WCAG 2.1 AA Compliance
 
-Use hover color changes as partial substitute for focus indicators:
+All focused button styles meet WCAG 2.1 AA 2.4.7 requirements:
+- Minimum 3px focus indicator width
+- High contrast focus ring color (blue #2563EB)
+- Visible on all button types (primary, secondary, danger)
 
-- Buttons change color on hover (iced built-in behavior)
-- Selected items use high-contrast background colors
-- Active elements use distinct text colors
+### Remaining Considerations
 
-### Workaround 3: Screen Reader Support
+- Focus state must still be tracked manually in application state
+- Tab navigation works but requires explicit state updates
+- Screen readers function correctly with iced's internal focus tracking
 
-Rely on iced's internal accessibility tree for screen reader users:
+## ✅ Modal Backdrops (Resolved in iced 0.14)
 
-- Focus state is tracked internally by iced
-- Screen readers correctly announce focused elements
-- Keyboard navigation works correctly (Tab, arrow keys, Space, Enter)
+### Previous Issue (iced 0.12)
 
-## Modal Backdrop Limitations
+iced 0.12 did not provide a `Stack` widget for layering UI elements. Modal dialogs could not have semi-transparent backdrops.
 
-### Issue
+### Resolution (iced 0.14)
 
-iced 0.12 does not provide a `Stack` widget for layering UI elements. Modal dialogs cannot have semi-transparent backdrops that prevent interaction with background content.
+iced 0.14 includes the `Stack` widget for proper element layering and z-index control.
 
-### Impact
+### Current Implementation
 
-- **Severity**: Low UX issue
-- Users can accidentally click background elements while modal is open
-- Visual hierarchy is less clear (no dimming effect)
-- Modal dismissal requires explicit action (button or Escape key)
-
-### Workaround
-
-- Use Escape key to close modals (implemented in keyboard shortcuts)
-- Provide prominent "Close" or "Cancel" buttons
-- Use distinct background colors for modal content
-- Document modal behavior in manual testing checklist
+Modal dialogs now have:
+- Semi-transparent backdrop (50% black overlay)
+- Click-outside-to-dismiss functionality
+- Visual dimming of background content
+- Proper layering (base → backdrop → modal)
 
 Example:
 
 ```rust
-// Settings modal
+use iced::widget::{stack, button, container};
+
 if state.settings_open {
-    container(
-        column![
-            text("Settings").size(typography::SIZE_HEADING),
-            // ... settings form ...
-            button(text("Close")).on_press(Message::CloseSettings),
-        ]
+    // Semi-transparent backdrop
+    let backdrop = button(
+        container(text(""))
+            .width(Length::Fill)
+            .height(Length::Fill)
     )
-    .style(|_| container::Appearance {
-        background: Some(colors::BG_SECONDARY.into()),
-        border: Border {
-            color: colors::BORDER_DEFAULT,
-            width: 2.0,
-            radius: border_radius::LG.into(),
-        },
+    .style(|_theme, _status| button::Style {
+        background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
         ..Default::default()
     })
-    .padding(spacing::LG)
+    .on_press(Message::CloseSettings)
+    .width(Length::Fill)
+    .height(Length::Fill);
+
+    let settings_dialog = container(settings_form::build_settings_dialog(state))
+        .style(/* elevated modal styling */)
+        .padding(spacing::MD)
+        .center_x(Length::Fill);
+
+    content = stack![content, backdrop, settings_dialog].into();
 }
 ```
 
-## Upgrade Path
+### Benefits
 
-Many of these limitations may be resolved in future iced versions:
+- Standard modal UX pattern users expect
+- Prevents accidental background interaction
+- Clear visual indication of modal state
+- Improved accessibility and usability
 
-### iced 0.13+ (Future)
+See `src/ui/main_window.rs` for complete implementation across all modals (settings, bookmark editor, loading overlay).
 
-- Expected to have improved styling APIs
-- May support custom button styles via theme system
-- Possible `Stack` widget for proper modals
+## Future Improvements
 
-### Migration Strategy
+### iced 0.15+ Considerations
 
-When upgrading iced:
+Potential improvements to monitor:
 
-1. Test button styling with `.style()` method
-2. If functional, replace container workarounds with direct button styles
-3. Test focus indicators with new iced APIs
-4. Evaluate `Stack` widget for modal backdrops
-5. Update this document with findings
+1. **Native focus state exposure** - `button::Status::Focused` variant would eliminate manual state tracking
+2. **Enhanced accessibility** - Better screen reader support and ARIA attributes
+3. **Animation API** - Smooth transitions for modal backdrops and button states
+4. **Theme system improvements** - More flexible custom theming capabilities
 
-### Tracking Issue
+### Current Workarounds to Replace
+
+When iced provides native focus state:
+
+1. Remove manual `FocusedElement` state tracking from `src/ui/state.rs`
+2. Update button styles to use automatic focus state from `button::Status`
+3. Remove `*_focused` style variants (use focus state in main style functions)
+4. Update tests to verify automatic focus handling
+
+### Tracking Progress
 
 Monitor iced GitHub repository for:
-- Button styling improvements
-- Focus state exposure
-- Stack/overlay widgets
+- Focus state API improvements
 - Accessibility enhancements
+- Performance optimizations
+- New widget primitives
 
 ## Testing Implications
 
@@ -217,7 +195,9 @@ See `tests/manual_ui_checklist.md` for complete manual testing protocol.
 
 ## References
 
-- iced documentation: https://docs.rs/iced/0.12/iced/
+- iced 0.14 documentation: https://docs.rs/iced/0.14/iced/
 - WCAG 2.1 AA Guidelines: https://www.w3.org/WAI/WCAG21/quickref/
 - Nodoka design system: `design-system/nodoka-audiobook-player/MASTER.md`
-- Button styling code: `src/ui/styles.rs` (lines 197-341)
+- Button styling code: `src/ui/styles.rs` (button_styles module)
+- Modal implementation: `src/ui/main_window.rs` (Stack widget usage)
+- Integration tests: `tests/iced_014_features_tests.rs`

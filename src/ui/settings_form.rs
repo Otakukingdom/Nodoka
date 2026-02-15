@@ -1,6 +1,6 @@
-use crate::ui::styles::{button_containers, spacing, typography};
+use crate::ui::styles::{button_styles, spacing, typography};
 use crate::ui::{Message, State};
-use iced::widget::{button, column, container, horizontal_space, row, scrollable, text};
+use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Element, Length};
 
 /// Builds the settings dialog modal with improved layout and visual hierarchy
@@ -28,20 +28,16 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
 
                 col.push(container(
                     row![
-                        text(&path).size(typography::SIZE_SM),
-                        horizontal_space(),
-                        container(
-                            button(text("Rescan").size(typography::SIZE_XS))
-                                .on_press(Message::DirectoryRescan(rescan_path))
-                                .padding(spacing::XS)
-                        )
-                        .style(button_containers::secondary()),
-                        container(
-                            button(text("Remove").size(typography::SIZE_XS))
-                                .on_press(Message::DirectoryRemove(remove_path))
-                                .padding(spacing::XS)
-                        )
-                        .style(button_containers::danger()),
+                        text(path).size(typography::SIZE_SM), // Pass owned String, not reference
+                        Space::new().width(Length::Fill),
+                        button(text("Rescan").size(typography::SIZE_XS))
+                            .on_press(Message::DirectoryRescan(rescan_path))
+                            .padding(spacing::XS)
+                            .style(button_styles::secondary),
+                        button(text("Remove").size(typography::SIZE_XS))
+                            .on_press(Message::DirectoryRemove(remove_path))
+                            .padding(spacing::XS)
+                            .style(button_styles::danger),
                     ]
                     .padding(spacing::SM)
                     .spacing(spacing::SM),
@@ -55,42 +51,34 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
             // Modal header
             text("Settings").size(typography::SIZE_XXL),
             // Section header
-            container(text("Audiobook Directories").size(typography::SIZE_LG)).padding([
-                spacing::MD,
-                0.0,
-                spacing::SM,
-                0.0
-            ]),
+            container(text("Audiobook Directories").size(typography::SIZE_LG))
+                .padding(iced::Padding::from([0.0, spacing::MD])),
             // Directory list with scrolling
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
             // Action buttons with proper grouping
             container(
                 row![
-                    container(
-                        button(text("Add Directory").size(typography::SIZE_SM))
-                            .on_press(Message::DirectoryAdd)
-                            .padding(spacing::MD)
-                    )
-                    .style(button_containers::primary()),
-                    horizontal_space(),
-                    container(
-                        button(text("Close").size(typography::SIZE_SM))
-                            .on_press(Message::CloseSettings)
-                            .padding(spacing::MD)
-                    )
-                    .style(button_containers::secondary()),
+                    button(text("Add Directory").size(typography::SIZE_SM))
+                        .on_press(Message::DirectoryAdd)
+                        .padding(spacing::MD)
+                        .style(button_styles::primary),
+                    Space::new().width(Length::Fill),
+                    button(text("Close").size(typography::SIZE_SM))
+                        .on_press(Message::CloseSettings)
+                        .padding(spacing::MD)
+                        .style(button_styles::secondary),
                 ]
                 .spacing(spacing::MD)
             )
-            .padding([spacing::MD, 0.0, 0.0, 0.0]),
+            .padding(iced::Padding::from([0.0, spacing::MD])),
         ]
         .padding(spacing::XL)
         .spacing(spacing::MD),
     )
     .width(Length::Fixed(600.0))
     .height(Length::Fixed(450.0))
-    .center_x()
-    .center_y()
+    .center_x(Length::Fill)
+    .center_y(Length::Fill)
     .into()
 }
 

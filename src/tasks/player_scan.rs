@@ -14,9 +14,5 @@ pub async fn scan_media_properties(file_path: PathBuf) -> Result<MediaProperty> 
         scanner.scan_media(&file_path)
     })
     .await
-    .map_err(|e| {
-        crate::error::Error::Io(std::io::Error::other(
-            format!("Task join error: {e}"),
-        ))
-    })?
+    .map_err(|e| crate::error::Error::Io(std::io::Error::other(format!("Task join error: {e}"))))?
 }

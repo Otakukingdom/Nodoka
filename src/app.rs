@@ -27,8 +27,10 @@
 use crate::db::Database;
 use crate::player::Vlc;
 use crate::ui::{main_window, update, Message, State};
-use iced::{Application, Command, Element, Settings, Subscription, Theme};
+use iced::window;
+use iced::{Element, Settings, Subscription, Task, Theme};
 use rusqlite::Connection;
+use std::cell::RefCell;
 use std::time::Duration;
 
 const DEFAULT_WINDOW_WIDTH: f32 = 1200.0;
@@ -90,18 +92,20 @@ pub fn window_settings_from_storage(
     }
 }
 
-/// Main application state for the Nodoka audiobook reader.
+/// Main application struct for the Nodoka audiobook reader.
 ///
-/// This struct implements the [`iced::Application`] trait and manages
-/// the UI state, VLC player instance, and database connection.
+/// This struct implements the [`iced::Program`] trait (iced 0.14) and manages
+/// the VLC player instance and database connection.
 ///
 /// The application runs in an event loop where:
 /// 1. User interactions generate [`Message`] events
 /// 2. Messages are processed by [`update`] to modify state
 /// 3. UI is re-rendered via [`view`](crate::ui::main_window::view)
+///
+/// Note: In iced 0.14, State is separate from Program. We use `RefCell` for
+/// interior mutability since Program methods take `&self` but need to modify player.
 pub struct App {
-    state: State,
-    player: Option<Vlc>,
+    player: RefCell<Option<Vlc>>,
     db: Database,
 }
 
@@ -123,25 +127,36 @@ impl Drop for App {
     }
 }
 
-/// Initialization flags passed to [`App`] on startup.
-///
-/// Contains the database connection and any other startup configuration.
-/// Passed to [`Application::new()`] during application initialization.
+/// Initialization flags passed to the application on startup
 pub struct Flags {
     pub db: Database,
 }
 
-impl Application for App {
-    type Executor = iced::executor::Default;
+impl iced::Program for App {
+    type State = State;
     type Message = Message;
     type Theme = Theme;
-    type Flags = Flags;
+    type Renderer = iced::Renderer;
+    type Executor = iced::executor::Default;
 
-    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn name() -> &'static str {
+        "nodoka"
+    }
+
+    fn settings(&self) -> Settings {
+        Settings::default()
+    }
+
+    fn window(&self) -> Option<window::Settings> {
+        None // Window settings are provided via Settings in run()
+    }
+
+    fn boot(&self) -> (Self::State, Task<Self::Message>) {
+        let flags = &self.db; // Access db from self
         let mut state = State::default();
 
         // Load directories from database
-        match crate::db::queries::get_all_directories(flags.db.connection()) {
+        match crate::db::queries::get_all_directories(flags.connection()) {
             Ok(directories) => {
                 state.directories = directories;
             }
@@ -151,7 +166,7 @@ impl Application for App {
         }
 
         // Load all audiobooks
-        match crate::db::queries::get_all_audiobooks(flags.db.connection()) {
+        match crate::db::queries::get_all_audiobooks(flags.connection()) {
             Ok(audiobooks) => {
                 state.audiobooks = audiobooks;
             }
@@ -161,55 +176,116 @@ impl Application for App {
         }
 
         // Load settings
-        if let Ok(Some(volume_str)) =
-            crate::db::queries::get_metadata(flags.db.connection(), "volume")
+        if let Ok(Some(volume_str)) = crate::db::queries::get_metadata(flags.connection(), "volume")
         {
             if let Ok(volume) = volume_str.parse::<i32>() {
                 state.volume = volume;
             }
         }
 
-        if let Ok(Some(speed_str)) =
-            crate::db::queries::get_metadata(flags.db.connection(), "speed")
-        {
+        if let Ok(Some(speed_str)) = crate::db::queries::get_metadata(flags.connection(), "speed") {
             if let Ok(speed) = speed_str.parse::<f32>() {
                 state.speed = speed;
             }
         }
 
-        // Load current audiobook
+        // Load current audiobook if set
         if let Ok(Some(id_str)) =
-            crate::db::queries::get_metadata(flags.db.connection(), "current_audiobook_id")
+            crate::db::queries::get_metadata(flags.connection(), "current_audiobook_id")
         {
             if let Ok(id) = id_str.parse::<i64>() {
                 state.selected_audiobook = Some(id);
 
                 // Load files for current audiobook
-                if let Ok(files) =
-                    crate::db::queries::get_audiobook_files(flags.db.connection(), id)
-                {
+                if let Ok(files) = crate::db::queries::get_audiobook_files(flags.connection(), id) {
                     state.current_files = files;
                 }
 
+                // Load bookmarks for current audiobook
                 if let Ok(bookmarks) =
-                    crate::db::queries::get_bookmarks_for_audiobook(flags.db.connection(), id)
+                    crate::db::queries::get_bookmarks_for_audiobook(flags.connection(), id)
                 {
                     state.bookmarks = bookmarks;
                 }
             }
         }
 
+        // Initialize player with loaded settings
+        if let Some(ref mut player) = *self.player.borrow_mut() {
+            if let Err(e) = player.set_volume(state.volume) {
+                tracing::error!("Failed to set initial volume: {e}");
+            }
+            if let Err(e) = player.set_rate(state.speed) {
+                tracing::error!("Failed to set initial speed: {e}");
+            }
+        }
+
+        (state, Task::done(Message::InitialLoadComplete))
+    }
+
+    fn update(&self, state: &mut Self::State, message: Self::Message) -> Task<Self::Message> {
+        // Use RefCell to get mutable access to player through immutable self
+        let mut player_ref = self.player.borrow_mut();
+        update::update(state, message, &mut player_ref, &self.db)
+    }
+
+    fn view<'a>(
+        &self,
+        state: &'a Self::State,
+        _window: window::Id,
+    ) -> Element<'a, Self::Message, Self::Theme, Self::Renderer> {
+        main_window::view(state)
+    }
+
+    fn subscription(&self, state: &Self::State) -> Subscription<<Self as iced::Program>::Message> {
+        let mut subs: Vec<Subscription<<Self as iced::Program>::Message>> = Vec::new();
+
+        if state.selected_file.is_some() {
+            subs.push(iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick));
+        }
+
+        subs.push(iced::event::listen_with(
+            |event, _status, _id| match event {
+                iced::Event::Keyboard(iced::keyboard::Event::KeyPressed {
+                    key,
+                    modified_key: _,
+                    physical_key: _,
+                    location: _,
+                    modifiers,
+                    text: _,
+                    repeat: _,
+                }) => map_key_press(key, modifiers),
+                iced::Event::Window(iced::window::Event::Moved(point)) =>
+                {
+                    #[allow(clippy::cast_possible_truncation)]
+                    Some(Message::WindowMoved(point.x as i32, point.y as i32))
+                }
+                iced::Event::Window(iced::window::Event::Resized(size)) =>
+                {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                    Some(Message::WindowResized(
+                        size.width as u32,
+                        size.height as u32,
+                    ))
+                }
+                _ => None,
+            },
+        ));
+
+        Subscription::batch(subs)
+    }
+
+    fn theme(&self, _state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
+        Some(crate::ui::nodoka_theme())
+    }
+}
+
+impl App {
+    /// Creates a new App instance from initialization flags
+    fn new_from_flags(flags: Flags) -> Self {
         // Initialize player
         let player = match Vlc::new() {
-            Ok(mut p) => {
-                if let Err(e) = p.set_volume(state.volume) {
-                    tracing::error!("Failed to set initial volume: {e}");
-                }
-                if let Err(e) = p.set_rate(state.speed) {
-                    tracing::error!("Failed to set initial speed: {e}");
-                }
-                Some(p)
-            }
+            Ok(p) => Some(p),
             Err(e) => {
                 tracing::error!("Failed to initialize player: {e}");
                 tracing::error!(
@@ -233,54 +309,10 @@ impl Application for App {
             }
         };
 
-        let app = Self {
-            state,
-            player,
+        Self {
+            player: RefCell::new(player),
             db: flags.db,
-        };
-
-        (
-            app,
-            Command::perform(async {}, |()| Message::InitialLoadComplete),
-        )
-    }
-
-    fn title(&self) -> String {
-        String::from("Nodoka Audiobook Reader")
-    }
-
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
-        update::update(&mut self.state, message, &mut self.player, &self.db)
-    }
-
-    fn view(&self) -> Element<'_, Self::Message> {
-        main_window::view(&self.state)
-    }
-
-    fn subscription(&self) -> Subscription<Self::Message> {
-        let mut subs: Vec<Subscription<Message>> = Vec::new();
-
-        if self.state.selected_file.is_some() {
-            subs.push(iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick));
         }
-
-        subs.push(iced::keyboard::on_key_press(map_key_press));
-
-        subs.push(iced::event::listen_with(|event, _status| match event {
-            iced::Event::Window(_id, iced::window::Event::Moved { x, y }) => {
-                Some(Message::WindowMoved(x, y))
-            }
-            iced::Event::Window(_id, iced::window::Event::Resized { width, height }) => {
-                Some(Message::WindowResized(width, height))
-            }
-            _ => None,
-        }));
-
-        Subscription::batch(subs)
-    }
-
-    fn theme(&self) -> Self::Theme {
-        crate::ui::nodoka_theme()
     }
 }
 
@@ -322,34 +354,23 @@ fn map_key_press(
 ///
 /// Returns an error if the application fails to start or encounters a runtime error
 pub fn run(db: Database) -> iced::Result {
-    // Load embedded fonts
-    let fonts = vec![
-        include_bytes!("../assets/fonts/Roboto-Regular.ttf")
-            .as_slice()
-            .into(),
-        include_bytes!("../assets/fonts/Roboto-Bold.ttf")
-            .as_slice()
-            .into(),
-        include_bytes!("../assets/fonts/Roboto-Medium.ttf")
-            .as_slice()
-            .into(),
-    ];
+    use iced::Program;
+    use std::rc::Rc;
 
-    // Load application icon
-    let icon_data = include_bytes!("../assets/icons/Entypo_d83d(0)_256.png");
-    let icon = image::load_from_memory(icon_data).ok().and_then(|img| {
-        let rgba = img.to_rgba8();
-        let (width, height) = rgba.dimensions();
-        iced::window::icon::from_rgba(rgba.into_raw(), width, height).ok()
-    });
+    // Helper function with explicit lifetime to satisfy ViewFn trait
+    fn view_fn(state: &State) -> Element<'_, Message> {
+        main_window::view(state)
+    }
 
-    App::run(Settings {
-        window: window_settings_from_storage(db.connection(), icon),
-        flags: Flags { db },
-        id: None,
-        fonts,
-        default_font: iced::Font::DEFAULT,
-        default_text_size: iced::Pixels::from(16),
-        antialiasing: false,
-    })
+    // Create app instance with flags wrapped in Rc for sharing across closures
+    let app = Rc::new(App::new_from_flags(Flags { db }));
+    let app_boot = app.clone();
+
+    // iced 0.14 application API: create application with boot, update, view closures
+    iced::application(
+        move || app_boot.boot(), // Boot just returns (State, Task)
+        move |state: &mut State, message: Message| app.update(state, message),
+        view_fn, // View function with explicit lifetime
+    )
+    .run()
 }

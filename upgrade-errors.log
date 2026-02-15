@@ -1,0 +1,2384 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.44
+   Compiling unicode-ident v1.0.23
+   Compiling libc v0.2.182
+   Compiling libm v0.2.16
+    Checking cfg-if v1.0.4
+   Compiling autocfg v1.5.0
+    Checking bitflags v2.11.0
+   Compiling version_check v0.9.5
+    Checking log v0.4.29
+    Checking smallvec v1.15.1
+   Compiling thiserror v2.0.18
+   Compiling zerocopy v0.8.39
+   Compiling crossbeam-utils v0.8.21
+    Checking once_cell v1.21.3
+    Checking memchr v2.8.0
+    Checking arrayvec v0.7.6
+   Compiling cfg_aliases v0.2.1
+   Compiling rayon-core v1.13.0
+    Checking simd-adler32 v0.3.8
+   Compiling parking_lot_core v0.9.12
+   Compiling num-traits v0.2.19
+    Checking core-foundation-sys v0.8.7
+    Checking scopeguard v1.2.0
+   Compiling paste v1.0.15
+    Checking pin-project-lite v0.2.16
+    Checking lock_api v0.4.14
+    Checking adler2 v2.0.1
+    Checking either v1.15.0
+   Compiling crc32fast v1.5.0
+    Checking raw-window-handle v0.6.2
+    Checking objc2-encode v4.1.0
+    Checking miniz_oxide v0.8.9
+   Compiling pkg-config v0.3.32
+   Compiling syn v2.0.115
+   Compiling shlex v1.3.0
+   Compiling find-msvc-tools v0.1.9
+    Checking futures-sink v0.3.31
+    Checking futures-core v0.3.31
+    Checking smol_str v0.2.2
+   Compiling anyhow v1.0.101
+    Checking rustc-hash v1.1.0
+    Checking futures-channel v0.3.31
+    Checking core_maths v0.1.1
+    Checking stable_deref_trait v1.2.1
+    Checking pin-utils v0.1.0
+    Checking futures-task v0.3.31
+    Checking futures-io v0.3.31
+    Checking slab v0.4.12
+    Checking foreign-types-shared v0.3.1
+    Checking weezl v0.1.12
+   Compiling typenum v1.19.0
+    Checking as-slice v0.2.1
+   Compiling generic-array v0.14.7
+   Compiling slotmap v1.1.1
+    Checking crossbeam-epoch v0.9.18
+    Checking rustc-hash v2.1.1
+    Checking web-time v1.1.0
+   Compiling av-scenechange v0.14.1
+    Checking crossbeam-deque v0.8.6
+   Compiling built v0.8.0
+    Checking malloc_buf v0.0.6
+    Checking objc v0.2.7
+   Compiling jobserver v0.1.34
+    Checking num_cpus v1.17.0
+    Checking errno v0.3.14
+    Checking bytes v1.11.1
+    Checking signal-hook-registry v1.4.8
+    Checking rayon v1.11.0
+   Compiling cc v1.2.56
+   Compiling rav1e v0.8.1
+    Checking socket2 v0.6.2
+    Checking mio v1.1.1
+    Checking lilt v0.8.1
+    Checking parking_lot v0.12.5
+    Checking aligned v0.4.3
+    Checking core2 v0.4.0
+    Checking nom v8.0.0
+    Checking fdeflate v0.3.7
+    Checking color_quant v1.1.0
+    Checking glam v0.25.0
+    Checking num-integer v0.1.46
+    Checking quick-error v2.0.1
+    Checking tinyvec_macros v0.1.1
+    Checking foldhash v0.2.0
+    Checking num-bigint v0.4.6
+   Compiling pastey v0.1.1
+   Compiling bytemuck_derive v1.10.2
+   Compiling thiserror-impl v2.0.18
+   Compiling zerocopy-derive v0.8.39
+   Compiling profiling-procmacros v1.0.17
+   Compiling equator-macro v0.4.2
+    Checking flate2 v1.1.9
+    Checking profiling v1.0.17
+   Compiling futures-macro v0.3.31
+   Compiling foreign-types-macros v0.2.3
+    Checking bytemuck v1.25.0
+    Checking num-rational v0.4.2
+    Checking equator v0.4.2
+   Compiling tokio-macros v2.6.0
+    Checking futures-util v0.3.31
+    Checking foreign-types v0.5.0
+   Compiling arg_enum_proc_macro v0.3.4
+    Checking y4m v0.8.0
+    Checking block v0.1.6
+   Compiling num-derive v0.4.2
+   Compiling fax_derive v0.2.0
+    Checking tokio v1.49.0
+    Checking hashbrown v0.16.1
+    Checking tinyvec v1.10.0
+    Checking maybe-rayon v0.1.1
+    Checking bitstream-io v4.9.0
+    Checking core-foundation v0.10.1
+    Checking memmap2 v0.9.9
+    Checking ttf-parser v0.25.1
+   Compiling simd_helpers v0.1.0
+    Checking itertools v0.14.0
+    Checking zune-inflate v0.2.54
+   Compiling naga v27.0.3
+    Checking font-types v0.10.1
+    Checking bit-vec v0.8.0
+    Checking read-fonts v0.35.0
+    Checking yazi v0.2.1
+    Checking equivalent v1.0.2
+   Compiling objc-sys v0.3.5
+    Checking aligned-vec v0.6.4
+   Compiling noop_proc_macro v0.3.0
+    Checking imgref v1.12.0
+    Checking v_frame v0.3.9
+    Checking new_debug_unreachable v1.0.6
+   Compiling objc2 v0.6.3
+    Checking av1-grain v0.2.5
+    Checking unicode-width v0.1.14
+    Checking iced_core v0.14.0
+    Checking zune-core v0.4.12
+    Checking lebe v0.5.3
+    Checking zeno v0.3.3
+    Checking bit_field v0.10.3
+    Checking zune-jpeg v0.4.21
+    Checking codespan-reporting v0.12.0
+    Checking fontdb v0.23.0
+    Checking loop9 v0.1.5
+    Checking indexmap v2.13.0
+    Checking bit-set v0.8.0
+    Checking qoi v0.4.1
+    Checking core-graphics-types v0.2.0
+    Checking fax v0.2.6
+    Checking pxfm v0.1.27
+   Compiling wgpu-hal v27.0.4
+    Checking avif-serialize v0.8.8
+    Checking tracing-core v0.1.36
+    Checking unicode-linebreak v0.1.5
+    Checking self_cell v1.2.2
+    Checking zune-core v0.5.1
+    Checking hexf-parse v0.2.1
+    Checking sys-locale v0.3.2
+    Checking linebender_resource_handle v0.1.1
+    Checking rgb v0.8.52
+    Checking rangemap v1.7.1
+    Checking unicode-segmentation v1.12.0
+    Checking byteorder-lite v0.1.0
+    Checking unicode-bidi v0.3.18
+    Checking unicode-script v0.5.8
+    Checking moxcms v0.7.11
+    Checking image-webp v0.2.4
+    Checking zune-jpeg v0.5.12
+    Checking futures-executor v0.3.31
+    Checking futures v0.3.31
+    Checking skrifa v0.37.0
+    Checking harfrust v0.3.2
+    Checking half v2.7.1
+    Checking metal v0.32.0
+    Checking exr v1.74.0
+    Checking wgpu-types v27.0.1
+    Checking png v0.18.1
+    Checking tiff v0.10.3
+   Compiling tracing-attributes v0.1.31
+    Checking gif v0.14.1
+    Checking iced_futures v0.14.0
+    Checking mutate_once v0.1.2
+    Checking objc2-core-foundation v0.3.2
+    Checking objc2 v0.5.2
+    Checking kamadak-exif v0.6.1
+    Checking crypto-common v0.1.7
+    Checking swash v0.2.6
+   Compiling wgpu-core v27.0.3
+   Compiling litrs v1.0.0
+    Checking dispatch v0.2.0
+    Checking euclid v0.22.13
+    Checking block2 v0.5.1
+   Compiling wgpu v27.0.1
+    Checking subtle v2.6.1
+   Compiling document-features v0.2.12
+    Checking svg_fmt v0.4.5
+    Checking bitflags v1.3.2
+    Checking objc2-foundation v0.3.2
+    Checking iced_debug v0.14.0
+    Checking block-buffer v0.10.4
+    Checking objc2-foundation v0.2.2
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+    Checking tracing v0.1.44
+    Checking strict-num v0.1.1
+    Checking arrayref v0.3.9
+    Checking static_assertions v1.1.0
+    Checking tiny-skia-path v0.11.4
+    Checking digest v0.10.7
+    Checking etagere v0.2.15
+    Checking objc2-core-graphics v0.3.2
+    Checking cpufeatures v0.2.17
+    Checking core-foundation v0.9.4
+   Compiling ahash v0.8.12
+    Checking lru v0.16.3
+   Compiling serde_core v1.0.228
+    Checking tiny-skia v0.11.4
+    Checking core-graphics-types v0.1.3
+    Checking guillotiere v0.6.2
+   Compiling bzip2-sys v0.1.13+1.0.8
+    Checking objc2-quartz-core v0.3.2
+   Compiling winit v0.30.12
+    Checking kurbo v0.10.4
+    Checking softbuffer v0.4.8
+   Compiling zstd-safe v5.0.2+zstd.1.5.2
+    Checking cosmic-text v0.15.0
+   Compiling vcpkg v0.2.15
+    Checking core-graphics v0.23.2
+    Checking iced_runtime v0.14.0
+    Checking inout v0.1.4
+   Compiling serde v1.0.228
+    Checking rand_core v0.6.4
+   Compiling zmij v1.0.21
+    Checking powerfmt v0.2.0
+    Checking base64ct v1.6.0
+    Checking regex-syntax v0.8.9
+    Checking dpi v0.1.2
+   Compiling libsqlite3-sys v0.28.0
+    Checking cursor-icon v1.2.0
+    Checking password-hash v0.4.2
+    Checking deranged v0.3.11
+    Checking cipher v0.4.4
+    Checking hashbrown v0.14.5
+    Checking sha2 v0.10.9
+    Checking hmac v0.12.1
+   Compiling serde_derive v1.0.228
+    Checking jpeg-decoder v0.3.2
+    Checking objc_id v0.1.1
+    Checking lazy_static v1.5.0
+    Checking objc2-app-kit v0.2.2
+    Checking num-conv v0.1.0
+    Checking regex-automata v0.4.14
+   Compiling rfd v0.14.1
+   Compiling serde_json v1.0.149
+    Checking time-core v0.1.2
+    Checking byteorder v1.5.0
+    Checking option-ext v0.2.0
+   Compiling thiserror v1.0.69
+    Checking dirs-sys v0.4.1
+    Checking tiff v0.9.1
+    Checking ravif v0.12.0
+    Checking wgpu-core-deps-apple v27.0.0
+    Checking time v0.3.36
+    Checking hashlink v0.9.1
+    Checking image v0.25.9
+    Checking sharded-slab v0.1.7
+    Checking objc-foundation v0.1.1
+    Checking pbkdf2 v0.11.0
+    Checking aes v0.8.4
+    Checking bzip2 v0.4.4
+    Checking sha1 v0.10.6
+    Checking png v0.17.16
+    Checking tracing-log v0.2.0
+   Compiling thiserror-impl v1.0.69
+    Checking gif v0.13.3
+   Compiling nodoka v0.2.0 (/Users/mistlight/Projects/Nodoka/wt-006-fix-ui)
+    Checking iana-time-zone v0.1.65
+    Checking matchers v0.2.0
+    Checking thread_local v1.1.9
+    Checking same-file v1.0.6
+    Checking itoa v1.0.17
+    Checking constant_time_eq v0.1.5
+    Checking nu-ansi-term v0.50.3
+    Checking fallible-streaming-iterator v0.1.9
+    Checking fallible-iterator v0.3.0
+    Checking tracing-subscriber v0.3.22
+    Checking walkdir v2.5.0
+    Checking image v0.24.9
+    Checking directories v5.0.1
+    Checking vlc-rs v0.3.0
+    Checking natord v1.0.9
+    Checking temp-dir v0.1.16
+    Checking clipboard_macos v0.1.1
+    Checking window_clipboard v0.5.1
+    Checking iced_graphics v0.14.0
+    Checking iced_tiny_skia v0.14.0
+    Checking iced_program v0.14.0
+    Checking chrono v0.4.43
+    Checking iced_winit v0.14.0
+    Checking rusqlite v0.31.0
+    Checking zstd v0.11.2+zstd.1.5.2
+    Checking zip v0.6.6
+    Checking cryoglyph v0.1.0
+    Checking iced_wgpu v0.14.0
+    Checking iced_renderer v0.14.0
+    Checking iced_widget v0.14.2
+    Checking iced v0.14.0
+error[E0599]: no function or associated item named `run` found for struct `App` in the current scope
+   --> src/app.rs:371:10
+    |
+107 | pub struct App {
+    | -------------- function or associated item `run` not found for this struct
+...
+371 |     App::run(Settings {
+    |          ^^^ function or associated item not found in `App`
+    |
+note: if you're trying to build a new `App`, consider using `App::new_from_flags` which returns `App`
+   --> src/app.rs:278:5
+    |
+278 |     fn new_from_flags(flags: Flags) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `run`, perhaps you need to implement one of them:
+            candidate #1: `flate2::zio::Ops`
+            candidate #2: `zstd::stream::raw::Operation`
+
+error[E0560]: struct `iced::Settings` has no field named `window`
+   --> src/app.rs:372:9
+    |
+372 |         window: window_settings_from_storage(db.connection(), icon),
+    |         ^^^^^^ `iced::Settings` does not have this field
+    |
+    = note: available fields are: `vsync`
+
+error[E0560]: struct `iced::Settings` has no field named `flags`
+   --> src/app.rs:373:9
+    |
+373 |         flags: Flags { db },
+    |         ^^^^^ `iced::Settings` does not have this field
+    |
+    = note: available fields are: `vsync`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/audiobook_list.rs:53:45
+   |
+53 |             container(text("No cover").size(typography::SIZE_XS))
+   |                                        ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                        |
+   |                                        required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/audiobook_list.rs:73:29
+   |
+73 |             text(name).size(typography::SIZE_BASE),
+   |                        ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                        |
+   |                        required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/audiobook_list.rs:77:55
+   |
+77 |                 text(format!("{completeness}%")).size(typography::SIZE_SM),
+   |                                                  ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                  |
+   |                                                  required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/audiobook_list.rs:78:24
+   |
+78 |                 Space::with_width(Length::Fill),
+   |                        ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+78 -                 Space::with_width(Length::Fill),
+78 +                 Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/audiobook_list.rs:80:45
+   |
+80 |                     text("✓ Complete").size(typography::SIZE_SM)
+   |                                        ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                        |
+   |                                        required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/audiobook_list.rs:82:35
+   |
+82 |                     text("").size(typography::SIZE_SM)
+   |                              ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                              |
+   |                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:18:32
+   |
+18 |         text("Bookmarks").size(typography::SIZE_LG),
+   |                           ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                           |
+   |                           required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/bookmarks.rs:19:16
+   |
+19 |         Space::with_width(Length::Fill),
+   |                ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+19 -         Space::with_width(Length::Fill),
+19 +         Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:20:42
+   |
+20 |         button(text("Add Bookmark").size(typography::SIZE_SM))
+   |                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                     |
+   |                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:62:40
+   |
+62 |             text("Edit Bookmark").size(typography::SIZE_XL),
+   |                                   ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                   |
+   |                                   required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:63:51
+   |
+63 |             text(format!("Position: {pos}")).size(typography::SIZE_SM),
+   |                                              ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                              |
+   |                                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/components/bookmarks.rs:64:44
+    |
+ 64 |             container(label_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
+    |                                    ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `Container::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:115:23
+    |
+115 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Container::<'a, Message, Theme, Renderer>::padding`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/components/bookmarks.rs:65:43
+    |
+ 65 |             container(note_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
+    |                                   ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |                                   |
+    |                                   required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `Container::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:115:23
+    |
+115 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Container::<'a, Message, Theme, Renderer>::padding`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:67:44
+   |
+67 |                 button(text("Cancel").size(typography::SIZE_SM))
+   |                                       ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                       |
+   |                                       required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/bookmarks.rs:71:24
+   |
+71 |                 Space::with_width(Length::Fill),
+   |                        ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+71 -                 Space::with_width(Length::Fill),
+71 +                 Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/bookmarks.rs:72:42
+   |
+72 |                 button(text("Save").size(typography::SIZE_SM))
+   |                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                     |
+   |                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/components/bookmarks.rs:78:22
+    |
+ 78 |             .padding([spacing::MD, 0.0, 0.0, 0.0])
+    |              ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |              |
+    |              required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `iced::widget::Row::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/row.rs:100:23
+    |
+100 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Row::<'a, Message, Theme, Renderer>::padding`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/bookmarks.rs:106:38
+    |
+106 |         button(text(label_text).size(typography::SIZE_SM))
+    |                                 ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                 |
+    |                                 required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+   --> src/ui/components/bookmarks.rs:109:16
+    |
+109 |         Space::with_width(Length::Fill),
+    |                ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+    |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+    |
+ 36 |     pub fn new() -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+    |
+109 -         Space::with_width(Length::Fill),
+109 +         Space::width(Length::Fill),
+    |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/bookmarks.rs:110:24
+    |
+110 |         text(pos).size(typography::SIZE_XS),
+    |                   ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                   |
+    |                   required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/bookmarks.rs:111:34
+    |
+111 |         button(text("Edit").size(typography::SIZE_XS))
+    |                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                             |
+    |                             required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/bookmarks.rs:115:36
+    |
+115 |         button(text("Delete").size(typography::SIZE_XS))
+    |                               ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                               |
+    |                               required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:45:32
+   |
+45 |         text("⚠ Missing").size(typography::SIZE_SM)
+   |                           ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                           |
+   |                           required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:47:33
+   |
+47 |         text("✓ Complete").size(typography::SIZE_SM)
+   |                            ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                            |
+   |                            required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:49:47
+   |
+49 |         text(format!("{completeness}%")).size(typography::SIZE_SM)
+   |                                          ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                          |
+   |                                          required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:51:23
+   |
+51 |         text("").size(typography::SIZE_SM)
+   |                  ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                  |
+   |                  required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:63:30
+   |
+63 |         row![text(name).size(typography::SIZE_SM),],
+   |                         ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                         |
+   |                         required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/file_list.rs:66:33
+   |
+66 |             text(duration).size(typography::SIZE_XS),
+   |                            ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                            |
+   |                            required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/file_list.rs:67:20
+   |
+67 |             Space::with_width(Length::Fill),
+   |                    ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+67 -             Space::with_width(Length::Fill),
+67 +             Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:37:74
+   |
+37 |         container(text(format!("Now Playing: {current_file_text}")).size(typography::SIZE_SM))
+   |                                                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                                     |
+   |                                                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/components/player_controls.rs:45:18
+    |
+ 45 |         .padding([0.0, spacing::SM, 0.0, spacing::SM]),
+    |          ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `Container::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:115:23
+    |
+115 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Container::<'a, Message, Theme, Renderer>::padding`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:48:56
+   |
+48 |             text(format_time(state.current_time)).size(typography::SIZE_SM),
+   |                                                   ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                   |
+   |                                                   required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/player_controls.rs:49:20
+   |
+49 |             Space::with_width(Length::Fill),
+   |                    ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+49 -             Space::with_width(Length::Fill),
+49 +             Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:50:58
+   |
+50 |             text(format_time(state.total_duration)).size(typography::SIZE_SM),
+   |                                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                     |
+   |                                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:58:56
+   |
+58 |                     button(text(play_pause_label).size(typography::SIZE_BASE))
+   |                                                   ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                   |
+   |                                                   required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:62:46
+   |
+62 |                     button(text("Stop").size(typography::SIZE_BASE))
+   |                                         ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                         |
+   |                                         required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/components/player_controls.rs:69:20
+   |
+69 |             Space::with_width(Length::Fill),
+   |                    ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+69 -             Space::with_width(Length::Fill),
+69 +             Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:74:45
+   |
+74 |                         text("Speed:").size(typography::SIZE_SM),
+   |                                        ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                        |
+   |                                        required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:75:67
+   |
+75 |                         text(format!("{:.1}x", state.speed)).size(typography::SIZE_BASE),
+   |                                                              ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                              |
+   |                                                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:83:50
+   |
+83 |                         button(text("0.5x").size(typography::SIZE_SM))
+   |                                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                             |
+   |                                             required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:87:51
+   |
+87 |                         button(text("0.75x").size(typography::SIZE_SM))
+   |                                              ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                              |
+   |                                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:91:50
+   |
+91 |                         button(text("1.0x").size(typography::SIZE_SM))
+   |                                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                             |
+   |                                             required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:95:51
+   |
+95 |                         button(text("1.25x").size(typography::SIZE_SM))
+   |                                              ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                              |
+   |                                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/components/player_controls.rs:99:50
+   |
+99 |                         button(text("1.5x").size(typography::SIZE_SM))
+   |                                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                             |
+   |                                             required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:103:50
+    |
+103 |                         button(text("2.0x").size(typography::SIZE_SM))
+    |                                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                             |
+    |                                             required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+   --> src/ui/components/player_controls.rs:112:20
+    |
+112 |             Space::with_width(Length::Fill),
+    |                    ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+    |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+    |
+ 36 |     pub fn new() -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+    |
+112 -             Space::with_width(Length::Fill),
+112 +             Space::width(Length::Fill),
+    |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:116:42
+    |
+116 |                     text("Volume:").size(typography::SIZE_SM),
+    |                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                     |
+    |                                     required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:119:61
+    |
+119 |                     text(format!("{}%", state.volume)).size(typography::SIZE_SM),
+    |                                                        ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                                        |
+    |                                                        required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:155:43
+    |
+155 |                 text("Sleep Timer:").size(typography::SIZE_SM),
+    |                                      ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                      |
+    |                                      required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:156:41
+    |
+156 |                 button(text("15m").size(typography::SIZE_SM))
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:160:41
+    |
+160 |                 button(text("30m").size(typography::SIZE_SM))
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:164:41
+    |
+164 |                 button(text("45m").size(typography::SIZE_SM))
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:168:41
+    |
+168 |                 button(text("60m").size(typography::SIZE_SM))
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:172:52
+    |
+172 |                 button(text("End of Chapter").size(typography::SIZE_SM))
+    |                                               ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                               |
+    |                                               required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:180:38
+    |
+180 |                 text("Custom:").size(typography::SIZE_SM),
+    |                                 ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                 |
+    |                                 required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:185:41
+    |
+185 |                 button(text("Set").size(typography::SIZE_SM))
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:194:55
+    |
+194 |                 content = content.push(text(err).size(typography::SIZE_SM));
+    |                                                  ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                                  |
+    |                                                  required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:199:39
+    |
+199 |             text("Sleep Timer:").size(typography::SIZE_SM),
+    |                                  ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                  |
+    |                                  required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:200:41
+    |
+200 |             text("End of chapter").size(typography::SIZE_BASE),
+    |                                    ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                    |
+    |                                    required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+   --> src/ui/components/player_controls.rs:201:20
+    |
+201 |             Space::with_width(Length::Fill),
+    |                    ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+    |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+    |
+ 36 |     pub fn new() -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+    |
+201 -             Space::with_width(Length::Fill),
+201 +             Space::width(Length::Fill),
+    |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:202:40
+    |
+202 |             button(text("Cancel").size(typography::SIZE_SM))
+    |                                   ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                   |
+    |                                   required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:216:43
+    |
+216 |                 text("Sleep Timer:").size(typography::SIZE_SM),
+    |                                      ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                      |
+    |                                      required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:217:64
+    |
+217 |                 text(format_remaining_seconds(remaining)).size(typography::SIZE_BASE),
+    |                                                           ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                                           |
+    |                                                           required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+   --> src/ui/components/player_controls.rs:218:24
+    |
+218 |                 Space::with_width(Length::Fill),
+    |                        ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+    |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+    |
+ 36 |     pub fn new() -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+    |
+218 -                 Space::with_width(Length::Fill),
+218 +                 Space::width(Length::Fill),
+    |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:219:42
+    |
+219 |                 button(text("+15m").size(typography::SIZE_SM))
+    |                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                     |
+    |                                     required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/components/player_controls.rs:223:44
+    |
+223 |                 button(text("Cancel").size(typography::SIZE_SM))
+    |                                       ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                       |
+    |                                       required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:32:37
+   |
+32 |                     text("⚠ ").size(typography::SIZE_BASE),
+   |                                ---- ^^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                |
+   |                                required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:33:38
+   |
+33 |                     text(error).size(typography::SIZE_SM),
+   |                                 ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                 |
+   |                                 required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/main_window.rs:34:28
+   |
+34 |                     Space::with_width(Length::Fill),
+   |                            ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+34 -                     Space::with_width(Length::Fill),
+34 +                     Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:35:49
+   |
+35 |                     button(text("Dismiss").size(typography::SIZE_XS))
+   |                                            ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                            |
+   |                                            required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:58:49
+   |
+58 |                         text("Scanning: ").size(typography::SIZE_SM),
+   |                                            ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                            |
+   |                                            required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:59:40
+   |
+59 |                         text(dir).size(typography::SIZE_XS),
+   |                                   ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                   |
+   |                                   required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:82:54
+   |
+82 |                 text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
+   |                                                 ---- ^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                 |
+   |                                                 required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/main_window.rs:83:24
+   |
+83 |                 Space::with_width(Length::Fill),
+   |                        ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+83 -                 Space::with_width(Length::Fill),
+83 +                 Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/main_window.rs:84:46
+   |
+84 |                 button(text("Settings").size(typography::SIZE_SM))
+   |                                         ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                         |
+   |                                         required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0061]: this method takes 1 argument but 0 arguments were supplied
+   --> src/ui/main_window.rs:159:14
+    |
+159 |             .center_x();
+    |              ^^^^^^^^-- argument #1 is missing
+    |
+note: method defined here
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:145:12
+    |
+145 |     pub fn center_x(self, width: impl Into<Length>) -> Self {
+    |            ^^^^^^^^
+help: provide the argument
+    |
+159 |             .center_x(/* width */);
+    |                       +++++++++++
+
+error[E0061]: this method takes 1 argument but 0 arguments were supplied
+   --> src/ui/main_window.rs:178:14
+    |
+178 |             .center_x();
+    |              ^^^^^^^^-- argument #1 is missing
+    |
+note: method defined here
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:145:12
+    |
+145 |     pub fn center_x(self, width: impl Into<Length>) -> Self {
+    |            ^^^^^^^^
+help: provide the argument
+    |
+178 |             .center_x(/* width */);
+    |                       +++++++++++
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+   --> src/ui/main_window.rs:185:65
+    |
+185 |         let loading_message = container(text("Loading...").size(typography::SIZE_LG))
+    |                                                            ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+    |                                                            |
+    |                                                            required by a bound introduced by this call
+    |
+help: the following other types implement trait `From<T>`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+    |
+ 17 | impl From<f32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+ 23 | impl From<u32> for Pixels {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+    = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+    |
+ 83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+    |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0061]: this method takes 1 argument but 0 arguments were supplied
+   --> src/ui/main_window.rs:197:14
+    |
+197 |             .center_x();
+    |              ^^^^^^^^-- argument #1 is missing
+    |
+note: method defined here
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:145:12
+    |
+145 |     pub fn center_x(self, width: impl Into<Length>) -> Self {
+    |            ^^^^^^^^
+help: provide the argument
+    |
+197 |             .center_x(/* width */);
+    |                       +++++++++++
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:17:66
+   |
+17 |         column![text("No audiobook directories configured").size(typography::SIZE_SM)]
+   |                                                             ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                             |
+   |                                                             required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:31:42
+   |
+31 |                         text(&path).size(typography::SIZE_SM),
+   |                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                     |
+   |                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/settings_form.rs:32:32
+   |
+32 |                         Space::with_width(Length::Fill),
+   |                                ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+32 -                         Space::with_width(Length::Fill),
+32 +                         Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:33:52
+   |
+33 |                         button(text("Rescan").size(typography::SIZE_XS))
+   |                                               ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                               |
+   |                                               required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:37:52
+   |
+37 |                         button(text("Remove").size(typography::SIZE_XS))
+   |                                               ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                               |
+   |                                               required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:52:35
+   |
+52 |             text("Settings").size(typography::SIZE_XXL),
+   |                              ---- ^^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                              |
+   |                              required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:54:58
+   |
+54 |             container(text("Audiobook Directories").size(typography::SIZE_LG)).padding([
+   |                                                     ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                     |
+   |                                                     required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/settings_form.rs:54:88
+    |
+ 54 |               container(text("Audiobook Directories").size(typography::SIZE_LG)).padding([
+    |  ________________________________________________________________________________-------_^
+    | |                                                                                |
+    | |                                                                                required by a bound introduced by this call
+ 55 | |                 spacing::MD,
+ 56 | |                 0.0,
+ 57 | |                 spacing::SM,
+ 58 | |                 0.0
+ 59 | |             ]),
+    | |_____________^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `Container::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:115:23
+    |
+115 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Container::<'a, Message, Theme, Renderer>::padding`
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:65:55
+   |
+65 |                     button(text("Add Directory").size(typography::SIZE_SM))
+   |                                                  ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                                  |
+   |                                                  required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0599]: no function or associated item named `with_width` found for struct `iced::widget::Space` in the current scope
+  --> src/ui/settings_form.rs:69:28
+   |
+69 |                     Space::with_width(Length::Fill),
+   |                            ^^^^^^^^^^ function or associated item not found in `iced::widget::Space`
+   |
+note: if you're trying to build a new `iced::widget::Space`, consider using `iced::widget::Space::new` which returns `iced::widget::Space`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/space.rs:36:5
+   |
+36 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+help: there is a method `width` with a similar name
+   |
+69 -                     Space::with_width(Length::Fill),
+69 +                     Space::width(Length::Fill),
+   |
+
+error[E0277]: the trait bound `iced::Pixels: From<u16>` is not satisfied
+  --> src/ui/settings_form.rs:70:47
+   |
+70 |                     button(text("Close").size(typography::SIZE_SM))
+   |                                          ---- ^^^^^^^^^^^^^^^^^^^ the trait `From<u16>` is not implemented for `iced::Pixels`
+   |                                          |
+   |                                          required by a bound introduced by this call
+   |
+help: the following other types implement trait `From<T>`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/pixels.rs:17:1
+   |
+17 | impl From<f32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<f32>`
+...
+23 | impl From<u32> for Pixels {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ `iced::Pixels` implements `From<u32>`
+   = note: required for `u16` to implement `Into<iced::Pixels>`
+note: required by a bound in `iced::advanced::widget::Text::<'a, Theme, Renderer>::size`
+  --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_core-0.14.0/src/widget/text.rs:83:38
+   |
+83 |     pub fn size(mut self, size: impl Into<Pixels>) -> Self {
+   |                                      ^^^^^^^^^^^^ required by this bound in `Text::<'a, Theme, Renderer>::size`
+
+error[E0277]: the trait bound `Padding: From<[f32; 4]>` is not satisfied
+   --> src/ui/settings_form.rs:77:22
+    |
+ 77 |             .padding([spacing::MD, 0.0, 0.0, 0.0]),
+    |              ------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<[f32; 4]>` is not implemented for `Padding`
+    |              |
+    |              required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `From<T>`:
+              `Padding` implements `From<[f32; 2]>`
+              `Padding` implements `From<[u16; 2]>`
+              `Padding` implements `From<f32>`
+              `Padding` implements `From<iced::Pixels>`
+              `Padding` implements `From<u16>`
+    = note: required for `[f32; 4]` to implement `Into<Padding>`
+note: required by a bound in `Container::<'a, Message, Theme, Renderer>::padding`
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:115:23
+    |
+115 |     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+    |                       ^^^^^^^^^^^^^ required by this bound in `Container::<'a, Message, Theme, Renderer>::padding`
+
+error[E0061]: this method takes 1 argument but 0 arguments were supplied
+   --> src/ui/settings_form.rs:84:6
+    |
+ 84 |     .center_x()
+    |      ^^^^^^^^-- argument #1 is missing
+    |
+note: method defined here
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:145:12
+    |
+145 |     pub fn center_x(self, width: impl Into<Length>) -> Self {
+    |            ^^^^^^^^
+help: provide the argument
+    |
+ 84 |     .center_x(/* width */)
+    |               +++++++++++
+
+error[E0061]: this method takes 1 argument but 0 arguments were supplied
+   --> src/ui/settings_form.rs:85:6
+    |
+ 85 |     .center_y()
+    |      ^^^^^^^^-- argument #1 is missing
+    |
+note: method defined here
+   --> /Users/mistlight/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/iced_widget-0.14.2/src/container.rs:150:12
+    |
+150 |     pub fn center_y(self, height: impl Into<Length>) -> Self {
+    |            ^^^^^^^^
+help: provide the argument
+    |
+ 85 |     .center_y(/* height */)
+    |               ++++++++++++
+
+error[E0063]: missing field `warning` in initializer of `Palette`
+   --> src/ui/styles.rs:338:19
+    |
+338 |     let palette = Palette {
+    |                   ^^^^^^^ missing `warning`
+
+error: unused variable: `palette`
+   --> src/ui/styles.rs:144:13
+    |
+144 |         let palette = theme.palette();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_palette`
+    |
+    = note: requested on the command line with `-D unused-variables`
+
+error: unused variable: `palette`
+   --> src/ui/styles.rs:193:13
+    |
+193 |         let palette = theme.palette();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_palette`
+
+error: unused variable: `palette`
+   --> src/ui/styles.rs:242:13
+    |
+242 |         let palette = theme.palette();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_palette`
+
+Some errors have detailed explanations: E0061, E0063, E0277, E0560, E0599.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `nodoka` (lib) due to 100 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `nodoka` (lib test) due to 100 previous errors

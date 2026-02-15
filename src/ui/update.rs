@@ -6,7 +6,7 @@ use crate::tasks::{
     cleanup_temp_files, materialize_zip_virtual_path, parse_zip_virtual_path, zip_temp_dir,
 };
 use crate::ui::{Message, State};
-use iced::Command;
+use iced::Task;
 use std::path::{Path, PathBuf};
 
 mod bookmarks;
@@ -46,7 +46,7 @@ pub fn update(
     message: Message,
     player: &mut Option<Vlc>,
     db: &Database,
-) -> Command<Message> {
+) -> Task<Message> {
     match message {
         // Player control messages
         Message::PlayPause => handle_play_pause(state, player),
@@ -103,7 +103,7 @@ pub fn update(
         // Directory management messages
         Message::DirectoryAdd => directories::handle_directory_add(),
         Message::DirectoryAdded(path) => directories::handle_directory_added(state, db, &path),
-        Message::DirectoryAddCancelled | Message::None => Command::none(),
+        Message::DirectoryAddCancelled | Message::None => Task::none(),
         Message::DirectoryRemove(path) => {
             directories::handle_directory_remove(state, player, db, &path)
         }
@@ -136,29 +136,29 @@ pub fn update(
     }
 }
 
-fn handle_window_moved(db: &Database, x: i32, y: i32) -> Command<Message> {
+fn handle_window_moved(db: &Database, x: i32, y: i32) -> Task<Message> {
     let settings = crate::settings::Settings::new(db.connection());
     if let Err(e) = settings.set_window_position(x, y) {
         tracing::warn!("Failed to persist window position: {e}");
     }
-    Command::none()
+    Task::none()
 }
 
-fn handle_window_resized(db: &Database, width: u32, height: u32) -> Command<Message> {
+fn handle_window_resized(db: &Database, width: u32, height: u32) -> Task<Message> {
     let settings = crate::settings::Settings::new(db.connection());
 
     let width_i32 = match i32::try_from(width) {
         Ok(v) => v,
         Err(_e) => {
             tracing::warn!("Window resize width out of range: {width}");
-            return Command::none();
+            return Task::none();
         }
     };
     let height_i32 = match i32::try_from(height) {
         Ok(v) => v,
         Err(_e) => {
             tracing::warn!("Window resize height out of range: {height}");
-            return Command::none();
+            return Task::none();
         }
     };
 
@@ -166,10 +166,10 @@ fn handle_window_resized(db: &Database, width: u32, height: u32) -> Command<Mess
         tracing::warn!("Failed to persist window size: {e}");
     }
 
-    Command::none()
+    Task::none()
 }
 
-fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {
+fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
     if let Some(ref mut p) = player {
         if state.is_playing {
             if let Err(e) = p.pause() {
@@ -183,10 +183,10 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Command<Mes
             state.is_playing = true;
         }
     }
-    Command::none()
+    Task::none()
 }
 
-fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> {
+fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
             tracing::error!("Failed to stop: {e}");
@@ -205,7 +205,7 @@ fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Command<Message> 
         }
     }
 
-    Command::none()
+    Task::none()
 }
 
 fn reset_playback_state(state: &mut State, player: &mut Option<Vlc>) {
@@ -219,7 +219,7 @@ fn reset_playback_state(state: &mut State, player: &mut Option<Vlc>) {
     state.total_duration = 0.0;
 }
 
-fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) -> Command<Message> {
+fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) -> Task<Message> {
     if let Some(ref mut p) = player {
         match f64_to_ms(position) {
             Ok(position_ms) => {
@@ -234,21 +234,21 @@ fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) ->
             }
         }
     }
-    Command::none()
+    Task::none()
 }
 
 fn handle_player_tick(
     state: &mut State,
     player: &mut Option<Vlc>,
     db: &Database,
-) -> Command<Message> {
+) -> Task<Message> {
     let timer_consumed_tick = sleep_timer::handle_sleep_timer_tick(state, player);
     if timer_consumed_tick {
-        return Command::none();
+        return Task::none();
     }
 
     if state.selected_file.is_none() {
-        return Command::none();
+        return Task::none();
     }
 
     let (time, player_state) = match player.as_ref() {
@@ -274,13 +274,13 @@ fn handle_player_tick(
                     tracing::warn!(
                         "Failed to read player time; skipping progress persist for this tick: {e}"
                     );
-                    return Command::none();
+                    return Task::none();
                 }
             };
 
             (time, p.get_state())
         }
-        None => return Command::none(),
+        None => return Task::none(),
     };
 
     let command = handle_time_updated(state, db, time);
@@ -304,7 +304,7 @@ fn handle_player_tick(
             state.current_time = state.total_duration;
             state.sleep_timer = None;
             state.sleep_timer_base_volume = None;
-            return Command::none();
+            return Task::none();
         }
 
         return advance_to_next_file(state, player, db);
@@ -318,7 +318,7 @@ fn handle_volume_changed(
     player: &mut Option<Vlc>,
     db: &Database,
     volume: i32,
-) -> Command<Message> {
+) -> Task<Message> {
     let volume = volume.clamp(0, 200);
 
     state.volume = volume;
@@ -332,7 +332,7 @@ fn handle_volume_changed(
             tracing::error!("Failed to set volume: {e}");
         }
     }
-    Command::none()
+    Task::none()
 }
 
 fn sanitize_speed(speed: f32) -> f32 {
@@ -350,7 +350,7 @@ fn handle_speed_changed(
     player: &mut Option<Vlc>,
     db: &Database,
     speed: f32,
-) -> Command<Message> {
+) -> Task<Message> {
     let speed = sanitize_speed(speed);
 
     state.speed = speed;
@@ -365,7 +365,7 @@ fn handle_speed_changed(
             tracing::error!("Failed to set speed: {e}");
         }
     }
-    Command::none()
+    Task::none()
 }
 
 fn handle_audiobook_selected(
@@ -373,7 +373,7 @@ fn handle_audiobook_selected(
     player: &mut Option<Vlc>,
     db: &Database,
     id: i64,
-) -> Command<Message> {
+) -> Task<Message> {
     let old_selection = state.selected_audiobook;
     let is_new_selection = old_selection != Some(id);
     if is_new_selection {
@@ -420,15 +420,15 @@ fn handle_audiobook_selected(
         .and_then(|ab| ab.id)
         .is_some_and(|id| state.cover_thumbnails.contains_key(&id))
     {
-        return Command::none();
+        return Task::none();
     }
 
     let Some(selected_id) = state.selected_audiobook else {
-        return Command::none();
+        return Task::none();
     };
 
     let Some(ab) = state.audiobooks.iter().find(|a| a.id == Some(selected_id)) else {
-        return Command::none();
+        return Task::none();
     };
 
     generate_cover_thumbnail_command(selected_id, ab.full_path.clone())
@@ -439,7 +439,7 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
     player: &mut Option<P>,
     db: &Database,
     path: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
         state.selected_file = Some(path.to_string());
 
@@ -507,7 +507,7 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                     Ok(p) => p,
                     Err(e) => {
                         tracing::error!("Failed to extract ZIP entry for playback: {e}");
-                        return Command::none();
+                        return Task::none();
                     }
                 }
             } else {
@@ -516,7 +516,7 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
             if let Err(e) = p.load_media(&playback_path) {
                 tracing::error!("Failed to load media: {e}");
-                return Command::none();
+                return Task::none();
             }
 
             persist_selected_file(state, db, path);
@@ -533,31 +533,31 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
         }
     }
 
-    Command::none()
+    Task::none()
 }
 
-// Cannot be const fn because Command::none() is not const
-fn handle_open_settings(state: &mut State) -> Command<Message> {
+// Cannot be const fn because Task::none() is not const
+fn handle_open_settings(state: &mut State) -> Task<Message> {
     state.settings_open = true;
-    Command::none()
+    Task::none()
 }
 
-// Cannot be const fn because Command::none() is not const
-fn handle_close_settings(state: &mut State) -> Command<Message> {
+// Cannot be const fn because Task::none() is not const
+fn handle_close_settings(state: &mut State) -> Task<Message> {
     state.settings_open = false;
-    Command::none()
+    Task::none()
 }
 
-fn handle_dismiss_error(state: &mut State) -> Command<Message> {
+fn handle_dismiss_error(state: &mut State) -> Task<Message> {
     state.error_message = None;
     state.error_timestamp = None;
-    Command::none()
+    Task::none()
 }
 
-fn handle_initial_load_complete(state: &mut State) -> Command<Message> {
+fn handle_initial_load_complete(state: &mut State) -> Task<Message> {
     state.is_loading = false;
 
-    let cmds: Vec<Command<Message>> = state
+    let cmds: Vec<Task<Message>> = state
         .audiobooks
         .iter()
         .take(32)
@@ -570,22 +570,22 @@ fn handle_initial_load_complete(state: &mut State) -> Command<Message> {
         })
         .collect();
 
-    Command::batch(cmds)
+    Task::batch(cmds)
 }
 
 fn handle_cover_thumbnail_generated(
     state: &mut State,
     audiobook_id: i64,
     path: Option<PathBuf>,
-) -> Command<Message> {
+) -> Task<Message> {
     if let Some(path) = path {
         state.cover_thumbnails.insert(audiobook_id, path);
     }
-    Command::none()
+    Task::none()
 }
 
-fn generate_cover_thumbnail_command(audiobook_id: i64, full_path: String) -> Command<Message> {
-    Command::perform(
+fn generate_cover_thumbnail_command(audiobook_id: i64, full_path: String) -> Task<Message> {
+    Task::perform(
         async move {
             let path = PathBuf::from(full_path);
             let res = tokio::task::spawn_blocking(move || {
@@ -613,7 +613,7 @@ fn generate_cover_thumbnail_command(audiobook_id: i64, full_path: String) -> Com
     )
 }
 
-fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Command<Message> {
+fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Task<Message> {
     state.current_time = time;
 
     if let Some(ref file_path) = state.selected_file {
@@ -637,7 +637,7 @@ fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Command<M
         }
     }
 
-    Command::none()
+    Task::none()
 }
 
 fn should_auto_advance(state: &State, player_state: PlaybackState, time: f64) -> bool {
@@ -661,9 +661,9 @@ fn advance_to_next_file(
     state: &mut State,
     player: &mut Option<Vlc>,
     db: &Database,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(current_path) = state.selected_file.clone() else {
-        return Command::none();
+        return Task::none();
     };
 
     mark_current_file_complete(state, db, &current_path);
@@ -686,7 +686,7 @@ fn advance_to_next_file(
     }
     state.is_playing = false;
     state.current_time = state.total_duration;
-    Command::none()
+    Task::none()
 }
 
 fn mark_current_file_complete(state: &mut State, db: &Database, file_path: &str) {
@@ -801,18 +801,18 @@ fn handle_seek_forward(
     state: &mut State,
     player: &mut Option<Vlc>,
     seconds: i64,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(_) = player else {
-        return Command::none();
+        return Task::none();
     };
 
     let Ok(current_ms) = f64_to_ms(state.current_time) else {
-        return Command::none();
+        return Task::none();
     };
 
     let seek_ms = current_ms + (seconds * 1000);
     let Ok(seek_f64) = ms_to_f64(seek_ms) else {
-        return Command::none();
+        return Task::none();
     };
 
     handle_seek_to(state, player, seek_f64)
@@ -823,18 +823,18 @@ fn handle_seek_backward(
     state: &mut State,
     player: &mut Option<Vlc>,
     seconds: i64,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(_) = player else {
-        return Command::none();
+        return Task::none();
     };
 
     let Ok(current_ms) = f64_to_ms(state.current_time) else {
-        return Command::none();
+        return Task::none();
     };
 
     let seek_ms = (current_ms - (seconds * 1000)).max(0);
     let Ok(seek_f64) = ms_to_f64(seek_ms) else {
-        return Command::none();
+        return Task::none();
     };
 
     handle_seek_to(state, player, seek_f64)
@@ -845,9 +845,9 @@ fn handle_next_file(
     state: &mut State,
     player: &mut Option<Vlc>,
     db: &Database,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(ref current_path) = state.selected_file else {
-        return Command::none();
+        return Task::none();
     };
 
     let next_path = state
@@ -857,7 +857,9 @@ fn handle_next_file(
         .and_then(|idx| state.current_files.get(idx + 1))
         .map(|file| file.full_path.clone());
 
-    next_path.map_or_else(Command::none, |path| handle_file_selected(state, player, db, &path))
+    next_path.map_or_else(Task::none, |path| {
+        handle_file_selected(state, player, db, &path)
+    })
 }
 
 /// Selects the previous file in the current file list
@@ -865,27 +867,35 @@ fn handle_previous_file(
     state: &mut State,
     player: &mut Option<Vlc>,
     db: &Database,
-) -> Command<Message> {
+) -> Task<Message> {
     let Some(ref current_path) = state.selected_file else {
-        return Command::none();
+        return Task::none();
     };
 
     let prev_path = state
         .current_files
         .iter()
         .position(|file| &file.full_path == current_path)
-        .and_then(|idx| if idx > 0 { state.current_files.get(idx - 1) } else { None })
+        .and_then(|idx| {
+            if idx > 0 {
+                state.current_files.get(idx - 1)
+            } else {
+                None
+            }
+        })
         .map(|file| file.full_path.clone());
 
-    prev_path.map_or_else(Command::none, |path| handle_file_selected(state, player, db, &path))
+    prev_path.map_or_else(Task::none, |path| {
+        handle_file_selected(state, player, db, &path)
+    })
 }
 
 /// Closes any open modal (settings or bookmark editor)
-fn handle_close_modal(state: &mut State) -> Command<Message> {
+fn handle_close_modal(state: &mut State) -> Task<Message> {
     if state.settings_open {
         state.settings_open = false;
     } else if state.bookmark_editor.is_some() {
         state.bookmark_editor = None;
     }
-    Command::none()
+    Task::none()
 }

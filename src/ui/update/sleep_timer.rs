@@ -1,36 +1,36 @@
 use crate::models::{SleepTimer, SleepTimerMode};
 use crate::player::Vlc;
 use crate::ui::{Message, State};
-use iced::Command;
+use iced::Task;
 
 const DEFAULT_SLEEP_TIMER_FADE_SECS: u32 = 7;
 
-pub(super) fn handle_sleep_timer_set_duration(state: &mut State, secs: i64) -> Command<Message> {
+pub(super) fn handle_sleep_timer_set_duration(state: &mut State, secs: i64) -> Task<Message> {
     let secs = secs.max(0);
     state.sleep_timer = Some(SleepTimer::new(
         SleepTimerMode::Duration(secs),
         DEFAULT_SLEEP_TIMER_FADE_SECS,
     ));
     state.sleep_timer_base_volume = Some(state.volume);
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_sleep_timer_set_end_of_chapter(state: &mut State) -> Command<Message> {
+pub(super) fn handle_sleep_timer_set_end_of_chapter(state: &mut State) -> Task<Message> {
     state.sleep_timer = Some(SleepTimer::new(
         SleepTimerMode::EndOfChapter,
         DEFAULT_SLEEP_TIMER_FADE_SECS,
     ));
     state.sleep_timer_base_volume = Some(state.volume);
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_sleep_timer_extend(state: &mut State, secs: i64) -> Command<Message> {
+pub(super) fn handle_sleep_timer_extend(state: &mut State, secs: i64) -> Task<Message> {
     let Some(timer) = state.sleep_timer.as_ref() else {
-        return Command::none();
+        return Task::none();
     };
 
     let SleepTimerMode::Duration(_) = timer.mode else {
-        return Command::none();
+        return Task::none();
     };
 
     let remaining = timer.remaining_seconds().unwrap_or(0);
@@ -43,13 +43,13 @@ pub(super) fn handle_sleep_timer_extend(state: &mut State, secs: i64) -> Command
     if state.sleep_timer_base_volume.is_none() {
         state.sleep_timer_base_volume = Some(state.volume);
     }
-    Command::none()
+    Task::none()
 }
 
 pub(super) fn handle_sleep_timer_cancel(
     state: &mut State,
     player: &mut Option<Vlc>,
-) -> Command<Message> {
+) -> Task<Message> {
     state.sleep_timer = None;
     state.sleep_timer_base_volume = None;
 
@@ -59,36 +59,36 @@ pub(super) fn handle_sleep_timer_cancel(
         }
     }
 
-    Command::none()
+    Task::none()
 }
 
 pub(super) fn handle_sleep_timer_custom_minutes_changed(
     state: &mut State,
     value: &str,
-) -> Command<Message> {
+) -> Task<Message> {
     state.sleep_timer_custom_minutes = value.to_string();
     state.sleep_timer_custom_error = None;
-    Command::none()
+    Task::none()
 }
 
-pub(super) fn handle_sleep_timer_custom_submit(state: &mut State) -> Command<Message> {
+pub(super) fn handle_sleep_timer_custom_submit(state: &mut State) -> Task<Message> {
     let trimmed = state.sleep_timer_custom_minutes.trim();
     if trimmed.is_empty() {
         state.sleep_timer_custom_error = Some("Enter minutes".to_string());
-        return Command::none();
+        return Task::none();
     }
 
     let minutes: i64 = match trimmed.parse() {
         Ok(v) => v,
         Err(_e) => {
             state.sleep_timer_custom_error = Some("Minutes must be a whole number".to_string());
-            return Command::none();
+            return Task::none();
         }
     };
 
     if minutes <= 0 {
         state.sleep_timer_custom_error = Some("Minutes must be greater than zero".to_string());
-        return Command::none();
+        return Task::none();
     }
 
     let secs = minutes.saturating_mul(60);

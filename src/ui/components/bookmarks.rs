@@ -1,10 +1,8 @@
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
-use crate::ui::styles::{button_containers, spacing, typography};
+use crate::ui::styles::{button_styles, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{
-    button, column, container, horizontal_space, row, scrollable, text, text_input,
-};
+use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Element, Length};
 
 /// Renders the bookmark list view with improved visual design
@@ -15,16 +13,14 @@ use iced::{Element, Length};
 /// - Visual indicators for missing files
 /// - Improved spacing and typography
 #[must_use]
-pub fn view(bookmarks: &[Bookmark], files: &[AudiobookFile]) -> Element<'static, Message> {
+pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Element<'a, Message> {
     let header = row![
         text("Bookmarks").size(typography::SIZE_LG),
-        horizontal_space(),
-        container(
-            button(text("Add Bookmark").size(typography::SIZE_SM))
-                .on_press(Message::CreateBookmark)
-                .padding(spacing::SM)
-        )
-        .style(button_containers::primary())
+        Space::new().width(Length::Fill),
+        button(text("Add Bookmark").size(typography::SIZE_SM))
+            .on_press(Message::CreateBookmark)
+            .padding(spacing::SM)
+            .style(button_styles::primary)
     ]
     .padding(spacing::MD);
 
@@ -65,25 +61,21 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
         column![
             text("Edit Bookmark").size(typography::SIZE_XL),
             text(format!("Position: {pos}")).size(typography::SIZE_SM),
-            container(label_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
-            container(note_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
+            container(label_input).padding(iced::Padding::from([0.0, spacing::SM])),
+            container(note_input).padding(iced::Padding::from([0.0, spacing::SM])),
             row![
-                container(
-                    button(text("Cancel").size(typography::SIZE_SM))
-                        .on_press(Message::BookmarkEditorCancel)
-                        .padding(spacing::SM)
-                )
-                .style(button_containers::secondary()),
-                horizontal_space(),
-                container(
-                    button(text("Save").size(typography::SIZE_SM))
-                        .on_press(Message::BookmarkEditorSave)
-                        .padding(spacing::SM)
-                )
-                .style(button_containers::primary())
+                button(text("Cancel").size(typography::SIZE_SM))
+                    .on_press(Message::BookmarkEditorCancel)
+                    .padding(spacing::SM)
+                    .style(button_styles::secondary),
+                Space::new().width(Length::Fill),
+                button(text("Save").size(typography::SIZE_SM))
+                    .on_press(Message::BookmarkEditorSave)
+                    .padding(spacing::SM)
+                    .style(button_styles::primary)
             ]
             .spacing(spacing::MD)
-            .padding([spacing::MD, 0.0, 0.0, 0.0])
+            .padding(iced::Padding::from([spacing::MD, 0.0]))
         ]
         .spacing(spacing::SM)
         .padding(spacing::MD),
@@ -114,20 +106,16 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
         button(text(label_text).size(typography::SIZE_SM))
             .on_press_maybe(id.map(Message::BookmarkJump))
             .padding(spacing::SM),
-        horizontal_space(),
+        Space::new().width(Length::Fill),
         text(pos).size(typography::SIZE_XS),
-        container(
-            button(text("Edit").size(typography::SIZE_XS))
-                .on_press_maybe(id.map(Message::BookmarkEdit))
-                .padding(spacing::XS)
-        )
-        .style(button_containers::secondary()),
-        container(
-            button(text("Delete").size(typography::SIZE_XS))
-                .on_press_maybe(id.map(Message::BookmarkDelete))
-                .padding(spacing::XS)
-        )
-        .style(button_containers::danger()),
+        button(text("Edit").size(typography::SIZE_XS))
+            .on_press_maybe(id.map(Message::BookmarkEdit))
+            .padding(spacing::XS)
+            .style(button_styles::secondary),
+        button(text("Delete").size(typography::SIZE_XS))
+            .on_press_maybe(id.map(Message::BookmarkDelete))
+            .padding(spacing::XS)
+            .style(button_styles::danger),
     ]
     .spacing(spacing::SM)
     .padding(spacing::SM)

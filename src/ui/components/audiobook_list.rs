@@ -1,9 +1,7 @@
 use crate::models::Audiobook;
 use crate::ui::styles::{spacing, typography};
 use crate::ui::Message;
-use iced::widget::{
-    button, column, container, horizontal_space, image, progress_bar, row, scrollable, text,
-};
+use iced::widget::{button, column, container, image, progress_bar, row, scrollable, text, Space};
 use iced::{Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
@@ -18,11 +16,11 @@ use std::path::PathBuf;
 /// - Improved spacing and visual hierarchy
 /// - Success indicator for completed audiobooks
 #[must_use]
-pub fn view<S: BuildHasher>(
-    audiobooks: &[Audiobook],
+pub fn view<'a, S: BuildHasher>(
+    audiobooks: &'a [Audiobook],
     selected_id: Option<i64>,
-    cover_thumbnails: &HashMap<i64, PathBuf, S>,
-) -> Element<'static, Message> {
+    cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+) -> Element<'a, Message> {
     let items: Element<_> = audiobooks
         .iter()
         .fold(column![].spacing(spacing::XS), |col, ab| {
@@ -36,11 +34,11 @@ pub fn view<S: BuildHasher>(
 }
 
 /// Builds a single audiobook list item with improved visual feedback
-fn build_audiobook_item<S: BuildHasher>(
-    ab: &Audiobook,
+fn build_audiobook_item<'a, S: BuildHasher>(
+    ab: &'a Audiobook,
     selected: bool,
-    cover_thumbnails: &HashMap<i64, PathBuf, S>,
-) -> Element<'static, Message> {
+    cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+) -> Element<'a, Message> {
     use crate::ui::styles::colors;
     use iced::Border;
 
@@ -77,7 +75,7 @@ fn build_audiobook_item<S: BuildHasher>(
             container(progress).width(Length::Fill),
             row![
                 text(format!("{completeness}%")).size(typography::SIZE_SM),
-                horizontal_space(),
+                Space::new().width(Length::Fill),
                 if is_complete {
                     text("✓ Complete").size(typography::SIZE_SM)
                 } else {
@@ -94,18 +92,16 @@ fn build_audiobook_item<S: BuildHasher>(
     // Apply selection styling using container background
     let content_container = if selected {
         container(content_row)
-            .style(
-                move |_theme: &iced::Theme| iced::widget::container::Appearance {
-                    background: Some(colors::SELECTION_BG.into()),
-                    text_color: Some(colors::SELECTION_TEXT),
-                    border: Border {
-                        color: colors::PRIMARY,
-                        width: 2.0,
-                        radius: 0.0.into(),
-                    },
-                    ..Default::default()
+            .style(move |_theme: &iced::Theme| iced::widget::container::Style {
+                background: Some(colors::SELECTION_BG.into()),
+                text_color: Some(colors::SELECTION_TEXT),
+                border: Border {
+                    color: colors::PRIMARY,
+                    width: 2.0,
+                    radius: 0.0.into(),
                 },
-            )
+                ..Default::default()
+            })
             .width(Length::Fill)
     } else {
         container(content_row).width(Length::Fill)

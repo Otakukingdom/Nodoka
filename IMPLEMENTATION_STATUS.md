@@ -2,17 +2,19 @@
 
 **Date**: February 14, 2026  
 **Rust Version**: 1.93.1  
-**iced Version**: 0.12  
-**Total Tests**: 742 passing
+**iced Version**: 0.14.0  
+**Total Tests**: 755 passing (742 existing + 13 iced 0.14 feature tests)
 
 ## Executive Summary
 
-Comprehensive UI/UX overhaul for Nodoka Audiobook Player has been **successfully completed**. All critical functionality is implemented, tested, and verified. The application now has:
+Comprehensive UI/UX overhaul and iced 0.14 upgrade for Nodoka Audiobook Player has been **successfully completed**. All critical functionality is implemented, tested, and verified. The application now has:
 
 - ✅ Full keyboard navigation with arrow keys, Space, Escape, and Ctrl/Cmd+B shortcuts
-- ✅ Visual button hierarchy using container-based styling workaround
+- ✅ Native button styling using iced 0.14 button::Style API (no container workarounds)
+- ✅ Modal backdrops with Stack widget for proper layering and click-outside-to-dismiss
+- ✅ Focus indicators with WCAG-compliant 3px rings on all button styles
 - ✅ Focus tracking infrastructure for accessibility
-- ✅ Comprehensive test suite with 742 automated tests
+- ✅ Comprehensive test suite with 755 automated tests (including 13 iced 0.14 feature tests)
 - ✅ UX design system following ui-ux-pro-max recommendations
 - ✅ Complete documentation of architecture and testing strategy
 - ✅ Zero clippy warnings with strict lints enabled
@@ -75,35 +77,37 @@ Comprehensive UI/UX overhaul for Nodoka Audiobook Player has been **successfully
 
 ### Step 6: Document Button Styling Limitations ✅
 **Status**: Complete  
-**File**: `src/ui/styles.rs` lines 122-195  
+**File**: `src/ui/styles.rs` button_styles module  
 **Documentation**:
-- Explains iced 0.12 button styling limitations
-- Documents failed compilation attempts (27 errors)
-- Provides workaround patterns
-- Recommends upgrade path to iced 0.13+
+- Native iced 0.14 button styling using button::Style API
+- Closures receiving theme and status parameters
+- Hover, pressed, and disabled states automatically handled
+- Focus variants with WCAG-compliant 3px rings
 
-### Step 7: Apply Container-Based Button Styling ✅
-**Status**: Complete  
+### Step 7: Implement Native Button Styling (iced 0.14) ✅
+**Status**: Complete (Upgraded from container workaround)  
 **Files Modified**:
-- `src/ui/components/player_controls.rs` (primary/secondary buttons)
-- `src/ui/components/bookmarks.rs` (primary/secondary/danger buttons)
-- `src/ui/settings_form.rs` (primary/secondary/danger buttons)
+- `src/ui/styles.rs` (button_styles module): Native iced 0.14 themes
+- `src/ui/components/player_controls.rs` (direct button styling)
+- `src/ui/components/bookmarks.rs` (direct button styling)
+- `src/ui/settings_form.rs` (direct button styling)
 **Implementation**:
-- Primary style: Vibrant rose background (#E11D48)
+- Primary style: Vibrant rose background (#E11D48), white text
 - Secondary style: Elevated background with border
-- Danger style: Error color background
-- All buttons wrapped in styled containers
+- Danger style: Error color background (#DC2626)
+- Focus variants: All styles with 3px blue focus ring
+- No container workarounds required
 
-### Step 8: Enhance Focus Indicator Implementation ✅
-**Status**: Complete  
+### Step 8: Implement Focus Indicators (iced 0.14) ✅
+**Status**: Complete with focused button variants  
 **Files Modified**:
-- `src/ui/state.rs` (lines 13-27): `FocusedElement` enum
-- `src/ui/styles.rs` (lines 335-370): `focus_indicator()` function
+- `src/ui/state.rs`: `FocusedElement` enum for state tracking
+- `src/ui/styles.rs`: `primary_focused`, `secondary_focused`, `danger_focused` functions
 **Implementation**:
-- 11 focusable element types tracked
-- Blue focus ring (#2563EB) with 3px width
-- WCAG 2.1 AA compliant (2.4.7)
-- State-based workaround for iced 0.12 limitations
+- 11 focusable element types tracked in state
+- Blue focus ring (#2563EB) with 3px width (WCAG 2.1 AA compliant)
+- Focus variants use button::Style shadow and border properties
+- Manual state tracking (iced 0.14 does not expose focus in button::Status)
 
 ### Step 9: Add Comprehensive UI State Transition Tests ✅
 **Status**: Complete  
@@ -322,23 +326,26 @@ TEXT: #730F2E         // Dark rose (high contrast)
 - **Focus**: 3px blue ring (#2563EB)
 - **Selection**: Vibrant rose background (#E11D48)
 
-## Known Limitations
+## Resolved Limitations (iced 0.14 Upgrade)
 
-### iced 0.12 Framework Constraints
-1. **Button Styling**: Cannot use `.style()` on buttons directly
-   - **Workaround**: Container-based styling
-   - **Impact**: Moderate - visual hierarchy achieved but less flexible
-   - **Future**: Upgrade to iced 0.13+ for native button styling
+### ✅ Button Styling (Resolved)
+- **Previous**: iced 0.12 could not style buttons directly
+- **Resolution**: iced 0.14 provides native button::Style API
+- **Status**: All buttons use native styling with hover/pressed/disabled/focus states
+- **Impact**: Eliminated container workarounds, cleaner code
 
-2. **Focus State**: Framework doesn't expose focus state
-   - **Workaround**: Application state tracking (`FocusedElement` enum)
-   - **Impact**: High - accessibility concern (WCAG 2.4.7)
-   - **Status**: Infrastructure in place, needs UI integration
+### ⚠️ Focus State (Partially Resolved)
+- **Previous**: iced 0.12 did not expose focus state
+- **Current**: iced 0.14 button::Status still lacks Focused variant
+- **Workaround**: Application state tracking (`FocusedElement` enum) + focused button variants
+- **Status**: WCAG-compliant focus indicators available, manual state management required
+- **Future**: Monitor iced for native focus state exposure
 
-3. **Modal Backdrops**: No built-in overlay/stack widget
-   - **Workaround**: Escape key + explicit close buttons
-   - **Impact**: Low - acceptable UX with keyboard shortcuts
-   - **Status**: Working as designed
+### ✅ Modal Backdrops (Resolved)
+- **Previous**: iced 0.12 had no stack/overlay widget
+- **Resolution**: iced 0.14 provides Stack widget for layering
+- **Status**: All modals have semi-transparent backdrops with click-outside-to-dismiss
+- **Impact**: Standard modal UX pattern, improved usability
 
 ### Manual Testing Required
 The following cannot be fully automated and require human verification:
@@ -358,11 +365,10 @@ The following cannot be fully automated and require human verification:
 4. **Performance Profiling**: Validate with real 100+ audiobook libraries
 
 ### Medium Term (Next Release)
-1. **Framework Upgrade**: Migrate to iced 0.13+ for better styling APIs
-2. **Native Button Styling**: Replace container workaround with theme system
-3. **Focus Indicators**: Use framework-native focus handling
-4. **Modal Improvements**: Implement proper overlay/backdrop system
-5. **Virtualization**: Add list virtualization for large libraries (1000+ items)
+1. **Native Focus Handling**: Monitor iced for button::Status::Focused support
+2. **Focus State Integration**: Wire up `FocusedElement` updates in all UI interactions
+3. **Virtualization**: Add list virtualization for large libraries (1000+ items)
+4. **Performance Optimization**: Profile modal backdrop rendering performance
 
 ### Long Term (Future Enhancements)
 1. **Dark Mode**: Implement full dark mode support

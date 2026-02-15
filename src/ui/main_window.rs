@@ -1,8 +1,8 @@
 use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
 use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
 use crate::ui::{settings_form, Message, State};
-use iced::widget::{button, column, container, horizontal_space, row, text};
-use iced::{Border, Element, Length};
+use iced::widget::{button, column, container, row, stack, text, Space};
+use iced::{Border, Color, Element, Length};
 
 /// Renders the main window with improved layout and visual hierarchy
 ///
@@ -13,7 +13,7 @@ use iced::{Border, Element, Length};
 /// - Modal overlays for settings and bookmark editor with backdrop
 /// - Consistent spacing and design system colors throughout
 #[must_use]
-pub fn view(state: &State) -> Element<'static, Message> {
+pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     let audiobook_list_widget = audiobook_list::view(
         &state.audiobooks,
         state.selected_audiobook,
@@ -31,7 +31,7 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 row![
                     text("⚠ ").size(typography::SIZE_BASE),
                     text(error).size(typography::SIZE_SM),
-                    horizontal_space(),
+                    Space::new().width(Length::Fill),
                     button(text("Dismiss").size(typography::SIZE_XS))
                         .on_press(Message::DismissError)
                         .padding(spacing::XS),
@@ -39,7 +39,7 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 .padding(spacing::MD)
                 .spacing(spacing::SM),
             )
-            .style(|_theme: &iced::Theme| container::Appearance {
+            .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::ERROR.into()),
                 text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()
@@ -61,7 +61,7 @@ pub fn view(state: &State) -> Element<'static, Message> {
                     .spacing(spacing::SM),
                 )
                 .padding(spacing::MD)
-                .style(|_theme: &iced::Theme| container::Appearance {
+                .style(|_theme: &iced::Theme| container::Style {
                     background: Some(colors::INFO.into()),
                     text_color: Some(colors::TEXT_ON_PRIMARY),
                     ..Default::default()
@@ -80,7 +80,7 @@ pub fn view(state: &State) -> Element<'static, Message> {
         container(
             row![
                 text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
-                horizontal_space(),
+                Space::new().width(Length::Fill),
                 button(text("Settings").size(typography::SIZE_SM))
                     .on_press(Message::OpenSettings)
                     .padding(spacing::MD),
@@ -107,46 +107,26 @@ pub fn view(state: &State) -> Element<'static, Message> {
     ])
     .padding(spacing::SM);
 
-    let mut content: Element<'static, Message> = main_content.into();
+    let mut content: Element<'a, Message> = main_content.into();
 
-    // Settings modal overlay
+    // Settings modal overlay with backdrop (iced 0.14)
     //
-    // ## Modal Backdrop Limitation (iced 0.12)
-    //
-    // **Current Implementation**: Modal is displayed as an overlay using column layout without
-    // a semi-transparent backdrop covering the main content.
-    //
-    // **Issue**: iced 0.12 does not provide a `stack` widget for layering elements with proper
-    // Z-index control. The column layout approach means:
-    // - No semi-transparent backdrop to indicate modal state
-    // - Cannot prevent interaction with background elements (though modals capture focus)
-    // - Cannot implement click-outside-to-dismiss pattern
-    //
-    // **Workaround Applied**: Users can dismiss modals using:
-    // - Escape key (keyboard shortcut implemented in shortcuts.rs)
-    // - Close/Cancel buttons within the modal
-    //
-    // **UX Impact**: Moderate. While not ideal, the modal is clearly visible with elevation
-    // styling (border and background color). The missing backdrop is a visual polish issue
-    // rather than a functional blocker.
-    //
-    // **Recommended Fix**: Upgrade to iced 0.13+ which includes a stack widget or similar
-    // layering primitive. Then implement proper modal backdrop:
-    // ```rust,ignore
-    // let backdrop = container(button(text("")).width(Fill).height(Fill)
-    //     .on_press(Message::CloseSettings)
-    //     .style(|_| button::Appearance {
-    //         background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.4).into()),
-    //         ..Default::default()
-    //     }));
-    // content = stack![content, backdrop, settings_dialog].into();
-    // ```
-    //
-    // **Manual Testing**: See Test Case 6-7 in main_window.rs test documentation for modal
-    // interaction testing procedures.
+    // Uses the stack widget to layer the main content, a semi-transparent backdrop,
+    // and the settings dialog. The backdrop provides visual indication that a modal
+    // is active and can be clicked to dismiss the modal (click-outside-to-dismiss pattern).
     if state.settings_open {
+        // Semi-transparent backdrop that dims the background and handles click-to-dismiss
+        let backdrop = button(container(text("")).width(Length::Fill).height(Length::Fill))
+            .style(|_theme: &iced::Theme, _status| button::Style {
+                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+                ..Default::default()
+            })
+            .on_press(Message::CloseSettings)
+            .width(Length::Fill)
+            .height(Length::Fill);
+
         let settings_dialog = container(settings_form::build_settings_dialog(state))
-            .style(|_theme: &iced::Theme| container::Appearance {
+            .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_SECONDARY.into()),
                 border: Border {
                     color: shadows::MD_BORDER,
@@ -156,16 +136,25 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 ..Default::default()
             })
             .padding(spacing::MD)
-            .center_x();
+            .center_x(Length::Fill);
 
-        content = column![content, settings_dialog].into();
+        content = stack![content, backdrop, settings_dialog].into();
     }
 
-    // Bookmark editor modal overlay
-    // Same modal backdrop limitation as settings modal (see above for details)
+    // Bookmark editor modal overlay with backdrop (iced 0.14)
     if let Some(editor) = state.bookmark_editor.as_ref() {
+        // Semi-transparent backdrop that dims the background and handles click-to-dismiss
+        let backdrop = button(container(text("")).width(Length::Fill).height(Length::Fill))
+            .style(|_theme: &iced::Theme, _status| button::Style {
+                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+                ..Default::default()
+            })
+            .on_press(Message::BookmarkEditorCancel)
+            .width(Length::Fill)
+            .height(Length::Fill);
+
         let editor_dialog = container(bookmarks::editor(editor))
-            .style(|_theme: &iced::Theme| container::Appearance {
+            .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_SECONDARY.into()),
                 border: Border {
                     color: shadows::MD_BORDER,
@@ -175,15 +164,24 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 ..Default::default()
             })
             .padding(spacing::MD)
-            .center_x();
+            .center_x(Length::Fill);
 
-        content = column![content, editor_dialog].into();
+        content = stack![content, backdrop, editor_dialog].into();
     }
 
-    // Loading state indicator
+    // Loading state indicator with backdrop (iced 0.14)
     if state.is_loading {
+        // Semi-transparent backdrop that dims the background (no click handler for loading state)
+        let backdrop = container(text(""))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+                ..Default::default()
+            })
+            .width(Length::Fill)
+            .height(Length::Fill);
+
         let loading_message = container(text("Loading...").size(typography::SIZE_LG))
-            .style(|_theme: &iced::Theme| container::Appearance {
+            .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_SECONDARY.into()),
                 text_color: Some(colors::TEXT_PRIMARY),
                 border: Border {
@@ -194,9 +192,9 @@ pub fn view(state: &State) -> Element<'static, Message> {
                 ..Default::default()
             })
             .padding(spacing::XL)
-            .center_x();
+            .center_x(Length::Fill);
 
-        content = column![content, loading_message].into();
+        content = stack![content, backdrop, loading_message].into();
     }
 
     content
@@ -269,9 +267,9 @@ mod tests {
     //! - [ ] Danger buttons use error color (Delete, Remove are red/error colored)
     //!
     //! ### Modal Backdrops
-    //! - [ ] Open settings - modal appears centered with border and elevation
-    //! - [ ] Click outside modal - note: iced 0.12 limitation prevents backdrop clicks
-    //! - [ ] Open bookmark editor - modal appears centered
+    //! - [ ] Open settings - modal appears centered with border, elevation, and dimmed background
+    //! - [ ] Click outside modal - modal closes (click-outside-to-dismiss pattern)
+    //! - [ ] Open bookmark editor - modal appears centered with backdrop
     //!
     //! ### Loading States
     //! - [ ] Add/rescan directory - "Scanning..." message appears during operation
@@ -298,10 +296,10 @@ mod tests {
     //! - [ ] All buttons have descriptive labels (not just icons)
     //! - [ ] Error messages are clear and actionable
     //!
-    //! ### Known Limitations (iced 0.12)
-    //! - Modal backdrops cannot intercept clicks (no stack widget support)
-    //! - Focus indicators have limited visibility (no focus state in button theme)
-    //! - Upgrading to iced 0.13+ would resolve these limitations
+    //! ### Resolved in iced 0.14
+    //! - Modal backdrops now use stack widget for proper layering and click handling
+    //! - Focus indicators available through native button theme focus state
+    //! - Native button styling eliminates container-based workarounds
 
     use super::*;
 
