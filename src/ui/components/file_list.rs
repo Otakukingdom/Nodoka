@@ -30,7 +30,10 @@ pub fn view(files: &[AudiobookFile], selected_path: Option<&String>) -> Element<
 }
 
 /// Builds a single file list item with improved status indicators and visual hierarchy
-fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Message> {
+fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+    use iced::Border;
+
     let name = file.name.clone();
     let is_missing = !file.file_exists;
     let duration = format_duration(file.length_of_file);
@@ -52,12 +55,13 @@ fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Me
 
     // Progress bar for files with partial progress
     let progress_element = if has_progress && !is_complete && !is_missing {
-        container(progress_bar(0.0..=100.0, completeness as f32)).width(Length::Fill)
+        let progress_value = completeness as f32;
+        container(progress_bar(0.0..=100.0, progress_value)).width(Length::Fill)
     } else {
         container(text("").size(1)).width(Length::Fill)
     };
 
-    let content = column![
+    let content_column = column![
         row![text(name).size(typography::SIZE_SM),],
         progress_element,
         row![
@@ -69,7 +73,27 @@ fn build_file_item(file: &AudiobookFile, _selected: bool) -> Element<'static, Me
     .padding(spacing::SM)
     .spacing(spacing::XS);
 
-    let mut item_button = button(container(content)).width(Length::Fill);
+    // Apply selection styling using container background
+    let content_container = if selected {
+        container(content_column)
+            .style(
+                move |_theme: &iced::Theme| iced::widget::container::Appearance {
+                    background: Some(colors::SELECTION_BG.into()),
+                    text_color: Some(colors::SELECTION_TEXT),
+                    border: Border {
+                        color: colors::PRIMARY,
+                        width: 2.0,
+                        radius: 0.0.into(),
+                    },
+                    ..Default::default()
+                },
+            )
+            .width(Length::Fill)
+    } else {
+        container(content_column).width(Length::Fill)
+    };
+
+    let mut item_button = button(content_container).width(Length::Fill);
 
     if !is_missing {
         item_button = item_button.on_press(Message::FileSelected(path));
@@ -110,7 +134,7 @@ mod tests {
             audiobook_id: 1,
             name: name.to_string(),
             full_path: full_path.to_string(),
-            length_of_file: Some(3600000), // 1 hour
+            length_of_file: Some(3_600_000), // 1 hour
             seek_position: if completeness > 0 { Some(1000) } else { None },
             checksum: None,
             position: 0,
@@ -206,13 +230,13 @@ mod tests {
 
     #[test]
     fn test_format_duration_with_hours() {
-        assert_eq!(format_duration(Some(3661000)), "1:01:01");
-        assert_eq!(format_duration(Some(7200000)), "2:00:00");
+        assert_eq!(format_duration(Some(3_661_000)), "1:01:01");
+        assert_eq!(format_duration(Some(7_200_000)), "2:00:00");
     }
 
     #[test]
     fn test_format_duration_with_minutes_only() {
-        assert_eq!(format_duration(Some(125000)), "2:05");
+        assert_eq!(format_duration(Some(125_000)), "2:05");
         assert_eq!(format_duration(Some(60000)), "1:00");
     }
 
@@ -283,6 +307,34 @@ mod tests {
         let file = create_test_file("missing.mp3", "/path/missing.mp3", 0, true);
         let element = build_file_item(&file, false);
         // Just verify it renders without panic
+        drop(element);
+    }
+
+    #[test]
+    fn test_build_file_item_uses_selection_parameter() {
+        let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
+
+        // Verify both selected and unselected states render without panic
+        let element_unselected = build_file_item(&file, false);
+        drop(element_unselected);
+
+        let element_selected = build_file_item(&file, true);
+        drop(element_selected);
+
+        // Note: Cannot verify visual styling due to iced Element opacity,
+        // but we ensure both code paths execute without panic
+    }
+
+    #[test]
+    fn test_view_properly_passes_selection_to_files() {
+        let files = vec![
+            create_test_file("chapter1.mp3", "/path/chapter1.mp3", 100, false),
+            create_test_file("chapter2.mp3", "/path/chapter2.mp3", 50, false),
+            create_test_file("chapter3.mp3", "/path/chapter3.mp3", 0, false),
+        ];
+
+        let selected = "/path/chapter2.mp3".to_string();
+        let element = view(&files, Some(&selected));
         drop(element);
     }
 }

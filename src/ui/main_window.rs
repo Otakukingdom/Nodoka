@@ -1,8 +1,8 @@
 use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
-use crate::ui::styles::{spacing, typography};
+use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
 use crate::ui::{settings_form, Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, text};
-use iced::{Element, Length};
+use iced::{Border, Element, Length};
 
 /// Renders the main window with improved layout and visual hierarchy
 ///
@@ -23,7 +23,59 @@ pub fn view(state: &State) -> Element<'static, Message> {
     let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
     let player_widget = player_controls::view(state);
 
+    // Error banner at top of screen
+    let error_banner = state.error_message.as_ref().map_or_else(
+        || container(text("")).height(Length::Shrink),
+        |error| {
+            container(
+                row![
+                    text("⚠ ").size(typography::SIZE_BASE),
+                    text(error).size(typography::SIZE_SM),
+                    horizontal_space(),
+                    button(text("Dismiss").size(typography::SIZE_XS))
+                        .on_press(Message::DismissError)
+                        .padding(spacing::XS),
+                ]
+                .padding(spacing::MD)
+                .spacing(spacing::SM),
+            )
+            .style(|_theme: &iced::Theme| container::Appearance {
+                background: Some(colors::ERROR.into()),
+                text_color: Some(colors::TEXT_ON_PRIMARY),
+                ..Default::default()
+            })
+            .width(Length::Fill)
+        },
+    );
+
+    // Loading/scanning indicator below error banner
+    let status_message = if state.is_scanning {
+        state.scanning_directory.as_ref().map_or_else(
+            || container(text("")),
+            |dir| {
+                container(
+                    row![
+                        text("Scanning: ").size(typography::SIZE_SM),
+                        text(dir).size(typography::SIZE_XS),
+                    ]
+                    .spacing(spacing::SM),
+                )
+                .padding(spacing::MD)
+                .style(|_theme: &iced::Theme| container::Appearance {
+                    background: Some(colors::INFO.into()),
+                    text_color: Some(colors::TEXT_ON_PRIMARY),
+                    ..Default::default()
+                })
+                .width(Length::Fill)
+            },
+        )
+    } else {
+        container(text(""))
+    };
+
     let main_content = container(column![
+        error_banner,
+        status_message,
         // Top bar with improved styling and spacing
         container(
             row![
@@ -57,31 +109,94 @@ pub fn view(state: &State) -> Element<'static, Message> {
 
     let mut content: Element<'static, Message> = main_content.into();
 
-    // Settings modal with backdrop overlay
+    // Settings modal overlay
+    //
+    // ## Modal Backdrop Limitation (iced 0.12)
+    //
+    // **Current Implementation**: Modal is displayed as an overlay using column layout without
+    // a semi-transparent backdrop covering the main content.
+    //
+    // **Issue**: iced 0.12 does not provide a `stack` widget for layering elements with proper
+    // Z-index control. The column layout approach means:
+    // - No semi-transparent backdrop to indicate modal state
+    // - Cannot prevent interaction with background elements (though modals capture focus)
+    // - Cannot implement click-outside-to-dismiss pattern
+    //
+    // **Workaround Applied**: Users can dismiss modals using:
+    // - Escape key (keyboard shortcut implemented in shortcuts.rs)
+    // - Close/Cancel buttons within the modal
+    //
+    // **UX Impact**: Moderate. While not ideal, the modal is clearly visible with elevation
+    // styling (border and background color). The missing backdrop is a visual polish issue
+    // rather than a functional blocker.
+    //
+    // **Recommended Fix**: Upgrade to iced 0.13+ which includes a stack widget or similar
+    // layering primitive. Then implement proper modal backdrop:
+    // ```rust,ignore
+    // let backdrop = container(button(text("")).width(Fill).height(Fill)
+    //     .on_press(Message::CloseSettings)
+    //     .style(|_| button::Appearance {
+    //         background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.4).into()),
+    //         ..Default::default()
+    //     }));
+    // content = stack![content, backdrop, settings_dialog].into();
+    // ```
+    //
+    // **Manual Testing**: See Test Case 6-7 in main_window.rs test documentation for modal
+    // interaction testing procedures.
     if state.settings_open {
-        content = container(column![
-            content,
-            settings_form::build_settings_dialog(state)
-        ])
-        .into();
+        let settings_dialog = container(settings_form::build_settings_dialog(state))
+            .style(|_theme: &iced::Theme| container::Appearance {
+                background: Some(colors::BG_SECONDARY.into()),
+                border: Border {
+                    color: shadows::MD_BORDER,
+                    width: 1.0,
+                    radius: border_radius::LG.into(),
+                },
+                ..Default::default()
+            })
+            .padding(spacing::MD)
+            .center_x();
+
+        content = column![content, settings_dialog].into();
     }
 
-    // Bookmark editor modal with backdrop overlay
+    // Bookmark editor modal overlay
+    // Same modal backdrop limitation as settings modal (see above for details)
     if let Some(editor) = state.bookmark_editor.as_ref() {
-        content = container(column![content, bookmarks::editor(editor)]).into();
+        let editor_dialog = container(bookmarks::editor(editor))
+            .style(|_theme: &iced::Theme| container::Appearance {
+                background: Some(colors::BG_SECONDARY.into()),
+                border: Border {
+                    color: shadows::MD_BORDER,
+                    width: 1.0,
+                    radius: border_radius::LG.into(),
+                },
+                ..Default::default()
+            })
+            .padding(spacing::MD)
+            .center_x();
+
+        content = column![content, editor_dialog].into();
     }
 
     // Loading state indicator
     if state.is_loading {
-        content = container(column![
-            content,
-            container(text("Loading...").size(typography::SIZE_LG))
-                .center_x()
-                .center_y()
-                .width(Length::Fill)
-                .height(Length::Fill)
-        ])
-        .into();
+        let loading_message = container(text("Loading...").size(typography::SIZE_LG))
+            .style(|_theme: &iced::Theme| container::Appearance {
+                background: Some(colors::BG_SECONDARY.into()),
+                text_color: Some(colors::TEXT_PRIMARY),
+                border: Border {
+                    color: shadows::MD_BORDER,
+                    width: 1.0,
+                    radius: border_radius::LG.into(),
+                },
+                ..Default::default()
+            })
+            .padding(spacing::XL)
+            .center_x();
+
+        content = column![content, loading_message].into();
     }
 
     content
@@ -139,16 +254,54 @@ mod tests {
     //!
     //! Since automated UI testing has limitations, manual verification is required for:
     //!
-    //! - [ ] Visual design matches design system (colors, spacing, typography)
-    //! - [ ] All interactive elements have hover states
-    //! - [ ] Keyboard navigation is logical (Tab, Shift+Tab, Enter, Escape, Space)
-    //! - [ ] Focus indicators are visible (3px outline, high contrast)
-    //! - [ ] Text contrast meets WCAG AA (4.5:1 for body text, 3:1 for UI)
+    //! ### Selection States
+    //! - [ ] Click audiobook in list - item has visible selection background color
+    //! - [ ] Click file in list - item has visible selection background with border
+    //! - [ ] Selected items remain highlighted after clicking elsewhere
+    //!
+    //! ### Hover States
+    //! - [ ] Hover over any button - button shows visual feedback (color change or highlight)
+    //! - [ ] Hover transitions are smooth (150-300ms duration)
+    //!
+    //! ### Button Hierarchy
+    //! - [ ] Primary buttons are visually distinct (Play, Save, Add use primary color)
+    //! - [ ] Secondary buttons have different style (Cancel, Close have borders)
+    //! - [ ] Danger buttons use error color (Delete, Remove are red/error colored)
+    //!
+    //! ### Modal Backdrops
+    //! - [ ] Open settings - modal appears centered with border and elevation
+    //! - [ ] Click outside modal - note: iced 0.12 limitation prevents backdrop clicks
+    //! - [ ] Open bookmark editor - modal appears centered
+    //!
+    //! ### Loading States
+    //! - [ ] Add/rescan directory - "Scanning..." message appears during operation
+    //! - [ ] Scanning message shows directory path being scanned
+    //! - [ ] Scanning message disappears when operation completes
+    //!
+    //! ### Error Messages
+    //! - [ ] Trigger scan error - error banner appears at top with message
+    //! - [ ] Click "Dismiss" on error - error banner disappears
+    //! - [ ] Error banner has warning icon and proper error color
+    //!
+    //! ### Keyboard Navigation
+    //! - [ ] Press Space - play/pause toggles
+    //! - [ ] Press ← while playing - seeks back 5 seconds
+    //! - [ ] Press → while playing - seeks forward 5 seconds
+    //! - [ ] Press ↓ with multiple files - next file plays
+    //! - [ ] Press ↑ with multiple files - previous file plays
+    //! - [ ] Press Escape with modal open - modal closes
+    //!
+    //! ### Accessibility
+    //! - [ ] Tab through interface - all interactive elements reachable
+    //! - [ ] Focus indicators visible on interactive elements (framework-dependent)
+    //! - [ ] Text contrast meets WCAG AA (4.5:1 for body text)
     //! - [ ] All buttons have descriptive labels (not just icons)
-    //! - [ ] Modal dialogs have proper backdrop
-    //! - [ ] Loading states provide feedback
-    //! - [ ] Error states are clearly communicated
-    //! - [ ] Transitions are smooth (150-300ms duration)
+    //! - [ ] Error messages are clear and actionable
+    //!
+    //! ### Known Limitations (iced 0.12)
+    //! - Modal backdrops cannot intercept clicks (no stack widget support)
+    //! - Focus indicators have limited visibility (no focus state in button theme)
+    //! - Upgrading to iced 0.13+ would resolve these limitations
 
     use super::*;
 
@@ -228,7 +381,7 @@ mod tests {
                 audiobook_id: 1,
                 name: "chapter1.mp3".to_string(),
                 full_path: "/test/chapter1.mp3".to_string(),
-                length_of_file: Some(3600000),
+                length_of_file: Some(3_600_000),
                 seek_position: None,
                 checksum: None,
                 position: 0,
@@ -268,7 +421,7 @@ mod tests {
             is_playing: true,
             selected_file: Some("/test/file.mp3".to_string()),
             current_time: 30000.0,
-            total_duration: 3600000.0,
+            total_duration: 3_600_000.0,
             ..Default::default()
         };
         let element = view(&state);
@@ -326,8 +479,8 @@ mod tests {
                 audiobook_id: 1,
                 name: "chapter1.mp3".to_string(),
                 full_path: "/test/book1/chapter1.mp3".to_string(),
-                length_of_file: Some(3600000),
-                seek_position: Some(3600000),
+                length_of_file: Some(3_600_000),
+                seek_position: Some(3_600_000),
                 checksum: None,
                 position: 0,
                 completeness: 100,
@@ -348,7 +501,7 @@ mod tests {
             selected_file: Some("/test/book1/chapter1.mp3".to_string()),
             is_playing: true,
             current_time: 1500.0,
-            total_duration: 3600000.0,
+            total_duration: 3_600_000.0,
             volume: 100,
             speed: 1.0,
             ..Default::default()

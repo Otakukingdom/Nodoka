@@ -87,7 +87,7 @@ pub fn ensure_cover_thumbnail_with_embedded(
     let thumb = img.thumbnail(200, 200);
     thumb
         .save_with_format(&out_path, image::ImageFormat::Png)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .map_err(std::io::Error::other)?;
 
     Ok(Some(out_path))
 }
@@ -226,7 +226,7 @@ fn probe_embedded_cover_bytes(audiobook_path: &Path) -> Option<Vec<u8>> {
     }
 }
 
-fn ext_supports_embedded_cover_probe(ext: &str) -> bool {
+const fn ext_supports_embedded_cover_probe(ext: &str) -> bool {
     ext.eq_ignore_ascii_case("mp3")
         || ext.eq_ignore_ascii_case("m4a")
         || ext.eq_ignore_ascii_case("m4b")
@@ -270,7 +270,7 @@ fn first_audio_file_candidate(audiobook_path: &Path) -> Option<std::path::PathBu
     candidates.into_iter().next()
 }
 
-fn is_audio_extension(ext: &str) -> bool {
+const fn is_audio_extension(ext: &str) -> bool {
     ext.eq_ignore_ascii_case("mp3")
         || ext.eq_ignore_ascii_case("m4a")
         || ext.eq_ignore_ascii_case("m4b")

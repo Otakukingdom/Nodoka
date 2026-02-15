@@ -7,7 +7,7 @@
 ---
 
 **Project:** Nodoka Audiobook Player
-**Generated:** 2026-02-14 14:28:42
+**Generated:** 2026-02-14 19:11:19
 **Category:** Social Media App
 
 ---
@@ -28,14 +28,14 @@
 
 ### Typography
 
-- **Heading Font:** Righteous
-- **Body Font:** Poppins
-- **Mood:** music, entertainment, fun, energetic, bold, performance
-- **Google Fonts:** [Righteous + Poppins](https://fonts.google.com/share?selection.family=Poppins:wght@300;400;500;600;700|Righteous)
+- **Heading Font:** Atkinson Hyperlegible
+- **Body Font:** Atkinson Hyperlegible
+- **Mood:** accessible, readable, inclusive, WCAG, dyslexia-friendly, clear
+- **Google Fonts:** [Atkinson Hyperlegible + Atkinson Hyperlegible](https://fonts.google.com/share?selection.family=Atkinson+Hyperlegible:wght@400;700)
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
 ```
 
 ### Spacing Variables

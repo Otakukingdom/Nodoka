@@ -2,7 +2,7 @@ use chrono::Utc;
 use nodoka::db::{queries, Database};
 use nodoka::models::{Audiobook, AudiobookFile, Bookmark, Directory};
 use std::error::Error;
-use std::io::{Error as IoError, ErrorKind};
+use std::io::Error as IoError;
 use temp_dir::TempDir;
 
 fn create_test_db() -> Result<Database, Box<dyn Error>> {
@@ -13,7 +13,7 @@ fn create_test_db() -> Result<Database, Box<dyn Error>> {
 }
 
 fn missing(message: &'static str) -> IoError {
-    IoError::new(ErrorKind::Other, message)
+    IoError::other(message)
 }
 
 fn create_existing_directory() -> Result<(TempDir, String), Box<dyn Error>> {

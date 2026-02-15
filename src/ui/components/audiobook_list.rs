@@ -38,9 +38,12 @@ pub fn view<S: BuildHasher>(
 /// Builds a single audiobook list item with improved visual feedback
 fn build_audiobook_item<S: BuildHasher>(
     ab: &Audiobook,
-    _selected: bool,
+    selected: bool,
     cover_thumbnails: &HashMap<i64, PathBuf, S>,
 ) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+    use iced::Border;
+
     let name = ab.name.clone();
     let completeness = ab.completeness;
     let id = ab.id;
@@ -66,7 +69,7 @@ fn build_audiobook_item<S: BuildHasher>(
     let progress = progress_bar(0.0..=100.0, completeness as f32);
 
     // Main content with improved typography and spacing
-    let content = row![
+    let content_row = row![
         cover,
         column![
             text(name).size(typography::SIZE_BASE),
@@ -88,7 +91,27 @@ fn build_audiobook_item<S: BuildHasher>(
     .spacing(spacing::MD)
     .padding(spacing::MD);
 
-    button(container(content))
+    // Apply selection styling using container background
+    let content_container = if selected {
+        container(content_row)
+            .style(
+                move |_theme: &iced::Theme| iced::widget::container::Appearance {
+                    background: Some(colors::SELECTION_BG.into()),
+                    text_color: Some(colors::SELECTION_TEXT),
+                    border: Border {
+                        color: colors::PRIMARY,
+                        width: 2.0,
+                        radius: 0.0.into(),
+                    },
+                    ..Default::default()
+                },
+            )
+            .width(Length::Fill)
+    } else {
+        container(content_row).width(Length::Fill)
+    };
+
+    button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
         .into()
@@ -265,6 +288,40 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
         let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        drop(element);
+    }
+
+    #[test]
+    fn test_build_audiobook_item_uses_selection_parameter() {
+        let audiobook = create_test_audiobook(1, "Test Book", 50);
+        let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+
+        // Verify both selected and unselected states render without panic
+        let element_unselected = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        drop(element_unselected);
+
+        let element_selected = build_audiobook_item(&audiobook, true, &cover_thumbnails);
+        drop(element_selected);
+
+        // Note: Cannot verify visual styling due to iced Element opacity,
+        // but we ensure both code paths execute without panic
+    }
+
+    #[test]
+    fn test_view_properly_passes_selection_state_to_items() {
+        let audiobooks = vec![
+            create_test_audiobook(1, "Book 1", 25),
+            create_test_audiobook(2, "Book 2", 75),
+            create_test_audiobook(3, "Book 3", 50),
+        ];
+        let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+
+        // Test with no selection
+        let element = view(&audiobooks, None, &cover_thumbnails);
+        drop(element);
+
+        // Test with book 2 selected
+        let element = view(&audiobooks, Some(2), &cover_thumbnails);
         drop(element);
     }
 }

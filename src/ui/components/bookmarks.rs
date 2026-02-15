@@ -1,6 +1,6 @@
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
-use crate::ui::styles::{spacing, typography};
+use crate::ui::styles::{button_containers, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{
     button, column, container, horizontal_space, row, scrollable, text, text_input,
@@ -19,9 +19,12 @@ pub fn view(bookmarks: &[Bookmark], files: &[AudiobookFile]) -> Element<'static,
     let header = row![
         text("Bookmarks").size(typography::SIZE_LG),
         horizontal_space(),
-        button(text("Add Bookmark").size(typography::SIZE_SM))
-            .on_press(Message::CreateBookmark)
-            .padding(spacing::SM)
+        container(
+            button(text("Add Bookmark").size(typography::SIZE_SM))
+                .on_press(Message::CreateBookmark)
+                .padding(spacing::SM)
+        )
+        .style(button_containers::primary())
     ]
     .padding(spacing::MD);
 
@@ -65,13 +68,19 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
             container(label_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
             container(note_input).padding([spacing::SM, 0.0, 0.0, 0.0]),
             row![
-                button(text("Cancel").size(typography::SIZE_SM))
-                    .on_press(Message::BookmarkEditorCancel)
-                    .padding(spacing::SM),
+                container(
+                    button(text("Cancel").size(typography::SIZE_SM))
+                        .on_press(Message::BookmarkEditorCancel)
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
                 horizontal_space(),
-                button(text("Save").size(typography::SIZE_SM))
-                    .on_press(Message::BookmarkEditorSave)
-                    .padding(spacing::SM)
+                container(
+                    button(text("Save").size(typography::SIZE_SM))
+                        .on_press(Message::BookmarkEditorSave)
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::primary())
             ]
             .spacing(spacing::MD)
             .padding([spacing::MD, 0.0, 0.0, 0.0])
@@ -92,7 +101,7 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
 
     let label_text = if is_missing {
         format!("⚠ {} (missing)", bm.label)
-    } else if bm.note.as_ref().map_or(false, |n| !n.is_empty()) {
+    } else if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
         format!("📝 {}", bm.label) // Icon indicator for bookmarks with notes
     } else {
         bm.label.clone()
@@ -107,12 +116,18 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
             .padding(spacing::SM),
         horizontal_space(),
         text(pos).size(typography::SIZE_XS),
-        button(text("Edit").size(typography::SIZE_XS))
-            .on_press_maybe(id.map(Message::BookmarkEdit))
-            .padding(spacing::XS),
-        button(text("Delete").size(typography::SIZE_XS))
-            .on_press_maybe(id.map(Message::BookmarkDelete))
-            .padding(spacing::XS),
+        container(
+            button(text("Edit").size(typography::SIZE_XS))
+                .on_press_maybe(id.map(Message::BookmarkEdit))
+                .padding(spacing::XS)
+        )
+        .style(button_containers::secondary()),
+        container(
+            button(text("Delete").size(typography::SIZE_XS))
+                .on_press_maybe(id.map(Message::BookmarkDelete))
+                .padding(spacing::XS)
+        )
+        .style(button_containers::danger()),
     ]
     .spacing(spacing::SM)
     .padding(spacing::SM)
@@ -164,7 +179,7 @@ mod tests {
             audiobook_id: 1,
             name: "chapter1.mp3".to_string(),
             full_path: full_path.to_string(),
-            length_of_file: Some(3600000),
+            length_of_file: Some(3_600_000),
             seek_position: None,
             checksum: None,
             position: 0,
@@ -197,7 +212,7 @@ mod tests {
         let bookmarks = vec![
             create_test_bookmark(1, "Chapter 1", 1000, "", "/path/file1.mp3"),
             create_test_bookmark(2, "Chapter 2", 60000, "Important note", "/path/file2.mp3"),
-            create_test_bookmark(3, "Chapter 3", 3600000, "", "/path/file3.mp3"),
+            create_test_bookmark(3, "Chapter 3", 3_600_000, "", "/path/file3.mp3"),
         ];
         let files = vec![
             create_test_file("/path/file1.mp3", true),
@@ -230,7 +245,7 @@ mod tests {
             id: Some(1),
             audiobook_id: 1,
             file_path: "/path/file.mp3".to_string(),
-            position_ms: 120000,
+            position_ms: 120_000,
             label: "Important Section".to_string(),
             note: "This is a key moment".to_string(),
         };
@@ -285,13 +300,13 @@ mod tests {
 
     #[test]
     fn test_format_position_with_hours() {
-        assert_eq!(format_position(3661000), "1:01:01");
-        assert_eq!(format_position(7200000), "2:00:00");
+        assert_eq!(format_position(3_661_000), "1:01:01");
+        assert_eq!(format_position(7_200_000), "2:00:00");
     }
 
     #[test]
     fn test_format_position_with_minutes_only() {
-        assert_eq!(format_position(125000), "2:05");
+        assert_eq!(format_position(125_000), "2:05");
         assert_eq!(format_position(60000), "1:00");
     }
 
@@ -344,7 +359,7 @@ mod tests {
             id: None,
             audiobook_id: 1,
             file_path: "/path/file.mp3".to_string(),
-            position_ms: 36000000, // 10 hours
+            position_ms: 36_000_000, // 10 hours
             label: "End".to_string(),
             note: String::new(),
         };

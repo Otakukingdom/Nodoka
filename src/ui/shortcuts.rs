@@ -13,11 +13,30 @@ pub enum ShortcutKey {
     Space,
     /// The `B` key.
     B,
+    /// Left arrow key.
+    ArrowLeft,
+    /// Right arrow key.
+    ArrowRight,
+    /// Up arrow key.
+    ArrowUp,
+    /// Down arrow key.
+    ArrowDown,
+    /// Escape key.
+    Escape,
 }
 
 /// Maps a key + modifiers to a UI [`Message`].
 ///
 /// Returns `None` when the chord is not a Nodoka shortcut.
+///
+/// # Supported shortcuts
+/// - Space: Play/Pause
+/// - Ctrl+B (Cmd+B on macOS): Create bookmark
+/// - Left arrow: Seek backward 5 seconds
+/// - Right arrow: Seek forward 5 seconds
+/// - Up arrow: Previous file
+/// - Down arrow: Next file
+/// - Escape: Close modal
 #[must_use]
 pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<Message> {
     match key {
@@ -31,6 +50,41 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
         ShortcutKey::B => {
             if is_bookmark_modifier(modifiers) {
                 Some(Message::CreateBookmark)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::ArrowLeft => {
+            if modifiers == Modifiers::default() {
+                Some(Message::SeekBackward(5)) // 5 seconds back
+            } else {
+                None
+            }
+        }
+        ShortcutKey::ArrowRight => {
+            if modifiers == Modifiers::default() {
+                Some(Message::SeekForward(5)) // 5 seconds forward
+            } else {
+                None
+            }
+        }
+        ShortcutKey::ArrowUp => {
+            if modifiers == Modifiers::default() {
+                Some(Message::PreviousFile)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::ArrowDown => {
+            if modifiers == Modifiers::default() {
+                Some(Message::NextFile)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::Escape => {
+            if modifiers == Modifiers::default() {
+                Some(Message::CloseModal)
             } else {
                 None
             }
@@ -170,5 +224,59 @@ mod tests {
         let key = ShortcutKey::Space;
         let cloned = key;
         assert_eq!(key, cloned);
+    }
+
+    #[test]
+    fn test_arrow_left_seeks_backward() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::ArrowLeft, Modifiers::default()),
+            Some(Message::SeekBackward(5))
+        ));
+    }
+
+    #[test]
+    fn test_arrow_right_seeks_forward() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::ArrowRight, Modifiers::default()),
+            Some(Message::SeekForward(5))
+        ));
+    }
+
+    #[test]
+    fn test_arrow_up_selects_previous_file() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::ArrowUp, Modifiers::default()),
+            Some(Message::PreviousFile)
+        ));
+    }
+
+    #[test]
+    fn test_arrow_down_selects_next_file() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::ArrowDown, Modifiers::default()),
+            Some(Message::NextFile)
+        ));
+    }
+
+    #[test]
+    fn test_escape_closes_modal() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::Escape, Modifiers::default()),
+            Some(Message::CloseModal)
+        ));
+    }
+
+    #[test]
+    fn test_arrow_keys_with_modifiers_return_none() {
+        assert!(message_for_key_chord(ShortcutKey::ArrowLeft, Modifiers::CTRL).is_none());
+        assert!(message_for_key_chord(ShortcutKey::ArrowRight, Modifiers::SHIFT).is_none());
+        assert!(message_for_key_chord(ShortcutKey::ArrowUp, Modifiers::ALT).is_none());
+        assert!(message_for_key_chord(ShortcutKey::ArrowDown, Modifiers::CTRL).is_none());
+    }
+
+    #[test]
+    fn test_escape_with_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::Escape, Modifiers::CTRL).is_none());
+        assert!(message_for_key_chord(ShortcutKey::Escape, Modifiers::SHIFT).is_none());
     }
 }

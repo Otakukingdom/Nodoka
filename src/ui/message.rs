@@ -20,6 +20,13 @@ pub enum Message {
     // Shortcuts
     CreateBookmark,
 
+    // Keyboard navigation
+    SeekForward(i64),  // seconds to seek forward
+    SeekBackward(i64), // seconds to seek backward
+    NextFile,
+    PreviousFile,
+    CloseModal, // Escape to close any open modal
+
     // Bookmarks UI
     BookmarkEdit(i64),
     BookmarkDelete(i64),
@@ -45,6 +52,9 @@ pub enum Message {
     // Settings
     OpenSettings,
     CloseSettings,
+
+    // Error handling
+    DismissError,
 
     // Player events
     PlayerTimeUpdated(f64),

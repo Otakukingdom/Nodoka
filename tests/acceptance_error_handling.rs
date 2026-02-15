@@ -260,7 +260,8 @@ fn test_extremely_deep_path_nesting() -> Result<(), Box<dyn Error>> {
     // Test handling of very deep directory structures
     let mut deep_path = String::from("/root");
     for i in 0..100 {
-        deep_path.push_str(&format!("/level{i}"));
+        use std::fmt::Write;
+        let _ = write!(deep_path, "/level{i}");
     }
 
     let db = create_test_db()?;

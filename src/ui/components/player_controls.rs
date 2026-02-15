@@ -1,6 +1,6 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
-use crate::ui::styles::{spacing, typography};
+use crate::ui::styles::{button_containers, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, slider, text, text_input};
 use iced::{Element, Length};
@@ -55,12 +55,20 @@ pub fn view(state: &State) -> Element<'static, Message> {
             // Playback controls group
             container(
                 row![
-                    button(text(play_pause_label).size(typography::SIZE_BASE))
-                        .on_press(Message::PlayPause)
-                        .padding(spacing::MD),
-                    button(text("Stop").size(typography::SIZE_BASE))
-                        .on_press(Message::Stop)
-                        .padding(spacing::MD),
+                    container(
+                        button(text(play_pause_label).size(typography::SIZE_BASE))
+                            .on_press(Message::PlayPause)
+                            .padding(spacing::SM)
+                    )
+                    .style(button_containers::primary())
+                    .padding(spacing::XS),
+                    container(
+                        button(text("Stop").size(typography::SIZE_BASE))
+                            .on_press(Message::Stop)
+                            .padding(spacing::SM)
+                    )
+                    .style(button_containers::secondary())
+                    .padding(spacing::XS),
                 ]
                 .spacing(spacing::SM)
             ),
@@ -78,24 +86,42 @@ pub fn view(state: &State) -> Element<'static, Message> {
                     ))
                     .width(Length::Fixed(120.0)),
                     row![
-                        button(text("0.5x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(0.5))
-                            .padding(spacing::XS),
-                        button(text("0.75x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(0.75))
-                            .padding(spacing::XS),
-                        button(text("1.0x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.0))
-                            .padding(spacing::XS),
-                        button(text("1.25x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.25))
-                            .padding(spacing::XS),
-                        button(text("1.5x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(1.5))
-                            .padding(spacing::XS),
-                        button(text("2.0x").size(typography::SIZE_SM))
-                            .on_press(Message::SpeedChanged(2.0))
-                            .padding(spacing::XS),
+                        container(
+                            button(text("0.5x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(0.5))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("0.75x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(0.75))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("1.0x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(1.0))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("1.25x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(1.25))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("1.5x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(1.5))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("2.0x").size(typography::SIZE_SM))
+                                .on_press(Message::SpeedChanged(2.0))
+                                .padding([spacing::XS, spacing::SM])
+                        )
+                        .style(button_containers::secondary()),
                     ]
                     .spacing(spacing::XS)
                 ]
@@ -133,10 +159,7 @@ fn speed_step_from_speed(speed: f32) -> i32 {
 }
 
 fn speed_from_step(step: i32) -> f32 {
-    let step_u16 = match u16::try_from(step) {
-        Ok(v) => v,
-        Err(_e) => 10,
-    };
+    let step_u16 = u16::try_from(step).unwrap_or(10);
     let raw = f32::from(step_u16) / 10.0;
     let formatted = format!("{raw:.1}");
     formatted.parse::<f32>().ok().unwrap_or(1.0).clamp(0.5, 2.0)
@@ -148,21 +171,36 @@ fn sleep_timer_controls(state: &State) -> Element<'static, Message> {
         None => {
             let presets = row![
                 text("Sleep Timer:").size(typography::SIZE_SM),
-                button(text("15m").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerSetDurationSeconds(15 * 60))
-                    .padding(spacing::SM),
-                button(text("30m").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerSetDurationSeconds(30 * 60))
-                    .padding(spacing::SM),
-                button(text("45m").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerSetDurationSeconds(45 * 60))
-                    .padding(spacing::SM),
-                button(text("60m").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerSetDurationSeconds(60 * 60))
-                    .padding(spacing::SM),
-                button(text("End of Chapter").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerSetEndOfChapter)
-                    .padding(spacing::SM),
+                container(
+                    button(text("15m").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerSetDurationSeconds(15 * 60))
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
+                container(
+                    button(text("30m").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerSetDurationSeconds(30 * 60))
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
+                container(
+                    button(text("45m").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerSetDurationSeconds(45 * 60))
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
+                container(
+                    button(text("60m").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerSetDurationSeconds(60 * 60))
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
+                container(
+                    button(text("End of Chapter").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerSetEndOfChapter)
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
             ]
             .spacing(spacing::SM);
 
@@ -172,9 +210,12 @@ fn sleep_timer_controls(state: &State) -> Element<'static, Message> {
                     .on_input(Message::SleepTimerCustomMinutesChanged)
                     .on_submit(Message::SleepTimerCustomSubmit)
                     .width(Length::Fixed(90.0)),
-                button(text("Set").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerCustomSubmit)
-                    .padding(spacing::SM),
+                container(
+                    button(text("Set").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerCustomSubmit)
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::primary()),
             ]
             .spacing(spacing::SM);
 
@@ -188,9 +229,12 @@ fn sleep_timer_controls(state: &State) -> Element<'static, Message> {
             text("Sleep Timer:").size(typography::SIZE_SM),
             text("End of chapter").size(typography::SIZE_BASE),
             horizontal_space(),
-            button(text("Cancel").size(typography::SIZE_SM))
-                .on_press(Message::SleepTimerCancel)
-                .padding(spacing::SM),
+            container(
+                button(text("Cancel").size(typography::SIZE_SM))
+                    .on_press(Message::SleepTimerCancel)
+                    .padding(spacing::SM)
+            )
+            .style(button_containers::danger()),
         ]
         .spacing(spacing::SM)
         .into(),
@@ -204,12 +248,18 @@ fn sleep_timer_controls(state: &State) -> Element<'static, Message> {
                 text("Sleep Timer:").size(typography::SIZE_SM),
                 text(format_remaining_seconds(remaining)).size(typography::SIZE_BASE),
                 horizontal_space(),
-                button(text("+15m").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerExtendSeconds(15 * 60))
-                    .padding(spacing::SM),
-                button(text("Cancel").size(typography::SIZE_SM))
-                    .on_press(Message::SleepTimerCancel)
-                    .padding(spacing::SM),
+                container(
+                    button(text("+15m").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerExtendSeconds(15 * 60))
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::secondary()),
+                container(
+                    button(text("Cancel").size(typography::SIZE_SM))
+                        .on_press(Message::SleepTimerCancel)
+                        .padding(spacing::SM)
+                )
+                .style(button_containers::danger()),
             ]
             .spacing(spacing::SM)
             .into()
@@ -247,14 +297,14 @@ mod tests {
 
     #[test]
     fn test_format_time_with_hours() {
-        assert_eq!(format_time(3661000.0), "1:01:01");
-        assert_eq!(format_time(7200000.0), "2:00:00");
-        assert_eq!(format_time(3723000.0), "1:02:03");
+        assert_eq!(format_time(3_661_000.0), "1:01:01");
+        assert_eq!(format_time(7_200_000.0), "2:00:00");
+        assert_eq!(format_time(3_723_000.0), "1:02:03");
     }
 
     #[test]
     fn test_format_time_with_minutes_only() {
-        assert_eq!(format_time(125000.0), "2:05");
+        assert_eq!(format_time(125_000.0), "2:05");
         assert_eq!(format_time(60000.0), "1:00");
         assert_eq!(format_time(0.0), "0:00");
     }
@@ -331,9 +381,11 @@ mod tests {
     #[test]
     fn test_speed_from_step_clamps_values() {
         // Test that speed_from_step returns values in valid range [0.5, 2.0]
-        assert_eq!(speed_from_step(5), 0.5);
-        assert_eq!(speed_from_step(10), 1.0);
-        assert_eq!(speed_from_step(20), 2.0);
+        const EPSILON: f32 = 1e-6;
+
+        assert!((speed_from_step(5) - 0.5).abs() < EPSILON);
+        assert!((speed_from_step(10) - 1.0).abs() < EPSILON);
+        assert!((speed_from_step(20) - 2.0).abs() < EPSILON);
 
         // Edge cases
         let speed = speed_from_step(3); // Below minimum
@@ -451,8 +503,8 @@ mod tests {
     #[test]
     fn test_view_handles_large_duration() {
         let state = State {
-            total_duration: 36000000.0, // 10 hours
-            current_time: 18000000.0,   // 5 hours
+            total_duration: 36_000_000.0, // 10 hours
+            current_time: 18_000_000.0,   // 5 hours
             ..Default::default()
         };
 

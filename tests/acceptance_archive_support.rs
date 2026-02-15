@@ -128,11 +128,8 @@ fn test_password_protected_zip_error() -> Result<(), Box<dyn Error>> {
     let extract_dir = temp.path().join("extracted");
     fs::create_dir(&extract_dir)?;
 
-    let err = match extract_zip_for_playback(&zip_path, &extract_dir) {
-        Ok(_) => {
-            return Err("expected password-protected zip extraction to fail".into());
-        }
-        Err(e) => e,
+    let Err(err) = extract_zip_for_playback(&zip_path, &extract_dir) else {
+        return Err("expected password-protected zip extraction to fail".into());
     };
     assert!(matches!(err, nodoka::error::Error::ZipPasswordProtected));
 

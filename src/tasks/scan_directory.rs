@@ -89,7 +89,7 @@ pub async fn scan_directory(dir_path: PathBuf) -> Result<Vec<DiscoveredAudiobook
         Ok(audiobooks)
     })
     .await
-    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+    .map_err(std::io::Error::other)?
 }
 
 fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {

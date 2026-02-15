@@ -2,6 +2,30 @@ use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+/// Focus tracking for keyboard navigation accessibility
+///
+/// Tracks which UI element currently has keyboard focus to provide
+/// visual indicators for keyboard navigation (WCAG 2.1 AA 2.4.7).
+///
+/// Note: iced 0.12 does not expose focus state directly, so we track
+/// it in application state as a workaround.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum FocusedElement {
+    #[default]
+    None,
+    PlayPauseButton,
+    StopButton,
+    VolumeSlider,
+    SpeedSlider,
+    ProgressSlider,
+    AudiobookList,
+    FileList,
+    BookmarkList,
+    SettingsButton,
+    AddDirectoryButton,
+    AddBookmarkButton,
+}
+
 #[derive(Debug, Clone)]
 pub struct BookmarkEditor {
     pub id: Option<i64>,
@@ -38,6 +62,17 @@ pub struct State {
 
     pub settings_open: bool,
     pub is_loading: bool,
+
+    // Error handling state
+    pub error_message: Option<String>,
+    pub error_timestamp: Option<chrono::DateTime<chrono::Utc>>,
+
+    // Directory scanning state
+    pub is_scanning: bool,
+    pub scanning_directory: Option<String>,
+
+    // Focus tracking for keyboard navigation accessibility
+    pub focused_element: FocusedElement,
 }
 
 impl Default for State {
@@ -62,6 +97,11 @@ impl Default for State {
             sleep_timer_custom_error: None,
             settings_open: false,
             is_loading: true,
+            error_message: None,
+            error_timestamp: None,
+            is_scanning: false,
+            scanning_directory: None,
+            focused_element: FocusedElement::None,
         }
     }
 }
@@ -92,6 +132,11 @@ mod tests {
         assert!(state.sleep_timer_custom_error.is_none());
         assert!(!state.settings_open);
         assert!(state.is_loading);
+        assert!(state.error_message.is_none());
+        assert!(state.error_timestamp.is_none());
+        assert!(!state.is_scanning);
+        assert!(state.scanning_directory.is_none());
+        assert_eq!(state.focused_element, FocusedElement::None);
     }
 
     #[test]

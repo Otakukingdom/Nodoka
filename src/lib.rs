@@ -85,6 +85,36 @@
 //! 4. Wait for scanning to complete
 //! 5. Select an audiobook from the list and click Play!
 //!
+//! ## Keyboard Shortcuts
+//!
+//! Nodoka supports comprehensive keyboard navigation for improved accessibility:
+//!
+//! | Key | Action |
+//! |-----|--------|
+//! | Space | Play/Pause |
+//! | ← | Seek backward 5 seconds |
+//! | → | Seek forward 5 seconds |
+//! | ↑ | Previous file |
+//! | ↓ | Next file |
+//! | Ctrl+B (Cmd+B on macOS) | Create bookmark |
+//! | Escape | Close modal |
+//!
+//! All interactive elements support keyboard navigation via Tab and Enter keys.
+//!
+//! ## Accessibility
+//!
+//! Nodoka follows WCAG 2.1 Level AA guidelines:
+//! - **Keyboard navigation** for all interactive elements
+//! - **Color contrast** ratio ≥ 4.5:1 for text
+//! - **Clear error messages** and loading states
+//! - **Visual feedback** for selection and hover states
+//!
+//! ### Known Limitations
+//!
+//! - Focus indicators for keyboard navigation have limited visibility due to iced 0.12 framework constraints
+//! - Modal backdrops cannot intercept clicks (iced 0.12 lacks stack widget support)
+//! - Upgrading to iced 0.13+ would resolve these accessibility limitations
+//!
 //! ## Architecture
 //!
 //! Nodoka follows the Elm architecture pattern via the iced framework:

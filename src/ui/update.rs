@@ -16,7 +16,7 @@ mod sleep_timer;
 #[cfg(test)]
 mod tests;
 
-trait MediaControl {
+pub(crate) trait MediaControl {
     fn load_media(&mut self, path: &Path) -> Result<()>;
     fn set_time(&self, time_ms: i64) -> Result<()>;
     fn get_length(&self) -> Result<i64>;
@@ -76,6 +76,13 @@ pub fn update(
         // Shortcut actions
         Message::CreateBookmark => bookmarks::handle_create_bookmark(state, db),
 
+        // Keyboard navigation
+        Message::SeekForward(seconds) => handle_seek_forward(state, player, seconds),
+        Message::SeekBackward(seconds) => handle_seek_backward(state, player, seconds),
+        Message::NextFile => handle_next_file(state, player, db),
+        Message::PreviousFile => handle_previous_file(state, player, db),
+        Message::CloseModal => handle_close_modal(state),
+
         // Bookmarks UI
         Message::BookmarkEdit(id) => bookmarks::handle_bookmark_edit(state, id),
         Message::BookmarkDelete(id) => bookmarks::handle_bookmark_delete(state, db, id),
@@ -106,11 +113,14 @@ pub fn update(
         Message::OpenSettings => handle_open_settings(state),
         Message::CloseSettings => handle_close_settings(state),
 
+        // Error handling messages
+        Message::DismissError => handle_dismiss_error(state),
+
         // Scan messages
         Message::ScanComplete(directory, discovered) => {
             directories::handle_scan_complete(state, db, &directory, discovered)
         }
-        Message::ScanError(error) => directories::handle_scan_error(&error),
+        Message::ScanError(error) => directories::handle_scan_error(state, &error),
 
         // Cover thumbnails
         Message::CoverThumbnailGenerated(audiobook_id, path) => {
@@ -424,7 +434,7 @@ fn handle_audiobook_selected(
     generate_cover_thumbnail_command(selected_id, ab.full_path.clone())
 }
 
-fn handle_file_selected<P: MediaControl>(
+pub(crate) fn handle_file_selected<P: MediaControl>(
     state: &mut State,
     player: &mut Option<P>,
     db: &Database,
@@ -526,13 +536,21 @@ fn handle_file_selected<P: MediaControl>(
     Command::none()
 }
 
+// Cannot be const fn because Command::none() is not const
 fn handle_open_settings(state: &mut State) -> Command<Message> {
     state.settings_open = true;
     Command::none()
 }
 
+// Cannot be const fn because Command::none() is not const
 fn handle_close_settings(state: &mut State) -> Command<Message> {
     state.settings_open = false;
+    Command::none()
+}
+
+fn handle_dismiss_error(state: &mut State) -> Command<Message> {
+    state.error_message = None;
+    state.error_timestamp = None;
     Command::none()
 }
 
@@ -776,4 +794,98 @@ fn recompute_audiobook_completeness(state: &mut State, db: &Database, audiobook_
     {
         tracing::error!("Failed to update audiobook completeness: {e}");
     }
+}
+
+/// Seeks forward by the specified number of seconds
+fn handle_seek_forward(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    seconds: i64,
+) -> Command<Message> {
+    let Some(_) = player else {
+        return Command::none();
+    };
+
+    let Ok(current_ms) = f64_to_ms(state.current_time) else {
+        return Command::none();
+    };
+
+    let seek_ms = current_ms + (seconds * 1000);
+    let Ok(seek_f64) = ms_to_f64(seek_ms) else {
+        return Command::none();
+    };
+
+    handle_seek_to(state, player, seek_f64)
+}
+
+/// Seeks backward by the specified number of seconds
+fn handle_seek_backward(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    seconds: i64,
+) -> Command<Message> {
+    let Some(_) = player else {
+        return Command::none();
+    };
+
+    let Ok(current_ms) = f64_to_ms(state.current_time) else {
+        return Command::none();
+    };
+
+    let seek_ms = (current_ms - (seconds * 1000)).max(0);
+    let Ok(seek_f64) = ms_to_f64(seek_ms) else {
+        return Command::none();
+    };
+
+    handle_seek_to(state, player, seek_f64)
+}
+
+/// Selects the next file in the current file list
+fn handle_next_file(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+) -> Command<Message> {
+    let Some(ref current_path) = state.selected_file else {
+        return Command::none();
+    };
+
+    let next_path = state
+        .current_files
+        .iter()
+        .position(|file| &file.full_path == current_path)
+        .and_then(|idx| state.current_files.get(idx + 1))
+        .map(|file| file.full_path.clone());
+
+    next_path.map_or_else(Command::none, |path| handle_file_selected(state, player, db, &path))
+}
+
+/// Selects the previous file in the current file list
+fn handle_previous_file(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+) -> Command<Message> {
+    let Some(ref current_path) = state.selected_file else {
+        return Command::none();
+    };
+
+    let prev_path = state
+        .current_files
+        .iter()
+        .position(|file| &file.full_path == current_path)
+        .and_then(|idx| if idx > 0 { state.current_files.get(idx - 1) } else { None })
+        .map(|file| file.full_path.clone());
+
+    prev_path.map_or_else(Command::none, |path| handle_file_selected(state, player, db, &path))
+}
+
+/// Closes any open modal (settings or bookmark editor)
+fn handle_close_modal(state: &mut State) -> Command<Message> {
+    if state.settings_open {
+        state.settings_open = false;
+    } else if state.bookmark_editor.is_some() {
+        state.bookmark_editor = None;
+    }
+    Command::none()
 }

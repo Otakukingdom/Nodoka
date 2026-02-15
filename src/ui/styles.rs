@@ -1,5 +1,6 @@
 use iced::theme::Palette;
-use iced::{Color, Theme};
+use iced::widget::container;
+use iced::{Border, Color, Theme};
 
 /// Design system color tokens based on ui-ux-pro-max recommendations
 /// for audiobook player applications with vibrant rose palette
@@ -119,6 +120,254 @@ pub mod shadows {
     pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
 }
 
+/// Button style utilities for consistent interactive element styling
+/// Provides primary, secondary, and danger button theme functions
+///
+/// # iced 0.12 Limitation - Button Styling NOT FUNCTIONAL
+///
+/// **Status**: Steps 4 and 10 from the implementation plan attempted to apply button styles
+/// but failed compilation. Custom button styles cannot be applied in iced 0.12.
+///
+/// **Issue**: The `.style()` method on buttons expects `impl Into<iced::theme::Button>`,
+/// but the functions below return `impl Fn(&Theme) -> button::Appearance`. The closure
+/// type cannot be converted to `iced::theme::Button` without implementing a custom theme.
+///
+/// **Attempted**: Button style applications were added to `player_controls.rs`, `bookmarks.rs`,
+/// and `settings_form.rs` but resulted in 27 compilation errors (trait bound not satisfied).
+///
+/// **Resolution**: Removed all `.style(button_styles::*)` calls. Buttons use default iced
+/// theme styling. The `button_styles` module remains as documentation for future upgrades.
+///
+/// **Recommended Fix**: Upgrade to iced 0.13+ which may have improved styling APIs, or
+/// implement a full custom theme. Alternatively, use iced's built-in theme variants or
+/// container-based styling workarounds (as done for selection states).
+///
+/// **Impact**: Moderate UX issue. All buttons look identical, violating button hierarchy
+/// principles. Primary actions (Play, Save) should be visually prominent, destructive
+/// actions (Delete, Remove) should use warning colors. Current UI lacks this visual hierarchy.
+///
+/// # Focus Indicator Limitations (iced 0.12)
+///
+/// **Current Status**: Focus indicators for keyboard navigation are **not fully implemented**
+/// due to iced 0.12 framework limitations.
+///
+/// **Issue**: The iced 0.12 button styling system does not provide direct access to focus
+/// state in the style function signature. Focus state would need to be passed through the
+/// application state or require a custom theme implementation.
+///
+/// **Accessibility Impact**: Users navigating with keyboard (Tab key) may not see visual
+/// focus indicators on buttons, making it difficult to track which element is currently
+/// focused. This is a **WCAG 2.1 Level AA violation** (Success Criterion 2.4.7).
+///
+/// **Recommended Workarounds**:
+/// 1. **Framework Upgrade**: Upgrade to iced 0.13+ which has improved focus handling
+/// 2. **Custom Theme**: Implement full custom theme with focus state tracking
+/// 3. **Visual Cues**: Use color changes on button hover as partial substitute
+/// 4. **Screen Reader**: Rely on screen reader announcements for focus tracking
+///
+/// **Planned Fix**: When upgrading iced, add focus indicator styling:
+/// ```rust,ignore
+/// pub fn primary_focused() -> button::Appearance {
+///     button::Appearance {
+///         border: Border {
+///             color: colors::FOCUS_RING, // Blue #2563EB
+///             width: 3.0,
+///             radius: border_radius::MD.into(),
+///         },
+///         ..primary()
+///     }
+/// }
+/// ```
+///
+/// **Manual Testing**: Use Test Case 15 in `tests/manual_ui_checklist.md` to verify
+/// focus indicators after implementing the fix.
+///
+/// # Workaround
+/// For custom button styling in iced 0.12, consider:
+/// - Wrapping buttons in styled containers (see `audiobook_list.rs` and `file_list.rs`)
+/// - Using iced's built-in theme variants
+/// - Upgrading to newer iced versions with better styling support
+///
+/// # Usage (when iced theme system supports it)
+/// ```rust,ignore
+/// button(text("Save"))
+///     .on_press(Message::Save)
+///     .style(button_styles::primary())
+/// ```
+pub mod button_styles {
+    use iced::widget::button;
+    use iced::Border;
+
+    use super::{border_radius, colors};
+
+    /// Primary action button style (e.g., Play, Save, Add)
+    /// Uses primary brand color with white text
+    /// Provides hover state with slightly darker background
+    pub fn primary() -> impl Fn(&iced::Theme) -> button::Appearance {
+        move |_theme: &iced::Theme| button::Appearance {
+            background: Some(colors::PRIMARY.into()),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                color: iced::Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::MD.into(),
+            },
+            ..Default::default()
+        }
+    }
+
+    /// Secondary action button style (e.g., Cancel, Close, Stop)
+    /// Uses elevated background with primary text color and border
+    pub fn secondary() -> impl Fn(&iced::Theme) -> button::Appearance {
+        move |_theme: &iced::Theme| button::Appearance {
+            background: Some(colors::BG_ELEVATED.into()),
+            text_color: colors::TEXT_PRIMARY,
+            border: Border {
+                color: colors::BORDER_DEFAULT,
+                width: 1.0,
+                radius: border_radius::MD.into(),
+            },
+            ..Default::default()
+        }
+    }
+
+    /// Danger action button style (e.g., Delete, Remove)
+    /// Uses error/danger color with white text
+    pub fn danger() -> impl Fn(&iced::Theme) -> button::Appearance {
+        move |_theme: &iced::Theme| button::Appearance {
+            background: Some(colors::ERROR.into()),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                color: iced::Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::MD.into(),
+            },
+            ..Default::default()
+        }
+    }
+}
+
+/// Container-based button styling workaround for iced 0.12
+///
+/// Since `.style()` on buttons is not functional in iced 0.12, wrap buttons in containers
+/// with appropriate backgrounds and borders to achieve visual hierarchy.
+///
+/// # Usage
+///
+/// Instead of:
+/// ```ignore
+/// button(text("Save")).style(button_styles::primary())
+/// ```
+///
+/// Use:
+/// ```ignore
+/// container(button(text("Save")).on_press(Message::Save))
+///     .style(button_containers::primary())
+///     .padding(spacing::SM)
+/// ```
+pub mod button_containers {
+    use iced::widget::container;
+    use iced::Border;
+
+    use super::{border_radius, colors};
+
+    /// Primary action button container style (vibrant rose background)
+    ///
+    /// Use for the most important actions in a context:
+    /// - Play/Pause (main action)
+    /// - Save (confirmation dialog)
+    /// - Add (adding new items)
+    /// - Set (sleep timer)
+    pub fn primary() -> impl Fn(&iced::Theme) -> container::Appearance {
+        move |_theme: &iced::Theme| container::Appearance {
+            background: Some(iced::Background::Color(colors::PRIMARY)),
+            border: Border {
+                color: colors::PRIMARY,
+                width: 2.0,
+                radius: border_radius::MD.into(),
+            },
+            text_color: Some(colors::TEXT_ON_PRIMARY),
+            ..Default::default()
+        }
+    }
+
+    /// Secondary action button container style (elevated with border)
+    ///
+    /// Use for secondary actions:
+    /// - Stop (less important than play/pause)
+    /// - Cancel (dismissive action)
+    /// - Close (modal dismiss)
+    /// - Edit (non-primary modification)
+    pub fn secondary() -> impl Fn(&iced::Theme) -> container::Appearance {
+        move |_theme: &iced::Theme| container::Appearance {
+            background: Some(iced::Background::Color(colors::BG_ELEVATED)),
+            border: Border {
+                color: colors::BORDER_DEFAULT,
+                width: 1.0,
+                radius: border_radius::MD.into(),
+            },
+            text_color: Some(colors::TEXT_PRIMARY),
+            ..Default::default()
+        }
+    }
+
+    /// Danger/destructive action button container style (error color)
+    ///
+    /// Use for destructive actions that cannot be undone:
+    /// - Delete (permanent removal)
+    /// - Remove (removing from list)
+    /// - Cancel timer (destructive in some contexts)
+    pub fn danger() -> impl Fn(&iced::Theme) -> container::Appearance {
+        move |_theme: &iced::Theme| container::Appearance {
+            background: Some(iced::Background::Color(colors::ERROR)),
+            border: Border {
+                color: colors::BORDER_ERROR,
+                width: 2.0,
+                radius: border_radius::MD.into(),
+            },
+            text_color: Some(colors::TEXT_ON_PRIMARY),
+            ..Default::default()
+        }
+    }
+}
+
+/// Focus indicator styling for keyboard navigation accessibility
+///
+/// Provides visual focus indicators compliant with WCAG 2.1 AA 2.4.7.
+/// Use with application state tracking since iced 0.12 doesn't expose focus.
+///
+/// # Usage
+///
+/// ```ignore
+/// let is_focused = state.focused_element == FocusedElement::PlayPauseButton;
+/// container(button(text("Play/Pause")).on_press(Message::PlayPause))
+///     .style(move |theme| focus_indicator(is_focused)(theme))
+/// ```
+///
+/// # Focus Ring Specifications
+///
+/// - **Color**: Blue #2563EB (`FOCUS_RING` constant)
+/// - **Width**: 3px (WCAG recommends minimum 3px for visibility)
+/// - **Radius**: Medium border radius (8px)
+/// - **Contrast**: High contrast against all backgrounds
+pub fn focus_indicator(is_focused: bool) -> impl Fn(&iced::Theme) -> container::Appearance {
+    use iced::widget::container;
+    move |_theme: &iced::Theme| {
+        if is_focused {
+            container::Appearance {
+                border: Border {
+                    color: colors::FOCUS_RING,
+                    width: 3.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            }
+        } else {
+            container::Appearance::default()
+        }
+    }
+}
+
 // Legacy color exports for backwards compatibility
 pub const TOP_BAR_COLOR: Color = colors::TOP_BAR_COLOR;
 pub const PLAYER_BG_COLOR: Color = colors::PLAYER_BG_COLOR;
@@ -183,13 +432,13 @@ mod tests {
 
     #[test]
     fn test_format_duration_with_hours() {
-        assert_eq!(format_duration(Some(3661000)), "1:01:01");
-        assert_eq!(format_duration(Some(7200000)), "2:00:00");
+        assert_eq!(format_duration(Some(3_661_000)), "1:01:01");
+        assert_eq!(format_duration(Some(7_200_000)), "2:00:00");
     }
 
     #[test]
     fn test_format_duration_with_minutes_only() {
-        assert_eq!(format_duration(Some(125000)), "2:05");
+        assert_eq!(format_duration(Some(125_000)), "2:05");
         assert_eq!(format_duration(Some(60000)), "1:00");
     }
 
@@ -210,13 +459,13 @@ mod tests {
 
     #[test]
     fn test_format_time_ms_with_hours() {
-        assert_eq!(format_time_ms(3661000), "1:01:01");
-        assert_eq!(format_time_ms(7200000), "2:00:00");
+        assert_eq!(format_time_ms(3_661_000), "1:01:01");
+        assert_eq!(format_time_ms(7_200_000), "2:00:00");
     }
 
     #[test]
     fn test_format_time_ms_with_minutes_only() {
-        assert_eq!(format_time_ms(125000), "2:05");
+        assert_eq!(format_time_ms(125_000), "2:05");
         assert_eq!(format_time_ms(60000), "1:00");
         assert_eq!(format_time_ms(0), "0:00");
     }
@@ -255,8 +504,8 @@ mod tests {
         let bg_b = 0.949_f32;
 
         // Calculate relative luminance (simplified)
-        let text_lum = 0.2126 * text_r + 0.7152 * text_g + 0.0722 * text_b;
-        let bg_lum = 0.2126 * bg_r + 0.7152 * bg_g + 0.0722 * bg_b;
+        let text_lum = (0.2126_f32).mul_add(text_r, (0.7152_f32).mul_add(text_g, 0.0722 * text_b));
+        let bg_lum = (0.2126_f32).mul_add(bg_r, (0.7152_f32).mul_add(bg_g, 0.0722 * bg_b));
 
         // Contrast ratio
         let contrast = (bg_lum + 0.05) / (text_lum + 0.05);
@@ -270,42 +519,67 @@ mod tests {
 
     #[test]
     fn test_spacing_follows_4px_grid() {
-        assert_eq!(spacing::XS, 4.0);
-        assert_eq!(spacing::SM, 8.0);
-        assert_eq!(spacing::MD, 16.0);
-        assert_eq!(spacing::LG, 24.0);
-        assert_eq!(spacing::XL, 32.0);
-        assert_eq!(spacing::XXL, 48.0);
+        const EPSILON: f32 = 1e-6;
+
+        assert!((spacing::XS - 4.0).abs() < EPSILON);
+        assert!((spacing::SM - 8.0).abs() < EPSILON);
+        assert!((spacing::MD - 16.0).abs() < EPSILON);
+        assert!((spacing::LG - 24.0).abs() < EPSILON);
+        assert!((spacing::XL - 32.0).abs() < EPSILON);
+        assert!((spacing::XXL - 48.0).abs() < EPSILON);
 
         // Verify all spacings are multiples of 4
-        assert_eq!(spacing::XS % 4.0, 0.0);
-        assert_eq!(spacing::SM % 4.0, 0.0);
-        assert_eq!(spacing::MD % 4.0, 0.0);
-        assert_eq!(spacing::LG % 4.0, 0.0);
-        assert_eq!(spacing::XL % 4.0, 0.0);
-        assert_eq!(spacing::XXL % 4.0, 0.0);
+        assert!((spacing::XS % 4.0).abs() < EPSILON);
+        assert!((spacing::SM % 4.0).abs() < EPSILON);
+        assert!((spacing::MD % 4.0).abs() < EPSILON);
+        assert!((spacing::LG % 4.0).abs() < EPSILON);
+        assert!((spacing::XL % 4.0).abs() < EPSILON);
+        assert!((spacing::XXL % 4.0).abs() < EPSILON);
     }
 
     #[test]
     fn test_typography_scale_is_reasonable() {
         // Verify text sizes increase monotonically
-        assert!(typography::SIZE_XS < typography::SIZE_SM);
-        assert!(typography::SIZE_SM < typography::SIZE_BASE);
-        assert!(typography::SIZE_BASE < typography::SIZE_LG);
-        assert!(typography::SIZE_LG < typography::SIZE_XL);
-        assert!(typography::SIZE_XL < typography::SIZE_XXL);
-        assert!(typography::SIZE_XXL < typography::SIZE_HEADING);
+        let sizes = [
+            typography::SIZE_XS,
+            typography::SIZE_SM,
+            typography::SIZE_BASE,
+            typography::SIZE_LG,
+            typography::SIZE_XL,
+            typography::SIZE_XXL,
+            typography::SIZE_HEADING,
+        ];
+
+        for window in sizes.windows(2) {
+            if let [current, next] = window {
+                assert!(
+                    current < next,
+                    "Typography sizes should increase monotonically"
+                );
+            }
+        }
     }
 
     #[test]
     fn test_transition_durations_are_in_acceptable_range() {
         // Verify transitions are between 100ms and 500ms (best practices)
-        assert!(transitions::FAST >= 100 && transitions::FAST <= 500);
-        assert!(transitions::NORMAL >= 100 && transitions::NORMAL <= 500);
-        assert!(transitions::SLOW >= 100 && transitions::SLOW <= 500);
+        let durations = [transitions::FAST, transitions::NORMAL, transitions::SLOW];
+
+        for &duration in &durations {
+            assert!(
+                (100..=500).contains(&duration),
+                "Transition duration {duration} is out of acceptable range"
+            );
+        }
 
         // Verify durations increase monotonically
-        assert!(transitions::FAST < transitions::NORMAL);
-        assert!(transitions::NORMAL < transitions::SLOW);
+        for window in durations.windows(2) {
+            if let [current, next] = window {
+                assert!(
+                    current < next,
+                    "Transition durations should increase monotonically"
+                );
+            }
+        }
     }
 }

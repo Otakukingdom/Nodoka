@@ -253,7 +253,7 @@ impl Application for App {
         update::update(&mut self.state, message, &mut self.player, &self.db)
     }
 
-    fn view(&self) -> Element<Self::Message> {
+    fn view(&self) -> Element<'_, Self::Message> {
         main_window::view(&self.state)
     }
 
@@ -294,6 +294,21 @@ fn map_key_press(
         }
         iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("b") => {
             crate::ui::shortcuts::ShortcutKey::B
+        }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowLeft) => {
+            crate::ui::shortcuts::ShortcutKey::ArrowLeft
+        }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowRight) => {
+            crate::ui::shortcuts::ShortcutKey::ArrowRight
+        }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowUp) => {
+            crate::ui::shortcuts::ShortcutKey::ArrowUp
+        }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowDown) => {
+            crate::ui::shortcuts::ShortcutKey::ArrowDown
+        }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape) => {
+            crate::ui::shortcuts::ShortcutKey::Escape
         }
         _ => return None,
     };

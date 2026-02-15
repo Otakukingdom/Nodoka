@@ -1,4 +1,4 @@
-use crate::ui::styles::{spacing, typography};
+use crate::ui::styles::{button_containers, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, horizontal_space, row, scrollable, text};
 use iced::{Element, Length};
@@ -30,12 +30,18 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
                     row![
                         text(&path).size(typography::SIZE_SM),
                         horizontal_space(),
-                        button(text("Rescan").size(typography::SIZE_XS))
-                            .on_press(Message::DirectoryRescan(rescan_path))
-                            .padding(spacing::XS),
-                        button(text("Remove").size(typography::SIZE_XS))
-                            .on_press(Message::DirectoryRemove(remove_path))
-                            .padding(spacing::XS),
+                        container(
+                            button(text("Rescan").size(typography::SIZE_XS))
+                                .on_press(Message::DirectoryRescan(rescan_path))
+                                .padding(spacing::XS)
+                        )
+                        .style(button_containers::secondary()),
+                        container(
+                            button(text("Remove").size(typography::SIZE_XS))
+                                .on_press(Message::DirectoryRemove(remove_path))
+                                .padding(spacing::XS)
+                        )
+                        .style(button_containers::danger()),
                     ]
                     .padding(spacing::SM)
                     .spacing(spacing::SM),
@@ -60,13 +66,19 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
             // Action buttons with proper grouping
             container(
                 row![
-                    button(text("Add Directory").size(typography::SIZE_SM))
-                        .on_press(Message::DirectoryAdd)
-                        .padding(spacing::MD),
+                    container(
+                        button(text("Add Directory").size(typography::SIZE_SM))
+                            .on_press(Message::DirectoryAdd)
+                            .padding(spacing::MD)
+                    )
+                    .style(button_containers::primary()),
                     horizontal_space(),
-                    button(text("Close").size(typography::SIZE_SM))
-                        .on_press(Message::CloseSettings)
-                        .padding(spacing::MD),
+                    container(
+                        button(text("Close").size(typography::SIZE_SM))
+                            .on_press(Message::CloseSettings)
+                            .padding(spacing::MD)
+                    )
+                    .style(button_containers::secondary()),
                 ]
                 .spacing(spacing::MD)
             )

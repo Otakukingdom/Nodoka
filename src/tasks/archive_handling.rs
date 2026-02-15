@@ -257,7 +257,10 @@ fn percent_encode_component(input: &str) -> String {
             b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
                 out.push(char::from(*b));
             }
-            _ => out.push_str(&format!("%{b:02X}")),
+            _ => {
+                use std::fmt::Write;
+                let _ = write!(out, "%{b:02X}");
+            }
         }
     }
     out
