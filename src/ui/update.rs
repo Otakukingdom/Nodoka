@@ -174,7 +174,7 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
-    
+
     if let Some(ref mut p) = player {
         if state.is_playing {
             if let Err(e) = p.pause() {
@@ -242,11 +242,7 @@ fn handle_seek_to(state: &mut State, player: &mut Option<Vlc>, position: f64) ->
     Task::none()
 }
 
-fn handle_player_tick(
-    state: &mut State,
-    player: &mut Option<Vlc>,
-    db: &Database,
-) -> Task<Message> {
+fn handle_player_tick(state: &mut State, player: &mut Option<Vlc>, db: &Database) -> Task<Message> {
     let timer_consumed_tick = sleep_timer::handle_sleep_timer_tick(state, player);
     if timer_consumed_tick {
         return Task::none();
@@ -671,7 +667,12 @@ fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Task<Mess
             ) {
                 tracing::error!("Failed to update file progress: {e}");
             } else {
-                update_current_file_progress(state, &file_path_owned, state.current_time, completeness);
+                update_current_file_progress(
+                    state,
+                    &file_path_owned,
+                    state.current_time,
+                    completeness,
+                );
                 update_audiobook_completeness_after_file_change(state, db, &file_path_owned);
             }
         }
@@ -837,16 +838,12 @@ fn recompute_audiobook_completeness(state: &mut State, db: &Database, audiobook_
 }
 
 /// Seeks forward by the specified number of seconds
-fn handle_seek_forward(
-    state: &mut State,
-    player: &mut Option<Vlc>,
-    seconds: i64,
-) -> Task<Message> {
+fn handle_seek_forward(state: &mut State, player: &mut Option<Vlc>, seconds: i64) -> Task<Message> {
     // Don't process seek when a modal is open (keyboard shortcut should not work in modal context)
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
-    
+
     let Some(_) = player else {
         return Task::none();
     };
@@ -873,7 +870,7 @@ fn handle_seek_backward(
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
-    
+
     let Some(_) = player else {
         return Task::none();
     };
@@ -891,16 +888,12 @@ fn handle_seek_backward(
 }
 
 /// Selects the next file in the current file list
-fn handle_next_file(
-    state: &mut State,
-    player: &mut Option<Vlc>,
-    db: &Database,
-) -> Task<Message> {
+fn handle_next_file(state: &mut State, player: &mut Option<Vlc>, db: &Database) -> Task<Message> {
     // Don't process file navigation when a modal is open (keyboard shortcut should not work in modal context)
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
-    
+
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
     };
@@ -927,7 +920,7 @@ fn handle_previous_file(
     if state.settings_open || state.bookmark_editor.is_some() {
         return Task::none();
     }
-    
+
     let Some(ref current_path) = state.selected_file else {
         return Task::none();
     };
