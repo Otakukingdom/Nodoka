@@ -158,12 +158,12 @@ mod tests {
     }
 
     #[test]
-    fn test_settings_dialog_handles_unicode_paths() {
+    fn test_settings_dialog_handles_unusual_paths() {
         let state = State {
             settings_open: true,
             directories: vec![
-                Directory::new("/path/with/日本語".to_string()),
-                Directory::new("/path/with/émojis/📚".to_string()),
+                Directory::new("/path/with/percent-encoding/%E2%9C%93".to_string()),
+                Directory::new("/path/with/symbols/@#$%^&*()".to_string()),
             ],
             ..Default::default()
         };

@@ -53,6 +53,32 @@ impl MediaControl for CountingFailingLoadPlayer {
     }
 }
 
+#[derive(Clone)]
+struct RecordingPlayer {
+    load_calls: Rc<Cell<u32>>,
+    play_calls: Rc<Cell<u32>>,
+}
+
+impl MediaControl for RecordingPlayer {
+    fn load_media(&mut self, _path: &Path) -> Result<()> {
+        self.load_calls.set(self.load_calls.get() + 1);
+        Ok(())
+    }
+
+    fn set_time(&self, _time_ms: i64) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Ok(0)
+    }
+
+    fn play(&self) -> Result<()> {
+        self.play_calls.set(self.play_calls.get() + 1);
+        Ok(())
+    }
+}
+
 #[test]
 fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -167,6 +193,48 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
         (state.current_time - 123.0).abs() < 0.0001,
         "bookmark jump should not update current_time when load fails"
     );
+    Ok(())
+}
+
+#[test]
+fn test_handle_file_selected_clears_error_on_successful_play(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        error_message: Some("Stale error".to_string()),
+        error_timestamp: Some(chrono::Utc::now()),
+        ..Default::default()
+    };
+
+    let load_calls = Rc::new(Cell::new(0));
+    let play_calls = Rc::new(Cell::new(0));
+    let mut player = Some(RecordingPlayer {
+        load_calls: load_calls.clone(),
+        play_calls: play_calls.clone(),
+    });
+
+    let path = "/dir/book/new.mp3";
+    let _cmd = handle_file_selected(&mut state, &mut player, &db, path);
+
+    assert_eq!(load_calls.get(), 1, "media should be loaded");
+    assert_eq!(play_calls.get(), 1, "play should be attempted");
+    assert_eq!(state.error_message, None, "stale error should clear");
+    assert_eq!(
+        state.error_timestamp, None,
+        "stale error timestamp should clear"
+    );
+    assert_eq!(state.playback, PlaybackStatus::Playing);
     Ok(())
 }
 

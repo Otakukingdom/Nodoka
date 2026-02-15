@@ -66,7 +66,7 @@ fi
 # Run verification script
 echo "Running release verification..."
 echo ""
-if ! "$SCRIPT_DIR/verify-release-ready.sh"; then
+if ! "$PROJECT_ROOT/verify-release-ready.sh"; then
     echo ""
     echo -e "${RED}Verification failed. Fix issues before creating tag.${NC}"
     exit 1
@@ -110,7 +110,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "1. Go to GitHub: https://github.com/otakukingdom/nodoka/releases/new"
     echo "2. Select tag: ${VERSION}"
     echo "3. Title: Nodoka 0.2.0 - Rust Rewrite"
-    echo "4. Description: Copy from RELEASE_NOTES_v0.2.0.md"
+    echo "4. Description: Copy from CHANGELOG.md (0.2.0 section)"
     echo "5. Save as DRAFT (don't publish yet)"
     echo "6. Wait for CI/CD to build and upload installers (~10-15 minutes)"
     echo "7. Verify all 3 installers uploaded: .msi, .dmg, .deb"

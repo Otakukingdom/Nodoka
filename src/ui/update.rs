@@ -556,43 +556,44 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
         }
     }
 
-    match player.as_mut() {
-        Some(p) => {
-            let playback_path = if parse_zip_virtual_path(path).is_some() {
-                match materialize_zip_virtual_path(path) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        tracing::error!("Failed to extract ZIP entry for playback: {e}");
-                        state.error_message = Some(format!("Failed to extract audio file: {e}"));
-                        state.error_timestamp = Some(chrono::Utc::now());
-                        return Task::none();
-                    }
+    if let Some(p) = player.as_mut() {
+        let playback_path = if parse_zip_virtual_path(path).is_some() {
+            match materialize_zip_virtual_path(path) {
+                Ok(p) => p,
+                Err(e) => {
+                    tracing::error!("Failed to extract ZIP entry for playback: {e}");
+                    state.error_message = Some(format!("Failed to extract audio file: {e}"));
+                    state.error_timestamp = Some(chrono::Utc::now());
+                    return Task::none();
                 }
-            } else {
-                std::path::PathBuf::from(path)
-            };
-
-            if let Err(e) = p.load_media(&playback_path) {
-                tracing::error!("Failed to load media: {e}");
-                state.error_message = Some(format!("Failed to load audio file: {e}"));
-                state.error_timestamp = Some(chrono::Utc::now());
-                return Task::none();
             }
+        } else {
+            std::path::PathBuf::from(path)
+        };
 
-            persist_selected_file(state, db, path);
-            restore_progress_and_duration(state, p, db, path);
+        if let Err(e) = p.load_media(&playback_path) {
+            tracing::error!("Failed to load media: {e}");
+            state.error_message = Some(format!("Failed to load audio file: {e}"));
+            state.error_timestamp = Some(chrono::Utc::now());
+            return Task::none();
+        }
 
-            if let Err(e) = p.play() {
-                tracing::error!("Failed to auto-play: {e}");
-                state.error_message = Some(format!("Failed to start playback: {e}"));
-                state.error_timestamp = Some(chrono::Utc::now());
-            } else {
-                state.playback = PlaybackStatus::Playing;
-            }
+        persist_selected_file(state, db, path);
+        restore_progress_and_duration(state, p, db, path);
+
+        if let Err(e) = p.play() {
+            tracing::error!("Failed to auto-play: {e}");
+            state.error_message = Some(format!("Failed to start playback: {e}"));
+            state.error_timestamp = Some(chrono::Utc::now());
+        } else {
+            state.playback = PlaybackStatus::Playing;
+            state.error_message = None;
+            state.error_timestamp = None;
         }
-        None => {
-            persist_selected_file(state, db, path);
-        }
+    } else {
+        persist_selected_file(state, db, path);
+        state.error_message = None;
+        state.error_timestamp = None;
     }
 
     Task::none()

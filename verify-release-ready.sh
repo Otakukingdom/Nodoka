@@ -2,7 +2,7 @@
 # Release Readiness Verification Script
 # This script verifies that the Nodoka project is ready for v0.2.0 release
 
-set -e
+set -euo pipefail
 
 echo "========================================"
 echo "Nodoka v0.2.0 Release Readiness Check"
@@ -11,6 +11,8 @@ echo ""
 
 ERRORS=0
 WARNINGS=0
+PASSED=0
+TOTAL=0
 
 # Color codes for output
 RED='\033[0;31m'
@@ -20,16 +22,20 @@ NC='\033[0m' # No Color
 
 function pass() {
     echo -e "${GREEN}✓${NC} $1"
+    TOTAL=$((TOTAL + 1))
+    PASSED=$((PASSED + 1))
 }
 
 function fail() {
     echo -e "${RED}✗${NC} $1"
-    ((ERRORS++))
+    TOTAL=$((TOTAL + 1))
+    ERRORS=$((ERRORS + 1))
 }
 
 function warn() {
     echo -e "${YELLOW}⚠${NC} $1"
-    ((WARNINGS++))
+    TOTAL=$((TOTAL + 1))
+    WARNINGS=$((WARNINGS + 1))
 }
 
 # 1. Verify no C++ source files remain
@@ -52,7 +58,7 @@ fi
 
 # 3. Run tests
 echo "3. Running test suite..."
-if cargo test --all --quiet 2>&1 | grep -q "test result: ok"; then
+if cargo test --all --quiet; then
     pass "All tests passing"
 else
     fail "Test failures detected"
@@ -60,7 +66,7 @@ fi
 
 # 4. Run clippy with strict linting
 echo "4. Running clippy with strict linting..."
-if cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -q "Finished"; then
+if cargo clippy --all-targets --all-features -- -D warnings; then
     pass "Clippy passes with -D warnings"
 else
     fail "Clippy warnings/errors detected"
@@ -68,11 +74,10 @@ fi
 
 # 5. Check for forbidden patterns in source
 echo "5. Checking for forbidden patterns (unwrap/expect/panic)..."
-FORBIDDEN=$(rg '\.unwrap\(|\.expect\(|panic!' src/ --count-matches 2>/dev/null | awk -F: '{sum+=$2} END {print sum}')
-if [ -z "$FORBIDDEN" ] || [ "$FORBIDDEN" -eq 0 ]; then
-    pass "No forbidden patterns in src/"
+if rg -q '\.unwrap\(|\.expect\(|panic!' src/; then
+    fail "Found forbidden patterns (unwrap/expect/panic) in src/"
 else
-    fail "Found $FORBIDDEN instances of unwrap/expect/panic in src/"
+    pass "No forbidden patterns in src/"
 fi
 
 # 6. Verify dependencies
@@ -142,7 +147,7 @@ fi
 # 11. Verify SHA256SUMS.txt
 echo "11. Checking SHA256SUMS.txt..."
 if [ -f "SHA256SUMS.txt" ]; then
-    CHECKSUM_COUNT=$(wc -l < SHA256SUMS.txt | tr -d ' ')
+    CHECKSUM_COUNT=$(awk 'END { print NR }' SHA256SUMS.txt)
     if [ "$CHECKSUM_COUNT" -ge 1 ]; then
         pass "SHA256SUMS.txt exists with $CHECKSUM_COUNT checksum(s)"
     else
@@ -157,11 +162,8 @@ echo "12. Checking documentation..."
 REQUIRED_DOCS=(
     "README.md"
     "CHANGELOG.md"
-    "RELEASE_NOTES_v0.2.0.md"
-    "CONTRIBUTING.md"
-    "docs/USER_GUIDE.md"
-    "docs/TROUBLESHOOTING.md"
-    "docs/LESSONS_LEARNED.md"
+    "LICENSE"
+    "design-system/nodoka-audiobook-player/MASTER.md"
 )
 
 for doc in "${REQUIRED_DOCS[@]}"; do
@@ -186,7 +188,7 @@ fi
 
 # 14. Verify version consistency
 echo "14. Checking version consistency..."
-VERSION_CARGO=$(grep '^version = "' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+VERSION_CARGO=$(awk -F'"' '/^version = "/ { print $2; exit }' Cargo.toml)
 if [ "$VERSION_CARGO" = "0.2.0" ]; then
     pass "Cargo.toml version is 0.2.0"
 else
@@ -207,7 +209,8 @@ echo ""
 echo "========================================"
 echo "Verification Summary"
 echo "========================================"
-echo -e "Checks passed: ${GREEN}$((15 - ERRORS - WARNINGS))${NC}"
+echo -e "Total checks: $TOTAL"
+echo -e "Checks passed: ${GREEN}$PASSED${NC}"
 echo -e "Warnings: ${YELLOW}$WARNINGS${NC}"
 echo -e "Errors: ${RED}$ERRORS${NC}"
 echo ""
