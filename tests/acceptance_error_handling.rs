@@ -9,44 +9,62 @@ use std::path::Path;
 fn test_missing_vlc_handled_gracefully() {
     // If VLC not available, constructors should return Err
     let result = Vlc::new();
-    if let Err(e) = result {
-        // Error should be informative
-        let err_str = format!("{e:?}").to_lowercase();
-        assert!(
-            err_str.contains("vlc") || err_str.contains("library") || err_str.contains("not found"),
-            "Error message should mention VLC"
-        );
+    match result {
+        Ok(player) => {
+            // If VLC is available on this machine, at least assert the player starts in a
+            // non-playing state.
+            assert!(
+                !matches!(player.get_state(), nodoka::player::PlaybackState::Playing),
+                "newly created player should not start in Playing state"
+            );
+        }
+        Err(e) => {
+            // Error should be informative
+            let err_str = format!("{e:?}").to_lowercase();
+            assert!(
+                err_str.contains("vlc")
+                    || err_str.contains("library")
+                    || err_str.contains("not found"),
+                "Error message should mention VLC"
+            );
+        }
     }
 }
 
 #[test]
-fn test_unplayable_file_shows_error() {
-    if let Ok(mut player) = Vlc::new() {
-        let fixtures = TestFixtures::new();
-        let corrupted = fixtures.audio_path("corrupted.mp3");
+#[ignore = "requires libvlc runtime"]
+fn test_unplayable_file_shows_error() -> Result<(), Box<dyn Error>> {
+    use std::fs;
+    use temp_dir::TempDir;
 
-        if corrupted.exists() {
-            let load_result = player.load_media(&corrupted);
-            match load_result {
-                Ok(()) => {
-                    // If media object was created, attempting to play should fail or transition
-                    // to an error-like state, but must not panic.
-                    let play_result = player.play();
-                    if play_result.is_ok() {
-                        assert!(
-                            !matches!(player.get_state(), nodoka::player::PlaybackState::Playing),
-                            "Corrupted media should not play successfully"
-                        );
-                    } else {
-                        assert!(!format!("{play_result:?}").is_empty());
-                    }
-                }
-                Err(e) => {
-                    assert!(!format!("{e}").is_empty());
-                }
+    let mut player = Vlc::new()?;
+
+    // Create a deliberately invalid media file.
+    let temp = TempDir::new()?;
+    let bogus = temp.path().join("bogus.mp3");
+    fs::write(&bogus, b"not an mp3")?;
+
+    let load_result = player.load_media(&bogus);
+    match load_result {
+        Ok(()) => {
+            // If media object was created, attempting to play should fail or transition
+            // to a non-playing state, but must not panic.
+            let play_result = player.play();
+            if play_result.is_ok() {
+                assert!(
+                    !matches!(player.get_state(), nodoka::player::PlaybackState::Playing),
+                    "Unplayable media should not play successfully"
+                );
+            } else {
+                assert!(!format!("{play_result:?}").is_empty());
             }
         }
+        Err(e) => {
+            assert!(!format!("{e}").is_empty());
+        }
     }
+
+    Ok(())
 }
 
 #[test]
@@ -66,13 +84,14 @@ fn test_database_errors_return_result() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_nonexistent_file_handled() {
-    if let Ok(mut player) = Vlc::new() {
-        let nonexistent = Path::new("/nonexistent/path/to/file.mp3");
-        let result = player.load_media(nonexistent);
+#[ignore = "requires libvlc runtime"]
+fn test_nonexistent_file_handled() -> Result<(), Box<dyn Error>> {
+    let mut player = Vlc::new()?;
+    let nonexistent = Path::new("/nonexistent/path/to/file.mp3");
+    let result = player.load_media(nonexistent);
 
-        assert!(result.is_err());
-    }
+    assert!(result.is_err());
+    Ok(())
 }
 
 #[test]
@@ -278,13 +297,22 @@ fn test_vlc_not_installed_error_message() {
     // Test that VLC errors are clear and actionable
     let result = Vlc::new();
 
-    if let Err(e) = result {
-        let error_msg = format!("{e}");
-        // Error should mention VLC and be actionable
-        assert!(
-            error_msg.to_lowercase().contains("vlc") || error_msg.to_lowercase().contains("libvlc"),
-            "Error should mention VLC: {error_msg}"
-        );
+    match result {
+        Ok(player) => {
+            assert!(
+                !matches!(player.get_state(), nodoka::player::PlaybackState::Playing),
+                "newly created player should not start in Playing state"
+            );
+        }
+        Err(e) => {
+            let error_msg = format!("{e}");
+            // Error should mention VLC and be actionable
+            assert!(
+                error_msg.to_lowercase().contains("vlc")
+                    || error_msg.to_lowercase().contains("libvlc"),
+                "Error should mention VLC: {error_msg}"
+            );
+        }
     }
 }
 

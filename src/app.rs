@@ -38,6 +38,23 @@ const DEFAULT_WINDOW_HEIGHT: f32 = 900.0;
 const MIN_WINDOW_WIDTH: f32 = 800.0;
 const MIN_WINDOW_HEIGHT: f32 = 600.0;
 
+const fn sanitize_volume(volume: i32) -> i32 {
+    if volume < 0 {
+        0
+    } else if volume > 200 {
+        200
+    } else {
+        volume
+    }
+}
+
+const fn sanitize_speed(speed: f32) -> f32 {
+    if !speed.is_finite() {
+        return 1.0;
+    }
+    speed.clamp(0.5, 2.0)
+}
+
 fn i32_to_f32_window_size(v: i32) -> Option<f32> {
     let v_u16 = u16::try_from(v).ok()?;
     Some(f32::from(v_u16))
@@ -179,13 +196,33 @@ impl iced::Program for App {
         if let Ok(Some(volume_str)) = crate::db::queries::get_metadata(flags.connection(), "volume")
         {
             if let Ok(volume) = volume_str.parse::<i32>() {
-                state.volume = volume;
+                let sanitized = sanitize_volume(volume);
+                state.volume = sanitized;
+                if sanitized != volume {
+                    if let Err(e) = crate::db::queries::set_metadata(
+                        flags.connection(),
+                        "volume",
+                        &sanitized.to_string(),
+                    ) {
+                        tracing::warn!("Failed to persist sanitized volume: {e}");
+                    }
+                }
             }
         }
 
         if let Ok(Some(speed_str)) = crate::db::queries::get_metadata(flags.connection(), "speed") {
             if let Ok(speed) = speed_str.parse::<f32>() {
-                state.speed = speed;
+                let sanitized = sanitize_speed(speed);
+                state.speed = sanitized;
+                if (sanitized - speed).abs() > f32::EPSILON {
+                    if let Err(e) = crate::db::queries::set_metadata(
+                        flags.connection(),
+                        "speed",
+                        &sanitized.to_string(),
+                    ) {
+                        tracing::warn!("Failed to persist sanitized speed: {e}");
+                    }
+                }
             }
         }
 
@@ -275,6 +312,65 @@ impl iced::Program for App {
 
     fn theme(&self, _state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
         Some(crate::ui::nodoka_theme())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+
+    #[test]
+    fn test_boot_sanitizes_persisted_volume_and_speed(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        use iced::Program as _;
+
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        crate::db::queries::set_metadata(db.connection(), "volume", "-5")?;
+        crate::db::queries::set_metadata(db.connection(), "speed", "NaN")?;
+
+        let app = App {
+            player: RefCell::new(None),
+            db,
+        };
+
+        let (state, _cmd) = app.boot();
+
+        assert_eq!(state.volume, 0, "volume should clamp to 0 on load");
+        assert!(state.speed.is_finite(), "speed should be finite on load");
+        assert!(
+            (state.speed - 1.0).abs() < f32::EPSILON,
+            "non-finite speed should default to 1.0"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_boot_clamps_out_of_range_speed() -> std::result::Result<(), Box<dyn std::error::Error>>
+    {
+        use iced::Program as _;
+
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        crate::db::queries::set_metadata(db.connection(), "speed", "3.5")?;
+        crate::db::queries::set_metadata(db.connection(), "volume", "999")?;
+
+        let app = App {
+            player: RefCell::new(None),
+            db,
+        };
+
+        let (state, _cmd) = app.boot();
+
+        assert_eq!(state.volume, 200, "volume should clamp to 200 on load");
+        assert!(
+            (state.speed - 2.0).abs() < f32::EPSILON,
+            "speed should clamp to 2.0 on load"
+        );
+        Ok(())
     }
 }
 

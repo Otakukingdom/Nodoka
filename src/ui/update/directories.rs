@@ -4,6 +4,14 @@ use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook, D
 use crate::ui::{Message, ScanState, State};
 use iced::Task;
 
+fn is_legacy_sha256(value: &str) -> bool {
+    value.len() == 64 && value.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+fn is_fs_fingerprint(value: &str) -> bool {
+    value.starts_with("fs:v1:")
+}
+
 pub(super) fn handle_directory_add() -> Task<Message> {
     Task::perform(
         async {
@@ -328,7 +336,10 @@ fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, discovered:
     {
         file.length_of_file = existing_file.length_of_file;
 
+        // Preserve progress when migrating from legacy SHA-256 checksums to cheap filesystem
+        // fingerprints.
         let changed = match (existing_file.checksum.as_deref(), file.checksum.as_deref()) {
+            (Some(old), Some(new)) if is_legacy_sha256(old) && is_fs_fingerprint(new) => false,
             (Some(old), Some(new)) => old != new,
             _ => false,
         };

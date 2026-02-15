@@ -557,7 +557,14 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
     }
 
     if let Some(p) = player.as_mut() {
-        let playback_path = if parse_zip_virtual_path(path).is_some() {
+        let playback_path = if path.starts_with("zip://") {
+            if parse_zip_virtual_path(path).is_none() {
+                tracing::warn!("Rejecting malformed ZIP virtual path: {path}");
+                state.error_message = Some("Invalid ZIP virtual path".to_string());
+                state.error_timestamp = Some(chrono::Utc::now());
+                return Task::none();
+            }
+
             match materialize_zip_virtual_path(path) {
                 Ok(p) => p,
                 Err(e) => {
@@ -585,6 +592,7 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
             tracing::error!("Failed to auto-play: {e}");
             state.error_message = Some(format!("Failed to start playback: {e}"));
             state.error_timestamp = Some(chrono::Utc::now());
+            state.playback = PlaybackStatus::Paused;
         } else {
             state.playback = PlaybackStatus::Playing;
             state.error_message = None;

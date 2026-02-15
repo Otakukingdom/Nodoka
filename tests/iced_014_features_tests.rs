@@ -156,24 +156,6 @@ fn test_modal_state_changes_trigger_view_updates() {
 }
 
 #[test]
-fn test_modal_backdrops_use_stack_widget() {
-    // This test documents that modal backdrops are implemented using
-    // iced 0.14's stack widget for proper layering.
-    //
-    // Manual verification required:
-    // 1. Open settings dialog - background should be dimmed (50% black)
-    // 2. Click on dimmed background - modal should close
-    // 3. Modal content should appear on top of backdrop
-    //
-    // The implementation uses:
-    // - stack! macro to layer elements
-    // - Semi-transparent button as backdrop (rgba(0,0,0,0.5))
-    // - on_press handler for click-outside-to-dismiss
-    //
-    // See src/ui/main_window.rs lines ~110-160 for implementation
-}
-
-#[test]
 fn test_all_modals_have_backdrop_support() {
     // Verify that all modal states can be represented
     let state_with_settings = State {

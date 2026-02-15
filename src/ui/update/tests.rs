@@ -79,6 +79,50 @@ impl MediaControl for RecordingPlayer {
     }
 }
 
+struct FailingPlayPlayer;
+
+impl MediaControl for FailingPlayPlayer {
+    fn load_media(&mut self, _path: &Path) -> Result<()> {
+        Ok(())
+    }
+
+    fn set_time(&self, _time_ms: i64) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Ok(0)
+    }
+
+    fn play(&self) -> Result<()> {
+        Err(Error::Vlc("play failed".to_string()))
+    }
+}
+
+#[derive(Clone)]
+struct CountingLoadPlayer {
+    load_calls: Rc<Cell<u32>>,
+}
+
+impl MediaControl for CountingLoadPlayer {
+    fn load_media(&mut self, _path: &Path) -> Result<()> {
+        self.load_calls.set(self.load_calls.get() + 1);
+        Ok(())
+    }
+
+    fn set_time(&self, _time_ms: i64) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Ok(0)
+    }
+
+    fn play(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
 #[test]
 fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -235,6 +279,82 @@ fn test_handle_file_selected_clears_error_on_successful_play(
         "stale error timestamp should clear"
     );
     assert_eq!(state.playback, PlaybackStatus::Playing);
+    Ok(())
+}
+
+#[test]
+fn test_handle_file_selected_sets_paused_on_play_failure(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        playback: PlaybackStatus::Playing,
+        ..Default::default()
+    };
+
+    let mut player = Some(FailingPlayPlayer);
+    let _cmd = handle_file_selected(&mut state, &mut player, &db, file_path);
+
+    assert!(
+        state.error_message.is_some(),
+        "play failure should surface error"
+    );
+    assert_eq!(
+        state.playback,
+        PlaybackStatus::Paused,
+        "play failure should force playback state to Paused"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_handle_file_selected_rejects_malformed_zip_virtual_paths(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let load_calls = Rc::new(Cell::new(0));
+    let mut player = Some(CountingLoadPlayer {
+        load_calls: load_calls.clone(),
+    });
+
+    let invalid_zip_virtual = "zip://not-a-valid-virtual-path";
+    let _cmd = handle_file_selected(&mut state, &mut player, &db, invalid_zip_virtual);
+
+    assert_eq!(
+        load_calls.get(),
+        0,
+        "malformed ZIP virtual path should not call load_media"
+    );
+
+    let msg = state.error_message.as_deref().ok_or("missing error")?;
+    assert!(
+        msg.to_lowercase().contains("zip") && msg.to_lowercase().contains("invalid"),
+        "error should mention invalid ZIP virtual path"
+    );
+    assert!(
+        state.error_timestamp.is_some(),
+        "error should set timestamp"
+    );
+    assert!(
+        state.selected_file.is_none(),
+        "invalid ZIP virtual path should not persist selection"
+    );
     Ok(())
 }
 

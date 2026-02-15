@@ -182,7 +182,7 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
                 .to_string();
             let sort_key = name.clone();
             let full_path = p.display().to_string();
-            let checksum = sha256_file(&p).ok();
+            let checksum = fs_fingerprint(&p).ok();
             DiscoveredFile {
                 full_path,
                 name,
@@ -199,25 +199,18 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
     })
 }
 
-fn sha256_file(path: &Path) -> std::io::Result<String> {
-    use sha2::Digest as _;
-    use std::io::Read as _;
+fn fs_fingerprint(path: &Path) -> std::io::Result<String> {
+    use std::time::UNIX_EPOCH;
 
-    let file = std::fs::File::open(path)?;
-    let mut reader = std::io::BufReader::new(file);
-    let mut hasher = sha2::Sha256::new();
-    let mut buf = [0u8; 8192];
-    loop {
-        let n = reader.read(&mut buf)?;
-        if n == 0 {
-            break;
-        }
-        if let Some(slice) = buf.get(..n) {
-            hasher.update(slice);
-        }
-    }
-    let out = hasher.finalize();
-    Ok(format!("{out:x}"))
+    let metadata = std::fs::metadata(path)?;
+    let size = metadata.len();
+    let modified_ns: u128 = metadata
+        .modified()
+        .ok()
+        .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+        .map_or(0, |d| d.as_nanos());
+
+    Ok(format!("fs:v1:{size}:{modified_ns}"))
 }
 
 fn is_audio_file(path: &Path) -> bool {
