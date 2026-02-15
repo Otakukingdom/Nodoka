@@ -77,10 +77,10 @@ fi
 
 # 6. Verify dependencies
 echo "6. Verifying key dependencies..."
-if grep -q 'iced = { version = "0.12"' Cargo.toml; then
-    pass "iced 0.12 dependency confirmed"
+if grep -q 'iced = { version = "0.14.0"' Cargo.toml; then
+    pass "iced 0.14.0 dependency confirmed"
 else
-    fail "iced 0.12 not found in Cargo.toml"
+    fail "iced 0.14.0 not found in Cargo.toml"
 fi
 
 if grep -q 'vlc-rs = "0.3"' Cargo.toml; then

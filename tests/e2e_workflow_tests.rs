@@ -3,47 +3,77 @@
 //! Tests simulate complete user workflows through the application,
 //! verifying all UI interactions work together correctly.
 
-use nodoka::models::{AudiobookFile, Bookmark, SleepTimer, SleepTimerMode};
-use nodoka::ui::{BookmarkEditor, PlaybackStatus, ScanState, State};
+use nodoka::models::{AudiobookFile, SleepTimer, SleepTimerMode};
+use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
 use acceptance_support::{create_test_audiobook, create_test_db};
 
 #[test]
-fn test_first_time_user_workflow_structure() -> Result<(), Box<dyn Error>> {
-    // Simulate complete first-time user experience structure
-    // 1. Launch with empty database
+fn test_first_time_user_add_directory_enters_scanning_state() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
+    let temp = temp_dir::TempDir::new()?;
+    let raw_dir = temp.path().to_string_lossy().to_string();
+    let expected_dir = {
+        fn trim_trailing_separators(path: &str) -> String {
+            let mut out = path;
+            while out.len() > 1 && (out.ends_with('/') || out.ends_with('\\')) {
+                out = &out[..out.len() - 1];
+            }
+            out.to_string()
+        }
 
-    // 2. Verify no audiobooks initially
-    let audiobooks = nodoka::db::queries::get_all_audiobooks(db.connection())?;
-    assert!(
-        audiobooks.is_empty(),
-        "New database should have no audiobooks"
+        let canonical =
+            std::fs::canonicalize(temp.path()).unwrap_or_else(|_| temp.path().to_path_buf());
+        trim_trailing_separators(&canonical.to_string_lossy())
+    };
+
+    // Start with empty library.
+    assert!(nodoka::db::queries::get_all_audiobooks(db.connection())?.is_empty());
+    assert!(nodoka::db::queries::get_all_directories(db.connection())?.is_empty());
+
+    let mut state = State::default();
+    let mut player = None;
+
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::DirectoryAdded(raw_dir),
+        &mut player,
+        &db,
     );
 
-    // 3. Add directory (Message::DirectoryAdd would be sent)
-    // 4. Directory would be scanned
-    // 5. Audiobooks would be discovered
-    // 6. User would select audiobook and file
-    // 7. Playback would start
+    assert_eq!(state.directories.len(), 1);
+    assert!(matches!(
+        &state.scan_state,
+        ScanState::Scanning {
+            directory: Some(d)
+        } if d == &expected_dir
+    ));
+    assert!(state.operation_in_progress);
+
+    // Directory is persisted.
+    let stored = nodoka::db::queries::get_all_directories(db.connection())?;
+    assert_eq!(stored.len(), 1);
+    let first = stored.first().ok_or("missing stored directory")?;
+    assert_eq!(first.full_path, expected_dir);
 
     Ok(())
 }
 
 #[test]
 fn test_bookmark_workflow() -> Result<(), Box<dyn Error>> {
-    // Complete bookmark lifecycle
+    // Complete bookmark lifecycle via UI message handling.
     let db = create_test_db()?;
 
     // 1. Create audiobook with file
     let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
 
+    let file_path = "/test/chapter1.mp3".to_string();
     let file = AudiobookFile {
         audiobook_id,
         name: "chapter1.mp3".to_string(),
-        full_path: "/test/chapter1.mp3".to_string(),
+        full_path: file_path.clone(),
         length_of_file: Some(3_600_000),
         seek_position: None,
         checksum: None,
@@ -54,44 +84,43 @@ fn test_bookmark_workflow() -> Result<(), Box<dyn Error>> {
     };
     nodoka::db::queries::insert_audiobook_file(db.connection(), &file)?;
 
-    // 2. Create bookmark at position
-    let bookmark = Bookmark {
-        id: None,
-        audiobook_id,
-        file_path: "/test/chapter1.mp3".to_string(),
-        position_ms: 120_000, // 2 minutes
-        label: "Important moment".to_string(),
-        note: Some("This is a key scene".to_string()),
-        created_at: chrono::Utc::now(),
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path),
+        current_time: 120_000.0,
+        ..State::default()
     };
+    let mut player = None;
 
-    let bookmark_id = nodoka::db::queries::insert_bookmark(db.connection(), &bookmark)?;
+    // 2. Create bookmark (opens editor)
+    let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
+    assert!(state.bookmark_editor.is_some());
+    assert_eq!(state.bookmarks.len(), 1);
 
-    // 3. Verify bookmark was created
+    // 3. Edit label + save
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::BookmarkEditorLabelChanged("Even more important".to_string()),
+        &mut player,
+        &db,
+    );
+    let _task =
+        nodoka::ui::update::update(&mut state, Message::BookmarkEditorSave, &mut player, &db);
+    assert!(state.bookmark_editor.is_none());
+
     let bookmarks =
         nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert_eq!(bookmarks.len(), 1, "Should have one bookmark");
-    let first = bookmarks.first().ok_or("missing bookmark")?;
-    assert_eq!(first.label, "Important moment");
-
-    // 4. Update bookmark label
-    let mut updated = first.clone();
-    updated.label = "Even more important".to_string();
-    nodoka::db::queries::update_bookmark(db.connection(), &updated)?;
-
-    // 5. Verify update
-    let bookmarks =
-        nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert_eq!(bookmarks.len(), 1);
     let first = bookmarks.first().ok_or("missing bookmark")?;
     assert_eq!(first.label, "Even more important");
 
-    // 6. Delete bookmark
-    nodoka::db::queries::delete_bookmark(db.connection(), bookmark_id)?;
-
-    // 7. Verify deletion
-    let bookmarks =
-        nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert!(bookmarks.is_empty(), "Bookmark should be deleted");
+    // 4. Delete via message
+    let id = first.id.ok_or("bookmark id missing")?;
+    let _task =
+        nodoka::ui::update::update(&mut state, Message::BookmarkDelete(id), &mut player, &db);
+    assert!(
+        nodoka::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?.is_empty()
+    );
 
     Ok(())
 }
@@ -279,87 +308,133 @@ fn test_volume_and_speed_workflow() {
 }
 
 #[test]
-fn test_file_selection_workflow() {
-    // Test file selection changes
-    let state = State::default();
-    assert!(state.selected_file.is_none());
+fn test_file_selection_workflow_via_update() -> Result<(), Box<dyn Error>> {
+    // File selection is driven by `Message::FileSelected`.
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
 
-    let state = State {
-        selected_file: Some("/test/chapter1.mp3".to_string()),
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
         ..State::default()
     };
+    assert!(state.selected_file.is_none());
+
+    let mut player = None;
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::FileSelected("/test/chapter1.mp3".to_string()),
+        &mut player,
+        &db,
+    );
     assert_eq!(state.selected_file.as_deref(), Some("/test/chapter1.mp3"));
 
-    let state = State {
-        selected_file: Some("/test/chapter2.mp3".to_string()),
-        ..State::default()
-    };
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::FileSelected("/test/chapter2.mp3".to_string()),
+        &mut player,
+        &db,
+    );
     assert_eq!(state.selected_file.as_deref(), Some("/test/chapter2.mp3"));
 
-    let state = State {
-        selected_file: None,
-        ..State::default()
-    };
-    assert!(state.selected_file.is_none());
+    // Selection is persisted on the audiobook record.
+    let ab = nodoka::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or("missing audiobook")?;
+    assert_eq!(ab.selected_file.as_deref(), Some("/test/chapter2.mp3"));
+
+    Ok(())
 }
 
 #[test]
-fn test_modal_workflow() {
-    // Test modal opening and closing
-    let state = State::default();
-    assert!(!state.settings_open);
+fn test_modal_workflow_via_update() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let audiobook_id = create_test_audiobook(&db, "/test", "Test Book")?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some("/test/file.mp3".to_string()),
+        current_time: 5_000.0,
+        ..State::default()
+    };
+
+    let mut player = None;
+
+    let _task = nodoka::ui::update::update(&mut state, Message::OpenSettings, &mut player, &db);
+    assert!(state.settings_open);
     assert!(state.bookmark_editor.is_none());
 
-    let state = State {
-        settings_open: true,
-        ..State::default()
-    };
-    assert!(state.settings_open);
-
-    let state = State {
-        bookmark_editor: Some(BookmarkEditor {
-            id: Some(1),
-            audiobook_id: 1,
-            file_path: "/test/file.mp3".to_string(),
-            position_ms: 0,
-            label: String::new(),
-            note: String::new(),
-        }),
-        ..State::default()
-    };
+    // Creating a bookmark closes settings and opens the editor (single-modal invariant).
+    let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
+    assert!(!state.settings_open);
     assert!(state.bookmark_editor.is_some());
+
+    // CloseModal closes the topmost modal.
+    let _task = nodoka::ui::update::update(&mut state, Message::CloseModal, &mut player, &db);
+    assert!(state.bookmark_editor.is_none());
+    assert!(!state.settings_open);
+
+    Ok(())
 }
 
 #[test]
-fn test_error_banner_workflow() {
-    // Test error display and dismissal
-    let state = State::default();
+fn test_error_banner_workflow_via_update() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut state = State::default();
+    let mut player = None;
+
     assert!(state.error_message.is_none());
 
-    let state = State {
-        error_message: Some("Failed to load file".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
-        ..State::default()
-    };
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanError("permission denied".to_string()),
+        &mut player,
+        &db,
+    );
     assert!(state.error_message.is_some());
+    assert!(state.error_timestamp.is_some());
+
+    let _task = nodoka::ui::update::update(&mut state, Message::DismissError, &mut player, &db);
+    assert!(state.error_message.is_none());
+    assert!(state.error_timestamp.is_none());
+
+    Ok(())
 }
 
 #[test]
-fn test_scanning_state_workflow() {
-    // Test directory scanning state
-    let state = State::default();
+fn test_scanning_state_workflow_via_update() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let temp = temp_dir::TempDir::new()?;
+    let raw_dir = temp.path().to_string_lossy().to_string();
+    let expected_dir = {
+        fn trim_trailing_separators(path: &str) -> String {
+            let mut out = path;
+            while out.len() > 1 && (out.ends_with('/') || out.ends_with('\\')) {
+                out = &out[..out.len() - 1];
+            }
+            out.to_string()
+        }
+
+        let canonical =
+            std::fs::canonicalize(temp.path()).unwrap_or_else(|_| temp.path().to_path_buf());
+        trim_trailing_separators(&canonical.to_string_lossy())
+    };
+
+    let mut state = State::default();
     assert_eq!(state.scan_state, ScanState::Idle);
 
-    let state = State {
-        scan_state: ScanState::Scanning {
-            directory: Some("/test/audiobooks".to_string()),
-        },
-        ..State::default()
-    };
+    let mut player = None;
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::DirectoryAdded(raw_dir),
+        &mut player,
+        &db,
+    );
+
     assert!(matches!(
         &state.scan_state,
-        ScanState::Scanning { directory: Some(d) } if d == "/test/audiobooks"
+        ScanState::Scanning { directory: Some(d) } if d == &expected_dir
     ));
+
+    Ok(())
 }
 
 #[test]

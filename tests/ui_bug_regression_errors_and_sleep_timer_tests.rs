@@ -3,7 +3,10 @@
 //! Tests in this file focus on error handling and sleep timer behavior.
 
 use nodoka::models::{SleepTimer, SleepTimerMode};
-use nodoka::ui::{ScanState, State};
+use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
+use std::error::Error;
+
+mod acceptance_support;
 
 /// Bug #0002: Error messages properly clear when new errors occur
 ///
@@ -133,37 +136,185 @@ fn test_bug_0023_file_load_errors_visible_to_user() {
 /// Expected: `selected_audiobook` remains unchanged, files are not cleared,
 /// and error message is shown.
 #[test]
-fn test_bug_0024_audiobook_selection_atomic() {
-    use nodoka::models::AudiobookFile;
+fn test_bug_0024_audiobook_selection_load_files_failure_does_not_clear_state(
+) -> Result<(), Box<dyn Error>> {
+    use nodoka::models::{Audiobook, AudiobookFile, Bookmark};
 
-    let state = State {
-        selected_audiobook: Some(1),
-        current_files: vec![AudiobookFile {
-            audiobook_id: 1,
-            name: "file1.mp3".to_string(),
-            full_path: "/old/file1.mp3".to_string(),
-            length_of_file: None,
-            seek_position: None,
-            checksum: None,
-            position: 1,
-            completeness: 0,
-            file_exists: true,
-            created_at: chrono::Utc::now(),
-        }],
-        bookmarks: vec![],
+    let db = crate::acceptance_support::create_test_db()?;
+    let old_id = crate::acceptance_support::create_test_audiobook(&db, "/test", "Old")?;
+    let new_id = crate::acceptance_support::create_test_audiobook(&db, "/test", "New")?;
+
+    // Force `get_audiobook_files` to fail.
+    db.connection()
+        .execute_batch("DROP TABLE audiobook_file;")?;
+
+    let mut old_ab = Audiobook::new(
+        "/test".to_string(),
+        "Old".to_string(),
+        "/test/Old".to_string(),
+        0,
+    );
+    old_ab.id = Some(old_id);
+    let mut new_ab = Audiobook::new(
+        "/test".to_string(),
+        "New".to_string(),
+        "/test/New".to_string(),
+        0,
+    );
+    new_ab.id = Some(new_id);
+
+    let file_path = "/old/file1.mp3".to_string();
+    let old_file = AudiobookFile {
+        audiobook_id: old_id,
+        name: "file1.mp3".to_string(),
+        full_path: file_path.clone(),
+        length_of_file: None,
+        seek_position: None,
+        checksum: None,
+        position: 0,
+        completeness: 0,
+        file_exists: true,
+        created_at: chrono::Utc::now(),
+    };
+
+    let old_bookmark = Bookmark {
+        id: Some(1),
+        audiobook_id: old_id,
+        file_path: file_path.clone(),
+        position_ms: 1_000,
+        label: "Keep".to_string(),
+        note: None,
+        created_at: chrono::Utc::now(),
+    };
+
+    let mut state = State {
+        audiobooks: vec![old_ab, new_ab],
+        selected_audiobook: Some(old_id),
+        current_files: vec![old_file],
+        selected_file: Some(file_path.clone()),
+        bookmarks: vec![old_bookmark],
+        bookmark_editor: Some(nodoka::ui::BookmarkEditor {
+            id: None,
+            audiobook_id: old_id,
+            file_path: file_path.clone(),
+            position_ms: 1_000,
+            label: "Editor".to_string(),
+            note: "Note".to_string(),
+        }),
+        playback: PlaybackStatus::Playing,
+        current_time: 123.0,
+        total_duration: 456.0,
         ..Default::default()
     };
 
-    assert_eq!(
-        state.selected_audiobook,
-        Some(1),
-        "Audiobook selection should not change on load failure"
+    let mut player = None;
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::AudiobookSelected(new_id),
+        &mut player,
+        &db,
     );
-    assert_eq!(
-        state.current_files.len(),
-        1,
-        "Current files should not be cleared on load failure"
+
+    // Selection and dependent state must remain unchanged on failure.
+    assert_eq!(state.selected_audiobook, Some(old_id));
+    assert_eq!(state.selected_file.as_deref(), Some(file_path.as_str()));
+    assert_eq!(state.current_files.len(), 1);
+    assert_eq!(state.bookmarks.len(), 1);
+    assert!(state.bookmark_editor.is_some());
+    assert_eq!(state.playback, PlaybackStatus::Playing);
+    assert!((state.current_time - 123.0).abs() < f64::EPSILON);
+    assert!((state.total_duration - 456.0).abs() < f64::EPSILON);
+
+    assert!(
+        matches!(state.error_message.as_deref(), Some(m) if m.contains("Failed to load audiobook files")),
+        "Expected an error message indicating files failed to load"
     );
+
+    Ok(())
+}
+
+#[test]
+fn test_bug_0024_audiobook_selection_load_bookmarks_failure_does_not_clear_state(
+) -> Result<(), Box<dyn Error>> {
+    use nodoka::models::{Audiobook, AudiobookFile};
+
+    let db = crate::acceptance_support::create_test_db()?;
+    let old_id = crate::acceptance_support::create_test_audiobook(&db, "/test", "Old")?;
+    let new_id = crate::acceptance_support::create_test_audiobook(&db, "/test", "New")?;
+
+    // Make file loading succeed but force `get_bookmarks_for_audiobook` to fail.
+    db.connection().execute_batch("DROP TABLE bookmarks;")?;
+
+    let mut old_ab = Audiobook::new(
+        "/test".to_string(),
+        "Old".to_string(),
+        "/test/Old".to_string(),
+        0,
+    );
+    old_ab.id = Some(old_id);
+    let mut new_ab = Audiobook::new(
+        "/test".to_string(),
+        "New".to_string(),
+        "/test/New".to_string(),
+        0,
+    );
+    new_ab.id = Some(new_id);
+
+    let file_path = "/old/file1.mp3".to_string();
+    let old_file = AudiobookFile {
+        audiobook_id: old_id,
+        name: "file1.mp3".to_string(),
+        full_path: file_path.clone(),
+        length_of_file: None,
+        seek_position: None,
+        checksum: None,
+        position: 0,
+        completeness: 0,
+        file_exists: true,
+        created_at: chrono::Utc::now(),
+    };
+
+    let mut state = State {
+        audiobooks: vec![old_ab, new_ab],
+        selected_audiobook: Some(old_id),
+        current_files: vec![old_file],
+        selected_file: Some(file_path.clone()),
+        bookmark_editor: Some(nodoka::ui::BookmarkEditor {
+            id: None,
+            audiobook_id: old_id,
+            file_path: file_path.clone(),
+            position_ms: 1_000,
+            label: "Editor".to_string(),
+            note: "Note".to_string(),
+        }),
+        playback: PlaybackStatus::Playing,
+        current_time: 123.0,
+        total_duration: 456.0,
+        ..Default::default()
+    };
+
+    let mut player = None;
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::AudiobookSelected(new_id),
+        &mut player,
+        &db,
+    );
+
+    assert_eq!(state.selected_audiobook, Some(old_id));
+    assert_eq!(state.selected_file.as_deref(), Some(file_path.as_str()));
+    assert_eq!(state.current_files.len(), 1);
+    assert!(state.bookmark_editor.is_some());
+    assert_eq!(state.playback, PlaybackStatus::Playing);
+    assert!((state.current_time - 123.0).abs() < f64::EPSILON);
+    assert!((state.total_duration - 456.0).abs() < f64::EPSILON);
+
+    assert!(
+        matches!(state.error_message.as_deref(), Some(m) if m.contains("Failed to load bookmarks")),
+        "Expected an error message indicating bookmarks failed to load"
+    );
+
+    Ok(())
 }
 
 /// Bug #0025: Errors are cleared on successful operations

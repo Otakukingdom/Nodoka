@@ -11,9 +11,12 @@ mod acceptance_support;
 use acceptance_support::{create_test_audiobook, create_test_db};
 
 #[test]
-fn test_modal_priority_settings_over_bookmark_editor() {
-    // Test modal priority: settings modal takes precedence over bookmark editor
-    let state = State {
+fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn Error>> {
+    // CloseModal should close the topmost modal first.
+    // In Nodoka, the bookmark editor is stacked above settings, so it closes first.
+    let db = create_test_db()?;
+
+    let mut state = State {
         bookmark_editor: Some(nodoka::ui::BookmarkEditor {
             id: None,
             audiobook_id: 1,
@@ -26,11 +29,37 @@ fn test_modal_priority_settings_over_bookmark_editor() {
         ..State::default()
     };
 
-    assert!(state.bookmark_editor.is_some(), "Editor should remain open");
-    assert!(state.settings_open, "Settings should be open");
+    let mut player = None;
 
-    // Escape should close settings first (tested via message handlers)
-    // This verifies modal stacking behavior
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        nodoka::ui::Message::CloseModal,
+        &mut player,
+        &db,
+    );
+
+    assert!(
+        state.bookmark_editor.is_none(),
+        "Bookmark editor should close first"
+    );
+    assert!(
+        state.settings_open,
+        "Settings should remain open after closing bookmark editor"
+    );
+
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        nodoka::ui::Message::CloseModal,
+        &mut player,
+        &db,
+    );
+
+    assert!(
+        !state.settings_open,
+        "Settings should close after bookmark editor is closed"
+    );
+
+    Ok(())
 }
 
 #[test]

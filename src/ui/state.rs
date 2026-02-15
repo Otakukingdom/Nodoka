@@ -7,8 +7,8 @@ use std::path::PathBuf;
 /// Tracks which UI element currently has keyboard focus to provide
 /// visual indicators for keyboard navigation (WCAG 2.1 AA 2.4.7).
 ///
-/// Note: iced 0.12 does not expose focus state directly, so we track
-/// it in application state as a workaround.
+/// Note: iced 0.14 does not expose a stable, cross-widget focus API,
+/// so we track focus in application state as a workaround.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum FocusedElement {
     #[default]

@@ -73,28 +73,27 @@
 //!
 //! ### Test Suite Organization
 //!
-//! - **Unit Tests** (242 tests in `src/`): Test individual components, formatters, and helpers
-//! - **Integration Tests** (567+ tests in `tests/`): Test UI workflows and state transitions
-//! - **Acceptance Tests** (450+ tests): Test complete user workflows end-to-end
-//! - **Regression Tests** (69+ tests): Prevent reintroduction of previously fixed bugs
-//! - **UI Interaction Tests** (46 tests): Verify every button, input, and state transition
-//! - **Performance Tests** (15 tests): Ensure UI remains responsive with large libraries
+//! - **Unit tests** (`src/`): Components, formatters, and helpers
+//! - **Integration tests** (`tests/`): UI workflows and state transitions via message handling
+//! - **Acceptance tests** (`tests/`): Higher-level user journeys
+//! - **Regression tests** (`tests/`): Prevent reintroduction of previously fixed bugs
+//! - **Performance tests** (`tests/`): Rendering and large-library scenarios (some ignored in CI)
 //!
-//! ### Total Test Count: 870+ tests (all passing)
+//! The suite is intentionally large; avoid hard-coding exact counts in rustdoc.
 //!
 //! ### Coverage by Component
 //!
 //! | Component | Unit Tests | Integration Tests | Notes |
 //! |-----------|------------|-------------------|-------|
-//! | Player Controls | 20+ tests | Playback, volume, speed, sleep timer tested |
-//! | Audiobook List | 15+ tests | Selection, cover thumbnails, progress display |
-//! | File List | 15+ tests | Selection, missing files, completeness tracking |
-//! | Bookmarks | 20+ tests | CRUD operations, editor modal, empty labels |
-//! | Settings Modal | 10+ tests | Directory management, scrolling, validation |
-//! | Keyboard Shortcuts | 15+ tests | All shortcuts verified on macOS and non-macOS |
-//! | State Management | 25+ tests | Default values, mutations, modal states |
-//! | Error Handling | 10+ tests | Display, dismissal, replacement behavior |
-//! | Loading States | 5+ tests | Scanning indicators, loading modals |
+//! | Player Controls | Yes | Yes | Playback, volume, speed, sleep timer |
+//! | Audiobook List | Yes | Yes | Selection, cover thumbnails, progress |
+//! | File List | Yes | Yes | Selection, missing files, completeness |
+//! | Bookmarks | Yes | Yes | CRUD, editor modal, empty labels |
+//! | Settings Modal | Yes | Yes | Directory management, scrolling |
+//! | Keyboard Shortcuts | Yes | Yes | Cross-platform shortcuts |
+//! | State Management | Yes | Yes | Defaults, transitions, invariants |
+//! | Error Handling | Yes | Yes | Display, dismissal, replacement |
+//! | Loading States | Yes | Yes | Scanning indicator, loading overlay |
 //!
 //! ### Design System Compliance
 //!

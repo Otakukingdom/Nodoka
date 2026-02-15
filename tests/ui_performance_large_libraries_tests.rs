@@ -364,6 +364,7 @@ fn test_performance_switching_between_large_audiobooks() {
 // ============================================================================
 
 #[test]
+#[ignore = "render stress test (ignored in CI)"]
 fn test_performance_memory_efficiency_large_dataset() {
     // Verify that creating large state doesn't cause excessive memory allocation
     // This test doesn't assert on memory usage directly, but ensures the code

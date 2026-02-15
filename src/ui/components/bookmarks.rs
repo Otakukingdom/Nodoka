@@ -80,7 +80,7 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
         .spacing(spacing::SM)
         .padding(spacing::MD),
     )
-    .width(Length::Fill)
+    .width(Length::Fixed(600.0))
     .into()
 }
 

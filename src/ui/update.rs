@@ -421,18 +421,6 @@ fn handle_audiobook_selected(
 ) -> Task<Message> {
     let old_selection = state.selected_audiobook;
     let is_new_selection = old_selection != Some(id);
-    if is_new_selection {
-        if let Some(old_id) = old_selection {
-            if let Some(old_ab) = state.audiobooks.iter().find(|a| a.id == Some(old_id)) {
-                super::media_paths::cleanup_zip_temp_for_path(&old_ab.full_path);
-            }
-        }
-        reset_playback_state(state, player);
-        state.selected_file = None;
-        state.current_files.clear();
-        // Clear bookmark editor early to ensure it's closed even if loading fails
-        state.bookmark_editor = None;
-    }
 
     // Load files first, only update selection if successful
     let files = match crate::db::queries::get_audiobook_files(db.connection(), id) {
@@ -455,7 +443,22 @@ fn handle_audiobook_selected(
         }
     };
 
-    // Only now update state after successful loading
+    // Only now update state after successful loading.
+    //
+    // Keep audiobook selection and dependent UI state atomic: if loading fails, do not clear
+    // or reset the previous selection (avoids inconsistent UI state).
+    if is_new_selection {
+        if let Some(old_id) = old_selection {
+            if let Some(old_ab) = state.audiobooks.iter().find(|a| a.id == Some(old_id)) {
+                super::media_paths::cleanup_zip_temp_for_path(&old_ab.full_path);
+            }
+        }
+
+        reset_playback_state(state, player);
+        state.selected_file = None;
+        state.bookmark_editor = None;
+    }
+
     state.selected_audiobook = Some(id);
     state.current_files = files;
     state.bookmarks = bookmarks;

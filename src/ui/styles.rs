@@ -342,7 +342,7 @@ pub mod button_styles {
 /// Focus indicator styling for keyboard navigation accessibility
 ///
 /// Provides visual focus indicators compliant with WCAG 2.1 AA 2.4.7.
-/// Use with application state tracking since iced 0.12 doesn't expose focus.
+/// Use with application state tracking since iced 0.14 doesn't expose focus state directly.
 ///
 /// # Usage
 ///

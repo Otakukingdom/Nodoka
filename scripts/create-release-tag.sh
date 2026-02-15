@@ -14,9 +14,9 @@ TAG_MESSAGE="Nodoka 0.2.0 - Rust Rewrite Release
 
 Complete rewrite from C++/Qt to Rust/iced
 - Full Rust implementation with vlc-rs 0.3 bindings
-- iced 0.12 UI framework with Elm architecture
+- iced 0.14.0 UI framework with Elm architecture
 - Strict linting enforced (zero unwrap/expect/panic)
-- 18/18 tests passing with comprehensive coverage
+- Comprehensive automated test coverage (all tests passing)
 - Cross-platform installers (Windows MSI, macOS DMG, Linux DEB)
 - CI/CD pipeline with GitHub Actions
 - Improved performance and memory efficiency"

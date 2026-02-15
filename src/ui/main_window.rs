@@ -190,6 +190,7 @@ where
         })
         .padding(spacing::MD)
         .center_x(Length::Fill)
+        .center_y(Length::Fill)
         .into()
 }
 
