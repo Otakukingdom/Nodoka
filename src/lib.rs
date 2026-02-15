@@ -111,9 +111,9 @@
 //!
 //! ### Known Limitations
 //!
-//! - Focus indicators for keyboard navigation have limited visibility due to iced 0.14 framework constraints
-//! - Modal backdrops cannot intercept clicks (iced 0.14 lacks stack widget support)
-//! - Upgrading to a newer iced release may resolve these accessibility limitations
+//! - Focus visibility depends on iced's built-in widget focus styling; not all widgets expose rich focus state for customization.
+//! - Screen reader semantics are limited by framework-level accessibility support; Nodoka prioritizes clear text labels and keyboard navigation.
+//! - Modal backdrops are implemented using iced 0.14 stack overlays, including click-outside-to-dismiss behavior.
 //!
 //! ## Architecture
 //!

@@ -5,7 +5,7 @@ use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{
     cleanup_temp_files, materialize_zip_virtual_path, parse_zip_virtual_path, zip_temp_dir,
 };
-use crate::ui::{LoadState, Message, PlaybackStatus, State};
+use crate::ui::{LoadState, Message, PlaybackStatus, ScanState, State};
 use iced::Task;
 use std::path::{Path, PathBuf};
 
@@ -101,13 +101,35 @@ pub fn update(
         Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
 
         // Directory management messages
-        Message::DirectoryAdd => directories::handle_directory_add(),
-        Message::DirectoryAdded(path) => directories::handle_directory_added(state, db, &path),
-        Message::DirectoryAddCancelled | Message::None => Task::none(),
+        Message::DirectoryAdd => {
+            if state.operation_in_progress {
+                Task::none()
+            } else {
+                state.operation_in_progress = true;
+                directories::handle_directory_add()
+            }
+        }
+        Message::DirectoryAdded(path) => {
+            let cmd = directories::handle_directory_added(state, db, &path);
+            state.operation_in_progress = matches!(state.scan_state, ScanState::Scanning { .. });
+            cmd
+        }
+        Message::DirectoryAddCancelled => {
+            state.operation_in_progress = false;
+            Task::none()
+        }
+        Message::None => Task::none(),
         Message::DirectoryRemove(path) => {
             directories::handle_directory_remove(state, player, db, &path)
         }
-        Message::DirectoryRescan(path) => directories::handle_directory_rescan(state, db, &path),
+        Message::DirectoryRescan(path) => {
+            if state.operation_in_progress {
+                Task::none()
+            } else {
+                state.operation_in_progress = true;
+                directories::handle_directory_rescan(state, db, &path)
+            }
+        }
 
         // Settings messages
         Message::OpenSettings => handle_open_settings(state),
@@ -118,9 +140,13 @@ pub fn update(
 
         // Scan messages
         Message::ScanComplete(directory, discovered) => {
+            state.operation_in_progress = false;
             directories::handle_scan_complete(state, db, &directory, discovered)
         }
-        Message::ScanError(error) => directories::handle_scan_error(state, &error),
+        Message::ScanError(error) => {
+            state.operation_in_progress = false;
+            directories::handle_scan_error(state, &error)
+        }
 
         // Cover thumbnails
         Message::CoverThumbnailGenerated(audiobook_id, path) => {
@@ -649,12 +675,19 @@ fn generate_cover_thumbnail_command(audiobook_id: i64, full_path: String) -> Tas
 }
 
 fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Task<Message> {
-    // Clamp current_time to not exceed total_duration to maintain state invariants
-    state.current_time = if state.total_duration > 0.0 {
-        time.min(state.total_duration)
-    } else {
-        time
-    };
+    if !time.is_finite() {
+        tracing::warn!("Ignoring non-finite time update: {time}");
+        return Task::none();
+    }
+
+    // Clamp current_time to maintain state invariants.
+    // - never negative
+    // - never exceeds total_duration when known
+    let mut sanitized = time.max(0.0);
+    if state.total_duration > 0.0 {
+        sanitized = sanitized.min(state.total_duration);
+    }
+    state.current_time = sanitized;
 
     if let Some(ref file_path) = state.selected_file {
         let file_path_owned = file_path.clone();
@@ -949,10 +982,10 @@ fn handle_previous_file(
 
 /// Closes any open modal (settings or bookmark editor)
 fn handle_close_modal(state: &mut State) -> Task<Message> {
-    if state.settings_open {
-        state.settings_open = false;
-    } else if state.bookmark_editor.is_some() {
+    if state.bookmark_editor.is_some() {
         state.bookmark_editor = None;
+    } else if state.settings_open {
+        state.settings_open = false;
     }
     Task::none()
 }

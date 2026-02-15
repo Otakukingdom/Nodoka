@@ -211,7 +211,8 @@ impl iced::Program for App {
         }
 
         // Initialize player with loaded settings
-        if let Some(ref mut player) = *self.player.borrow_mut() {
+        let mut player_ref = self.player.borrow_mut();
+        if let Some(player) = player_ref.as_mut() {
             if let Err(e) = player.set_volume(state.volume) {
                 tracing::error!("Failed to set initial volume: {e}");
             }

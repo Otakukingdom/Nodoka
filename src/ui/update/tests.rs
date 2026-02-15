@@ -1,10 +1,12 @@
 use super::{handle_file_selected, update, MediaControl};
 use crate::db::{self, Database};
 use crate::error::{Error, Result};
-use crate::models::{Audiobook, AudiobookFile, SleepTimer, SleepTimerMode};
+use crate::models::{Audiobook, AudiobookFile, Bookmark, SleepTimer, SleepTimerMode};
 use crate::player::Vlc;
 use crate::ui::{Message, PlaybackStatus, State};
+use std::cell::Cell;
 use std::path::Path;
+use std::rc::Rc;
 
 #[derive(Default)]
 struct FailingLoadPlayer;
@@ -15,6 +17,30 @@ impl MediaControl for FailingLoadPlayer {
     }
 
     fn set_time(&self, _time_ms: i64) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_length(&self) -> Result<i64> {
+        Ok(0)
+    }
+
+    fn play(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+struct CountingFailingLoadPlayer {
+    set_time_calls: Rc<Cell<u32>>,
+}
+
+impl MediaControl for CountingFailingLoadPlayer {
+    fn load_media(&mut self, _path: &Path) -> Result<()> {
+        Err(Error::Vlc("load failed".to_string()))
+    }
+
+    fn set_time(&self, _time_ms: i64) -> Result<()> {
+        self.set_time_calls.set(self.set_time_calls.get() + 1);
         Ok(())
     }
 
@@ -72,6 +98,218 @@ fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
         saved.selected_file.as_deref(),
         Some(old_path),
         "db selected_file should not change when load fails"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_jump_does_not_seek_when_file_load_fails(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let old_path = "/dir/book/old.mp3";
+    audiobook.selected_file = Some(old_path.to_string());
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let old_file = AudiobookFile::new(audiobook_id, "old".to_string(), old_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &old_file)?;
+
+    let new_path = "/dir/book/new.mp3";
+    let new_file = AudiobookFile::new(audiobook_id, "new".to_string(), new_path.to_string(), 1);
+    crate::db::queries::insert_audiobook_file(db.connection(), &new_file)?;
+
+    let bookmark_id = 42;
+    let mut bookmark = Bookmark::new(
+        audiobook_id,
+        new_path.to_string(),
+        1000,
+        "Important".to_string(),
+    );
+    bookmark.id = Some(bookmark_id);
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(old_path.to_string()),
+        current_time: 123.0,
+        bookmarks: vec![bookmark],
+        ..Default::default()
+    };
+
+    let set_time_calls = Rc::new(Cell::new(0));
+    let mut player = Some(CountingFailingLoadPlayer {
+        set_time_calls: set_time_calls.clone(),
+    });
+
+    let _cmd = super::bookmarks::handle_bookmark_jump(&mut state, &mut player, &db, bookmark_id);
+
+    assert_eq!(
+        set_time_calls.get(),
+        0,
+        "bookmark jump should not seek when file load fails"
+    );
+    assert_eq!(
+        state.selected_file.as_deref(),
+        Some(old_path),
+        "bookmark jump should not change selection when load fails"
+    );
+    assert!(
+        state.error_message.is_some(),
+        "bookmark jump should surface load failure to user"
+    );
+    assert!(
+        (state.current_time - 123.0).abs() < 0.0001,
+        "bookmark jump should not update current_time when load fails"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_handle_time_updated_clamps_negative_to_zero(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        total_duration: 10_000.0,
+        current_time: 5_000.0,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(
+        &mut state,
+        Message::PlayerTimeUpdated(-123.0),
+        &mut player,
+        &db,
+    );
+
+    assert!(
+        (state.current_time - 0.0).abs() < 0.0001,
+        "negative time updates should clamp to zero"
+    );
+
+    let saved = crate::db::queries::get_audiobook_file_by_path(db.connection(), file_path)?
+        .ok_or("missing audiobook file")?;
+    assert_eq!(
+        saved.seek_position,
+        Some(0),
+        "negative time update should persist as 0ms"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_handle_time_updated_ignores_non_finite_values(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+    crate::db::queries::update_file_progress(db.connection(), file_path, 5_000.0, 50)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        total_duration: 10_000.0,
+        current_time: 5_000.0,
+        ..Default::default()
+    };
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(
+        &mut state,
+        Message::PlayerTimeUpdated(f64::NAN),
+        &mut player,
+        &db,
+    );
+
+    assert!(
+        (state.current_time - 5_000.0).abs() < 0.0001,
+        "non-finite time updates should be ignored"
+    );
+
+    let saved = crate::db::queries::get_audiobook_file_by_path(db.connection(), file_path)?
+        .ok_or("missing audiobook file")?;
+    assert_eq!(
+        saved.seek_position,
+        Some(5000),
+        "non-finite time updates should not persist progress"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_operation_in_progress_guards_directory_actions(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player: Option<Vlc> = None;
+
+    let _ = update(&mut state, Message::DirectoryAdd, &mut player, &db);
+    assert!(
+        state.operation_in_progress,
+        "DirectoryAdd should mark operation as in progress"
+    );
+
+    let _ = update(&mut state, Message::DirectoryAddCancelled, &mut player, &db);
+    assert!(
+        !state.operation_in_progress,
+        "DirectoryAddCancelled should clear operation_in_progress"
+    );
+
+    let _ = update(
+        &mut state,
+        Message::DirectoryRescan("/dir".to_string()),
+        &mut player,
+        &db,
+    );
+    assert!(
+        state.operation_in_progress,
+        "DirectoryRescan should mark operation as in progress"
+    );
+
+    let _ = update(
+        &mut state,
+        Message::ScanError("scan failed".to_string()),
+        &mut player,
+        &db,
+    );
+    assert!(
+        !state.operation_in_progress,
+        "ScanError should clear operation_in_progress"
     );
     Ok(())
 }

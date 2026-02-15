@@ -1,7 +1,6 @@
 use crate::conversions::{f64_to_ms, ms_to_f64};
 use crate::db::Database;
 use crate::models::Bookmark;
-use crate::player::Vlc;
 use crate::ui::{Message, State};
 use iced::Task;
 
@@ -179,9 +178,9 @@ pub(super) fn handle_bookmark_delete(state: &mut State, db: &Database, id: i64) 
     Task::none()
 }
 
-pub(super) fn handle_bookmark_jump(
+pub(super) fn handle_bookmark_jump<P: super::MediaControl>(
     state: &mut State,
-    player: &mut Option<Vlc>,
+    player: &mut Option<P>,
     db: &Database,
     id: i64,
 ) -> Task<Message> {
@@ -190,13 +189,19 @@ pub(super) fn handle_bookmark_jump(
         return Task::none();
     };
 
+    let error_timestamp_before = state.error_timestamp;
     let cmd = super::handle_file_selected(state, player, db, &bm.file_path);
 
-    if let Some(ref p) = player {
-        if let Err(e) = p.set_time(bm.position_ms) {
-            tracing::error!("Failed to seek to bookmark: {e}");
-        } else if let Ok(pos) = ms_to_f64(bm.position_ms) {
-            state.current_time = pos;
+    let load_failed = state.error_timestamp != error_timestamp_before;
+    let selected_target = state.selected_file.as_deref() == Some(bm.file_path.as_str());
+
+    if !load_failed && selected_target {
+        if let Some(p) = player.as_ref() {
+            if let Err(e) = p.set_time(bm.position_ms) {
+                tracing::error!("Failed to seek to bookmark: {e}");
+            } else if let Ok(pos) = ms_to_f64(bm.position_ms) {
+                state.current_time = pos;
+            }
         }
     }
 
