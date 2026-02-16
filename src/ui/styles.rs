@@ -128,6 +128,100 @@ pub mod colors {
     pub const FILE_LIST_BG: Color = BG_SECONDARY;
 }
 
+/// Audiobook-optimized color palette (calm cyan + health green)
+///
+/// Based on ui-ux-pro-max recommendations for extended reading sessions.
+/// This alternative palette uses cooler tones to reduce eye strain during
+/// long audiobook listening sessions.
+///
+/// # Color Philosophy
+///
+/// - **Calm Cyan Primary**: Less energetic than rose, better for extended use
+/// - **Soft Cyan Background**: Cooler tones reduce eye strain
+/// - **Health Green Accent**: Suggests calm, health-conscious focus
+///
+/// # Usage
+///
+/// This module provides an alternative color scheme. The application currently
+/// uses the vibrant rose palette from the main `colors` module. To switch to
+/// this palette, replace color references throughout components.
+///
+/// ```ignore
+/// use crate::ui::styles::colors_audiobook;
+///
+/// // Use calm cyan primary instead of vibrant rose
+/// let primary_button = button(text("Play"))
+///     .style(|theme| {
+///         container::Style {
+///             background: Some(colors_audiobook::PRIMARY.into()),
+///             ..Default::default()
+///         }
+///     });
+/// ```
+///
+/// # WCAG AA Compliance
+///
+/// All colors in this palette maintain WCAG AA contrast ratios for accessibility.
+/// See `tests/ux_compliance_tests.rs` for contrast ratio verification.
+pub mod colors_audiobook {
+    use iced::Color;
+
+    // Primary colors (calm cyan palette)
+    /// Primary brand color - calm cyan (#0E7490) - darker for better contrast
+    pub const PRIMARY: Color = Color::from_rgb(0.055, 0.455, 0.565);
+    /// Primary hover state - darker cyan for feedback
+    pub const PRIMARY_HOVER: Color = Color::from_rgb(0.045, 0.380, 0.475);
+    /// Primary active state - darkest cyan for pressed
+    pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.035, 0.310, 0.390);
+    /// Secondary accent - soft cyan (#22D3EE)
+    pub const SECONDARY: Color = Color::from_rgb(0.133, 0.827, 0.933);
+    /// Call-to-action accent - health green (#059669)
+    pub const ACCENT: Color = Color::from_rgb(0.020, 0.588, 0.412);
+
+    // Semantic colors (shared with main palette)
+    pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133); // #228B22
+    pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376); // #F4A460
+    pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149); // #DC2626
+    pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110); // #B91C1C
+    pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106); // #991B1B
+    pub const INFO: Color = Color::from_rgb(0.133, 0.827, 0.933); // Soft cyan
+
+    // Background colors with cyan tint for reduced eye strain
+    /// Primary background - soft cyan tint (#ECFEFF)
+    pub const BG_PRIMARY: Color = Color::from_rgb(0.925, 0.996, 1.0);
+    /// Secondary background - pure white for contrast
+    pub const BG_SECONDARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
+    /// Elevated surface background - slight cyan tint
+    pub const BG_ELEVATED: Color = Color::from_rgb(0.95, 0.99, 1.0);
+    /// Hover background state
+    pub const BG_HOVER: Color = Color::from_rgb(0.94, 0.98, 0.99);
+
+    // Text colors (proper contrast for accessibility)
+    /// Primary text - dark cyan-gray for readability
+    pub const TEXT_PRIMARY: Color = Color::from_rgb(0.06, 0.35, 0.42); // Dark cyan
+    /// Secondary text - medium gray
+    pub const TEXT_SECONDARY: Color = Color::from_rgb(0.4, 0.4, 0.4);
+    /// Disabled text - light gray
+    pub const TEXT_DISABLED: Color = Color::from_rgb(0.6, 0.6, 0.6);
+    /// Text on primary color buttons - white for contrast
+    pub const TEXT_ON_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
+
+    // Interactive element colors
+    pub const HOVER_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.05);
+    pub const ACTIVE_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
+    /// Focus ring - health green for accessibility
+    pub const FOCUS_RING: Color = Color::from_rgb(0.020, 0.588, 0.412);
+    /// Selection background - calm cyan primary
+    pub const SELECTION_BG: Color = PRIMARY;
+    /// Selection text - white for WCAG AA contrast
+    pub const SELECTION_TEXT: Color = TEXT_ON_PRIMARY;
+
+    // Border colors
+    pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9);
+    pub const BORDER_FOCUS: Color = FOCUS_RING;
+    pub const BORDER_ERROR: Color = ERROR;
+}
+
 /// Spacing scale based on 4px base grid system
 pub mod spacing {
     /// Extra small spacing: 4px
@@ -479,15 +573,100 @@ pub mod animations {
     }
 }
 
-/// Shadow definitions for depth hierarchy (represented as border colors for iced compatibility)
+/// Shadow depth utilities for elevation hierarchy
+///
+/// Based on ui-ux-pro-max design system shadow specifications.
+/// Shadows create visual depth and establish hierarchy between UI layers.
+///
+/// # Shadow Levels
+///
+/// - **Small (sm)**: Subtle lift for buttons and input fields (1px offset, 2px blur)
+/// - **Medium (md)**: Cards and raised panels (4px offset, 6px blur)
+/// - **Large (lg)**: Modals and dropdowns (10px offset, 15px blur)
+/// - **Extra Large (xl)**: Hero images and featured content (20px offset, 25px blur)
+///
+/// # Examples
+///
+/// ```ignore
+/// use nodoka::ui::styles::shadows;
+/// use iced::widget::container;
+///
+/// // Apply shadow to a modal card
+/// container(content)
+///     .style(|_theme| container::Style {
+///         shadow: shadows::shadow_xl(),
+///         ..Default::default()
+///     })
+/// ```
 pub mod shadows {
-    use iced::Color;
+    use iced::{Color, Shadow, Vector};
 
-    /// Small shadow equivalent: subtle border
+    /// Subtle lift shadow for minor elevation (buttons, input fields)
+    ///
+    /// Equivalent to: 0 1px 2px rgba(0,0,0,0.05)
+    ///
+    /// Per ui-ux-pro-max: use for interactive elements that need minimal
+    /// elevation like buttons and form inputs.
+    #[must_use]
+    pub const fn shadow_sm() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.05),
+            offset: Vector::new(0.0, 1.0),
+            blur_radius: 2.0,
+        }
+    }
+
+    /// Card/button shadow for moderate elevation
+    ///
+    /// Equivalent to: 0 4px 6px rgba(0,0,0,0.1)
+    ///
+    /// Per ui-ux-pro-max: use for cards, raised panels, and floating buttons
+    /// that need clear separation from the background.
+    #[must_use]
+    pub const fn shadow_md() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.1),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 6.0,
+        }
+    }
+
+    /// Modal/dropdown shadow for high elevation
+    ///
+    /// Equivalent to: 0 10px 15px rgba(0,0,0,0.1)
+    ///
+    /// Per ui-ux-pro-max: use for modals, dropdowns, and popovers that
+    /// float above the main content layer.
+    #[must_use]
+    pub const fn shadow_lg() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.1),
+            offset: Vector::new(0.0, 10.0),
+            blur_radius: 15.0,
+        }
+    }
+
+    /// Hero/featured shadow for maximum elevation
+    ///
+    /// Equivalent to: 0 20px 25px rgba(0,0,0,0.15)
+    ///
+    /// Per ui-ux-pro-max: use for hero images, featured content, or
+    /// elements that need maximum visual prominence.
+    #[must_use]
+    pub const fn shadow_xl() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
+            offset: Vector::new(0.0, 20.0),
+            blur_radius: 25.0,
+        }
+    }
+
+    // Border color fallbacks for iced elements that don't support shadows
+    /// Small shadow equivalent as border color for compatibility
     pub const SM_BORDER: Color = Color::from_rgb(0.85, 0.85, 0.85); // #D9D9D9
-    /// Medium shadow equivalent: medium border
+    /// Medium shadow equivalent as border color for compatibility
     pub const MD_BORDER: Color = Color::from_rgb(0.8, 0.8, 0.8); // #CCCCCC
-    /// Large shadow equivalent: strong border
+    /// Large shadow equivalent as border color for compatibility
     pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
 }
 
@@ -589,7 +768,7 @@ pub mod button_styles {
     use iced::widget::button;
     use iced::{Border, Shadow};
 
-    use super::{border_radius, colors};
+    use super::{border_radius, colors, shadows};
 
     /// Primary action button style (e.g., Play, Save, Add)
     /// Uses primary brand color with white text
@@ -615,6 +794,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
@@ -663,6 +843,7 @@ pub mod button_styles {
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
@@ -711,6 +892,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {

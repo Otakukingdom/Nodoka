@@ -23,7 +23,17 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
             scan_status_banner(state),
             top_bar(state),
             library_panels(state),
-            container(player_controls::view(state)).padding(spacing::SM),
+            container(player_controls::view(state))
+                .padding(spacing::SM)
+                .style(|_theme| container::Style {
+                    background: Some(colors::BG_ELEVATED.into()),
+                    shadow: shadows::shadow_md(),
+                    border: Border {
+                        radius: border_radius::MD.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }),
         ]
         .spacing(spacing::MD), // MD spacing (16px) between major sections for visual hierarchy
     )
@@ -220,77 +230,108 @@ fn modal_backdrop_without_click() -> Element<'static, Message> {
 /// Activated by pressing F1 key. Can be dismissed by pressing Escape
 /// or clicking outside the dialog.
 fn keyboard_help_view() -> Element<'static, Message> {
+    // Platform-specific bookmark shortcut
+    #[cfg(target_os = "macos")]
+    let bookmark_shortcut = "Cmd+B";
+    #[cfg(not(target_os = "macos"))]
+    let bookmark_shortcut = "Ctrl+B";
+
     let shortcuts = column![
-        text("Keyboard Shortcuts").size(typography::SIZE_XL),
-        container(text("")).height(Length::Fixed(spacing::MD)), // Spacer
-        row![
-            text("Space").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Play / Pause").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("←").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Seek Backward 5s").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("→").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Seek Forward 5s").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("↑").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Previous File").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("↓").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Next File").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            {
-                #[cfg(target_os = "macos")]
-                {
-                    text("Cmd+B").size(typography::SIZE_SM)
-                }
-                #[cfg(not(target_os = "macos"))]
-                {
-                    text("Ctrl+B").size(typography::SIZE_SM)
-                }
-            },
-            Space::new().width(Length::Fill),
-            text("Create Bookmark").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("Escape").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Close Modal").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        row![
-            text("F1").size(typography::SIZE_SM),
-            Space::new().width(Length::Fill),
-            text("Show This Help").size(typography::SIZE_SM)
-        ]
-        .spacing(spacing::MD),
-        container(text("")).height(Length::Fixed(spacing::MD)), // Spacer
-        button(text("Close").size(typography::SIZE_SM))
+        // Header
+        text("Keyboard Shortcuts")
+            .size(typography::SIZE_XXL)
+            .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(colors::TEXT_PRIMARY),
+            }),
+        container(text("")).height(Length::Fixed(spacing::LG)),
+        // Playback controls group
+        shortcut_group(
+            "Playback",
+            vec![
+                ("Space", "Play / Pause"),
+                ("← →", "Seek backward / forward 5s"),
+            ]
+        ),
+        // Navigation controls group
+        shortcut_group(
+            "Navigation",
+            vec![
+                ("↑ ↓", "Previous / Next file"),
+                ("Tab", "Cycle through UI elements"),
+            ]
+        ),
+        // Library controls group
+        shortcut_group(
+            "Library",
+            vec![
+                (bookmark_shortcut, "Create bookmark"),
+                ("Escape", "Close modal"),
+                ("F1", "Show this help"),
+            ]
+        ),
+        container(text("")).height(Length::Fixed(spacing::LG)),
+        // Close button
+        button(text("Close").size(typography::SIZE_BASE))
             .on_press(Message::HideKeyboardHelp)
-            .padding(spacing::SM)
+            .padding(spacing::MD)
             .style(button_styles::secondary)
             .width(Length::Fill)
     ]
-    .spacing(spacing::SM)
-    .width(Length::Fixed(400.0));
+    .spacing(spacing::MD)
+    .width(Length::Fixed(500.0));
 
-    container(shortcuts).padding(spacing::MD).into()
+    container(shortcuts).padding(spacing::XL).into()
+}
+
+/// Renders a grouped section of keyboard shortcuts with styled keys
+fn shortcut_group(
+    title: &'static str,
+    shortcuts: Vec<(&'static str, &'static str)>,
+) -> Element<'static, Message> {
+    let mut group = column![text(title)
+        .size(typography::SIZE_LG)
+        .style(|_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(colors::TEXT_PRIMARY),
+        })]
+    .spacing(spacing::SM);
+
+    for (key, description) in shortcuts {
+        group = group.push(
+            row![
+                // Styled keyboard key (bordered container)
+                container(
+                    text(key)
+                        .size(typography::SIZE_SM)
+                        .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                            color: Some(colors::TEXT_PRIMARY),
+                        })
+                )
+                .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+                .style(|_theme: &iced::Theme| container::Style {
+                    background: Some(colors::BG_ELEVATED.into()),
+                    border: Border {
+                        color: colors::BORDER_DEFAULT,
+                        width: 1.0,
+                        radius: border_radius::SM.into(),
+                    },
+                    ..Default::default()
+                }),
+                Space::new().width(Length::Fixed(spacing::MD)),
+                // Description text
+                text(description)
+                    .size(typography::SIZE_SM)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_SECONDARY),
+                    }),
+            ]
+            .spacing(spacing::SM)
+            .align_y(iced::alignment::Vertical::Center),
+        );
+    }
+
+    container(group)
+        .padding(iced::Padding::from([spacing::SM, 0.0]))
+        .into()
 }
 
 /// Applies design system styling for modal overlays per ui-ux-pro-max:

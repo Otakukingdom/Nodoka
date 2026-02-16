@@ -29,6 +29,7 @@ pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Elemen
 
     let items: Element<_> = if bookmarks.is_empty() {
         super::empty_state(
+            Some("🔖"),
             "No Bookmarks",
             "Create bookmarks to mark important positions in your audiobooks.",
             Some("Add Bookmark"),

@@ -1,6 +1,6 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
-use crate::ui::styles::{button_styles, focus_indicator, spacing, typography};
+use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{button, column, container, row, slider, text, text_input, Space};
 use iced::{Element, Length};
@@ -192,18 +192,46 @@ fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'
 }
 
 fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
+    // Calculate volume level as 0.0 to 1.0 (state.volume is 0-200)
+    #[allow(clippy::cast_precision_loss)]
+    let volume_level = state.volume as f32 / 200.0;
+    let volume_color = volume_level_color(volume_level);
+
     container(
         row![
             text("Volume:").size(typography::SIZE_SM),
             slider(0..=200, state.volume, Message::VolumeChanged)
                 .width(Length::Fixed(150.0))
                 .height(20.0), // Larger height for better grab affordance
-            text(format!("{}%", state.volume)).size(typography::SIZE_SM),
+            // Volume percentage with color-coded indicator
+            text(format!("{}%", state.volume))
+                .size(typography::SIZE_SM)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(volume_color),
+                }),
         ]
         .spacing(spacing::SM),
     )
     .style(focus_indicator(is_focused))
     .into()
+}
+
+/// Returns color-coded volume level indicator per ui-ux-pro-max guidelines
+///
+/// - High volume (70%+): Success green
+/// - Medium volume (30-70%): Warning yellow
+/// - Low volume (1-30%): Error red
+/// - Muted (0%): Disabled gray
+fn volume_level_color(volume: f32) -> iced::Color {
+    if volume >= 0.7 {
+        colors::SUCCESS // High volume: green
+    } else if volume >= 0.3 {
+        colors::WARNING // Medium volume: yellow
+    } else if volume > 0.0 {
+        colors::ERROR // Low volume: red
+    } else {
+        colors::TEXT_DISABLED // Muted: gray
+    }
 }
 
 fn format_speed_label(speed: f32) -> String {

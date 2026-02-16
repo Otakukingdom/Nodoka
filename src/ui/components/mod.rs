@@ -70,8 +70,9 @@ pub mod player_controls;
 /// use nodoka::ui::components::empty_state;
 /// use nodoka::ui::Message;
 ///
-/// // Empty state with CTA button
+/// // Empty state with CTA button and icon
 /// let state = empty_state(
+///     Some("📚"), // Unicode icon
 ///     "No Audiobooks Found",
 ///     "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
 ///     Some("Open Settings"),
@@ -80,6 +81,7 @@ pub mod player_controls;
 ///
 /// // Empty state without CTA (informational)
 /// let state = empty_state(
+///     None, // No icon
 ///     "No Files",
 ///     "Select an audiobook from the list to view its files.",
 ///     None,
@@ -87,6 +89,7 @@ pub mod player_controls;
 /// );
 /// ```
 pub fn empty_state<'a>(
+    icon: Option<&'static str>,
     title: &'static str,
     description: &'static str,
     action_label: Option<&'static str>,
@@ -96,25 +99,41 @@ pub fn empty_state<'a>(
     use iced::widget::{button, column, container, text};
     use iced::Length;
 
-    let mut content =
-        column![
-            // Larger, more prominent title (SIZE_XXL instead of SIZE_XL)
-            text(title)
-                .size(typography::SIZE_XXL)
+    let mut content = column![]
+        .align_x(iced::Alignment::Center)
+        .spacing(spacing::LG);
+
+    // Optional icon at top (Unicode symbol)
+    if let Some(icon_text) = icon {
+        content = content.push(
+            text(icon_text)
+                .size(typography::SIZE_XXL * 2.0) // Extra large icon (2x heading size)
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_PRIMARY), // Use primary text color for better visibility
+                    color: Some(colors::TEXT_SECONDARY),
                 }),
+        );
+    }
+
+    content = content.push(
+        // Larger, more prominent title (SIZE_XXL instead of SIZE_XL)
+        text(title)
+            .size(typography::SIZE_XXL)
+            .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(colors::TEXT_PRIMARY), // Use primary text color for better visibility
+            }),
+    );
+
+    content =
+        content.push(
             // Description with better spacing
             container(text(description).size(typography::SIZE_BASE).style(
                 |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(colors::TEXT_SECONDARY),
-                }
+                },
             ))
-            .padding(iced::Padding::from([spacing::LG, 0.0])) // Increased padding for better separation
-            .width(Length::Fixed(400.0)) // Max width for better readability
-        ]
-        .align_x(iced::Alignment::Center)
-        .spacing(spacing::SM); // Tighter spacing between title and description
+            .padding(iced::Padding::from([spacing::SM, 0.0]))
+            .width(Length::Fixed(400.0)), // Max width for better readability
+        );
 
     if let (Some(label), Some(message)) = (action_label, action_message) {
         content = content.push(

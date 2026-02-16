@@ -23,6 +23,7 @@ pub fn view<'a>(
     // Show empty state when no files are available
     if files.is_empty() {
         return super::empty_state(
+            Some("📄"),
             "No Files",
             "Select an audiobook from the list to view its files.",
             None,

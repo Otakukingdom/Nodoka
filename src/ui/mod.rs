@@ -23,7 +23,7 @@
 //!
 //! 1. User clicks button → generates [`Message`]
 //! 2. [`update`] module receives message and current [`State`]
-//! 3. Update function modifies state and returns [`iced::Command`]
+//! 3. Update function modifies state and returns iced Command
 //! 4. Command may spawn async tasks that generate new messages
 //! 5. [`main_window::view()`] renders updated state
 //!
@@ -66,7 +66,7 @@
 //! - **Loading States**: Visual feedback during long operations (directory scanning)
 //! - **Screen Reader Support**: Descriptive button labels (no icon-only buttons)
 //!
-//! See [`styles`] module for color definitions and contrast testing.
+//! See styles module for color definitions and contrast testing.
 //!
 //! ## Testing Strategy
 //!

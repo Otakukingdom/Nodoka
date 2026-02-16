@@ -1,6 +1,6 @@
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
-use crate::ui::styles::{border_radius, loading, spacing, typography};
+use crate::ui::styles::{border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, progress_bar, row, scrollable, text, Space};
 use iced::{Border, Element, Length};
@@ -30,6 +30,7 @@ pub fn view<'a, S: BuildHasher>(
         return match scan_state {
             ScanState::Scanning { .. } => skeleton_audiobook_list(),
             ScanState::Idle => super::empty_state(
+                Some("📚"),
                 "No Audiobooks Found",
                 "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
                 Some("Open Settings"),
@@ -82,6 +83,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                         radius: border_radius::MD.into(),
                         ..Default::default()
                     },
+                    shadow: shadows::shadow_sm(),
                     ..Default::default()
                 })
                 .into()
@@ -97,6 +99,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                     radius: border_radius::MD.into(),
                     ..Default::default()
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             })
             .into()
