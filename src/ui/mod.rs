@@ -201,6 +201,7 @@ pub mod update;
 
 pub use message::Message;
 pub use state::{
-    ActiveModal, BookmarkEditor, FocusedElement, LoadState, PlaybackStatus, ScanState, State,
+    ActiveModal, BookmarkEditor, FocusedElement, LoadState, Notification, NotificationType,
+    PlaybackStatus, ScanState, State, TransitionState,
 };
 pub use styles::*;

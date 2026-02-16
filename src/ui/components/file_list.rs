@@ -8,12 +8,13 @@ use iced::{Element, Length};
 ///
 /// Features:
 /// - Empty state with helpful guidance when no files exist
-/// - Selection highlighting with background color (no prefix)
+/// - File number prefixes (#1, #2, etc.) for better navigation context
+/// - Duration display next to each file name
+/// - Selection highlighting with background color
 /// - Warning indicator for missing files
 /// - Progress bars for files with partial progress
 /// - Visual separation between files
 /// - Improved completion indicators with semantic colors
-/// - Duration alignment for better scannability
 #[must_use]
 pub fn view<'a>(
     files: &'a [AudiobookFile],
@@ -31,9 +32,10 @@ pub fn view<'a>(
 
     let items: Element<_> = files
         .iter()
-        .fold(column![].spacing(spacing::XS), |col, file| {
+        .enumerate()
+        .fold(column![].spacing(spacing::XS), |col, (index, file)| {
             let is_selected = selected_path == Some(&file.full_path);
-            let item = build_file_item(file, is_selected);
+            let item = build_file_item(file, is_selected, index + 1);
             col.push(item)
         })
         .into();
@@ -44,12 +46,18 @@ pub fn view<'a>(
 /// Builds a single file list item with improved status indicators and visual hierarchy
 ///
 /// Applies ui-ux-pro-max interactive patterns:
+/// - File number prefix for better navigation context
+/// - Duration display for better scannability
 /// - Cursor-pointer on hover for available files
 /// - Subtle background color change on hover with smooth transition
 /// - Disabled cursor for missing files
 /// - Consistent spacing following 4px grid system (8px between items)
 #[allow(clippy::too_many_lines)]
-fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Message> {
+fn build_file_item(
+    file: &AudiobookFile,
+    selected: bool,
+    file_number: usize,
+) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
     use iced::Border;
 
@@ -102,14 +110,40 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
             .height(Length::Fixed(6.0))
     };
 
+    // File number badge for better navigation context per ui-ux-pro-max
+    let file_number_badge = container(
+        text(format!("#{file_number}"))
+            .size(typography::SIZE_XS)
+            .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(colors::TEXT_SECONDARY),
+            }),
+    )
+    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+    .style(|_theme: &iced::Theme| container::Style {
+        background: Some(colors::BG_ELEVATED.into()),
+        border: Border {
+            radius: border_radius::SM.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+
     let content_column = column![
-        row![text(name).size(typography::SIZE_SM),],
-        progress_element,
         row![
-            text(duration).size(typography::SIZE_XS),
+            file_number_badge,
+            text(name).size(typography::SIZE_SM),
             Space::new().width(Length::Fill),
-            status_indicator,
+            // Duration display prominently next to file name
+            text(duration)
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_SECONDARY),
+                }),
         ]
+        .spacing(spacing::SM)
+        .align_y(iced::Alignment::Center),
+        progress_element,
+        row![Space::new().width(Length::Fill), status_indicator,]
     ]
     .padding(spacing::SM)
     .spacing(spacing::XS);
@@ -281,35 +315,35 @@ mod tests {
     #[test]
     fn test_build_file_item_not_selected() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_selected() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, true);
+        let element = build_file_item(&file, true, 1);
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_missing_file() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 0, true);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_complete() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 100, false);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_with_progress() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
@@ -317,7 +351,7 @@ mod tests {
     fn test_build_file_item_no_progress() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 0, false);
         file.seek_position = None;
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
@@ -352,7 +386,7 @@ mod tests {
     fn test_build_file_item_with_long_filename() {
         let long_name = "This is a very long chapter name that should still render correctly without causing layout issues.mp3";
         let file = create_test_file(long_name, "/path/long.mp3", 50, false);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
@@ -364,7 +398,7 @@ mod tests {
             50,
             false,
         );
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
@@ -388,7 +422,7 @@ mod tests {
     fn test_file_without_duration() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
         file.length_of_file = None;
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
@@ -396,14 +430,14 @@ mod tests {
     fn test_file_with_zero_duration() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
         file.length_of_file = Some(0);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         drop(element);
     }
 
     #[test]
     fn test_missing_file_not_clickable() {
         let file = create_test_file("missing.mp3", "/path/missing.mp3", 0, true);
-        let element = build_file_item(&file, false);
+        let element = build_file_item(&file, false, 1);
         // Just verify it renders without panic
         drop(element);
     }
@@ -413,10 +447,10 @@ mod tests {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
 
         // Verify both selected and unselected states render without panic
-        let element_unselected = build_file_item(&file, false);
+        let element_unselected = build_file_item(&file, false, 1);
         drop(element_unselected);
 
-        let element_selected = build_file_item(&file, true);
+        let element_selected = build_file_item(&file, true, 2);
         drop(element_selected);
 
         // Note: Cannot verify visual styling due to iced Element opacity,

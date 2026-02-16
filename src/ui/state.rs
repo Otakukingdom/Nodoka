@@ -2,6 +2,168 @@ use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+/// Notification message for user feedback
+///
+/// Provides non-intrusive toast notifications for user actions.
+/// Per ui-ux-pro-max guidelines, notifications should auto-dismiss
+/// after 3 seconds for success/info, and allow manual dismiss for errors.
+///
+/// # Examples
+///
+/// ```ignore
+/// // Add a success notification
+/// state.notification_queue.push(Notification::success(
+///     "Bookmark saved successfully".to_string()
+/// ));
+///
+/// // Add an error notification (won't auto-dismiss)
+/// state.notification_queue.push(Notification::error(
+///     "Failed to save settings".to_string()
+/// ));
+/// ```
+#[derive(Debug, Clone)]
+pub struct Notification {
+    /// Message text to display
+    pub message: String,
+    /// Type of notification affecting styling
+    pub kind: NotificationType,
+    /// Duration in milliseconds before auto-dismiss
+    pub duration_ms: u64,
+    /// Creation timestamp for expiry calculation
+    pub created_at: u64,
+}
+
+impl Notification {
+    /// Creates a success notification (auto-dismisses after 3s)
+    #[must_use]
+    pub fn success(message: String) -> Self {
+        Self {
+            message,
+            kind: NotificationType::Success,
+            duration_ms: 3000,
+            created_at: current_time_ms(),
+        }
+    }
+
+    /// Creates an info notification (auto-dismisses after 3s)
+    #[must_use]
+    pub fn info(message: String) -> Self {
+        Self {
+            message,
+            kind: NotificationType::Info,
+            duration_ms: 3000,
+            created_at: current_time_ms(),
+        }
+    }
+
+    /// Creates a warning notification (longer duration: 5s)
+    #[must_use]
+    pub fn warning(message: String) -> Self {
+        Self {
+            message,
+            kind: NotificationType::Warning,
+            duration_ms: 5000,
+            created_at: current_time_ms(),
+        }
+    }
+
+    /// Creates an error notification (requires manual dismiss)
+    #[must_use]
+    pub fn error(message: String) -> Self {
+        Self {
+            message,
+            kind: NotificationType::Error,
+            duration_ms: u64::MAX, // No auto-dismiss for errors
+            created_at: current_time_ms(),
+        }
+    }
+
+    /// Checks if notification should be expired
+    #[must_use]
+    pub fn is_expired(&self) -> bool {
+        let now = current_time_ms();
+        now.saturating_sub(self.created_at) >= self.duration_ms
+    }
+}
+
+/// Type of notification affecting styling and behavior
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NotificationType {
+    /// Success notifications (green, auto-dismiss 3s)
+    Success,
+    /// Informational notifications (blue, auto-dismiss 3s)
+    Info,
+    /// Warning notifications (yellow, auto-dismiss 5s)
+    Warning,
+    /// Error notifications (red, manual dismiss only)
+    Error,
+}
+
+/// Transition state for component animations
+///
+/// Provides smooth interpolation between values for animated transitions.
+/// Per ui-ux-pro-max: use ease-in-out for most transitions (200-300ms).
+#[derive(Debug, Clone)]
+pub struct TransitionState {
+    /// Starting value
+    pub from_value: f32,
+    /// Target value
+    pub to_value: f32,
+    /// Progress from 0.0 to 1.0
+    pub progress: f32,
+    /// Duration in milliseconds
+    pub duration_ms: u64,
+}
+
+impl TransitionState {
+    /// Creates a new transition from one value to another
+    #[must_use]
+    pub const fn new(from_value: f32, to_value: f32, duration_ms: u64) -> Self {
+        Self {
+            from_value,
+            to_value,
+            progress: 0.0,
+            duration_ms,
+        }
+    }
+
+    /// Updates transition progress
+    ///
+    /// Returns `true` when transition is complete.
+    pub fn update(&mut self, delta_ms: u64) -> bool {
+        if self.duration_ms == 0 {
+            self.progress = 1.0;
+            return true;
+        }
+        #[allow(clippy::cast_precision_loss)]
+        let progress_delta = delta_ms as f32 / self.duration_ms as f32;
+        self.progress = (self.progress + progress_delta).min(1.0);
+        self.progress >= 1.0
+    }
+
+    /// Gets current interpolated value using ease-in-out easing
+    #[must_use]
+    pub fn current_value(&self) -> f32 {
+        use crate::ui::styles::animations::easing;
+        let t = easing::ease_in_out(self.progress);
+        self.from_value.mul_add(1.0 - t, self.to_value * t)
+    }
+
+    /// Checks if transition is complete
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.progress >= 1.0
+    }
+}
+
+/// Gets current time in milliseconds since UNIX epoch
+#[must_use]
+fn current_time_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX))
+}
+
 /// Focus tracking for keyboard navigation accessibility
 ///
 /// Tracks which UI element currently has keyboard focus to provide
@@ -114,6 +276,16 @@ pub struct State {
 
     // Reduced motion preference for accessibility (WCAG 2.1 2.3.3)
     pub prefers_reduced_motion: bool,
+
+    // Notification system for user feedback (max 3 concurrent)
+    pub notification_queue: Vec<Notification>,
+
+    // Animation tracking for smooth transitions
+    pub pulse_animations: HashMap<String, crate::ui::styles::animations::PulseAnimation>,
+    pub transition_states: HashMap<String, TransitionState>,
+
+    // Modal animation progress (0.0 to 1.0)
+    pub modal_animation_progress: f32,
 }
 
 impl Default for State {
@@ -144,6 +316,10 @@ impl Default for State {
             focused_element: FocusedElement::None,
             operation_in_progress: false,
             prefers_reduced_motion: false,
+            notification_queue: Vec::new(),
+            pulse_animations: HashMap::new(),
+            transition_states: HashMap::new(),
+            modal_animation_progress: 0.0,
         }
     }
 }
@@ -180,6 +356,10 @@ mod tests {
         assert_eq!(state.focused_element, FocusedElement::None);
         assert!(!state.operation_in_progress);
         assert!(!state.prefers_reduced_motion);
+        assert!(state.notification_queue.is_empty());
+        assert!(state.pulse_animations.is_empty());
+        assert!(state.transition_states.is_empty());
+        assert!((state.modal_animation_progress).abs() < f32::EPSILON);
     }
 
     #[test]
@@ -491,5 +671,156 @@ mod tests {
         };
         let debug_str = format!("{editor:?}");
         assert!(!debug_str.is_empty());
+    }
+
+    #[test]
+    fn test_notification_success_type() {
+        let notification = Notification::success("Test message".to_string());
+        assert_eq!(notification.message, "Test message");
+        assert_eq!(notification.kind, NotificationType::Success);
+        assert_eq!(notification.duration_ms, 3000);
+    }
+
+    #[test]
+    fn test_notification_info_type() {
+        let notification = Notification::info("Info message".to_string());
+        assert_eq!(notification.kind, NotificationType::Info);
+        assert_eq!(notification.duration_ms, 3000);
+    }
+
+    #[test]
+    fn test_notification_warning_type() {
+        let notification = Notification::warning("Warning message".to_string());
+        assert_eq!(notification.kind, NotificationType::Warning);
+        assert_eq!(notification.duration_ms, 5000);
+    }
+
+    #[test]
+    fn test_notification_error_type() {
+        let notification = Notification::error("Error message".to_string());
+        assert_eq!(notification.kind, NotificationType::Error);
+        assert_eq!(notification.duration_ms, u64::MAX); // No auto-dismiss
+    }
+
+    #[test]
+    fn test_notification_expiry() {
+        let mut notification = Notification::success("Test".to_string());
+        // Set created_at to past time to test expiry
+        notification.created_at = current_time_ms().saturating_sub(4000);
+        assert!(notification.is_expired());
+
+        // Fresh notification should not be expired
+        let fresh = Notification::success("Test".to_string());
+        assert!(!fresh.is_expired());
+    }
+
+    #[test]
+    fn test_transition_state_initialization() {
+        let transition = TransitionState::new(0.0, 100.0, 1000);
+        assert!((transition.from_value).abs() < f32::EPSILON);
+        assert!((transition.to_value - 100.0).abs() < f32::EPSILON);
+        assert!((transition.progress).abs() < f32::EPSILON);
+        assert_eq!(transition.duration_ms, 1000);
+    }
+
+    #[test]
+    fn test_transition_state_update() {
+        let mut transition = TransitionState::new(0.0, 100.0, 1000);
+
+        // Not complete after 500ms
+        let complete = transition.update(500);
+        assert!(!complete);
+        assert!(transition.progress > 0.0);
+        assert!(transition.progress < 1.0);
+
+        // Complete after another 500ms
+        let complete = transition.update(500);
+        assert!(complete);
+        assert!((transition.progress - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_transition_state_current_value() {
+        let mut transition = TransitionState::new(0.0, 100.0, 1000);
+
+        // At start
+        let start_value = transition.current_value();
+        assert!((start_value).abs() < 1.0);
+
+        // At midpoint
+        transition.update(500);
+        let mid_value = transition.current_value();
+        assert!(mid_value > 25.0);
+        assert!(mid_value < 75.0); // Easing affects exact midpoint
+
+        // At end
+        transition.update(500);
+        let end_value = transition.current_value();
+        assert!((end_value - 100.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_transition_state_is_complete() {
+        let mut transition = TransitionState::new(0.0, 100.0, 1000);
+        assert!(!transition.is_complete());
+
+        transition.update(1000);
+        assert!(transition.is_complete());
+    }
+
+    #[test]
+    fn test_transition_state_zero_duration() {
+        let mut transition = TransitionState::new(0.0, 100.0, 0);
+        let complete = transition.update(0);
+        assert!(complete);
+        assert!((transition.progress - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_state_with_notifications() {
+        let mut state = State::default();
+        state
+            .notification_queue
+            .push(Notification::success("Test".to_string()));
+        state
+            .notification_queue
+            .push(Notification::info("Info".to_string()));
+
+        assert_eq!(state.notification_queue.len(), 2);
+    }
+
+    #[test]
+    fn test_state_with_pulse_animations() {
+        use crate::ui::styles::animations::PulseAnimation;
+
+        let mut state = State::default();
+        state
+            .pulse_animations
+            .insert("playing_indicator".to_string(), PulseAnimation::new(1000));
+
+        assert_eq!(state.pulse_animations.len(), 1);
+        assert!(state.pulse_animations.contains_key("playing_indicator"));
+    }
+
+    #[test]
+    fn test_state_with_transition_states() {
+        let mut state = State::default();
+        state.transition_states.insert(
+            "modal_fade".to_string(),
+            TransitionState::new(0.0, 1.0, 200),
+        );
+
+        assert_eq!(state.transition_states.len(), 1);
+        assert!(state.transition_states.contains_key("modal_fade"));
+    }
+
+    #[test]
+    fn test_state_modal_animation_progress() {
+        let state = State {
+            modal_animation_progress: 0.5,
+            ..Default::default()
+        };
+
+        assert!((state.modal_animation_progress - 0.5).abs() < f32::EPSILON);
     }
 }

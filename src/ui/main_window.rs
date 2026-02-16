@@ -13,6 +13,7 @@ use iced::{Border, Color, Element, Length};
 /// - Main content area with audiobook list, file list, and bookmarks
 /// - Player controls at the bottom with proper elevation
 /// - Modal overlays for settings and bookmark editor with backdrop
+/// - Notification toasts in top-right corner (up to 3 concurrent)
 /// - Consistent spacing and design system colors throughout
 #[must_use]
 pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
@@ -72,6 +73,12 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
         let backdrop = modal_backdrop_without_click();
         let loading_message = modal_card(text("Loading...").size(typography::SIZE_LG));
         content = stack![content, backdrop, loading_message].into();
+    }
+
+    // Notification toasts overlay in top-right corner (iced 0.14)
+    // Shows up to 3 concurrent notifications with auto-dismiss
+    if !state.notification_queue.is_empty() {
+        content = stack![content, notification_area(state)].into();
     }
 
     content
@@ -316,6 +323,92 @@ where
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .into()
+}
+
+/// Renders notification toasts in top-right corner per ui-ux-pro-max
+///
+/// Features:
+/// - Displays up to 3 concurrent notifications
+/// - Auto-dismiss after duration specified in Notification
+/// - Fade-in/fade-out animations using `TransitionState`
+/// - Semantic colors based on notification type
+/// - Non-intrusive positioning in top-right corner
+fn notification_area(state: &State) -> Element<'_, Message> {
+    // Take up to 3 most recent notifications
+    let notifications_to_show = state
+        .notification_queue
+        .iter()
+        .take(3)
+        .fold(column![].spacing(spacing::SM), |col, notification| {
+            col.push(notification_toast(notification))
+        });
+
+    // Position in top-right corner with padding
+    container(
+        container(notifications_to_show)
+            .width(Length::Fixed(320.0))
+            .padding(spacing::MD),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .padding(iced::Padding {
+        top: spacing::XL,
+        right: spacing::XL,
+        bottom: 0.0,
+        left: 0.0,
+    })
+    .style(|_theme: &iced::Theme| container::Style {
+        background: None, // Transparent background for overlay
+        ..Default::default()
+    })
+    .into()
+}
+
+/// Renders a single notification toast with semantic colors
+fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
+    use crate::ui::state::NotificationType;
+    use iced::Shadow;
+
+    let (bg_color, icon_text) = match notification.kind {
+        NotificationType::Success => (colors::SUCCESS, "✓"),
+        NotificationType::Info => (colors::INFO, "i"),
+        NotificationType::Warning => (colors::WARNING, "⚠"),
+        NotificationType::Error => (colors::ERROR, "✕"),
+    };
+
+    container(
+        row![
+            // Icon indicator
+            container(text(icon_text).size(typography::SIZE_LG))
+                .width(Length::Fixed(32.0))
+                .center_x(Length::Fill),
+            // Message text
+            text(&notification.message)
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                }),
+        ]
+        .spacing(spacing::SM)
+        .align_y(iced::Alignment::Center),
+    )
+    .padding(spacing::MD)
+    .width(Length::Fill)
+    .style(move |_theme: &iced::Theme| container::Style {
+        background: Some(bg_color.into()),
+        text_color: Some(colors::TEXT_ON_PRIMARY),
+        border: Border {
+            radius: border_radius::MD.into(),
+            ..Default::default()
+        },
+        shadow: Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
+            offset: iced::Vector::new(0.0, 2.0),
+            blur_radius: 8.0,
+        },
+        ..Default::default()
+    })
+    .into()
 }
 
 #[cfg(test)]

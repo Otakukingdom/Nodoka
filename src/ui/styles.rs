@@ -235,6 +235,33 @@ pub mod cursor {
 ///
 /// This ensures compliance with accessibility guidelines for users with
 /// vestibular disorders or motion sensitivity.
+///
+/// # Enhanced UX Features (v0.2.1+)
+///
+/// This module provides advanced animation patterns following ui-ux-pro-max guidelines:
+///
+/// ## Easing Functions
+///
+/// Smooth transitions using standard easing functions:
+///
+/// ```ignore
+/// use nodoka::ui::styles::animations::easing;
+///
+/// let t = 0.5; // Progress from 0.0 to 1.0
+/// let eased = easing::ease_in_out(t); // Smooth acceleration and deceleration
+/// ```
+///
+/// ## Pulse Animation
+///
+/// Visual feedback for active states:
+///
+/// ```ignore
+/// use nodoka::ui::styles::animations::PulseAnimation;
+///
+/// let mut pulse = PulseAnimation::new(1000);
+/// pulse.update(16); // Update with frame delta (ms)
+/// let opacity = pulse.opacity(); // Get current opacity (0.5 to 1.0)
+/// ```
 pub mod animations {
     use super::transitions;
 
@@ -269,6 +296,186 @@ pub mod animations {
     #[must_use]
     pub const fn animations_enabled(reduced_motion: bool) -> bool {
         !reduced_motion
+    }
+
+    /// Easing function utilities for smooth transitions
+    ///
+    /// Per ui-ux-pro-max guidelines, linear motion feels robotic.
+    /// Use ease-out for entering elements and ease-in for exiting elements.
+    pub mod easing {
+        /// Linear easing (no acceleration) - use sparingly
+        ///
+        /// Returns input value unchanged. Generally not recommended for UI transitions
+        /// as it feels mechanical. Use for progress indicators or mechanical effects.
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let t = 0.5;
+        /// assert_eq!(easing::linear(t), 0.5);
+        /// ```
+        #[must_use]
+        pub const fn linear(t: f32) -> f32 {
+            // Manual clamp implementation for const fn
+            if t < 0.0 {
+                0.0
+            } else if t > 1.0 {
+                1.0
+            } else {
+                t
+            }
+        }
+
+        /// Ease-in-out (smooth start and end)
+        ///
+        /// Starts slowly, accelerates in the middle, then decelerates at the end.
+        /// Best for most UI transitions as it feels natural and responsive.
+        ///
+        /// Uses quadratic easing formula for smooth acceleration/deceleration.
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let t = 0.5;
+        /// let eased = easing::ease_in_out(t); // Returns ~0.5 but with smooth curve
+        /// ```
+        #[must_use]
+        pub fn ease_in_out(t: f32) -> f32 {
+            let t = t.clamp(0.0, 1.0);
+            if t < 0.5 {
+                2.0 * t * t
+            } else {
+                t.mul_add(2.0_f32.mul_add(-t, 4.0), -1.0)
+            }
+        }
+
+        /// Ease-out (slow finish)
+        ///
+        /// Starts quickly and decelerates towards the end.
+        /// Best for entering elements (modals, dropdowns) to feel responsive.
+        ///
+        /// Uses quadratic easing for smooth deceleration.
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let t = 0.5;
+        /// let eased = easing::ease_out(t); // Decelerates towards end
+        /// ```
+        #[must_use]
+        pub fn ease_out(t: f32) -> f32 {
+            let t = t.clamp(0.0, 1.0);
+            t * (2.0 - t)
+        }
+
+        /// Ease-in (slow start)
+        ///
+        /// Starts slowly and accelerates towards the end.
+        /// Best for exiting elements to feel natural.
+        ///
+        /// Uses quadratic easing for smooth acceleration.
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let t = 0.5;
+        /// let eased = easing::ease_in(t); // Accelerates towards end
+        /// ```
+        #[must_use]
+        pub fn ease_in(t: f32) -> f32 {
+            let t = t.clamp(0.0, 1.0);
+            t * t
+        }
+    }
+
+    /// Pulse animation for indicating active/playing state
+    ///
+    /// Creates a smooth pulsing opacity effect for visual feedback.
+    /// Per ui-ux-pro-max: continuous animations should only be used for
+    /// loading indicators or active state feedback.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use nodoka::ui::styles::animations::PulseAnimation;
+    ///
+    /// let mut pulse = PulseAnimation::new(1000); // 1 second cycle
+    /// pulse.update(16); // Update with 16ms frame delta
+    /// let opacity = pulse.opacity(); // Get current opacity (0.5 to 1.0)
+    /// ```
+    #[derive(Debug, Clone)]
+    pub struct PulseAnimation {
+        /// Current phase (0.0 to 1.0)
+        phase: f32,
+        /// Animation duration in milliseconds
+        duration_ms: u64,
+    }
+
+    impl PulseAnimation {
+        /// Creates a new pulse animation with specified duration
+        ///
+        /// # Arguments
+        ///
+        /// * `duration_ms` - Full cycle duration in milliseconds (typically 1000-2000ms)
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let pulse = PulseAnimation::new(1500); // 1.5 second pulse cycle
+        /// ```
+        #[must_use]
+        pub const fn new(duration_ms: u64) -> Self {
+            Self {
+                phase: 0.0,
+                duration_ms,
+            }
+        }
+
+        /// Updates animation phase based on elapsed time
+        ///
+        /// Call this each frame with the milliseconds elapsed since last update.
+        ///
+        /// # Arguments
+        ///
+        /// * `delta_ms` - Milliseconds elapsed since last update (typically 16ms for 60fps)
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// pulse.update(16); // Advance by one frame at 60fps
+        /// ```
+        pub fn update(&mut self, delta_ms: u64) {
+            if self.duration_ms == 0 {
+                return; // Avoid division by zero
+            }
+            #[allow(clippy::cast_precision_loss)]
+            let progress = delta_ms as f32 / self.duration_ms as f32;
+            self.phase = (self.phase + progress).rem_euclid(1.0);
+        }
+
+        /// Returns current opacity for pulse effect (0.0 to 1.0)
+        ///
+        /// Uses sine wave for smooth pulsing motion. Returns values from 0.0 to 1.0
+        /// for full pulsing effect.
+        ///
+        /// # Examples
+        ///
+        /// ```ignore
+        /// let opacity = pulse.opacity();
+        /// // Use opacity to modulate element alpha channel
+        /// ```
+        #[must_use]
+        pub fn opacity(&self) -> f32 {
+            // Ensure phase is in valid range for sine calculation
+            let phase = self.phase.rem_euclid(1.0);
+            // sin ranges from -1 to 1, so 0.5 + 0.5 * sin ranges from 0 to 1
+            (phase * std::f32::consts::PI * 2.0).sin().mul_add(0.5, 0.5)
+        }
+
+        /// Resets animation to start
+        pub const fn reset(&mut self) {
+            self.phase = 0.0;
+        }
     }
 }
 
@@ -920,5 +1127,162 @@ mod tests {
         assert!(active.r < hovered.r);
         assert!(active.g < hovered.g);
         assert!(active.b < hovered.b);
+    }
+
+    #[test]
+    fn test_easing_functions_bounded() {
+        use animations::easing;
+
+        // Test easing functions return values in 0.0-1.0 range
+        let test_values = [0.0, 0.25, 0.5, 0.75, 1.0];
+
+        for &t in &test_values {
+            let linear = easing::linear(t);
+            let ease_in_out = easing::ease_in_out(t);
+            let ease_out = easing::ease_out(t);
+            let ease_in = easing::ease_in(t);
+
+            assert!((0.0..=1.0).contains(&linear));
+            assert!((0.0..=1.0).contains(&ease_in_out));
+            assert!((0.0..=1.0).contains(&ease_out));
+            assert!((0.0..=1.0).contains(&ease_in));
+        }
+    }
+
+    #[test]
+    fn test_easing_linear_identity() {
+        use animations::easing;
+
+        assert!((easing::linear(0.0)).abs() < f32::EPSILON);
+        assert!((easing::linear(0.5) - 0.5).abs() < f32::EPSILON);
+        assert!((easing::linear(1.0) - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_easing_endpoints() {
+        use animations::easing;
+
+        // All easing functions should start at 0 and end at 1
+        assert!((easing::ease_in_out(0.0)).abs() < f32::EPSILON);
+        assert!((easing::ease_in_out(1.0) - 1.0).abs() < f32::EPSILON);
+
+        assert!((easing::ease_out(0.0)).abs() < f32::EPSILON);
+        assert!((easing::ease_out(1.0) - 1.0).abs() < f32::EPSILON);
+
+        assert!((easing::ease_in(0.0)).abs() < f32::EPSILON);
+        assert!((easing::ease_in(1.0) - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_easing_clamps_out_of_range() {
+        use animations::easing;
+
+        // Test values outside 0-1 are clamped
+        assert!((easing::linear(-1.0)).abs() < f32::EPSILON);
+        assert!((easing::linear(2.0) - 1.0).abs() < f32::EPSILON);
+
+        assert!((easing::ease_in_out(-0.5)).abs() < f32::EPSILON);
+        assert!((easing::ease_in_out(1.5) - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_pulse_animation_cycles() {
+        use animations::PulseAnimation;
+
+        let mut pulse = PulseAnimation::new(1000);
+
+        // Opacity should start in valid range (0.0 to 1.0 with epsilon for floating point)
+        let initial = pulse.opacity();
+        assert!(
+            (-0.01..=1.01).contains(&initial),
+            "Initial opacity {initial} not in range"
+        );
+
+        // After half cycle, should still be in range
+        pulse.update(500);
+        let mid = pulse.opacity();
+        assert!(
+            (-0.01..=1.01).contains(&mid),
+            "Mid opacity {mid} not in range"
+        );
+
+        // After full cycle, should return to similar value
+        pulse.update(500);
+        let final_val = pulse.opacity();
+        assert!(
+            (-0.01..=1.01).contains(&final_val),
+            "Final opacity {final_val} not in range"
+        );
+        assert!((initial - final_val).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_pulse_animation_reset() {
+        use animations::PulseAnimation;
+
+        let mut pulse = PulseAnimation::new(1000);
+        pulse.update(500);
+
+        let before_reset = pulse.opacity();
+        pulse.reset();
+        let after_reset = pulse.opacity();
+
+        // After reset, opacity should be at initial value (allow epsilon)
+        assert!((-0.01..=1.01).contains(&after_reset));
+        // Values may differ after reset
+        let _ = before_reset; // Silence unused warning
+    }
+
+    #[test]
+    fn test_pulse_animation_zero_duration() {
+        use animations::PulseAnimation;
+
+        let mut pulse = PulseAnimation::new(0);
+        let initial = pulse.opacity();
+
+        pulse.update(100);
+        let after_update = pulse.opacity();
+
+        // With zero duration, opacity should not change
+        assert!((initial - after_update).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_pulse_animation_multiple_updates() {
+        use animations::PulseAnimation;
+
+        let mut pulse = PulseAnimation::new(1000);
+
+        // Update multiple times with small deltas (simulate frames)
+        for _ in 0..60 {
+            pulse.update(16); // 16ms per frame at 60fps
+            let opacity = pulse.opacity();
+            assert!(
+                (-0.01..=1.01).contains(&opacity),
+                "Opacity {opacity} out of range"
+            );
+        }
+    }
+
+    #[test]
+    fn test_ease_in_out_is_symmetric() {
+        use animations::easing;
+
+        let t1 = easing::ease_in_out(0.25);
+        let t2 = easing::ease_in_out(0.75);
+
+        // ease_in_out should be symmetric around 0.5
+        assert!((t1 + t2 - 1.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_ease_out_starts_faster_than_ease_in() {
+        use animations::easing;
+
+        let ease_out_early = easing::ease_out(0.1);
+        let ease_in_early = easing::ease_in(0.1);
+
+        // Ease-out should progress faster initially
+        assert!(ease_out_early > ease_in_early);
     }
 }

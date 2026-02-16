@@ -690,3 +690,175 @@ fn test_focus_ring_color_is_blue() {
         "Focus ring should have good contrast against light backgrounds"
     );
 }
+
+#[test]
+fn test_easing_functions_bounded() {
+    use nodoka::ui::animations::easing;
+
+    let test_values = [0.0, 0.25, 0.5, 0.75, 1.0];
+
+    for &t in &test_values {
+        let linear = easing::linear(t);
+        let ease_in_out = easing::ease_in_out(t);
+        let ease_out = easing::ease_out(t);
+        let ease_in = easing::ease_in(t);
+
+        assert!(
+            (0.0..=1.0).contains(&linear),
+            "Linear easing at t={} returned {} (out of bounds)",
+            t,
+            linear
+        );
+        assert!(
+            (0.0..=1.0).contains(&ease_in_out),
+            "Ease-in-out at t={} returned {} (out of bounds)",
+            t,
+            ease_in_out
+        );
+        assert!(
+            (0.0..=1.0).contains(&ease_out),
+            "Ease-out at t={} returned {} (out of bounds)",
+            t,
+            ease_out
+        );
+        assert!(
+            (0.0..=1.0).contains(&ease_in),
+            "Ease-in at t={} returned {} (out of bounds)",
+            t,
+            ease_in
+        );
+    }
+}
+
+#[test]
+fn test_pulse_animation_cycles() {
+    use nodoka::ui::animations::PulseAnimation;
+
+    let mut pulse = PulseAnimation::new(1000);
+
+    let initial = pulse.opacity();
+    assert!(
+        (0.5..=1.0).contains(&initial),
+        "Initial pulse opacity {} should be between 0.5 and 1.0",
+        initial
+    );
+
+    pulse.update(500);
+    let mid = pulse.opacity();
+    assert!(
+        (0.4..=1.0).contains(&mid),
+        "Mid-cycle pulse opacity {} should be between 0.4 and 1.0",
+        mid
+    );
+
+    pulse.update(500);
+    let final_val = pulse.opacity();
+    assert!(
+        (0.5..=1.0).contains(&final_val),
+        "Final pulse opacity {} should be between 0.5 and 1.0",
+        final_val
+    );
+
+    assert!(
+        (initial - final_val).abs() < 0.2,
+        "Pulse should cycle back to near initial value (initial={}, final={})",
+        initial,
+        final_val
+    );
+}
+
+#[test]
+fn test_transition_state_interpolation() {
+    use nodoka::ui::TransitionState;
+
+    let mut transition = TransitionState::new(0.0, 100.0, 1000);
+
+    assert!(
+        (transition.current_value() - 0.0).abs() < 0.1,
+        "Transition should start at from_value"
+    );
+
+    transition.update(500);
+    let mid = transition.current_value();
+    assert!(
+        mid > 25.0 && mid < 75.0,
+        "Transition midpoint value {} should be between 25 and 75 (easing affects exact midpoint)",
+        mid
+    );
+
+    transition.update(500);
+    assert!(
+        (transition.current_value() - 100.0).abs() < 0.1,
+        "Transition should end at to_value"
+    );
+    assert!(transition.is_complete(), "Transition should be complete");
+}
+
+#[test]
+fn test_notification_duration_reasonable() {
+    use nodoka::ui::Notification;
+
+    let success = Notification::success("Test".to_string());
+    assert_eq!(
+        success.duration_ms, 3000,
+        "Success notification duration should be 3 seconds per UX guidelines"
+    );
+
+    let info = Notification::info("Test".to_string());
+    assert_eq!(
+        info.duration_ms, 3000,
+        "Info notification duration should be 3 seconds per UX guidelines"
+    );
+
+    let warning = Notification::warning("Test".to_string());
+    assert_eq!(
+        warning.duration_ms, 5000,
+        "Warning notification duration should be 5 seconds per UX guidelines"
+    );
+
+    let error = Notification::error("Test".to_string());
+    assert_eq!(
+        error.duration_ms,
+        u64::MAX,
+        "Error notifications should require manual dismiss"
+    );
+}
+
+#[test]
+fn test_reduced_motion_disables_animations() {
+    use nodoka::ui::animations;
+
+    assert!(
+        !animations::animations_enabled(true),
+        "Animations should be disabled when reduced motion is preferred"
+    );
+    assert_eq!(
+        animations::transition_duration(true),
+        0,
+        "Transition duration should be 0ms when reduced motion is preferred"
+    );
+
+    assert!(
+        animations::animations_enabled(false),
+        "Animations should be enabled when reduced motion is not preferred"
+    );
+    assert!(
+        animations::transition_duration(false) > 0,
+        "Transition duration should be greater than 0 when reduced motion is not preferred"
+    );
+}
+
+#[test]
+fn test_notification_types_distinct() {
+    use nodoka::ui::{Notification, NotificationType};
+
+    let success = Notification::success("Test".to_string());
+    let info = Notification::info("Test".to_string());
+    let warning = Notification::warning("Test".to_string());
+    let error = Notification::error("Test".to_string());
+
+    assert_eq!(success.kind, NotificationType::Success);
+    assert_eq!(info.kind, NotificationType::Info);
+    assert_eq!(warning.kind, NotificationType::Warning);
+    assert_eq!(error.kind, NotificationType::Error);
+}

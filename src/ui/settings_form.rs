@@ -7,9 +7,10 @@ use iced::{Element, Length};
 ///
 /// Features:
 /// - Clear modal title with proper typography
-/// - Section headers for organization
+/// - Section headers with visual separators (horizontal rules)
+/// - Help text tooltips explaining each setting's purpose
 /// - Scrollable directory list with action buttons
-/// - Improved spacing and padding
+/// - Improved spacing and padding for better scannability
 /// - Visual grouping of primary/secondary actions
 #[must_use]
 pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
@@ -51,14 +52,40 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
             // Modal header
             text("Settings").size(typography::SIZE_XXL),
             // Section header with LG spacing for clear visual hierarchy
-            container(text("Audiobook Directories").size(typography::SIZE_LG)).padding(
-                iced::Padding {
+            container(text("Audiobook Directories").size(typography::SIZE_LG))
+                .padding(iced::Padding {
                     top: spacing::LG,
                     right: 0.0,
-                    bottom: spacing::MD,
+                    bottom: spacing::SM,
                     left: 0.0,
-                }
-            ),
+                })
+                .style(|_theme: &iced::Theme| container::Style {
+                    text_color: Some(crate::ui::styles::colors::PRIMARY),
+                    ..Default::default()
+                }),
+            // Visual separator (horizontal rule) per ui-ux-pro-max
+            container(Space::new())
+                .width(Length::Fill)
+                .height(Length::Fixed(2.0))
+                .style(|_theme: &iced::Theme| container::Style {
+                    background: Some(crate::ui::styles::colors::BORDER_DEFAULT.into()),
+                    ..Default::default()
+                }),
+            // Help text explaining the setting's purpose
+            container(
+                text("Add directories containing audiobooks. Nodoka will scan for supported audio files.")
+                    .size(typography::SIZE_SM)
+            )
+            .padding(iced::Padding {
+                top: spacing::SM,
+                right: 0.0,
+                bottom: spacing::SM,
+                left: 0.0,
+            })
+            .style(|_theme: &iced::Theme| container::Style {
+                text_color: Some(crate::ui::styles::colors::TEXT_SECONDARY),
+                ..Default::default()
+            }),
             // Directory list with scrolling
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
             // Action buttons with proper grouping and LG spacing above for separation
@@ -84,10 +111,10 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
             }),
         ]
         .padding(spacing::XL)
-        .spacing(spacing::MD),
+        .spacing(spacing::SM),
     )
     .width(Length::Fixed(600.0))
-    .height(Length::Fixed(450.0))
+    .height(Length::Fixed(500.0))
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()

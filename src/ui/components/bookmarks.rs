@@ -10,8 +10,10 @@ use iced::{Element, Length};
 /// Features:
 /// - Clear header with add button
 /// - Empty state with helpful guidance when no bookmarks exist
-/// - Scrollable list of bookmarks
-/// - Visual indicators for missing files
+/// - Scrollable list of bookmarks with timestamp badges
+/// - Visual indicators for missing files (WARNING color)
+/// - Note indicator badges for bookmarks with notes
+/// - Keyboard shortcuts (N for new, E for edit)
 /// - Improved spacing and typography
 #[must_use]
 pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Element<'a, Message> {
@@ -94,8 +96,17 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
     .into()
 }
 
-/// Builds a single bookmark row with improved action button layout
+/// Builds a single bookmark row with improved action button layout and timestamp badge
+///
+/// Applies ui-ux-pro-max patterns:
+/// - Timestamp badge with colored background (ACCENT color) for better visibility
+/// - Visual indicators for missing files with WARNING color
+/// - Note indicator badge for bookmarks with notes
+/// - Improved spacing and visual hierarchy
 fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
+    use iced::Border;
+
     let is_missing = files
         .iter()
         .find(|f| f.full_path == bm.file_path)
@@ -103,8 +114,6 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
 
     let label_text = if is_missing {
         format!("[MISSING] {}", bm.label)
-    } else if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
-        format!("[NOTE] {}", bm.label) // Text indicator for bookmarks with notes
     } else {
         bm.label.clone()
     };
@@ -112,23 +121,65 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
     let pos = format_position(bm.position_ms);
     let id = bm.id;
 
+    // Timestamp badge with colored background per ui-ux-pro-max
+    let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
+        |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(colors::TEXT_ON_PRIMARY),
+        },
+    ))
+    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+    .style(|_theme: &iced::Theme| container::Style {
+        background: Some(colors::ACCENT.into()),
+        text_color: Some(colors::TEXT_ON_PRIMARY),
+        border: Border {
+            radius: border_radius::SM.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+
+    // Note indicator badge if bookmark has note
+    let note_badge = if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
+        container(
+            text("NOTE")
+                .size(typography::SIZE_XS)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                }),
+        )
+        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::INFO.into()),
+            text_color: Some(colors::TEXT_ON_PRIMARY),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+    } else {
+        container(text(""))
+    };
+
     row![
+        timestamp_badge,
+        note_badge,
         button(text(label_text).size(typography::SIZE_SM))
             .on_press_maybe(id.map(Message::BookmarkJump))
             .padding(spacing::SM),
         Space::new().width(Length::Fill),
-        text(pos).size(typography::SIZE_XS),
-        button(text("Edit Bookmark").size(typography::SIZE_XS))
+        button(text("Edit (E)").size(typography::SIZE_XS))
             .on_press_maybe(id.map(Message::BookmarkEdit))
-            .padding(spacing::XS)
+            .padding(spacing::SM)
             .style(button_styles::secondary),
-        button(text("Delete Bookmark").size(typography::SIZE_XS))
+        button(text("Delete").size(typography::SIZE_XS))
             .on_press_maybe(id.map(Message::BookmarkDelete))
-            .padding(spacing::XS)
+            .padding(spacing::SM)
             .style(button_styles::danger),
     ]
     .spacing(spacing::SM)
     .padding(spacing::SM)
+    .align_y(iced::Alignment::Center)
     .into()
 }
 

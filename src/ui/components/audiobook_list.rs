@@ -13,10 +13,10 @@ use std::path::PathBuf;
 /// Features:
 /// - Empty state with helpful guidance when no audiobooks exist
 /// - Skeleton UI loading states during directory scanning
-/// - Larger cover thumbnails (60x60px) for better visibility
-/// - Selection highlighting with background color change
+/// - Larger cover thumbnails (80x80px) for better visibility
+/// - Selection highlighting with left border accent (4px PRIMARY color)
 /// - Progress bar visualization for each audiobook
-/// - Improved spacing and visual hierarchy
+/// - Improved spacing (8px between items) for better touch targets
 /// - Success indicator for completed audiobooks
 #[must_use]
 pub fn view<'a, S: BuildHasher>(
@@ -40,7 +40,7 @@ pub fn view<'a, S: BuildHasher>(
 
     let items: Element<_> = audiobooks
         .iter()
-        .fold(column![].spacing(spacing::XS), |col, ab| {
+        .fold(column![].spacing(spacing::SM), |col, ab| {
             let is_selected = selected_id == ab.id;
             let item = build_audiobook_item(ab, is_selected, cover_thumbnails);
             col.push(item)
@@ -71,19 +71,35 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let id = ab.id;
     let is_complete = ab.is_complete();
 
-    // Larger cover thumbnail (60x60px instead of 40x40px) for better visibility
+    // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
     let cover: Element<_> = id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         || {
             container(text("No cover").size(typography::SIZE_XS))
-                .width(Length::Fixed(60.0))
-                .height(Length::Fixed(60.0))
+                .width(Length::Fixed(80.0))
+                .height(Length::Fixed(80.0))
+                .style(|_theme: &iced::Theme| container::Style {
+                    border: Border {
+                        radius: border_radius::MD.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
                 .into()
         },
         |path| {
-            image(iced::widget::image::Handle::from_path(path.clone()))
-                .width(Length::Fixed(60.0))
-                .height(Length::Fixed(60.0))
-                .into()
+            container(
+                image(iced::widget::image::Handle::from_path(path.clone()))
+                    .width(Length::Fixed(80.0))
+                    .height(Length::Fixed(80.0)),
+            )
+            .style(|_theme: &iced::Theme| container::Style {
+                border: Border {
+                    radius: border_radius::MD.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .into()
         },
     );
 
@@ -140,16 +156,17 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     .spacing(spacing::MD)
     .padding(spacing::MD);
 
-    // Apply selection styling using container background
+    // Apply selection styling with left border accent per ui-ux-pro-max
+    // Left border (4px PRIMARY color) provides clear visual indicator for selected item
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
                 background: Some(colors::SELECTION_BG.into()),
                 text_color: Some(colors::SELECTION_TEXT),
                 border: Border {
-                    color: colors::BORDER_FOCUS,
-                    width: 2.0,
-                    radius: 0.0.into(),
+                    color: colors::PRIMARY,
+                    width: 4.0,
+                    radius: border_radius::MD.into(),
                 },
                 ..Default::default()
             })
