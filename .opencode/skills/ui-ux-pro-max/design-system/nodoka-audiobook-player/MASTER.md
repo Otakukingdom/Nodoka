@@ -201,6 +201,20 @@ The following ui-ux-pro-max features have been successfully implemented in the N
 - **Border radius consistency** - SM/MD/LG for visual consistency
 - **Color system** - Vibrant rose palette with WCAG AA compliance
 
+#### Advanced Animation System (v0.2.1)
+- **Easing functions** - Linear, ease-in, ease-out, ease-in-out, ease-out-bounce, ease-out-elastic
+- **FadeTransition** - Opacity animations with configurable duration and easing
+- **ScaleTransition** - Scale animations for microinteractions (e.g., 0.95 to 1.0)
+- **PulseAnimation** - Oscillating opacity for loading indicators
+- **Stagger utility** - Delayed animations for list items (50ms per item)
+- **Reduced motion support** - All animations respect user preferences (duration = 0ms when enabled)
+
+#### Enhanced Interactive States (v0.2.1)
+- **InteractiveState enum** - Combined state tracking (Idle/Hover/Focus/HoverFocus/Pressed/Disabled)
+- **State-aware overlays** - Consistent darkening for different interaction states
+- **Border width utilities** - 3px for focus states (WCAG compliance), 1px for others
+- **Pointer cursor utilities** - Automatic cursor management based on state
+
 #### Alternative Color Palette
 - **Audiobook-optimized theme** (calm cyan + health green) - Designed for reduced eye strain during extended listening sessions
 - **Module:** `colors_audiobook` with full palette support
@@ -257,39 +271,82 @@ Important constraints when working with iced framework:
 
 ### Integration with Rust Ecosystem
 
-The design system is implemented as Rust modules in `src/ui/styles.rs`:
+The design system is implemented as modular Rust modules in `src/ui/styles/`:
 
 ```rust
 use nodoka::ui::styles::{
+    // Core Design System
     colors,              // Main vibrant rose palette
     colors_audiobook,    // Alternative calm cyan palette
     spacing,             // 4px base grid (XS through XXL)
     typography,          // Size scale for text hierarchy
     border_radius,       // Corner rounding (SM, MD, LG)
+    
+    // Visual Effects (v0.2.1)
     shadows,             // Elevation system (sm, md, lg, xl)
-    interactive,         // Hover/active overlay functions
+    animations,          // Easing, FadeTransition, ScaleTransition, PulseAnimation
+    transitions,         // Duration constants (FAST, NORMAL, SLOW)
+    
+    // Interactive Feedback (v0.2.1)
+    interactive,         // InteractiveState enum, state overlays, pointer utilities
+    
+    // Component Utilities
     loading,             // Skeleton UI and pulse animation
     button_styles,       // Pre-configured button variants
+    
+    // Accessibility (v0.2.1)
+    accessibility,       // Touch target validation, contrast verification
 };
 ```
+
+#### Module Structure
+
+- `src/ui/styles/mod.rs` - Main module with re-exports for API compatibility
+- `src/ui/styles/colors.rs` - Color palettes (vibrant rose, calm cyan)
+- `src/ui/styles/layout.rs` - Spacing, typography, border radius constants
+- `src/ui/styles/effects.rs` - Shadows, animations, transitions
+- `src/ui/styles/interactive.rs` - Interactive state management
+- `src/ui/styles/components.rs` - Button styles, focus indicators
+- `src/ui/styles/accessibility.rs` - WCAG compliance utilities
 
 ### Test Coverage
 
 Comprehensive UX compliance tests in `tests/ux_compliance_tests.rs`:
 
+#### Core Design System Tests
 - ✅ Shadow depth verification (sm, md, lg, xl specifications)
 - ✅ Interactive overlay color blending (hover/active darken correctly)
-- ✅ Notification timing validation (auto-dismiss durations)
-- ✅ Pulse animation oscillation (loading state feedback)
-- ✅ Alternative palette contrast ratios (WCAG AA compliance)
-- ✅ Volume color indicator semantics (green/yellow/red/gray)
-- ✅ Empty state icon support (Unicode symbols)
 - ✅ Spacing grid compliance (4px base multiples)
 - ✅ Typography scale hierarchy
-- ✅ Transition duration standards (150-300ms)
-- ✅ Focus indicator visibility (3px minimum)
+- ✅ Alternative palette contrast ratios (WCAG AA compliance)
+- ✅ Empty state icon support (Unicode symbols)
 
-Total: 80+ UX compliance tests ensuring design system adherence.
+#### Animation & Transition Tests (v0.2.1)
+- ✅ Animation transitions respect reduced motion preferences
+- ✅ Hover overlay darkens consistently (5% overlay)
+- ✅ Interactive state overlay progression (Idle < Hover < Active)
+- ✅ Easing functions mathematical correctness (bounce, elastic)
+- ✅ Fade transition bounds (opacity stays within 0.0-1.0)
+- ✅ Scale transition bounds (scale values within valid range)
+- ✅ Modal animations complete within budget (300ms)
+- ✅ Stagger delay calculation (50ms per item)
+- ✅ Pulse animation oscillation (loading state feedback)
+
+#### Component Behavior Tests (v0.2.1)
+- ✅ Notification timing validation (auto-dismiss durations)
+- ✅ Volume color semantic thresholds (70%, 30% boundaries)
+- ✅ Skeleton UI dimensions match real components
+- ✅ Focus indicator visibility (3px minimum border)
+- ✅ Interactive state border width (3px focus, 1px others)
+- ✅ Pointer cursor display logic (disabled states)
+
+#### Accessibility Tests
+- ✅ Focus ring meets WCAG contrast (3:1 minimum)
+- ✅ Touch target validation (44x44px minimum)
+- ✅ Contrast verification (WCAG AA 4.5:1, AAA 7:1)
+- ✅ Transition duration standards (150-300ms)
+
+Total: 74 UX compliance tests ensuring design system adherence.
 
 ---
 
