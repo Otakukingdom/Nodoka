@@ -807,4 +807,44 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_reduced_motion_disables_transitions() {
+        let duration_with_motion = animations::transition_duration(false);
+        let duration_without_motion = animations::transition_duration(true);
+
+        assert_eq!(duration_with_motion, transitions::NORMAL); // 200ms
+        assert_eq!(duration_without_motion, 0); // Instant
+    }
+
+    #[test]
+    fn test_reduced_motion_disables_animations() {
+        assert!(animations::animations_enabled(false));
+        assert!(!animations::animations_enabled(true));
+    }
+
+    #[test]
+    fn test_hover_overlay_darkens_color() {
+        let base = colors::BG_ELEVATED;
+        let hovered = interactive::apply_hover_overlay(base);
+
+        // Hover overlay should darken (reduce RGB values)
+        assert!(hovered.r < base.r);
+        assert!(hovered.g < base.g);
+        assert!(hovered.b < base.b);
+        // Alpha should remain unchanged
+        assert!((hovered.a - base.a).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_active_overlay_darker_than_hover() {
+        let base = colors::BG_ELEVATED;
+        let hovered = interactive::apply_hover_overlay(base);
+        let active = interactive::apply_active_overlay(base);
+
+        // Active overlay should be darker than hover overlay
+        assert!(active.r < hovered.r);
+        assert!(active.g < hovered.g);
+        assert!(active.b < hovered.b);
+    }
 }

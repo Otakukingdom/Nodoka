@@ -91,11 +91,24 @@ Use `src/ui/styles.rs` `spacing::*` and `typography::*`.
 - Use `spacing::MD` (16px) padding on buttons
 - Increase padding on small touch areas (icons, checkboxes)
 
-### Loading States
-- Use skeleton UI patterns for content loading
+### Loading States (Implemented)
+
+#### Skeleton UI
+
+- Used during directory scanning when audiobook list is empty
+- 3 skeleton items shown to indicate loading activity
+- Skeleton covers: 60x60px with `loading::SKELETON_BG` color
+- Skeleton text: 150x20px with rounded corners (SM radius)
+- Consistent spacing follows 4px grid system
 - Colors: `loading::SKELETON_BG` and `loading::SKELETON_SHIMMER`
 - Spinner color: `loading::SPINNER_COLOR` (matches primary brand)
+
+#### When to Use
+
+- Directory scanning operations (can take multiple seconds)
+- Initial library load if no cached data available
 - Show loading indicators for operations >200ms
+- Prefer skeleton UI over spinners for list-based content
 
 ### Empty States
 - Include helpful title and description
@@ -126,11 +139,20 @@ Use `src/ui/styles.rs` `spacing::*` and `typography::*`.
 - Error states: red border + text description
 - Success states: green accent + confirmation message
 
-### Reduced Motion
-- Check `state.prefers_reduced_motion` before animations
-- Fall back to instant transitions when enabled
-- Use `animations::transition_duration()` helper
-- Animation duration becomes 0ms when reduced motion is preferred
+### Reduced Motion (Implemented)
+
+#### WCAG 2.1 2.3.3 Compliance
+
+- `State.prefers_reduced_motion` flag controls all animations
+- When enabled: all transition durations become 0ms
+- Use `animations::transition_duration()` helper in components
+- Never hard-code transition durations without checking preference
+
+#### Testing
+
+- Verify animations disable when flag is true
+- Test that UI remains functional without transitions
+- Check focus indicators remain visible without animations
 
 ### Semantic Colors
 - Use color to reinforce status but not as sole indicator

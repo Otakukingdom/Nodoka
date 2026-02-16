@@ -121,6 +121,49 @@
 //! - ✅ Color contrast ratios ≥4.5:1 for normal text
 //! - ✅ Semantic button hierarchy (primary, secondary, danger)
 //!
+//! ### UI/UX Enhancements
+//!
+//! #### Loading States
+//!
+//! Nodoka uses skeleton UI patterns for directory scanning operations to provide
+//! better feedback than spinners or empty states. When `scan_state` is `Scanning`
+//! and the audiobook list is empty, skeleton placeholders appear to indicate loading.
+//!
+//! Skeleton UI patterns:
+//! - 3 placeholder items shown during scanning
+//! - 60x60px skeleton covers (match real cover size)
+//! - 150x20px skeleton text (title placeholder)
+//! - Consistent spacing following 4px grid system
+//!
+//! #### Interactive Feedback
+//!
+//! All interactive elements follow ui-ux-pro-max guidelines:
+//!
+//! - **Cursor affordances**: Buttons use pointer cursor automatically via `on_press`
+//! - **Hover states**: 5% darker overlay with 150-200ms transitions
+//! - **Active states**: 10% darker overlay for pressed state
+//! - **Disabled states**: No hover effects, disabled cursor for unavailable actions
+//!
+//! See [`styles::interactive`] module for hover/active overlay utilities.
+//!
+//! #### Reduced Motion Support
+//!
+//! Per WCAG 2.1 2.3.3, Nodoka respects the user's reduced motion preference:
+//!
+//! - `State.prefers_reduced_motion` flag controls animation behavior
+//! - When enabled, all transitions are instant (0ms duration)
+//! - Use [`styles::animations::transition_duration()`] helper to check preference
+//! - Ensures accessibility for users with vestibular disorders
+//!
+//! #### Empty States
+//!
+//! Empty states use the [`components::empty_state()`] helper with:
+//!
+//! - Clear title (XL typography)
+//! - Descriptive text (base typography)
+//! - Optional call-to-action button
+//! - Centered layout with proper spacing
+//!
 //! ### Performance Characteristics
 //!
 //! Rendering performance verified with large libraries:

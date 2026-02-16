@@ -417,10 +417,11 @@ fn test_audiobook_list_rendering_with_hover_states() {
         .collect();
 
     let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+    let scan_state = nodoka::ui::ScanState::Idle;
 
     // Render audiobook list
     let start = Instant::now();
-    let element = audiobook_list::view(&audiobooks, Some(500), &cover_thumbnails);
+    let element = audiobook_list::view(&audiobooks, Some(500), &cover_thumbnails, &scan_state);
     drop(element);
     let render_duration = start.elapsed();
 

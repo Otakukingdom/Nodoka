@@ -1,8 +1,9 @@
 use crate::models::Audiobook;
-use crate::ui::styles::{spacing, typography};
+use crate::ui::state::ScanState;
+use crate::ui::styles::{border_radius, loading, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, progress_bar, row, scrollable, text, Space};
-use iced::{Element, Length};
+use iced::{Border, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::path::PathBuf;
@@ -11,6 +12,7 @@ use std::path::PathBuf;
 ///
 /// Features:
 /// - Empty state with helpful guidance when no audiobooks exist
+/// - Skeleton UI loading states during directory scanning
 /// - Larger cover thumbnails (60x60px) for better visibility
 /// - Selection highlighting with background color change
 /// - Progress bar visualization for each audiobook
@@ -21,15 +23,19 @@ pub fn view<'a, S: BuildHasher>(
     audiobooks: &'a [Audiobook],
     selected_id: Option<i64>,
     cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+    scan_state: &'a ScanState,
 ) -> Element<'a, Message> {
-    // Show empty state when no audiobooks are available
+    // Show skeleton UI during scanning if list is empty
     if audiobooks.is_empty() {
-        return super::empty_state(
-            "No Audiobooks Found",
-            "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
-            Some("Open Settings"),
-            Some(Message::OpenSettings),
-        );
+        return match scan_state {
+            ScanState::Scanning { .. } => skeleton_audiobook_list(),
+            ScanState::Idle => super::empty_state(
+                "No Audiobooks Found",
+                "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
+                Some("Open Settings"),
+                Some(Message::OpenSettings),
+            ),
+        };
     }
 
     let items: Element<_> = audiobooks
@@ -167,6 +173,62 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         .into()
 }
 
+/// Skeleton UI for audiobook list during scanning
+///
+/// Shows 3 placeholder items to indicate loading activity per ui-ux-pro-max guidelines.
+/// Skeleton UI provides better feedback than spinners for list-based content.
+fn skeleton_audiobook_list() -> Element<'static, Message> {
+    let items: Element<_> = (0..3)
+        .fold(column![].spacing(spacing::XS), |col, _| {
+            col.push(skeleton_audiobook_item())
+        })
+        .into();
+
+    scrollable(items).height(Length::Fill).into()
+}
+
+/// Single skeleton audiobook item
+///
+/// Creates a placeholder with:
+/// - 60x60px skeleton cover (matches real cover size)
+/// - 150x20px skeleton text (title placeholder)
+/// - Consistent spacing following 4px grid system
+fn skeleton_audiobook_item() -> Element<'static, Message> {
+    // Skeleton cover placeholder
+    let skeleton_cover = container(Space::new())
+        .width(Length::Fixed(60.0))
+        .height(Length::Fixed(60.0))
+        .style(|_: &iced::Theme| container::Style {
+            background: Some(loading::SKELETON_BG.into()),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    // Skeleton text placeholder
+    let skeleton_text = container(Space::new())
+        .width(Length::Fixed(150.0))
+        .height(Length::Fixed(20.0))
+        .style(|_: &iced::Theme| container::Style {
+            background: Some(loading::SKELETON_BG.into()),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    container(
+        row![skeleton_cover, skeleton_text]
+            .spacing(spacing::SM)
+            .padding(spacing::MD),
+    )
+    .width(Length::Fill)
+    .into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -189,8 +251,9 @@ mod tests {
     fn test_view_renders_empty_list() {
         let audiobooks: Vec<Audiobook> = vec![];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -198,8 +261,9 @@ mod tests {
     fn test_view_renders_single_audiobook() {
         let audiobooks = vec![create_test_audiobook(1, "Test Book", 50)];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -211,8 +275,9 @@ mod tests {
             create_test_audiobook(3, "Book Three", 100),
         ];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -223,8 +288,9 @@ mod tests {
             create_test_audiobook(2, "Book Two", 75),
         ];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, Some(2), &cover_thumbnails);
+        let element = view(&audiobooks, Some(2), &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -233,8 +299,9 @@ mod tests {
         let audiobooks = vec![create_test_audiobook(1, "Book One", 50)];
         let mut cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         cover_thumbnails.insert(1, PathBuf::from("/test/cover1.jpg"));
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -318,8 +385,9 @@ mod tests {
             .map(|i| create_test_audiobook(i, &format!("Book {i}"), (i % 101) as i32))
             .collect();
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 
@@ -365,13 +433,36 @@ mod tests {
             create_test_audiobook(3, "Book 3", 50),
         ];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
 
         // Test with no selection
-        let element = view(&audiobooks, None, &cover_thumbnails);
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
 
         // Test with book 2 selected
-        let element = view(&audiobooks, Some(2), &cover_thumbnails);
+        let element = view(&audiobooks, Some(2), &cover_thumbnails, &scan_state);
+        drop(element);
+    }
+
+    #[test]
+    fn test_skeleton_ui_renders_during_scan() {
+        let audiobooks: Vec<Audiobook> = vec![];
+        let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Scanning {
+            directory: Some("/test/path".to_string()),
+        };
+
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        drop(element);
+    }
+
+    #[test]
+    fn test_empty_state_renders_when_idle_and_no_audiobooks() {
+        let audiobooks: Vec<Audiobook> = vec![];
+        let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
+        let scan_state = ScanState::Idle;
+
+        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
         drop(element);
     }
 }

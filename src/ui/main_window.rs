@@ -143,6 +143,7 @@ fn library_panels(state: &State) -> Element<'_, Message> {
         &state.audiobooks,
         state.selected_audiobook,
         &state.cover_thumbnails,
+        &state.scan_state,
     );
     let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
     let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);

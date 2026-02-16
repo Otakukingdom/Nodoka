@@ -118,6 +118,31 @@ fn test_cursor_styles_available() {
 }
 
 #[test]
+fn test_cursor_affordances_on_interactive_elements() {
+    // Verify cursor module provides correct interaction types
+    use iced::mouse::Interaction;
+    use nodoka::ui::cursor;
+
+    assert_eq!(
+        cursor::clickable(),
+        Interaction::Pointer,
+        "Clickable elements should use pointer cursor"
+    );
+
+    assert_eq!(
+        cursor::disabled(),
+        Interaction::NotAllowed,
+        "Disabled elements should use not-allowed cursor"
+    );
+
+    assert_eq!(
+        cursor::text(),
+        Interaction::Text,
+        "Text input areas should use text cursor"
+    );
+}
+
+#[test]
 fn test_focus_management_navigation_elements() -> std::result::Result<(), Box<dyn std::error::Error>>
 {
     // Verify focus moves correctly through navigation elements (settings, lists)

@@ -190,14 +190,50 @@ fn create_bookmark_opens_editor_for_selected_file() -> Result<(), Box<dyn std::e
 fn test_empty_audiobook_list_shows_empty_state() {
     // Verify empty state is shown when no audiobooks exist
     use nodoka::ui::components::audiobook_list;
+    use nodoka::ui::ScanState;
     use std::collections::HashMap;
 
     let audiobooks: Vec<Audiobook> = vec![];
     let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+    let scan_state = ScanState::Idle;
 
     // View should render empty state without panic
-    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails);
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state);
     drop(element);
+}
+
+#[test]
+fn test_skeleton_ui_renders_during_scan_with_empty_library() {
+    // Verify skeleton UI renders during scanning state with empty library
+    use nodoka::ui::components::audiobook_list;
+    use nodoka::ui::ScanState;
+    use std::collections::HashMap;
+
+    let audiobooks: Vec<Audiobook> = vec![];
+    let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+    let scan_state = ScanState::Scanning {
+        directory: Some("/test/path".to_string()),
+    };
+
+    // Should render skeleton UI instead of empty state
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state);
+    drop(element); // Verify no panic during render
+}
+
+#[test]
+fn test_empty_state_renders_when_scan_idle_and_no_audiobooks() {
+    // Verify empty state renders when scan is idle and no audiobooks exist
+    use nodoka::ui::components::audiobook_list;
+    use nodoka::ui::ScanState;
+    use std::collections::HashMap;
+
+    let audiobooks: Vec<Audiobook> = vec![];
+    let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+    let scan_state = ScanState::Idle;
+
+    // Should render empty state with helpful message
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state);
+    drop(element); // Verify no panic during render
 }
 
 #[test]
