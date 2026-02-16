@@ -111,6 +111,93 @@ pub mod transitions {
     pub const SLOW: u64 = 300;
 }
 
+/// Cursor styles for interactive elements
+///
+/// Provides cursor type constants for different interaction states per ui-ux-pro-max guidelines.
+/// All clickable elements must use cursor-pointer for clear affordance.
+pub mod cursor {
+    use iced::mouse;
+
+    /// Returns cursor style for interactive elements
+    ///
+    /// Per ui-ux-pro-max: all clickable elements must have cursor-pointer
+    /// to provide clear visual feedback that the element is interactive.
+    #[must_use]
+    pub const fn clickable() -> mouse::Interaction {
+        mouse::Interaction::Pointer
+    }
+
+    /// Returns cursor for disabled elements
+    ///
+    /// Provides visual feedback that an element is not currently interactive.
+    #[must_use]
+    pub const fn disabled() -> mouse::Interaction {
+        mouse::Interaction::NotAllowed
+    }
+
+    /// Returns default cursor
+    #[must_use]
+    pub fn default() -> mouse::Interaction {
+        mouse::Interaction::default()
+    }
+
+    /// Returns text cursor for text input areas
+    #[must_use]
+    pub const fn text() -> mouse::Interaction {
+        mouse::Interaction::Text
+    }
+}
+
+/// Animation and transition utilities with reduced motion support
+///
+/// Provides utilities for applying animations with respect to user's
+/// reduced motion preferences per WCAG 2.1 2.3.3.
+///
+/// # Reduced Motion Support
+///
+/// When `prefers_reduced_motion` is enabled:
+/// - All transition durations become 0ms (instant)
+/// - Animations are disabled
+///
+/// This ensures compliance with accessibility guidelines for users with
+/// vestibular disorders or motion sensitivity.
+pub mod animations {
+    use super::transitions;
+
+    /// Returns appropriate transition duration based on reduced motion preference
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let duration = animations::transition_duration(state.prefers_reduced_motion);
+    /// // duration is 0 if reduced motion is preferred, otherwise 200ms
+    /// ```
+    #[must_use]
+    pub const fn transition_duration(reduced_motion: bool) -> u64 {
+        if reduced_motion {
+            0 // Instant transitions when reduced motion is preferred
+        } else {
+            transitions::NORMAL // 200ms for smooth interactions
+        }
+    }
+
+    /// Returns whether animations should be enabled
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// if animations::animations_enabled(state.prefers_reduced_motion) {
+    ///     // Apply animated transitions
+    /// } else {
+    ///     // Apply instant state changes
+    /// }
+    /// ```
+    #[must_use]
+    pub const fn animations_enabled(reduced_motion: bool) -> bool {
+        !reduced_motion
+    }
+}
+
 /// Shadow definitions for depth hierarchy (represented as border colors for iced compatibility)
 pub mod shadows {
     use iced::Color;

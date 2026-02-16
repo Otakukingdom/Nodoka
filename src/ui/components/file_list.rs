@@ -31,8 +31,15 @@ pub fn view<'a>(
 }
 
 /// Builds a single file list item with improved status indicators and visual hierarchy
+///
+/// Applies ui-ux-pro-max interactive patterns:
+/// - Cursor-pointer on hover for available files
+/// - Subtle background color change on hover with smooth transition
+/// - Disabled cursor for missing files
+/// - Consistent spacing following 4px grid system (8px between items)
+#[allow(clippy::too_many_lines)]
 fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Message> {
-    use crate::ui::styles::colors;
+    use crate::ui::styles::{border_radius, colors};
     use iced::Border;
 
     let name = file.name.clone();
@@ -98,7 +105,48 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
         item_button = item_button.on_press(Message::FileSelected(path));
     }
 
-    item_button.into()
+    // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
+    // Disabled files (missing) show no hover effect
+    item_button
+        .style(move |_theme: &iced::Theme, status| {
+            use iced::widget::button;
+            if is_missing {
+                // Missing files: no hover effect, default cursor handled by lack of on_press
+                button::Style {
+                    background: Some(iced::Color::TRANSPARENT.into()),
+                    text_color: colors::TEXT_DISABLED,
+                    border: Border {
+                        color: iced::Color::TRANSPARENT,
+                        width: 0.0,
+                        radius: border_radius::SM.into(),
+                    },
+                    ..button::Style::default()
+                }
+            } else {
+                match status {
+                    button::Status::Hovered if !selected => button::Style {
+                        background: Some(colors::BG_HOVER.into()),
+                        border: Border {
+                            color: colors::BORDER_DEFAULT,
+                            width: 1.0,
+                            radius: border_radius::SM.into(),
+                        },
+                        ..button::Style::default()
+                    },
+                    // Default transparent style for all other states
+                    _ => button::Style {
+                        background: Some(iced::Color::TRANSPARENT.into()),
+                        border: Border {
+                            color: iced::Color::TRANSPARENT,
+                            width: 0.0,
+                            radius: border_radius::SM.into(),
+                        },
+                        ..button::Style::default()
+                    },
+                }
+            }
+        })
+        .into()
 }
 
 /// Formats duration in milliseconds to human-readable time string

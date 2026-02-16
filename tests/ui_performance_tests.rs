@@ -394,3 +394,100 @@ fn test_memory_efficiency_large_dataset() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+#[ignore = "timing-based performance benchmark (ignored in CI)"]
+fn test_audiobook_list_rendering_with_hover_states() {
+    use nodoka::models::Audiobook;
+    use nodoka::ui::components::audiobook_list;
+    use std::collections::HashMap;
+
+    // Create 1000 audiobooks to test list rendering performance
+    let audiobooks: Vec<Audiobook> = (0..1000)
+        .map(|i| Audiobook {
+            id: Some(i),
+            directory: "/test".to_string(),
+            name: format!("Audiobook {i:04}"),
+            full_path: format!("/test/audiobook{i:04}"),
+            completeness: i32::try_from(i % 101).unwrap_or(0),
+            default_order: 0,
+            selected_file: None,
+            created_at: chrono::Utc::now(),
+        })
+        .collect();
+
+    let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+
+    // Render audiobook list
+    let start = Instant::now();
+    let element = audiobook_list::view(&audiobooks, Some(500), &cover_thumbnails);
+    drop(element);
+    let render_duration = start.elapsed();
+
+    // Rendering should complete quickly (< 100ms per UX guidelines)
+    assert!(
+        render_duration.as_millis() < 100,
+        "Rendering 1000 audiobooks took {render_duration:?}, should be < 100ms"
+    );
+}
+
+#[test]
+#[ignore = "timing-based performance benchmark (ignored in CI)"]
+fn test_file_list_rendering_with_progress_bars() {
+    use nodoka::models::AudiobookFile;
+    use nodoka::ui::components::file_list;
+
+    // Create 100 files with various progress states
+    let files: Vec<AudiobookFile> = (0..100)
+        .map(|i| AudiobookFile {
+            audiobook_id: 1,
+            name: format!("chapter{i:03}.mp3"),
+            full_path: format!("/test/chapter{i:03}.mp3"),
+            length_of_file: Some(3_600_000),
+            seek_position: if i % 2 == 0 { Some(1_800_000) } else { None },
+            checksum: None,
+            position: i,
+            completeness: i % 101,
+            file_exists: true,
+            created_at: chrono::Utc::now(),
+        })
+        .collect();
+
+    // Render file list
+    let start = Instant::now();
+    let element = file_list::view(&files, Some(&"/test/chapter050.mp3".to_string()));
+    drop(element);
+    let render_duration = start.elapsed();
+
+    // Rendering should complete quickly (< 50ms)
+    assert!(
+        render_duration.as_millis() < 50,
+        "Rendering 100 files took {render_duration:?}, should be < 50ms"
+    );
+}
+
+#[test]
+#[ignore = "timing-based performance benchmark (ignored in CI)"]
+fn test_modal_overlay_rendering_performance() {
+    use nodoka::ui::main_window;
+    use nodoka::ui::State;
+
+    // Test modal rendering doesn't cause performance degradation
+    let state = State {
+        settings_open: true,
+        ..Default::default()
+    };
+
+    let start = Instant::now();
+    for _ in 0..100 {
+        let element = main_window::view(&state);
+        drop(element);
+    }
+    let render_duration = start.elapsed();
+
+    // 100 renders should complete quickly (< 200ms)
+    assert!(
+        render_duration.as_millis() < 200,
+        "Rendering modal 100 times took {render_duration:?}, should be < 200ms"
+    );
+}

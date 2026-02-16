@@ -16,13 +16,16 @@ use iced::{Border, Color, Element, Length};
 /// - Consistent spacing and design system colors throughout
 #[must_use]
 pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
-    let main_content = container(column![
-        error_banner(state),
-        scan_status_banner(state),
-        top_bar(state),
-        library_panels(state),
-        container(player_controls::view(state)).padding(spacing::SM),
-    ])
+    let main_content = container(
+        column![
+            error_banner(state),
+            scan_status_banner(state),
+            top_bar(state),
+            library_panels(state),
+            container(player_controls::view(state)).padding(spacing::SM),
+        ]
+        .spacing(spacing::MD), // MD spacing (16px) between major sections for visual hierarchy
+    )
     .padding(spacing::SM);
 
     let mut content: Element<'a, Message> = main_content.into();
@@ -130,7 +133,7 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                     button_styles::secondary
                 }),
         ]
-        .padding(spacing::MD),
+        .padding(spacing::LG), // LG padding (24px) for prominent top bar
     )
     .into()
 }
@@ -190,6 +193,13 @@ fn modal_backdrop_without_click() -> Element<'static, Message> {
         .into()
 }
 
+/// Modal card wrapper with elevated styling
+///
+/// Applies design system styling for modal overlays:
+/// - White background (`BG_SECONDARY`) for contrast against backdrop
+/// - LG border radius (12px) for modern appearance per ui-ux-pro-max
+/// - MD padding (16px) for content spacing
+/// - Centered both horizontally and vertically
 fn modal_card<'a, E>(content: E) -> Element<'a, Message>
 where
     E: Into<Element<'a, Message>>,
@@ -200,7 +210,7 @@ where
             border: Border {
                 color: shadows::MD_BORDER,
                 width: 1.0,
-                radius: border_radius::LG.into(),
+                radius: border_radius::LG.into(), // LG radius (12px) for modern modal appearance
             },
             ..Default::default()
         })

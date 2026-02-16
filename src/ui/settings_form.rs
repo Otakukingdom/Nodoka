@@ -50,12 +50,18 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
         column![
             // Modal header
             text("Settings").size(typography::SIZE_XXL),
-            // Section header
-            container(text("Audiobook Directories").size(typography::SIZE_LG))
-                .padding(iced::Padding::from([0.0, spacing::MD])),
+            // Section header with LG spacing for clear visual hierarchy
+            container(text("Audiobook Directories").size(typography::SIZE_LG)).padding(
+                iced::Padding {
+                    top: spacing::LG,
+                    right: 0.0,
+                    bottom: spacing::MD,
+                    left: 0.0,
+                }
+            ),
             // Directory list with scrolling
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
-            // Action buttons with proper grouping
+            // Action buttons with proper grouping and LG spacing above for separation
             container(
                 row![
                     button(text("Add Directory").size(typography::SIZE_SM))
@@ -70,7 +76,12 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
                 ]
                 .spacing(spacing::MD)
             )
-            .padding(iced::Padding::from([0.0, spacing::MD])),
+            .padding(iced::Padding {
+                top: spacing::LG,
+                right: 0.0,
+                bottom: 0.0,
+                left: 0.0,
+            }),
         ]
         .padding(spacing::XL)
         .spacing(spacing::MD),

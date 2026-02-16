@@ -55,23 +55,24 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ]
         .padding(spacing::XS),
         // Control buttons and volume with improved visual grouping
+        // Use LG spacing (24px) between major control sections for clear visual hierarchy
         row![
             playback_controls(
                 play_pause_label,
                 state.focused_element == FocusedElement::PlayPauseButton,
                 state.focused_element == FocusedElement::StopButton,
             ),
-            Space::new().width(Length::Fill),
+            Space::new().width(Length::Fixed(spacing::LG)),
             speed_controls(
                 state,
                 speed_step,
                 state.focused_element == FocusedElement::SpeedSlider,
             ),
-            Space::new().width(Length::Fill),
+            Space::new().width(Length::Fixed(spacing::LG)),
             volume_controls(state, state.focused_element == FocusedElement::VolumeSlider),
         ]
         .padding(spacing::MD)
-        .spacing(spacing::MD),
+        .spacing(spacing::LG),
         // Sleep timer controls with consistent spacing
         container(sleep_timer_controls).padding(spacing::MD)
     ]

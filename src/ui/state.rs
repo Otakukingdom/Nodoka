@@ -98,6 +98,9 @@ pub struct State {
 
     // Operation in progress flag to prevent duplicate operations from rapid input
     pub operation_in_progress: bool,
+
+    // Reduced motion preference for accessibility (WCAG 2.1 2.3.3)
+    pub prefers_reduced_motion: bool,
 }
 
 impl Default for State {
@@ -127,6 +130,7 @@ impl Default for State {
             scan_state: ScanState::Idle,
             focused_element: FocusedElement::None,
             operation_in_progress: false,
+            prefers_reduced_motion: false,
         }
     }
 }
@@ -162,6 +166,7 @@ mod tests {
         assert_eq!(state.scan_state, ScanState::Idle);
         assert_eq!(state.focused_element, FocusedElement::None);
         assert!(!state.operation_in_progress);
+        assert!(!state.prefers_reduced_motion);
     }
 
     #[test]

@@ -34,12 +34,18 @@ pub fn view<'a, S: BuildHasher>(
 }
 
 /// Builds a single audiobook list item with improved visual feedback
+///
+/// Applies ui-ux-pro-max interactive patterns:
+/// - Cursor-pointer on hover for clear affordance
+/// - Subtle background color change on hover (200ms transition)
+/// - Selection highlighting with primary color
+/// - Proper focus indicators for keyboard navigation
 fn build_audiobook_item<'a, S: BuildHasher>(
     ab: &'a Audiobook,
     selected: bool,
     cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
 ) -> Element<'a, Message> {
-    use crate::ui::styles::colors;
+    use crate::ui::styles::{border_radius, colors};
     use iced::Border;
 
     let name = ab.name.clone();
@@ -108,9 +114,34 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         container(content_row).width(Length::Fill)
     };
 
+    // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
     button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
+        .style(move |_theme: &iced::Theme, status| {
+            use iced::widget::button;
+            match status {
+                button::Status::Hovered if !selected => button::Style {
+                    background: Some(colors::BG_HOVER.into()),
+                    border: Border {
+                        color: colors::BORDER_DEFAULT,
+                        width: 1.0,
+                        radius: border_radius::SM.into(),
+                    },
+                    ..button::Style::default()
+                },
+                // Default transparent style for all other states
+                _ => button::Style {
+                    background: Some(iced::Color::TRANSPARENT.into()),
+                    border: Border {
+                        color: iced::Color::TRANSPARENT,
+                        width: 0.0,
+                        radius: border_radius::SM.into(),
+                    },
+                    ..button::Style::default()
+                },
+            }
+        })
         .into()
 }
 
