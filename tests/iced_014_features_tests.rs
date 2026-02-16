@@ -143,23 +143,23 @@ fn test_modal_state_changes_trigger_view_updates() {
     let mut state = State::default();
 
     // Initially no modal open
-    assert!(!state.settings_open);
+    assert_eq!(state.active_modal, nodoka::ui::ActiveModal::None);
     assert!(state.bookmark_editor.is_none());
 
     // Open settings modal
-    state.settings_open = true;
-    assert!(state.settings_open);
+    state.active_modal = nodoka::ui::ActiveModal::Settings;
+    assert_eq!(state.active_modal, nodoka::ui::ActiveModal::Settings);
 
     // Close settings modal
-    state.settings_open = false;
-    assert!(!state.settings_open);
+    state.active_modal = nodoka::ui::ActiveModal::None;
+    assert_eq!(state.active_modal, nodoka::ui::ActiveModal::None);
 }
 
 #[test]
 fn test_all_modals_have_backdrop_support() {
     // Verify that all modal states can be represented
     let state_with_settings = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         ..Default::default()
     };
 
@@ -181,7 +181,10 @@ fn test_all_modals_have_backdrop_support() {
     };
 
     // All modal states should be representable
-    assert!(state_with_settings.settings_open);
+    assert_eq!(
+        state_with_settings.active_modal,
+        nodoka::ui::ActiveModal::Settings
+    );
     assert!(state_with_bookmark_editor.bookmark_editor.is_some());
     assert_eq!(state_with_loading.load_state, LoadState::Loading);
 
@@ -189,7 +192,7 @@ fn test_all_modals_have_backdrop_support() {
     // (though technically multiple can be open)
     // Note: Default state starts in LoadState::Loading for initial app load
     let state_default = State::default();
-    assert!(!state_default.settings_open);
+    assert_eq!(state_default.active_modal, nodoka::ui::ActiveModal::None);
     assert!(state_default.bookmark_editor.is_none());
     assert_eq!(state_default.load_state, LoadState::Loading);
 }

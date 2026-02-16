@@ -43,7 +43,7 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
     }
 
     // Close any other open modals to maintain single modal invariant
-    state.settings_open = false;
+    state.active_modal = crate::ui::ActiveModal::None;
 
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
         id: Some(created_id),
@@ -152,7 +152,7 @@ pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> 
     };
 
     // Close any other open modals to maintain single modal invariant
-    state.settings_open = false;
+    state.active_modal = crate::ui::ActiveModal::None;
 
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
         id: Some(id),

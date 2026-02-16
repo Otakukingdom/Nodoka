@@ -47,7 +47,8 @@
 //! | <kbd>↑</kbd> | Previous File | Jump to previous chapter/file in audiobook |
 //! | <kbd>↓</kbd> | Next File | Jump to next chapter/file in audiobook |
 //! | <kbd>Ctrl</kbd>+<kbd>B</kbd> | Create Bookmark | Create bookmark at current position |
-//! | <kbd>Escape</kbd> | Close Modal | Close open modal dialog (settings, bookmark editor) |
+//! | <kbd>Escape</kbd> | Close Modal | Close open modal dialog (settings, bookmark editor, help) |
+//! | <kbd>F1</kbd> | Keyboard Help | Show keyboard shortcuts help overlay |
 //!
 //! On macOS, <kbd>Ctrl</kbd> is replaced with <kbd>Cmd</kbd> for bookmark creation.
 //!
@@ -199,5 +200,7 @@ mod styles;
 pub mod update;
 
 pub use message::Message;
-pub use state::{BookmarkEditor, FocusedElement, LoadState, PlaybackStatus, ScanState, State};
+pub use state::{
+    ActiveModal, BookmarkEditor, FocusedElement, LoadState, PlaybackStatus, ScanState, State,
+};
 pub use styles::*;

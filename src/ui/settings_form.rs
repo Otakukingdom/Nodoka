@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_renders_empty_list() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![],
             ..Default::default()
         };
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_renders_with_single_directory() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![Directory::new("/path/to/audiobooks".to_string())],
             ..Default::default()
         };
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_renders_with_multiple_directories() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![
                 Directory::new("/path/to/audiobooks1".to_string()),
                 Directory::new("/path/to/audiobooks2".to_string()),
@@ -143,7 +143,7 @@ mod tests {
         let long_path =
             "/very/long/path/to/audiobooks/".to_string() + &"nested/".repeat(20) + "final";
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![Directory::new(long_path)],
             ..Default::default()
         };
@@ -155,7 +155,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_handles_special_characters_in_paths() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![
                 Directory::new("/path/with spaces/and-dashes".to_string()),
                 Directory::new("/path/with (parentheses) [brackets]".to_string()),
@@ -171,7 +171,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_handles_unusual_paths() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![
                 Directory::new("/path/with/percent-encoding/%E2%9C%93".to_string()),
                 Directory::new("/path/with/symbols/@#$%^&*()".to_string()),
@@ -190,7 +190,7 @@ mod tests {
             .collect();
 
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories,
             ..Default::default()
         };
@@ -202,7 +202,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_closed_state() {
         let state = State {
-            settings_open: false,
+            active_modal: crate::ui::ActiveModal::None,
             directories: vec![Directory::new("/path/to/audiobooks".to_string())],
             ..Default::default()
         };
@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_with_root_path() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![Directory::new("/".to_string())],
             ..Default::default()
         };
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn test_settings_dialog_with_windows_style_paths() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             directories: vec![
                 Directory::new("C:\\Users\\Test\\Audiobooks".to_string()),
                 Directory::new("D:\\Media\\Books".to_string()),

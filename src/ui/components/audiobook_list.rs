@@ -57,6 +57,7 @@ pub fn view<'a, S: BuildHasher>(
 /// - Subtle background color change on hover (200ms transition)
 /// - Selection highlighting with primary color
 /// - Proper focus indicators for keyboard navigation
+#[allow(clippy::too_many_lines)]
 fn build_audiobook_item<'a, S: BuildHasher>(
     ab: &'a Audiobook,
     selected: bool,
@@ -87,24 +88,50 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     );
 
     // Progress bar for visual representation of completeness
+    // Per ui-ux-pro-max: progress bars should be at least 6px height for visibility
     let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
     let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
+
+    // Completion badge with semantic color (SUCCESS green) and improved styling
+    let completion_badge = if is_complete {
+        container(
+            text("COMPLETE")
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                }),
+        )
+        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::SUCCESS.into()),
+            text_color: Some(colors::TEXT_ON_PRIMARY),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+    } else {
+        container(text("").size(typography::SIZE_SM))
+    };
 
     // Main content with improved typography and spacing
     let content_row = row![
         cover,
         column![
             text(name).size(typography::SIZE_BASE),
-            // Progress bar visualization
-            container(progress).width(Length::Fill),
+            // Progress bar visualization with minimum 6px height
+            container(progress)
+                .width(Length::Fill)
+                .height(Length::Fixed(6.0)), // Reserve 6px height for consistency
             row![
-                text(format!("{completeness}%")).size(typography::SIZE_SM),
+                text(format!("{completeness}%"))
+                    .size(typography::SIZE_SM)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_SECONDARY),
+                    }),
                 Space::new().width(Length::Fill),
-                if is_complete {
-                    text("[COMPLETE]").size(typography::SIZE_SM)
-                } else {
-                    text("").size(typography::SIZE_SM)
-                }
+                completion_badge
             ]
         ]
         .spacing(spacing::XS)
@@ -175,10 +202,16 @@ fn build_audiobook_item<'a, S: BuildHasher>(
 
 /// Skeleton UI for audiobook list during scanning
 ///
-/// Shows 3 placeholder items to indicate loading activity per ui-ux-pro-max guidelines.
+/// Shows 5 placeholder items to indicate loading activity per ui-ux-pro-max guidelines.
 /// Skeleton UI provides better feedback than spinners for list-based content.
+///
+/// Per ui-ux-pro-max loading state patterns:
+/// - Show skeleton UI for operations taking longer than 200ms
+/// - Use grayscale colors (`SKELETON_BG`, `SKELETON_SHIMMER`) from loading module
+/// - Match skeleton structure to real content layout (cover + text + progress)
+/// - Respect prefers-reduced-motion (no pulsing animation)
 fn skeleton_audiobook_list() -> Element<'static, Message> {
-    let items: Element<_> = (0..3)
+    let items: Element<_> = (0..5)
         .fold(column![].spacing(spacing::XS), |col, _| {
             col.push(skeleton_audiobook_item())
         })
@@ -189,12 +222,16 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 
 /// Single skeleton audiobook item
 ///
-/// Creates a placeholder with:
+/// Creates a placeholder with complete structure matching real audiobook items:
 /// - 60x60px skeleton cover (matches real cover size)
-/// - 150x20px skeleton text (title placeholder)
+/// - Title placeholder (200x16px for better visual match)
+/// - Progress bar placeholder (full width, 6px height)
+/// - Status text placeholder (50x12px for percentage display)
 /// - Consistent spacing following 4px grid system
+///
+/// Uses `SKELETON_BG` color (#E5E5E5) from loading module per design system.
 fn skeleton_audiobook_item() -> Element<'static, Message> {
-    // Skeleton cover placeholder
+    // Skeleton cover placeholder (60x60px)
     let skeleton_cover = container(Space::new())
         .width(Length::Fixed(60.0))
         .height(Length::Fixed(60.0))
@@ -207,10 +244,10 @@ fn skeleton_audiobook_item() -> Element<'static, Message> {
             ..Default::default()
         });
 
-    // Skeleton text placeholder
-    let skeleton_text = container(Space::new())
-        .width(Length::Fixed(150.0))
-        .height(Length::Fixed(20.0))
+    // Skeleton title placeholder (larger for better visual match)
+    let skeleton_title = container(Space::new())
+        .width(Length::Fixed(200.0))
+        .height(Length::Fixed(16.0))
         .style(|_: &iced::Theme| container::Style {
             background: Some(loading::SKELETON_BG.into()),
             border: Border {
@@ -220,13 +257,47 @@ fn skeleton_audiobook_item() -> Element<'static, Message> {
             ..Default::default()
         });
 
-    container(
-        row![skeleton_cover, skeleton_text]
-            .spacing(spacing::SM)
-            .padding(spacing::MD),
-    )
-    .width(Length::Fill)
-    .into()
+    // Skeleton progress bar placeholder (6px height to match real progress bars)
+    let skeleton_progress = container(Space::new())
+        .width(Length::Fill)
+        .height(Length::Fixed(6.0))
+        .style(|_: &iced::Theme| container::Style {
+            background: Some(loading::SKELETON_BG.into()),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    // Skeleton status text placeholder (percentage display area)
+    let skeleton_status = container(Space::new())
+        .width(Length::Fixed(50.0))
+        .height(Length::Fixed(12.0))
+        .style(|_: &iced::Theme| container::Style {
+            background: Some(loading::SKELETON_BG.into()),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    // Match the structure of real audiobook items
+    let content = row![
+        skeleton_cover,
+        column![
+            skeleton_title,
+            container(skeleton_progress).width(Length::Fill),
+            row![skeleton_status, Space::new().width(Length::Fill),]
+        ]
+        .spacing(spacing::XS)
+        .width(Length::Fill)
+    ]
+    .spacing(spacing::MD)
+    .padding(spacing::MD);
+
+    container(content).width(Length::Fill).into()
 }
 
 #[cfg(test)]

@@ -475,7 +475,7 @@ fn test_modal_overlay_rendering_performance() {
 
     // Test modal rendering doesn't cause performance degradation
     let state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         ..Default::default()
     };
 

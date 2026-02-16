@@ -26,6 +26,19 @@ pub enum FocusedElement {
     AddBookmarkButton,
 }
 
+/// Active modal overlay state
+///
+/// Tracks which modal (if any) is currently displayed. Only one modal
+/// can be active at a time to maintain UI clarity and focus management.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum ActiveModal {
+    #[default]
+    None,
+    Settings,
+    BookmarkEditor,
+    KeyboardHelp,
+}
+
 #[derive(Debug, Clone)]
 pub struct BookmarkEditor {
     pub id: Option<i64>,
@@ -83,7 +96,7 @@ pub struct State {
     pub sleep_timer_custom_minutes: String,
     pub sleep_timer_custom_error: Option<String>,
 
-    pub settings_open: bool,
+    pub active_modal: ActiveModal,
     pub load_state: LoadState,
 
     // Error handling state
@@ -123,7 +136,7 @@ impl Default for State {
             sleep_timer_base_volume: None,
             sleep_timer_custom_minutes: String::new(),
             sleep_timer_custom_error: None,
-            settings_open: false,
+            active_modal: ActiveModal::None,
             load_state: LoadState::Loading,
             error_message: None,
             error_timestamp: None,
@@ -159,7 +172,7 @@ mod tests {
         assert!(state.sleep_timer_base_volume.is_none());
         assert!(state.sleep_timer_custom_minutes.is_empty());
         assert!(state.sleep_timer_custom_error.is_none());
-        assert!(!state.settings_open);
+        assert_eq!(state.active_modal, ActiveModal::None);
         assert_eq!(state.load_state, LoadState::Loading);
         assert!(state.error_message.is_none());
         assert!(state.error_timestamp.is_none());
@@ -197,15 +210,21 @@ mod tests {
     }
 
     #[test]
-    fn test_state_settings_modal() {
+    fn test_state_active_modal() {
         let mut state = State::default();
-        assert!(!state.settings_open);
+        assert_eq!(state.active_modal, ActiveModal::None);
 
-        state.settings_open = true;
-        assert!(state.settings_open);
+        state.active_modal = ActiveModal::Settings;
+        assert_eq!(state.active_modal, ActiveModal::Settings);
 
-        state.settings_open = false;
-        assert!(!state.settings_open);
+        state.active_modal = ActiveModal::BookmarkEditor;
+        assert_eq!(state.active_modal, ActiveModal::BookmarkEditor);
+
+        state.active_modal = ActiveModal::KeyboardHelp;
+        assert_eq!(state.active_modal, ActiveModal::KeyboardHelp);
+
+        state.active_modal = ActiveModal::None;
+        assert_eq!(state.active_modal, ActiveModal::None);
     }
 
     #[test]

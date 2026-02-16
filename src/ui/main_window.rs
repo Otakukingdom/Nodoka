@@ -35,7 +35,7 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     // Uses the stack widget to layer the main content, a semi-transparent backdrop,
     // and the settings dialog. The backdrop provides visual indication that a modal
     // is active and can be clicked to dismiss the modal (click-outside-to-dismiss pattern).
-    if state.settings_open {
+    if state.active_modal == crate::ui::ActiveModal::Settings {
         let settings_dialog = modal_card(settings_form::build_settings_dialog(state));
         content = stack![
             content,
@@ -52,6 +52,17 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
             content,
             modal_backdrop(Message::BookmarkEditorCancel),
             editor_dialog
+        ]
+        .into();
+    }
+
+    // Keyboard help overlay with backdrop (iced 0.14)
+    if state.active_modal == crate::ui::ActiveModal::KeyboardHelp {
+        let help_dialog = modal_card(keyboard_help_view());
+        content = stack![
+            content,
+            modal_backdrop(Message::HideKeyboardHelp),
+            help_dialog
         ]
         .into();
     }
@@ -196,6 +207,85 @@ fn modal_backdrop_without_click() -> Element<'static, Message> {
 
 /// Modal card wrapper with elevated styling
 ///
+/// Renders the keyboard shortcuts help overlay
+///
+/// Displays all available keyboard shortcuts in a modal dialog.
+/// Activated by pressing F1 key. Can be dismissed by pressing Escape
+/// or clicking outside the dialog.
+fn keyboard_help_view() -> Element<'static, Message> {
+    let shortcuts = column![
+        text("Keyboard Shortcuts").size(typography::SIZE_XL),
+        container(text("")).height(Length::Fixed(spacing::MD)), // Spacer
+        row![
+            text("Space").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Play / Pause").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("←").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Seek Backward 5s").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("→").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Seek Forward 5s").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("↑").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Previous File").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("↓").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Next File").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            {
+                #[cfg(target_os = "macos")]
+                {
+                    text("Cmd+B").size(typography::SIZE_SM)
+                }
+                #[cfg(not(target_os = "macos"))]
+                {
+                    text("Ctrl+B").size(typography::SIZE_SM)
+                }
+            },
+            Space::new().width(Length::Fill),
+            text("Create Bookmark").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("Escape").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Close Modal").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        row![
+            text("F1").size(typography::SIZE_SM),
+            Space::new().width(Length::Fill),
+            text("Show This Help").size(typography::SIZE_SM)
+        ]
+        .spacing(spacing::MD),
+        container(text("")).height(Length::Fixed(spacing::MD)), // Spacer
+        button(text("Close").size(typography::SIZE_SM))
+            .on_press(Message::HideKeyboardHelp)
+            .padding(spacing::SM)
+            .style(button_styles::secondary)
+            .width(Length::Fill)
+    ]
+    .spacing(spacing::SM)
+    .width(Length::Fixed(400.0));
+
+    container(shortcuts).padding(spacing::MD).into()
+}
+
 /// Applies design system styling for modal overlays per ui-ux-pro-max:
 /// - White background (`BG_SECONDARY`) for contrast against backdrop
 /// - LG border radius (12px) for modern appearance
@@ -287,7 +377,7 @@ mod tests {
     #[test]
     fn test_view_renders_with_settings_open() {
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             ..Default::default()
         };
         let element = view(&state);
@@ -405,7 +495,7 @@ mod tests {
         use crate::ui::state::BookmarkEditor;
 
         let state = State {
-            settings_open: true,
+            active_modal: crate::ui::ActiveModal::Settings,
             bookmark_editor: Some(BookmarkEditor {
                 id: None,
                 audiobook_id: 1,

@@ -118,6 +118,9 @@ fn playback_controls(
 }
 
 fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'_, Message> {
+    // Micro-interaction: highlight current speed preset button with primary style
+    // Per ui-ux-pro-max: provide immediate visual feedback for current state
+
     container(
         column![
             row![
@@ -134,27 +137,51 @@ fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'
                 button(text("0.5x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(0.5))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 0.5).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
                 button(text("0.75x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(0.75))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 0.75).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
                 button(text("1.0x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(1.0))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 1.0).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
                 button(text("1.25x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(1.25))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 1.25).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
                 button(text("1.5x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(1.5))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 1.5).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
                 button(text("2.0x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(2.0))
                     .padding(iced::Padding::from([spacing::SM, spacing::XS]))
-                    .style(button_styles::secondary),
+                    .style(if (state.speed - 2.0).abs() < 0.01 {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
             ]
             .spacing(spacing::XS)
         ]

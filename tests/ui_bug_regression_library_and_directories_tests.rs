@@ -112,7 +112,7 @@ fn test_bug_0015_settings_modal_scrollable_directory_list() {
         .collect();
 
     let state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         directories,
         ..Default::default()
     };

@@ -467,6 +467,9 @@ fn map_key_press(
         iced::keyboard::Key::Named(iced::keyboard::key::Named::Escape) => {
             crate::ui::shortcuts::ShortcutKey::Escape
         }
+        iced::keyboard::Key::Named(iced::keyboard::key::Named::F1) => {
+            crate::ui::shortcuts::ShortcutKey::F1
+        }
         _ => return None,
     };
 

@@ -15,7 +15,7 @@ fn test_focus_updates_on_play_pause_and_open_settings(
     assert_eq!(state.focused_element, FocusedElement::PlayPauseButton);
 
     let _ = super::super::update(&mut state, Message::OpenSettings, &mut player, &db);
-    assert!(state.settings_open);
+    assert_eq!(state.active_modal, crate::ui::ActiveModal::Settings);
     assert_eq!(state.focused_element, FocusedElement::SettingsButton);
 
     Ok(())

@@ -1,9 +1,83 @@
+//! UI Styles Module - Nodoka Design System
+//!
+//! This module provides a comprehensive design system for the Nodoka audiobook player
+//! following ui-ux-pro-max guidelines and best practices. It implements a vibrant rose
+//! palette optimized for audiobook player applications with WCAG AA accessibility compliance.
+//!
+//! # Design System Overview
+//!
+//! The design system is organized into several modules:
+//!
+//! - **Colors**: Brand colors, semantic colors, text colors with WCAG AA contrast ratios
+//! - **Spacing**: 4px base grid system for consistent layouts
+//! - **Typography**: Size scale for text hierarchy
+//! - **Border Radius**: Corner rounding constants for visual consistency
+//! - **Transitions**: Animation durations with reduced motion support
+//! - **Cursor**: Interaction affordances for different UI states
+//! - **Interactive**: Hover and active state overlays
+//! - **Loading**: Skeleton UI patterns for async operations
+//! - **Button Styles**: Pre-configured button variants with focus states
+//!
+//! # UX Patterns
+//!
+//! ## Interactive Feedback Patterns
+//!
+//! All clickable elements must provide clear visual feedback:
+//!
+//! - **Cursor**: Use `cursor::clickable()` for pointer cursor on interactive elements
+//! - **Hover**: Apply `BG_HOVER` background color with 200ms transition
+//! - **Pressed**: Apply `interactive::apply_active_overlay()` for darker feedback
+//! - **Focus**: Use 3px `FOCUS_RING` border for keyboard navigation visibility
+//!
+//! ## Empty State Pattern
+//!
+//! Use `empty_state()` component when lists are empty to guide users:
+//!
+//! ```ignore
+//! if items.is_empty() {
+//!     return empty_state(
+//!         "No Items Found",
+//!         "Helpful description explaining why empty and what to do next.",
+//!         Some("Primary Action"),
+//!         Some(Message::OpenSettings),
+//!     );
+//! }
+//! ```
+//!
+//! ## Loading State Pattern
+//!
+//! Show skeleton UI for operations taking longer than 200ms per ui-ux-pro-max:
+//!
+//! ```ignore
+//! match scan_state {
+//!     ScanState::Scanning { .. } => skeleton_list(),
+//!     ScanState::Idle => actual_content(),
+//! }
+//! ```
+//!
+//! ## Accessibility Requirements
+//!
+//! - All components support keyboard navigation (Tab/Shift+Tab)
+//! - Focus indicators meet WCAG 2.1 2.4.7 (3px minimum, high contrast)
+//! - Text contrast ratios meet WCAG AA 4.5:1 minimum
+//! - Reduced motion preferences respected for animations
+//! - All interactive elements have accessible labels
+//!
+//! # References
+//!
+//! - Design System: `.opencode/skills/ui-ux-pro-max/design-system/nodoka-audiobook-player/MASTER.md`
+//! - UX Guidelines: `.opencode/skills/ui-ux-pro-max/data/ux-guidelines.csv`
+//! - WCAG 2.1: <https://www.w3.org/WAI/WCAG21/quickref/>
+
 use iced::theme::Palette;
 use iced::widget::container;
 use iced::{Border, Color, Theme};
 
 /// Design system color tokens based on ui-ux-pro-max recommendations
-/// for audiobook player applications with vibrant rose palette
+/// for audiobook player applications with vibrant rose palette.
+///
+/// All colors in this module have been tested for WCAG AA compliance.
+/// See `tests/ux_compliance_tests.rs` for contrast ratio verification.
 pub mod colors {
     use iced::Color;
 

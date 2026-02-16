@@ -53,6 +53,10 @@ pub enum Message {
     OpenSettings,
     CloseSettings,
 
+    // Help overlay
+    ShowKeyboardHelp,
+    HideKeyboardHelp,
+
     // Error handling
     DismissError,
 

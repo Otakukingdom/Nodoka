@@ -359,18 +359,18 @@ fn test_modal_workflow_via_update() -> Result<(), Box<dyn Error>> {
     let mut player = None;
 
     let _task = nodoka::ui::update::update(&mut state, Message::OpenSettings, &mut player, &db);
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_none());
 
     // Creating a bookmark closes settings and opens the editor (single-modal invariant).
     let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_some());
 
     // CloseModal closes the topmost modal.
     let _task = nodoka::ui::update::update(&mut state, Message::CloseModal, &mut player, &db);
     assert!(state.bookmark_editor.is_none());
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
 
     Ok(())
 }

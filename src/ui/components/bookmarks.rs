@@ -118,11 +118,11 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
             .padding(spacing::SM),
         Space::new().width(Length::Fill),
         text(pos).size(typography::SIZE_XS),
-        button(text("Edit").size(typography::SIZE_XS))
+        button(text("Edit Bookmark").size(typography::SIZE_XS))
             .on_press_maybe(id.map(Message::BookmarkEdit))
             .padding(spacing::XS)
             .style(button_styles::secondary),
-        button(text("Delete").size(typography::SIZE_XS))
+        button(text("Delete Bookmark").size(typography::SIZE_XS))
             .on_press_maybe(id.map(Message::BookmarkDelete))
             .padding(spacing::XS)
             .style(button_styles::danger),

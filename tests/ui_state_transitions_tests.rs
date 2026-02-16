@@ -25,7 +25,7 @@ fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn 
             label: String::new(),
             note: String::new(),
         }),
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         ..State::default()
     };
 
@@ -43,7 +43,7 @@ fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn 
         "Bookmark editor should close first"
     );
     assert!(
-        state.settings_open,
+        state.active_modal == nodoka::ui::ActiveModal::Settings,
         "Settings should remain open after closing bookmark editor"
     );
 
@@ -55,7 +55,7 @@ fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn 
     );
 
     assert!(
-        !state.settings_open,
+        state.active_modal != nodoka::ui::ActiveModal::Settings,
         "Settings should close after bookmark editor is closed"
     );
 
@@ -326,7 +326,7 @@ fn test_create_bookmark_message_persists_and_opens_editor() -> Result<(), Box<dy
 
     let mut player = None;
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_audiobook: Some(audiobook_id),
         selected_file: Some(file_path.to_string()),
         current_time: 12.0,
@@ -335,7 +335,7 @@ fn test_create_bookmark_message_persists_and_opens_editor() -> Result<(), Box<dy
 
     let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
 
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_some());
 
     let bookmarks =

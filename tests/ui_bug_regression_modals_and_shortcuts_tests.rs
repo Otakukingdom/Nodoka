@@ -22,7 +22,7 @@ fn test_bug_0005_single_modal_invariant() -> Result<(), Box<dyn Error>> {
     insert_test_file(&db, audiobook_id, file_path)?;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_audiobook: Some(audiobook_id),
         selected_file: Some(file_path.to_string()),
         current_time: 1.0,
@@ -38,7 +38,7 @@ fn test_bug_0005_single_modal_invariant() -> Result<(), Box<dyn Error>> {
     );
 
     assert!(
-        !state.settings_open,
+        state.active_modal != nodoka::ui::ActiveModal::Settings,
         "CreateBookmark should close settings to keep a single modal"
     );
     assert!(
@@ -54,7 +54,7 @@ fn test_bug_0005_single_modal_invariant() -> Result<(), Box<dyn Error>> {
 fn test_bug_0016_escape_closes_topmost_modal() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let mut state = State {
-        settings_open: false,
+        active_modal: nodoka::ui::ActiveModal::None,
         bookmark_editor: Some(BookmarkEditor {
             id: None,
             audiobook_id: 1,
@@ -87,7 +87,7 @@ fn test_bug_0016_escape_closes_topmost_modal() -> Result<(), Box<dyn Error>> {
 fn test_bug_0020_keyboard_shortcuts_respect_modal_state() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         playback: PlaybackStatus::Playing,
         current_time: 123.0,
         ..Default::default()
@@ -119,7 +119,7 @@ fn test_bug_0021_single_modal_invariant() -> Result<(), Box<dyn Error>> {
     insert_test_file(&db, audiobook_id, file_path)?;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_audiobook: Some(audiobook_id),
         selected_file: Some(file_path.to_string()),
         current_time: 1.0,
@@ -134,7 +134,7 @@ fn test_bug_0021_single_modal_invariant() -> Result<(), Box<dyn Error>> {
         &db,
     );
 
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_some());
 
     let _ = nodoka::ui::update::update(
@@ -144,7 +144,7 @@ fn test_bug_0021_single_modal_invariant() -> Result<(), Box<dyn Error>> {
         &db,
     );
 
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_none());
 
     Ok(())
@@ -157,7 +157,7 @@ fn test_bug_0028_play_pause_blocked_when_modal_open() -> Result<(), Box<dyn Erro
     let mut player = None;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         playback: PlaybackStatus::Playing,
         ..Default::default()
     };
@@ -203,7 +203,7 @@ fn test_bug_0029_seek_blocked_when_modal_open() -> Result<(), Box<dyn Error>> {
     let mut player = None;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         current_time: 100.0,
         total_duration: 3600.0,
         ..Default::default()
@@ -274,7 +274,7 @@ fn test_bug_0030_file_navigation_blocked_when_modal_open() -> Result<(), Box<dyn
     let mut player = None;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_file: Some("/test/file1.mp3".to_string()),
         current_files: files.clone(),
         ..Default::default()
@@ -321,7 +321,7 @@ fn test_bug_0038_rapid_modal_toggle() -> Result<(), Box<dyn Error>> {
             &mut player,
             &db,
         );
-        assert!(state.settings_open);
+        assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
 
         let _ = nodoka::ui::update::update(
             &mut state,
@@ -329,7 +329,7 @@ fn test_bug_0038_rapid_modal_toggle() -> Result<(), Box<dyn Error>> {
             &mut player,
             &db,
         );
-        assert!(!state.settings_open);
+        assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     }
 
     Ok(())
@@ -344,7 +344,7 @@ fn test_bug_0051_modal_during_scanning() -> Result<(), Box<dyn Error>> {
         scan_state: ScanState::Scanning {
             directory: Some("/path/to/audiobooks".to_string()),
         },
-        settings_open: false,
+        active_modal: nodoka::ui::ActiveModal::None,
         ..Default::default()
     };
 
@@ -356,7 +356,7 @@ fn test_bug_0051_modal_during_scanning() -> Result<(), Box<dyn Error>> {
     );
 
     assert!(matches!(state.scan_state, ScanState::Scanning { .. }));
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
 
     Ok(())
 }
@@ -376,7 +376,7 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_settings_over_bookmark(
             label: "Test".to_string(),
             note: String::new(),
         }),
-        settings_open: false,
+        active_modal: nodoka::ui::ActiveModal::None,
         ..Default::default()
     };
 
@@ -387,7 +387,7 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_settings_over_bookmark(
         &db,
     );
 
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_none());
 
     Ok(())
@@ -403,7 +403,7 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_bookmark_over_settings(
 
     let mut player = None;
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_audiobook: Some(audiobook_id),
         selected_file: Some(file_path.to_string()),
         current_time: 1.0,
@@ -418,7 +418,7 @@ fn test_bug_fix_feb2026_004_single_modal_invariant_bookmark_over_settings(
     );
 
     assert!(state.bookmark_editor.is_some());
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
 
     Ok(())
 }

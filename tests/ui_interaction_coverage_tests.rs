@@ -69,10 +69,10 @@ fn open_settings_sets_modal_state() -> Result<(), Box<dyn std::error::Error>> {
     let mut player: Option<Vlc> = None;
 
     let _ = nodoka::ui::update::update(&mut state, Message::OpenSettings, &mut player, &db);
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
 
     let _ = nodoka::ui::update::update(&mut state, Message::CloseSettings, &mut player, &db);
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
 
     Ok(())
 }

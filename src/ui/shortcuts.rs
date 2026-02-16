@@ -23,6 +23,8 @@ pub enum ShortcutKey {
     ArrowDown,
     /// Escape key.
     Escape,
+    /// F1 function key.
+    F1,
 }
 
 /// Maps a key + modifiers to a UI [`Message`].
@@ -37,6 +39,7 @@ pub enum ShortcutKey {
 /// - Up arrow: Previous file
 /// - Down arrow: Next file
 /// - Escape: Close modal
+/// - F1: Show keyboard help
 #[must_use]
 pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<Message> {
     match key {
@@ -85,6 +88,13 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
         ShortcutKey::Escape => {
             if modifiers == Modifiers::default() {
                 Some(Message::CloseModal)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::F1 => {
+            if modifiers == Modifiers::default() {
+                Some(Message::ShowKeyboardHelp)
             } else {
                 None
             }
@@ -278,5 +288,20 @@ mod tests {
     fn test_escape_with_modifiers_returns_none() {
         assert!(message_for_key_chord(ShortcutKey::Escape, Modifiers::CTRL).is_none());
         assert!(message_for_key_chord(ShortcutKey::Escape, Modifiers::SHIFT).is_none());
+    }
+
+    #[test]
+    fn test_f1_shows_keyboard_help() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::F1, Modifiers::default()),
+            Some(Message::ShowKeyboardHelp)
+        ));
+    }
+
+    #[test]
+    fn test_f1_with_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::CTRL).is_none());
+        assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::SHIFT).is_none());
+        assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::ALT).is_none());
     }
 }

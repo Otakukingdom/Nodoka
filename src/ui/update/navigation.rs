@@ -11,7 +11,7 @@ pub(super) fn handle_seek_forward(
     seconds: i64,
 ) -> Task<Message> {
     // Don't process seek when a modal is open (keyboard shortcut should not work in modal context)
-    if state.settings_open || state.bookmark_editor.is_some() {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
     }
 
@@ -46,7 +46,7 @@ pub(super) fn handle_seek_backward(
     seconds: i64,
 ) -> Task<Message> {
     // Don't process seek when a modal is open (keyboard shortcut should not work in modal context)
-    if state.settings_open || state.bookmark_editor.is_some() {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
     }
 
@@ -74,7 +74,7 @@ pub(super) fn handle_next_file(
     db: &Database,
 ) -> Task<Message> {
     // Don't process file navigation when a modal is open (keyboard shortcut should not work in modal context)
-    if state.settings_open || state.bookmark_editor.is_some() {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
     }
 
@@ -102,7 +102,7 @@ pub(super) fn handle_previous_file(
     db: &Database,
 ) -> Task<Message> {
     // Don't process file navigation when a modal is open (keyboard shortcut should not work in modal context)
-    if state.settings_open || state.bookmark_editor.is_some() {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
     }
 
@@ -133,8 +133,8 @@ pub(super) fn handle_previous_file(
 pub(super) fn handle_close_modal(state: &mut State) -> Task<Message> {
     if state.bookmark_editor.is_some() {
         state.bookmark_editor = None;
-    } else if state.settings_open {
-        state.settings_open = false;
+    } else if state.active_modal != crate::ui::ActiveModal::None {
+        state.active_modal = crate::ui::ActiveModal::None;
     }
     state.focused_element = FocusedElement::None;
     Task::none()

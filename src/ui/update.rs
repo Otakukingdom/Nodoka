@@ -136,6 +136,10 @@ pub fn update(
         Message::OpenSettings => handle_open_settings(state),
         Message::CloseSettings => handle_close_settings(state),
 
+        // Help overlay messages
+        Message::ShowKeyboardHelp => handle_show_keyboard_help(state),
+        Message::HideKeyboardHelp => handle_hide_keyboard_help(state),
+
         // Error handling messages
         Message::DismissError => handle_dismiss_error(state),
 
@@ -198,7 +202,7 @@ fn handle_window_resized(db: &Database, width: u32, height: u32) -> Task<Message
 
 fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
     // Don't process play/pause when a modal is open (keyboard shortcut should not work in modal context)
-    if state.settings_open || state.bookmark_editor.is_some() {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
     }
 
@@ -640,15 +644,27 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 fn handle_open_settings(state: &mut State) -> Task<Message> {
     // Close any other open modals to maintain single modal invariant
     state.bookmark_editor = None;
-    state.settings_open = true;
+    state.active_modal = crate::ui::ActiveModal::Settings;
     state.focused_element = FocusedElement::SettingsButton;
     Task::none()
 }
 
 // Cannot be const fn because Task::none() is not const
 fn handle_close_settings(state: &mut State) -> Task<Message> {
-    state.settings_open = false;
+    state.active_modal = crate::ui::ActiveModal::None;
     state.focused_element = FocusedElement::None;
+    Task::none()
+}
+
+fn handle_show_keyboard_help(state: &mut State) -> Task<Message> {
+    // Close any other open modals to maintain single modal invariant
+    state.bookmark_editor = None;
+    state.active_modal = crate::ui::ActiveModal::KeyboardHelp;
+    Task::none()
+}
+
+fn handle_hide_keyboard_help(state: &mut State) -> Task<Message> {
+    state.active_modal = crate::ui::ActiveModal::None;
     Task::none()
 }
 

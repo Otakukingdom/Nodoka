@@ -21,7 +21,7 @@ fn test_escape_close_modal_closes_topmost_first(
     let mut player: Option<Vlc> = None;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         bookmark_editor: Some(BookmarkEditor {
             id: None,
             audiobook_id: 1,
@@ -35,10 +35,10 @@ fn test_escape_close_modal_closes_topmost_first(
 
     let _ = update::update(&mut state, Message::CloseModal, &mut player, &db);
     assert!(state.bookmark_editor.is_none());
-    assert!(state.settings_open);
+    assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
 
     let _ = update::update(&mut state, Message::CloseModal, &mut player, &db);
-    assert!(!state.settings_open);
+    assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     Ok(())
 }
 
@@ -49,7 +49,7 @@ fn test_keyboard_shortcuts_suppressed_while_modal_open(
     let mut player: Option<Vlc> = None;
 
     let mut state = State {
-        settings_open: true,
+        active_modal: nodoka::ui::ActiveModal::Settings,
         selected_file: Some("/tmp/file.mp3".to_string()),
         total_duration: 10_000.0,
         current_time: 1_000.0,
