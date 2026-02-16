@@ -7,6 +7,7 @@ use iced::{Element, Length};
 /// Renders the file list with improved UX patterns
 ///
 /// Features:
+/// - Empty state with helpful guidance when no files exist
 /// - Selection highlighting with background color (no prefix)
 /// - Warning indicator for missing files
 /// - Progress bars for files with partial progress
@@ -18,6 +19,16 @@ pub fn view<'a>(
     files: &'a [AudiobookFile],
     selected_path: Option<&String>,
 ) -> Element<'a, Message> {
+    // Show empty state when no files are available
+    if files.is_empty() {
+        return super::empty_state(
+            "No Files",
+            "Select an audiobook from the list to view its files.",
+            None,
+            None,
+        );
+    }
+
     let items: Element<_> = files
         .iter()
         .fold(column![].spacing(spacing::XS), |col, file| {
@@ -51,22 +62,44 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
     let path = file.full_path.clone();
 
     // Status indicator with semantic colors (using text labels instead of emojis per design system)
+    // Per ui-ux-pro-max: use color to reinforce status but not as sole indicator
     let status_indicator = if is_missing {
-        text("[MISSING]").size(typography::SIZE_SM)
+        container(text("[MISSING]").size(typography::SIZE_SM)).style(|_theme: &iced::Theme| {
+            container::Style {
+                text_color: Some(colors::WARNING),
+                ..Default::default()
+            }
+        })
     } else if is_complete {
-        text("[COMPLETE]").size(typography::SIZE_SM)
+        container(text("[COMPLETE]").size(typography::SIZE_SM)).style(|_theme: &iced::Theme| {
+            container::Style {
+                text_color: Some(colors::SUCCESS),
+                ..Default::default()
+            }
+        })
     } else if has_progress {
-        text(format!("{completeness}%")).size(typography::SIZE_SM)
+        container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
+            |_theme: &iced::Theme| container::Style {
+                text_color: Some(colors::TEXT_SECONDARY),
+                ..Default::default()
+            },
+        )
     } else {
-        text("").size(typography::SIZE_SM)
+        container(text("").size(typography::SIZE_SM))
     };
 
     // Progress bar for files with partial progress
+    // Note: iced 0.14 progress_bar height is fixed at 4px
+    // We use container height to reserve space consistently
     let progress_element = if has_progress && !is_complete && !is_missing {
         let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
-        container(progress_bar(0.0..=100.0, f32::from(completeness_u8))).width(Length::Fill)
+        container(progress_bar(0.0..=100.0, f32::from(completeness_u8)))
+            .width(Length::Fill)
+            .height(Length::Fixed(6.0)) // Reserve 6px height for consistency
     } else {
-        container(text("").size(1)).width(Length::Fill)
+        container(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(6.0))
     };
 
     let content_column = column![
@@ -107,8 +140,10 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
 
     // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
     // Disabled files (missing) show no hover effect
+    // Includes pressed state for tactile feedback using interactive overlay
     item_button
         .style(move |_theme: &iced::Theme, status| {
+            use crate::ui::styles::interactive;
             use iced::widget::button;
             if is_missing {
                 // Missing files: no hover effect, default cursor handled by lack of on_press
@@ -129,6 +164,17 @@ fn build_file_item(file: &AudiobookFile, selected: bool) -> Element<'static, Mes
                         border: Border {
                             color: colors::BORDER_DEFAULT,
                             width: 1.0,
+                            radius: border_radius::SM.into(),
+                        },
+                        ..button::Style::default()
+                    },
+                    button::Status::Pressed if !selected => button::Style {
+                        background: Some(
+                            interactive::apply_active_overlay(colors::BG_HOVER).into(),
+                        ),
+                        border: Border {
+                            color: colors::BORDER_FOCUS,
+                            width: 2.0,
                             radius: border_radius::SM.into(),
                         },
                         ..button::Style::default()

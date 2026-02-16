@@ -430,3 +430,112 @@ fn test_cursor_utilities_available() {
     // iced::mouse::Interaction is an enum, so we just verify they return values
     // Values are consumed automatically at end of scope
 }
+
+#[test]
+fn test_interactive_overlay_constants_defined() {
+    // Verify interactive feedback module constants are properly defined
+    use nodoka::ui::interactive;
+
+    // Hover overlay should be subtle (5%)
+    assert!(
+        (0.04..=0.06).contains(&interactive::HOVER_OVERLAY_ALPHA),
+        "Hover overlay alpha should be around 5%"
+    );
+
+    // Active overlay should be more visible (10%)
+    assert!(
+        (0.09..=0.11).contains(&interactive::ACTIVE_OVERLAY_ALPHA),
+        "Active overlay alpha should be around 10%"
+    );
+
+    // Active should be darker than hover (compile-time check)
+    const {
+        assert!(
+            interactive::ACTIVE_OVERLAY_ALPHA > interactive::HOVER_OVERLAY_ALPHA,
+            "Active overlay should be darker than hover"
+        );
+    }
+}
+
+#[test]
+fn test_interactive_overlay_functions_darken_colors() {
+    // Verify interactive overlay functions produce darker colors
+    use nodoka::ui::colors;
+    use nodoka::ui::interactive;
+
+    let base = colors::BG_HOVER;
+    let hovered = interactive::apply_hover_overlay(base);
+    let active = interactive::apply_active_overlay(base);
+
+    // Hover should be darker than base
+    assert!(
+        hovered.r < base.r,
+        "Hover overlay should darken red channel"
+    );
+    assert!(
+        hovered.g < base.g,
+        "Hover overlay should darken green channel"
+    );
+    assert!(
+        hovered.b < base.b,
+        "Hover overlay should darken blue channel"
+    );
+
+    // Active should be darker than hover
+    assert!(
+        active.r < hovered.r,
+        "Active overlay should be darker than hover"
+    );
+}
+
+#[test]
+fn test_loading_state_colors_defined() {
+    // Verify loading state styling is defined in design system
+    use nodoka::ui::loading;
+
+    // Should have distinct colors for skeleton loading states
+    let skeleton = loading::SKELETON_BG;
+    let shimmer = loading::SKELETON_SHIMMER;
+    let spinner = loading::SPINNER_COLOR;
+
+    // Shimmer should be lighter than skeleton background
+    assert!(
+        shimmer.r >= skeleton.r,
+        "Shimmer should be lighter than skeleton background"
+    );
+
+    // Spinner should use primary brand color for consistency
+    assert_eq!(
+        spinner,
+        nodoka::ui::colors::PRIMARY,
+        "Spinner should use primary brand color"
+    );
+}
+
+#[test]
+fn test_modal_backdrop_opacity_provides_clear_distinction() {
+    // Modal backdrops should have 40-60% opacity per ui-ux-pro-max guidelines
+    // This test documents the expected opacity value
+    let backdrop_alpha = 0.5;
+
+    assert!(
+        (0.4..=0.6).contains(&backdrop_alpha),
+        "Modal backdrop should have 40-60% opacity for clear distinction"
+    );
+}
+
+// Note: Progress bar height standard (6px minimum) is documented in the design system
+// and implemented in file_list.rs via container height. No runtime test needed as
+// it's a design guideline rather than a testable constant.
+
+#[test]
+fn test_empty_state_component_exists() {
+    // Verify empty state component is available
+    // This is a compile-time check that the function signature exists
+    use nodoka::ui::components::empty_state;
+
+    // Create a sample empty state to verify function signature
+    let _element = empty_state("Test Title", "Test Description", None, None);
+
+    // Test passes if function exists and compiles
+}

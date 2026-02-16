@@ -67,3 +67,73 @@ Use `src/ui/styles.rs` `spacing::*` and `typography::*`.
 - Keyboard: all core actions reachable without a mouse
 - Focus: visible focus indicator (use `colors::FOCUS_RING`)
 - Contrast: keep text contrast at or above WCAG AA (4.5:1 for normal text)
+
+## Interactive Patterns (ui-ux-pro-max)
+
+### Cursor Affordances
+- All clickable elements: `cursor::clickable()`
+- Disabled elements: `cursor::disabled()`
+- Text input areas: `cursor::text()`
+
+### Hover States
+- Use subtle background color changes (5% darker overlay via `interactive::apply_hover_overlay()`)
+- Transition duration: 150-200ms for smooth feedback (see `transitions::*`)
+- Never scale elements on hover (causes layout shift)
+- Ensure hover state is distinct from selection state
+
+### Pressed/Active States
+- Use `interactive::apply_active_overlay()` for 10% darker overlay
+- Increase border width from 1px to 2px on pressed state
+- Use `colors::BORDER_FOCUS` for pressed border color
+
+### Touch Targets
+- Minimum 44x44px per WCAG 2.1 Level AAA
+- Use `spacing::MD` (16px) padding on buttons
+- Increase padding on small touch areas (icons, checkboxes)
+
+### Loading States
+- Use skeleton UI patterns for content loading
+- Colors: `loading::SKELETON_BG` and `loading::SKELETON_SHIMMER`
+- Spinner color: `loading::SPINNER_COLOR` (matches primary brand)
+- Show loading indicators for operations >200ms
+
+### Empty States
+- Include helpful title and description
+- Explain why the list is empty
+- Provide clear CTA when action is available
+- Use `empty_state()` helper function for consistency
+- Examples:
+  - Audiobook list: "Add audiobook directories in Settings to get started"
+  - File list: "Select an audiobook from the list to view its files"
+  - Bookmarks: "Create bookmarks to mark important positions"
+
+### Modal Overlays
+- Backdrop opacity: 50% (0.5 alpha) for clear distinction
+- Click-to-dismiss for user-initiated modals only
+- Focus trap: return focus to triggering element on close
+- Modal cards: elevated with shadow and border (see `modal_card()` in main_window.rs)
+
+### Progress Indicators
+- File progress: 6px height bars with semantic colors
+- Complete files: green accent (`colors::SUCCESS`) with [COMPLETE] label
+- In-progress: percentage display with progress bar
+- Missing files: warning color (`colors::WARNING`) with [MISSING] label
+
+## Accessibility Enhancements
+
+### Visual Feedback
+- Focus indicators: 3px blue ring (WCAG 2.1 2.4.7) using `colors::FOCUS_RING`
+- Error states: red border + text description
+- Success states: green accent + confirmation message
+
+### Reduced Motion
+- Check `state.prefers_reduced_motion` before animations
+- Fall back to instant transitions when enabled
+- Use `animations::transition_duration()` helper
+- Animation duration becomes 0ms when reduced motion is preferred
+
+### Semantic Colors
+- Use color to reinforce status but not as sole indicator
+- Always include text labels alongside color coding
+- [MISSING], [COMPLETE] labels in addition to color
+- Maintains accessibility for colorblind users

@@ -41,12 +41,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
         container({
             let max_duration = state.total_duration.max(1.0);
             let current_time = state.current_time.clamp(0.0, max_duration);
-            slider(0.0..=max_duration, current_time, Message::SeekTo)
+            slider(0.0..=max_duration, current_time, Message::SeekTo).height(24.0)
+            // Larger height for better grab affordance
         })
         .style(focus_indicator(
             state.focused_element == FocusedElement::ProgressSlider,
         ))
-        .padding(iced::Padding::from([spacing::SM, 0.0])),
+        .padding(iced::Padding::from([spacing::MD, 0.0])), // Increased vertical padding
         // Time markers with better spacing
         row![
             text(format_time(state.current_time)).size(typography::SIZE_SM),
@@ -91,9 +92,11 @@ fn playback_controls(
 ) -> Element<'static, Message> {
     container(
         row![
+            // Ensure 44x44px minimum touch target per WCAG 2.1 Level AAA
             button(text(play_pause_label).size(typography::SIZE_BASE))
                 .on_press(Message::PlayPause)
-                .padding(spacing::SM)
+                .padding(spacing::MD) // MD (16px) * 2 + text height ensures 44px+ height
+                .width(Length::Fixed(100.0)) // Explicit width for consistency
                 .style(if play_pause_focused {
                     button_styles::primary_focused
                 } else {
@@ -101,7 +104,8 @@ fn playback_controls(
                 }),
             button(text("Stop").size(typography::SIZE_BASE))
                 .on_press(Message::Stop)
-                .padding(spacing::SM)
+                .padding(spacing::MD)
+                .width(Length::Fixed(100.0))
                 .style(if stop_focused {
                     button_styles::secondary_focused
                 } else {
@@ -124,7 +128,8 @@ fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'
             slider(SPEED_STEP_MIN..=SPEED_STEP_MAX, speed_step, |step| {
                 Message::SpeedChanged(speed_from_step(step))
             })
-            .width(Length::Fixed(120.0)),
+            .width(Length::Fixed(120.0))
+            .height(20.0), // Larger height for better grab affordance
             row![
                 button(text("0.5x").size(typography::SIZE_SM))
                     .on_press(Message::SpeedChanged(0.5))
@@ -163,7 +168,9 @@ fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     container(
         row![
             text("Volume:").size(typography::SIZE_SM),
-            slider(0..=200, state.volume, Message::VolumeChanged).width(Length::Fixed(150.0)),
+            slider(0..=200, state.volume, Message::VolumeChanged)
+                .width(Length::Fixed(150.0))
+                .height(20.0), // Larger height for better grab affordance
             text(format!("{}%", state.volume)).size(typography::SIZE_SM),
         ]
         .spacing(spacing::SM),

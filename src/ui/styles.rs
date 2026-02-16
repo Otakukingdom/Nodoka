@@ -210,6 +210,83 @@ pub mod shadows {
     pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
 }
 
+/// Interactive feedback module for consistent hover, active, and focus states
+///
+/// Provides utility functions for applying interactive overlays to colors
+/// following ui-ux-pro-max guidelines for subtle feedback patterns.
+pub mod interactive {
+    use iced::Color;
+
+    /// Hover overlay alpha for subtle feedback (5% black overlay)
+    pub const HOVER_OVERLAY_ALPHA: f32 = 0.05;
+
+    /// Active/pressed overlay alpha (10% black overlay)
+    pub const ACTIVE_OVERLAY_ALPHA: f32 = 0.1;
+
+    /// Applies hover overlay to a color for subtle interactive feedback
+    ///
+    /// Per ui-ux-pro-max guidelines, hover states should provide clear visual
+    /// feedback without causing layout shift. This function applies a 5% black
+    /// overlay to darken the base color slightly.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use nodoka::ui::styles::{colors, interactive};
+    /// let hover_color = interactive::apply_hover_overlay(colors::BG_ELEVATED);
+    /// ```
+    #[must_use]
+    pub fn apply_hover_overlay(base: Color) -> Color {
+        Color {
+            r: base.r * (1.0 - HOVER_OVERLAY_ALPHA),
+            g: base.g * (1.0 - HOVER_OVERLAY_ALPHA),
+            b: base.b * (1.0 - HOVER_OVERLAY_ALPHA),
+            a: base.a,
+        }
+    }
+
+    /// Applies active/pressed overlay to a color
+    ///
+    /// Provides stronger visual feedback for pressed/active states with a
+    /// 10% black overlay.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use nodoka::ui::styles::{colors, interactive};
+    /// let active_color = interactive::apply_active_overlay(colors::BG_HOVER);
+    /// ```
+    #[must_use]
+    pub fn apply_active_overlay(base: Color) -> Color {
+        Color {
+            r: base.r * (1.0 - ACTIVE_OVERLAY_ALPHA),
+            g: base.g * (1.0 - ACTIVE_OVERLAY_ALPHA),
+            b: base.b * (1.0 - ACTIVE_OVERLAY_ALPHA),
+            a: base.a,
+        }
+    }
+}
+
+/// Loading states and skeleton UI patterns
+///
+/// Provides color constants and utilities for loading indicators and skeleton UI
+/// patterns. Per ui-ux-pro-max guidelines, loading indicators should be shown for
+/// operations taking longer than 200ms to provide clear feedback.
+pub mod loading {
+    use iced::Color;
+
+    use super::colors;
+
+    /// Skeleton background color for loading placeholders
+    pub const SKELETON_BG: Color = Color::from_rgb(0.9, 0.9, 0.9);
+
+    /// Skeleton shimmer color for animation
+    pub const SKELETON_SHIMMER: Color = Color::from_rgb(0.95, 0.95, 0.95);
+
+    /// Spinner color uses primary color for brand consistency
+    pub const SPINNER_COLOR: Color = colors::PRIMARY;
+}
+
 /// Native iced 0.14 button styling using the new Style API
 ///
 /// iced 0.14 provides proper button theming through the `button::Style` type

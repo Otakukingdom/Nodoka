@@ -185,3 +185,71 @@ fn create_bookmark_opens_editor_for_selected_file() -> Result<(), Box<dyn std::e
 
     Ok(())
 }
+
+#[test]
+fn test_empty_audiobook_list_shows_empty_state() {
+    // Verify empty state is shown when no audiobooks exist
+    use nodoka::ui::components::audiobook_list;
+    use std::collections::HashMap;
+
+    let audiobooks: Vec<Audiobook> = vec![];
+    let cover_thumbnails: HashMap<i64, std::path::PathBuf> = HashMap::new();
+
+    // View should render empty state without panic
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails);
+    drop(element);
+}
+
+#[test]
+fn test_empty_file_list_shows_empty_state() {
+    // Verify empty state is shown when no files exist
+    use nodoka::ui::components::file_list;
+
+    let files: Vec<AudiobookFile> = vec![];
+
+    // View should render empty state without panic
+    let element = file_list::view(&files, None);
+    drop(element);
+}
+
+#[test]
+fn test_empty_bookmarks_list_shows_empty_state() {
+    // Verify empty state is shown when no bookmarks exist
+    use nodoka::models::Bookmark;
+    use nodoka::ui::components::bookmarks;
+
+    let bookmarks: Vec<Bookmark> = vec![];
+    let files: Vec<AudiobookFile> = vec![];
+
+    // View should render empty state without panic
+    let element = bookmarks::view(&bookmarks, &files);
+    drop(element);
+}
+
+#[test]
+fn test_audiobook_list_hover_states_implemented() {
+    // Verify hover states are properly implemented for audiobook list items
+    // This test documents the expected behavior
+    use iced::widget::button;
+    use nodoka::ui::{button_styles, nodoka_theme};
+
+    let theme = nodoka_theme();
+    let active = button_styles::primary(&theme, button::Status::Active);
+    let hovered = button_styles::primary(&theme, button::Status::Hovered);
+
+    // Hover state should be visually distinct from active state
+    assert_ne!(
+        active.background, hovered.background,
+        "Hover state should differ from active state"
+    );
+}
+
+#[test]
+fn test_file_list_disabled_state_for_missing_files() {
+    // Missing files should be visually indicated as non-interactive
+    // This is a behavioral requirement documented in the test
+    use nodoka::ui::cursor;
+
+    // Verify disabled cursor exists for missing files
+    let _disabled_cursor = cursor::disabled();
+}

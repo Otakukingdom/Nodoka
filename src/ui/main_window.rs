@@ -195,22 +195,29 @@ fn modal_backdrop_without_click() -> Element<'static, Message> {
 
 /// Modal card wrapper with elevated styling
 ///
-/// Applies design system styling for modal overlays:
+/// Applies design system styling for modal overlays per ui-ux-pro-max:
 /// - White background (`BG_SECONDARY`) for contrast against backdrop
-/// - LG border radius (12px) for modern appearance per ui-ux-pro-max
+/// - LG border radius (12px) for modern appearance
+/// - Shadow for depth perception and visual elevation
 /// - MD padding (16px) for content spacing
 /// - Centered both horizontally and vertically
 fn modal_card<'a, E>(content: E) -> Element<'a, Message>
 where
     E: Into<Element<'a, Message>>,
 {
+    use iced::Shadow;
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
             background: Some(colors::BG_SECONDARY.into()),
             border: Border {
                 color: shadows::MD_BORDER,
-                width: 1.0,
+                width: 2.0,                       // Increased to 2px for better definition
                 radius: border_radius::LG.into(), // LG radius (12px) for modern modal appearance
+            },
+            shadow: Shadow {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.2),
+                offset: iced::Vector::new(0.0, 4.0),
+                blur_radius: 16.0,
             },
             ..Default::default()
         })

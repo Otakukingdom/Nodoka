@@ -10,6 +10,7 @@ use std::path::PathBuf;
 /// Renders the audiobook list with improved visual design
 ///
 /// Features:
+/// - Empty state with helpful guidance when no audiobooks exist
 /// - Larger cover thumbnails (60x60px) for better visibility
 /// - Selection highlighting with background color change
 /// - Progress bar visualization for each audiobook
@@ -21,6 +22,16 @@ pub fn view<'a, S: BuildHasher>(
     selected_id: Option<i64>,
     cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
 ) -> Element<'a, Message> {
+    // Show empty state when no audiobooks are available
+    if audiobooks.is_empty() {
+        return super::empty_state(
+            "No Audiobooks Found",
+            "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
+            Some("Open Settings"),
+            Some(Message::OpenSettings),
+        );
+    }
+
     let items: Element<_> = audiobooks
         .iter()
         .fold(column![].spacing(spacing::XS), |col, ab| {
@@ -115,10 +126,12 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     };
 
     // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
+    // Includes pressed state for tactile feedback using interactive overlay
     button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
         .style(move |_theme: &iced::Theme, status| {
+            use crate::ui::styles::interactive;
             use iced::widget::button;
             match status {
                 button::Status::Hovered if !selected => button::Style {
@@ -126,6 +139,15 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                     border: Border {
                         color: colors::BORDER_DEFAULT,
                         width: 1.0,
+                        radius: border_radius::SM.into(),
+                    },
+                    ..button::Style::default()
+                },
+                button::Status::Pressed if !selected => button::Style {
+                    background: Some(interactive::apply_active_overlay(colors::BG_HOVER).into()),
+                    border: Border {
+                        color: colors::BORDER_FOCUS,
+                        width: 2.0,
                         radius: border_radius::SM.into(),
                     },
                     ..button::Style::default()

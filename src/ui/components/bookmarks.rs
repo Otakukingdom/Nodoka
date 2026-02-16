@@ -9,6 +9,7 @@ use iced::{Element, Length};
 ///
 /// Features:
 /// - Clear header with add button
+/// - Empty state with helpful guidance when no bookmarks exist
 /// - Scrollable list of bookmarks
 /// - Visual indicators for missing files
 /// - Improved spacing and typography
@@ -24,12 +25,21 @@ pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Elemen
     ]
     .padding(spacing::MD);
 
-    let items: Element<_> = bookmarks
-        .iter()
-        .fold(column![].spacing(spacing::XS), |col, bm| {
-            col.push(bookmark_row(bm, files))
-        })
-        .into();
+    let items: Element<_> = if bookmarks.is_empty() {
+        super::empty_state(
+            "No Bookmarks",
+            "Create bookmarks to mark important positions in your audiobooks.",
+            Some("Add Bookmark"),
+            Some(Message::CreateBookmark),
+        )
+    } else {
+        bookmarks
+            .iter()
+            .fold(column![].spacing(spacing::XS), |col, bm| {
+                col.push(bookmark_row(bm, files))
+            })
+            .into()
+    };
 
     column![header, scrollable(items).height(Length::FillPortion(1))]
         .height(Length::Fill)
