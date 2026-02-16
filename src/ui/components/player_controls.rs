@@ -193,8 +193,7 @@ fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'
 
 fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     // Calculate volume level as 0.0 to 1.0 (state.volume is 0-200)
-    #[allow(clippy::cast_precision_loss)]
-    let volume_level = state.volume as f32 / 200.0;
+    let volume_level = volume_to_level(state.volume);
     let volume_color = volume_level_color(volume_level);
 
     container(
@@ -214,6 +213,12 @@ fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     )
     .style(focus_indicator(is_focused))
     .into()
+}
+
+fn volume_to_level(volume: i32) -> f32 {
+    let clamped = volume.clamp(0, 200);
+    let as_u16 = u16::try_from(clamped).unwrap_or(0);
+    f32::from(as_u16) / 200.0
 }
 
 /// Returns color-coded volume level indicator per ui-ux-pro-max guidelines

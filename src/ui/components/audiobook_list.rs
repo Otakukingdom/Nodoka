@@ -1,9 +1,9 @@
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
-use crate::ui::styles::{border_radius, loading, shadows, spacing, typography};
+use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, progress_bar, row, scrollable, text, Space};
-use iced::{Border, Element, Length};
+use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::path::PathBuf;
@@ -24,13 +24,15 @@ pub fn view<'a, S: BuildHasher>(
     selected_id: Option<i64>,
     cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
     scan_state: &'a ScanState,
+    animation_elapsed_ms: u64,
+    prefers_reduced_motion: bool,
 ) -> Element<'a, Message> {
     // Show skeleton UI during scanning if list is empty
     if audiobooks.is_empty() {
         return match scan_state {
             ScanState::Scanning { .. } => skeleton_audiobook_list(),
             ScanState::Idle => super::empty_state(
-                Some("📚"),
+                Some("▦"),
                 "No Audiobooks Found",
                 "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
                 Some("Open Settings"),
@@ -41,9 +43,11 @@ pub fn view<'a, S: BuildHasher>(
 
     let items: Element<_> = audiobooks
         .iter()
-        .fold(column![].spacing(spacing::SM), |col, ab| {
+        .enumerate()
+        .fold(column![].spacing(spacing::SM), |col, (index, ab)| {
             let is_selected = selected_id == ab.id;
-            let item = build_audiobook_item(ab, is_selected, cover_thumbnails);
+            let animation = list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
+            let item = build_audiobook_item(ab, is_selected, cover_thumbnails, animation);
             col.push(item)
         })
         .into();
@@ -58,116 +62,39 @@ pub fn view<'a, S: BuildHasher>(
 /// - Subtle background color change on hover (200ms transition)
 /// - Selection highlighting with primary color
 /// - Proper focus indicators for keyboard navigation
-#[allow(clippy::too_many_lines)]
 fn build_audiobook_item<'a, S: BuildHasher>(
     ab: &'a Audiobook,
     selected: bool,
     cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+    animation: ListItemAnimation,
 ) -> Element<'a, Message> {
     use crate::ui::styles::{border_radius, colors};
-    use iced::Border;
 
-    let name = ab.name.clone();
     let completeness = ab.completeness;
     let id = ab.id;
     let is_complete = ab.is_complete();
+    let opacity = animation.opacity;
 
-    // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
-    let cover: Element<_> = id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
-        || {
-            container(text("No cover").size(typography::SIZE_XS))
-                .width(Length::Fixed(80.0))
-                .height(Length::Fixed(80.0))
-                .style(|_theme: &iced::Theme| container::Style {
-                    border: Border {
-                        radius: border_radius::MD.into(),
-                        ..Default::default()
-                    },
-                    shadow: shadows::shadow_sm(),
-                    ..Default::default()
-                })
-                .into()
-        },
-        |path| {
-            container(
-                image(iced::widget::image::Handle::from_path(path.clone()))
-                    .width(Length::Fixed(80.0))
-                    .height(Length::Fixed(80.0)),
-            )
-            .style(|_theme: &iced::Theme| container::Style {
-                border: Border {
-                    radius: border_radius::MD.into(),
-                    ..Default::default()
-                },
-                shadow: shadows::shadow_sm(),
-                ..Default::default()
-            })
-            .into()
-        },
-    );
-
-    // Progress bar for visual representation of completeness
-    // Per ui-ux-pro-max: progress bars should be at least 6px height for visibility
-    let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
-    let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
-
-    // Completion badge with semantic color (SUCCESS green) and improved styling
-    let completion_badge = if is_complete {
-        container(
-            text("COMPLETE")
-                .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_ON_PRIMARY),
-                }),
-        )
-        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-        .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::SUCCESS.into()),
-            text_color: Some(colors::TEXT_ON_PRIMARY),
-            border: Border {
-                radius: border_radius::SM.into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-    } else {
-        container(text("").size(typography::SIZE_SM))
-    };
-
-    // Main content with improved typography and spacing
-    let content_row = row![
+    let cover = build_cover(id, cover_thumbnails, opacity);
+    let completion_badge = build_completion_badge(is_complete, opacity);
+    let content_row = build_content_row(
+        &ab.name,
+        completeness,
         cover,
-        column![
-            text(name).size(typography::SIZE_BASE),
-            // Progress bar visualization with minimum 6px height
-            container(progress)
-                .width(Length::Fill)
-                .height(Length::Fixed(6.0)), // Reserve 6px height for consistency
-            row![
-                text(format!("{completeness}%"))
-                    .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::TEXT_SECONDARY),
-                    }),
-                Space::new().width(Length::Fill),
-                completion_badge
-            ]
-        ]
-        .spacing(spacing::XS)
-        .width(Length::Fill)
-    ]
-    .spacing(spacing::MD)
-    .padding(spacing::MD);
+        completion_badge,
+        opacity,
+        animation.offset_y,
+    );
 
     // Apply selection styling with left border accent per ui-ux-pro-max
     // Left border (4px PRIMARY color) provides clear visual indicator for selected item
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(colors::SELECTION_BG.into()),
-                text_color: Some(colors::SELECTION_TEXT),
+                background: Some(with_alpha(colors::SELECTION_BG, opacity).into()),
+                text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
-                    color: colors::PRIMARY,
+                    color: with_alpha(colors::PRIMARY, opacity),
                     width: 4.0,
                     radius: border_radius::MD.into(),
                 },
@@ -188,9 +115,9 @@ fn build_audiobook_item<'a, S: BuildHasher>(
             use iced::widget::button;
             match status {
                 button::Status::Hovered if !selected => button::Style {
-                    background: Some(colors::BG_HOVER.into()),
+                    background: Some(with_alpha(colors::BG_HOVER, opacity).into()),
                     border: Border {
-                        color: colors::BORDER_DEFAULT,
+                        color: with_alpha(colors::BORDER_DEFAULT, opacity),
                         width: 1.0,
                         radius: border_radius::SM.into(),
                     },
@@ -199,7 +126,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 button::Status::Pressed if !selected => button::Style {
                     background: Some(interactive::apply_active_overlay(colors::BG_HOVER).into()),
                     border: Border {
-                        color: colors::BORDER_FOCUS,
+                        color: with_alpha(colors::BORDER_FOCUS, opacity),
                         width: 2.0,
                         radius: border_radius::SM.into(),
                     },
@@ -207,9 +134,9 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 },
                 // Default transparent style for all other states
                 _ => button::Style {
-                    background: Some(iced::Color::TRANSPARENT.into()),
+                    background: Some(Color::TRANSPARENT.into()),
                     border: Border {
-                        color: iced::Color::TRANSPARENT,
+                        color: Color::TRANSPARENT,
                         width: 0.0,
                         radius: border_radius::SM.into(),
                     },
@@ -218,6 +145,158 @@ fn build_audiobook_item<'a, S: BuildHasher>(
             }
         })
         .into()
+}
+
+fn build_cover<'a, S: BuildHasher>(
+    id: Option<i64>,
+    cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+    opacity: f32,
+) -> Element<'a, Message> {
+    use crate::ui::styles::{border_radius, colors};
+
+    // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
+    id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
+        || {
+            container(
+                text("No cover")
+                    .size(typography::SIZE_XS)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                    }),
+            )
+            .width(Length::Fixed(80.0))
+            .height(Length::Fixed(80.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                border: Border {
+                    radius: border_radius::MD.into(),
+                    ..Default::default()
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            })
+            .into()
+        },
+        |path| {
+            container(
+                image(iced::widget::image::Handle::from_path(path.clone()))
+                    .width(Length::Fixed(80.0))
+                    .height(Length::Fixed(80.0)),
+            )
+            .style(|_theme: &iced::Theme| container::Style {
+                border: Border {
+                    radius: border_radius::MD.into(),
+                    ..Default::default()
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            })
+            .into()
+        },
+    )
+}
+
+fn build_completion_badge(is_complete: bool, opacity: f32) -> Element<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
+
+    if is_complete {
+        container(
+            text("COMPLETE")
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
+                }),
+        )
+        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(with_alpha(colors::SUCCESS, opacity).into()),
+            text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .into()
+    } else {
+        container(text("").size(typography::SIZE_SM)).into()
+    }
+}
+
+fn build_content_row<'a>(
+    name: &str,
+    completeness: i32,
+    cover: Element<'a, Message>,
+    completion_badge: Element<'a, Message>,
+    opacity: f32,
+    offset_y: f32,
+) -> iced::widget::Row<'a, Message> {
+    use crate::ui::styles::colors;
+
+    // Progress bar for visual representation of completeness
+    // Per ui-ux-pro-max: progress bars should be at least 6px height for visibility
+    let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
+    let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
+
+    row![
+        cover,
+        column![
+            text(name)
+                .size(typography::SIZE_BASE)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+                }),
+            // Progress bar visualization with minimum 6px height
+            container(progress)
+                .width(Length::Fill)
+                .height(Length::Fixed(6.0)), // Reserve 6px height for consistency
+            row![
+                text(format!("{completeness}%"))
+                    .size(typography::SIZE_SM)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                    }),
+                Space::new().width(Length::Fill),
+                completion_badge
+            ]
+        ]
+        .spacing(spacing::XS)
+        .width(Length::Fill)
+    ]
+    .spacing(spacing::MD)
+    .padding(iced::Padding {
+        top: spacing::MD + offset_y,
+        bottom: spacing::MD,
+        left: spacing::MD,
+        right: spacing::MD,
+    })
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ListItemAnimation {
+    opacity: f32,
+    offset_y: f32,
+}
+
+fn list_item_animation(index: usize, elapsed_ms: u64, prefers_reduced_motion: bool) -> ListItemAnimation {
+    if prefers_reduced_motion {
+        return ListItemAnimation {
+            opacity: 1.0,
+            offset_y: 0.0,
+        };
+    }
+    ListItemAnimation {
+        opacity: animations::stagger_opacity(index, 50, elapsed_ms),
+        offset_y: animations::stagger_translate_y(index, 50, elapsed_ms),
+    }
+}
+
+fn with_alpha(color: Color, alpha: f32) -> Color {
+    Color {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: (color.a * alpha).clamp(0.0, 1.0),
+    }
 }
 
 /// Skeleton UI for audiobook list during scanning
@@ -243,31 +322,33 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 /// Single skeleton audiobook item
 ///
 /// Creates a placeholder with complete structure matching real audiobook items:
-/// - 60x60px skeleton cover (matches real cover size)
-/// - Title placeholder (200x16px for better visual match)
-/// - Progress bar placeholder (full width, 6px height)
+/// - 80x80px skeleton cover (matches real cover size per ui-ux-pro-max)
+/// - Title placeholder (60% width, 20px height for realistic match)
+/// - Progress bar placeholder (100% width, 4px height)
 /// - Status text placeholder (50x12px for percentage display)
 /// - Consistent spacing following 4px grid system
 ///
 /// Uses `SKELETON_BG` color (#E5E5E5) from loading module per design system.
+/// Per ui-ux-pro-max: skeleton dimensions should match real content exactly.
 fn skeleton_audiobook_item() -> Element<'static, Message> {
-    // Skeleton cover placeholder (60x60px)
+    // Skeleton cover placeholder (80x80px) - matches real thumbnail size
     let skeleton_cover = container(Space::new())
-        .width(Length::Fixed(60.0))
-        .height(Length::Fixed(60.0))
+        .width(Length::Fixed(80.0))
+        .height(Length::Fixed(80.0))
         .style(|_: &iced::Theme| container::Style {
             background: Some(loading::SKELETON_BG.into()),
             border: Border {
-                radius: border_radius::SM.into(),
+                radius: border_radius::MD.into(),
                 ..Default::default()
             },
+            shadow: shadows::shadow_sm(),
             ..Default::default()
         });
 
-    // Skeleton title placeholder (larger for better visual match)
+    // Skeleton title placeholder (60% width for realistic variation)
     let skeleton_title = container(Space::new())
-        .width(Length::Fixed(200.0))
-        .height(Length::Fixed(16.0))
+        .width(Length::FillPortion(60))
+        .height(Length::Fixed(20.0))
         .style(|_: &iced::Theme| container::Style {
             background: Some(loading::SKELETON_BG.into()),
             border: Border {
@@ -277,10 +358,10 @@ fn skeleton_audiobook_item() -> Element<'static, Message> {
             ..Default::default()
         });
 
-    // Skeleton progress bar placeholder (6px height to match real progress bars)
+    // Skeleton progress bar placeholder (4px height to match real progress bars)
     let skeleton_progress = container(Space::new())
         .width(Length::Fill)
-        .height(Length::Fixed(6.0))
+        .height(Length::Fixed(4.0))
         .style(|_: &iced::Theme| container::Style {
             background: Some(loading::SKELETON_BG.into()),
             border: Border {
@@ -303,12 +384,14 @@ fn skeleton_audiobook_item() -> Element<'static, Message> {
             ..Default::default()
         });
 
-    // Match the structure of real audiobook items
+    // Match the structure of real audiobook items exactly
     let content = row![
         skeleton_cover,
         column![
             skeleton_title,
+            Space::new().height(Length::Fixed(spacing::XS)),
             container(skeleton_progress).width(Length::Fill),
+            Space::new().height(Length::Fixed(spacing::XS)),
             row![skeleton_status, Space::new().width(Length::Fill),]
         ]
         .spacing(spacing::XS)

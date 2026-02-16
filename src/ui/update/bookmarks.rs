@@ -40,6 +40,7 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)
     {
         state.bookmarks = bookmarks;
+        state.bookmark_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
     }
 
     // Close any other open modals to maintain single modal invariant
@@ -136,7 +137,11 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> T
     }
 
     match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), editor.audiobook_id) {
-        Ok(bms) => state.bookmarks = bms,
+        Ok(bms) => {
+            state.bookmarks = bms;
+            state.bookmark_list_animation_start_ms =
+                Some(crate::ui::state::current_time_ms());
+        }
         Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
     }
 
@@ -176,11 +181,16 @@ pub(super) fn handle_bookmark_delete(state: &mut State, db: &Database, id: i64) 
 
     if let Some(audiobook_id) = audiobook_id {
         match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id) {
-            Ok(bms) => state.bookmarks = bms,
+            Ok(bms) => {
+                state.bookmarks = bms;
+                state.bookmark_list_animation_start_ms =
+                    Some(crate::ui::state::current_time_ms());
+            }
             Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
         }
     } else {
         state.bookmarks.clear();
+        state.bookmark_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
     }
 
     Task::none()

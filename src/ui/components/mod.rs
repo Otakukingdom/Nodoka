@@ -72,7 +72,7 @@ pub mod player_controls;
 ///
 /// // Empty state with CTA button and icon
 /// let state = empty_state(
-///     Some("📚"), // Unicode icon
+///     Some("▦"), // Unicode icon
 ///     "No Audiobooks Found",
 ///     "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
 ///     Some("Open Settings"),
@@ -95,60 +95,84 @@ pub fn empty_state<'a>(
     action_label: Option<&'static str>,
     action_message: Option<crate::ui::Message>,
 ) -> iced::Element<'a, crate::ui::Message> {
-    use crate::ui::styles::{button_styles, colors, spacing, typography};
-    use iced::widget::{button, column, container, text};
-    use iced::Length;
+    use crate::ui::styles::{border_radius, button_styles, colors, spacing, typography};
+    use iced::widget::{button, column, container, text, Space};
+    use iced::{Border, Length};
 
     let mut content = column![]
         .align_x(iced::Alignment::Center)
-        .spacing(spacing::LG);
+        .spacing(spacing::MD); // Reduced from LG for tighter hierarchy
 
     // Optional icon at top (Unicode symbol)
     if let Some(icon_text) = icon {
         content = content.push(
             text(icon_text)
-                .size(typography::SIZE_XXL * 2.0) // Extra large icon (2x heading size)
+                .size(typography::SIZE_XXL * 1.5) // 48px for visual prominence
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(colors::TEXT_SECONDARY),
                 }),
         );
+        content = content.push(Space::new().height(Length::Fixed(spacing::LG)));
     }
 
+    // Title with enhanced typography hierarchy
     content = content.push(
-        // Larger, more prominent title (SIZE_XXL instead of SIZE_XL)
         text(title)
-            .size(typography::SIZE_XXL)
+            .size(typography::SIZE_XL) // 24px per specification
             .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_PRIMARY), // Use primary text color for better visibility
+                color: Some(colors::TEXT_PRIMARY),
             }),
     );
 
-    content =
-        content.push(
-            // Description with better spacing
-            container(text(description).size(typography::SIZE_BASE).style(
-                |_theme: &iced::Theme| iced::widget::text::Style {
+    content = content.push(Space::new().height(Length::Fixed(spacing::MD)));
+
+    // Description with proper spacing
+    content = content.push(
+        container(
+            text(description)
+                .size(typography::SIZE_BASE) // 16px
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(colors::TEXT_SECONDARY),
-                },
-            ))
-            .padding(iced::Padding::from([spacing::SM, 0.0]))
-            .width(Length::Fixed(400.0)), // Max width for better readability
-        );
+                }),
+        )
+        .width(Length::Fixed(400.0)) // Max width for readability
+        .center_x(Length::Fill),
+    );
 
     if let (Some(label), Some(message)) = (action_label, action_message) {
+        content = content.push(Space::new().height(Length::Fixed(spacing::LG)));
         content = content.push(
-            // CTA button with improved styling and focus indicator support
-            container(
-                button(text(label).size(typography::SIZE_BASE))
-                    .on_press(message)
-                    .padding(iced::Padding::from([spacing::MD, spacing::LG])) // More horizontal padding for better button proportions
-                    .style(button_styles::primary),
+            button(
+                text(label)
+                    .size(typography::SIZE_BASE)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_ON_PRIMARY),
+                    }),
             )
-            .padding(iced::Padding::from([spacing::LG, 0.0])), // Space above button
+            .on_press(message)
+            .padding(iced::Padding::from([
+                spacing::SM + spacing::XS,
+                spacing::LG,
+            ]))
+            .style(button_styles::primary),
         );
     }
 
-    container(content)
+    // Wrap content in container with subtle background tint
+    let inner_container = container(content)
+        .width(Length::Shrink)
+        .padding(spacing::XXL)
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::BG_SECONDARY.into()),
+            border: Border {
+                color: colors::BORDER_DEFAULT,
+                width: 2.0,
+                radius: border_radius::LG.into(),
+            },
+            ..Default::default()
+        });
+
+    container(inner_container)
         .width(Length::Fill)
         .height(Length::Fill)
         .center_x(Length::Fill)

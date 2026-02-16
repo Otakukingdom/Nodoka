@@ -57,6 +57,7 @@ pub fn update(
         Message::SpeedChanged(speed) => handle_speed_changed(state, player, db, speed),
         Message::PlayerTimeUpdated(time) => handle_time_updated(state, db, time),
         Message::PlayerTick => handle_player_tick(state, player, db),
+        Message::UiTick => handle_ui_tick(state),
 
         // Sleep timer
         Message::SleepTimerSetDurationSeconds(secs) => {
@@ -165,6 +166,12 @@ pub fn update(
         Message::WindowMoved(x, y) => handle_window_moved(db, x, y),
         Message::WindowResized(width, height) => handle_window_resized(db, width, height),
     }
+}
+
+fn handle_ui_tick(state: &mut State) -> Task<Message> {
+    state.ui_time_ms = crate::ui::state::current_time_ms();
+    prune_notifications(state);
+    Task::none()
 }
 
 fn handle_window_moved(db: &Database, x: i32, y: i32) -> Task<Message> {
@@ -493,6 +500,9 @@ fn handle_audiobook_selected(
     state.selected_audiobook = Some(id);
     state.current_files = files;
     state.bookmarks = bookmarks;
+    let now_ms = crate::ui::state::current_time_ms();
+    state.file_list_animation_start_ms = Some(now_ms);
+    state.bookmark_list_animation_start_ms = Some(now_ms);
 
     // Only save metadata after successful state update
     if let Err(e) =
@@ -691,6 +701,15 @@ fn handle_initial_load_complete(state: &mut State) -> Task<Message> {
         .collect();
 
     Task::batch(cmds)
+}
+
+fn prune_notifications(state: &mut State) {
+    state.notification_queue.retain(|n| !n.is_expired());
+    let max_count = crate::ui::state::MAX_NOTIFICATIONS;
+    if state.notification_queue.len() > max_count {
+        let excess = state.notification_queue.len() - max_count;
+        state.notification_queue.drain(0..excess);
+    }
 }
 
 fn handle_cover_thumbnail_generated(

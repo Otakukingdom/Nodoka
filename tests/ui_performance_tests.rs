@@ -421,7 +421,14 @@ fn test_audiobook_list_rendering_with_hover_states() {
 
     // Render audiobook list
     let start = Instant::now();
-    let element = audiobook_list::view(&audiobooks, Some(500), &cover_thumbnails, &scan_state);
+    let element = audiobook_list::view(
+        &audiobooks,
+        Some(500),
+        &cover_thumbnails,
+        &scan_state,
+        0,
+        false,
+    );
     drop(element);
     let render_duration = start.elapsed();
 
@@ -456,7 +463,8 @@ fn test_file_list_rendering_with_progress_bars() {
 
     // Render file list
     let start = Instant::now();
-    let element = file_list::view(&files, Some(&"/test/chapter050.mp3".to_string()));
+    let element =
+        file_list::view(&files, Some(&"/test/chapter050.mp3".to_string()), 0, false);
     drop(element);
     let render_duration = start.elapsed();
 

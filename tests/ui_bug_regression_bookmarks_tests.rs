@@ -79,7 +79,7 @@ fn test_bug_0013_bookmark_missing_file_indication_does_not_panic() {
     let bookmarks = vec![bookmark];
     let files = vec![file];
 
-    let element = nodoka::ui::components::bookmarks::view(&bookmarks, &files);
+    let element = nodoka::ui::components::bookmarks::view(&bookmarks, &files, 0, false);
     drop(element);
 }
 

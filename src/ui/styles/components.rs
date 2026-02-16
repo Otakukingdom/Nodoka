@@ -241,3 +241,155 @@ pub mod button_styles {
         style
     }
 }
+
+/// Empty state component styling utilities
+///
+/// Provides consistent styling for empty state components following
+/// ui-ux-pro-max visual hierarchy specifications.
+pub mod empty_state_styles {
+    use super::{border_radius, colors, Border, Color};
+
+    /// Returns container style for empty state background
+    ///
+    /// Creates subtle background tint with border to distinguish
+    /// empty state area from main content.
+    #[must_use]
+    pub fn container_style(_theme: &iced::Theme) -> iced::widget::container::Style {
+        iced::widget::container::Style {
+            background: Some(colors::BG_SECONDARY.into()),
+            border: Border {
+                color: colors::BORDER_DEFAULT,
+                width: 2.0,
+                radius: border_radius::LG.into(),
+            },
+            ..Default::default()
+        }
+    }
+
+    /// Icon color for empty state (secondary text color)
+    pub const ICON_COLOR: Color = colors::TEXT_SECONDARY;
+
+    /// Heading color for empty state (primary text color)
+    pub const HEADING_COLOR: Color = colors::TEXT_PRIMARY;
+
+    /// Description color for empty state (secondary text color)
+    pub const DESCRIPTION_COLOR: Color = colors::TEXT_SECONDARY;
+}
+
+/// Notification toast styling utilities
+///
+/// Provides consistent styling for notification toasts following
+/// ui-ux-pro-max feedback patterns with semantic color variants.
+///
+/// # Notification Variants
+///
+/// - **Success** (Green): Positive confirmation, auto-dismiss 3s
+/// - **Info** (Blue): Neutral information, auto-dismiss 3s
+/// - **Warning** (Orange): Caution/attention needed, auto-dismiss 5s
+/// - **Error** (Red): Critical issue, manual dismiss only
+pub mod notification_styles {
+    use super::{border_radius, shadows, Border, Color};
+    use crate::ui::state::NotificationType;
+
+    /// Returns background color for notification variant
+    ///
+    /// Per ui-ux-pro-max: use semantic colors with sufficient contrast
+    /// for WCAG AA compliance (4.5:1 minimum).
+    #[must_use]
+    pub const fn background_color(kind: &NotificationType) -> Color {
+        match kind {
+            NotificationType::Success => Color::from_rgb(0.11, 0.50, 0.11), // Darker green for WCAG AA (4.5:1)
+            NotificationType::Info => Color::from_rgb(0.0, 0.46, 0.78), // Darker blue for WCAG AA (4.5:1)
+            NotificationType::Warning => Color::from_rgb(0.70, 0.38, 0.0), // Much darker orange for WCAG AA (4.5:1)
+            NotificationType::Error => Color::from_rgb(0.75, 0.0, 0.0), // Darker red for WCAG AA (4.5:1)
+        }
+    }
+
+    /// Returns text color for notification (always white for contrast)
+    pub const TEXT_COLOR: Color = Color::WHITE;
+
+    /// Returns icon color for notification (always white)
+    pub const ICON_COLOR: Color = Color::WHITE;
+
+    /// Returns container style for notification toast
+    ///
+    /// Creates elevated notification with shadow and rounded corners.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(content)
+    ///     .style(notification_styles::container_style(&NotificationType::Success))
+    /// ```
+    #[must_use]
+    pub fn container_style(kind: &NotificationType) -> iced::widget::container::Style {
+        iced::widget::container::Style {
+            background: Some(background_color(kind).into()),
+            text_color: Some(TEXT_COLOR),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_lg(),
+            ..Default::default()
+        }
+    }
+
+    /// Returns progress bar color for countdown indicator
+    ///
+    /// Uses semi-transparent white overlay for visibility on any background.
+    pub const PROGRESS_COLOR: Color = Color::from_rgba(1.0, 1.0, 1.0, 0.3);
+
+    /// Returns progress bar background color
+    pub const PROGRESS_BG: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.2);
+}
+
+/// Tooltip styling utilities
+///
+/// Provides consistent styling for tooltips following ui-ux-pro-max
+/// discoverability patterns.
+///
+/// # Tooltip Specifications
+///
+/// - **Max width**: 250px to prevent overly long tooltips
+/// - **Background**: Dark semi-transparent for contrast on any surface
+/// - **Text**: White for WCAG AAA contrast ratio
+/// - **Font size**: `SIZE_SM` (14px) for readability without obtrusiveness
+/// - **Padding**: 8px horizontal, 12px vertical for comfortable spacing
+/// - **Border radius**: `RADIUS_SM` (4px) for consistency
+/// - **Shadow**: `shadow_md` for elevation
+pub mod tooltip_styles {
+    use super::{border_radius, shadows, Color};
+
+    /// Maximum tooltip width in pixels
+    pub const MAX_WIDTH: f32 = 250.0;
+
+    /// Tooltip background color (dark semi-transparent)
+    pub const BACKGROUND_COLOR: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.9);
+
+    /// Tooltip text color (white for high contrast)
+    pub const TEXT_COLOR: Color = Color::WHITE;
+
+    /// Tooltip padding (vertical, horizontal) in pixels
+    pub const PADDING_VERTICAL: f32 = 8.0;
+    pub const PADDING_HORIZONTAL: f32 = 12.0;
+
+    /// Returns container style for tooltip
+    #[must_use]
+    pub fn container_style(_theme: &iced::Theme) -> iced::widget::container::Style {
+        use super::Border;
+
+        iced::widget::container::Style {
+            background: Some(BACKGROUND_COLOR.into()),
+            text_color: Some(TEXT_COLOR),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::SM.into(),
+            },
+            shadow: shadows::shadow_md(),
+            ..Default::default()
+        }
+    }
+}

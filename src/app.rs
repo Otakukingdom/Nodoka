@@ -191,6 +191,10 @@ impl iced::Program for App {
                 tracing::error!("Failed to load audiobooks: {e}");
             }
         }
+        state.ui_time_ms = crate::ui::state::current_time_ms();
+        if !state.audiobooks.is_empty() {
+            state.audiobook_list_animation_start_ms = Some(state.ui_time_ms);
+        }
 
         // Load settings
         if let Ok(Some(volume_str)) = crate::db::queries::get_metadata(flags.connection(), "volume")
@@ -281,6 +285,8 @@ impl iced::Program for App {
         if state.selected_file.is_some() {
             subs.push(iced::time::every(Duration::from_secs(1)).map(|_| Message::PlayerTick));
         }
+
+        subs.push(iced::time::every(Duration::from_millis(50)).map(|_| Message::UiTick));
 
         subs.push(iced::event::listen_with(
             |event, _status, _id| match event {

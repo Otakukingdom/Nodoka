@@ -163,7 +163,6 @@ REQUIRED_DOCS=(
     "README.md"
     "CHANGELOG.md"
     "LICENSE"
-    "design-system/nodoka-audiobook-player/MASTER.md"
 )
 
 for doc in "${REQUIRED_DOCS[@]}"; do

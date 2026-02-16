@@ -65,8 +65,7 @@
 //!
 //! # References
 //!
-//! - Design System: `.opencode/skills/ui-ux-pro-max/design-system/nodoka-audiobook-player/MASTER.md`
-//! - UX Guidelines: `.opencode/skills/ui-ux-pro-max/data/ux-guidelines.csv`
+//! - Design System: [`colors`], [`layout`], [`components`], [`interactive`]
 //! - WCAG 2.1: <https://www.w3.org/WAI/WCAG21/quickref/>
 
 use iced::theme::Palette;

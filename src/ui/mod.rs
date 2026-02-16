@@ -98,8 +98,8 @@
 //!
 //! ### Design System Compliance
 //!
-//! The UI follows a comprehensive design system documented in
-//! `design-system/nodoka-audiobook-player/MASTER.md`:
+//! The UI follows a comprehensive design system documented in rustdoc
+//! across the [`styles`] module:
 //!
 //! - **Color Palette**: Vibrant rose (#E11D48) + engagement blue (#2563EB)
 //! - **Typography**: Atkinson Hyperlegible (accessible, WCAG-compliant, dyslexia-friendly)
@@ -195,8 +195,8 @@ mod media_paths;
 mod message;
 pub mod settings_form;
 pub mod shortcuts;
-mod state;
-mod styles;
+pub mod state;
+pub mod styles;
 pub mod update;
 
 pub use message::Message;

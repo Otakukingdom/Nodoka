@@ -154,18 +154,18 @@ fn test_empty_state_rendering() {
     let audiobooks = vec![];
     let cover_thumbnails = HashMap::new();
     let scan_state = ScanState::Idle;
-    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state);
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state, 0, false);
     drop(element);
 
     // Empty file list
     let files = vec![];
-    let element = file_list::view(&files, None);
+    let element = file_list::view(&files, None, 0, false);
     drop(element);
 
     // Empty bookmark list
     let bookmarks = vec![];
     let files = vec![];
-    let element = bookmarks::view(&bookmarks, &files);
+    let element = bookmarks::view(&bookmarks, &files, 0, false);
     drop(element);
 }
 
@@ -182,7 +182,7 @@ fn test_skeleton_ui_during_scan() {
     };
 
     // Should render skeleton UI instead of empty state
-    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state);
+    let element = audiobook_list::view(&audiobooks, None, &cover_thumbnails, &scan_state, 0, false);
     drop(element);
 }
 

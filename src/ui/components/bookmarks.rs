@@ -1,9 +1,9 @@
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
-use crate::ui::styles::{button_styles, spacing, typography};
+use crate::ui::styles::{animations, button_styles, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
-use iced::{Element, Length};
+use iced::{Color, Element, Length};
 
 /// Renders the bookmark list view with improved visual design
 ///
@@ -16,7 +16,12 @@ use iced::{Element, Length};
 /// - Keyboard shortcuts (N for new, E for edit)
 /// - Improved spacing and typography
 #[must_use]
-pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Element<'a, Message> {
+pub fn view<'a>(
+    bookmarks: &'a [Bookmark],
+    files: &'a [AudiobookFile],
+    animation_elapsed_ms: u64,
+    prefers_reduced_motion: bool,
+) -> Element<'a, Message> {
     let header = row![
         text("Bookmarks").size(typography::SIZE_LG),
         Space::new().width(Length::Fill),
@@ -29,7 +34,7 @@ pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Elemen
 
     let items: Element<_> = if bookmarks.is_empty() {
         super::empty_state(
-            Some("🔖"),
+            Some("◆"),
             "No Bookmarks",
             "Create bookmarks to mark important positions in your audiobooks.",
             Some("Add Bookmark"),
@@ -38,8 +43,11 @@ pub fn view<'a>(bookmarks: &'a [Bookmark], files: &'a [AudiobookFile]) -> Elemen
     } else {
         bookmarks
             .iter()
-            .fold(column![].spacing(spacing::XS), |col, bm| {
-                col.push(bookmark_row(bm, files))
+            .enumerate()
+            .fold(column![].spacing(spacing::XS), |col, (index, bm)| {
+                let animation =
+                    list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
+                col.push(bookmark_row(bm, files, animation))
             })
             .into()
     };
@@ -104,7 +112,11 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
 /// - Visual indicators for missing files with WARNING color
 /// - Note indicator badge for bookmarks with notes
 /// - Improved spacing and visual hierarchy
-fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Message> {
+fn bookmark_row(
+    bm: &Bookmark,
+    files: &[AudiobookFile],
+    animation: ListItemAnimation,
+) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
     use iced::Border;
 
@@ -118,6 +130,7 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
     } else {
         bm.label.clone()
     };
+    let opacity = animation.opacity;
 
     let pos = format_position(bm.position_ms);
     let id = bm.id;
@@ -125,13 +138,13 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
     // Timestamp badge with colored background per ui-ux-pro-max
     let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
         |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(colors::TEXT_ON_PRIMARY),
+            color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         },
     ))
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(|_theme: &iced::Theme| container::Style {
-        background: Some(colors::ACCENT.into()),
-        text_color: Some(colors::TEXT_ON_PRIMARY),
+        background: Some(with_alpha(colors::ACCENT, opacity).into()),
+        text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
             radius: border_radius::SM.into(),
             ..Default::default()
@@ -145,13 +158,13 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
             text("NOTE")
                 .size(typography::SIZE_XS)
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_ON_PRIMARY),
+                    color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 }),
         )
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
         .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::INFO.into()),
-            text_color: Some(colors::TEXT_ON_PRIMARY),
+            background: Some(with_alpha(colors::INFO, opacity).into()),
+            text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
                 radius: border_radius::SM.into(),
                 ..Default::default()
@@ -165,23 +178,74 @@ fn bookmark_row(bm: &Bookmark, files: &[AudiobookFile]) -> Element<'static, Mess
     row![
         timestamp_badge,
         note_badge,
-        button(text(label_text).size(typography::SIZE_SM))
+        button(
+            text(label_text)
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+                }),
+        )
             .on_press_maybe(id.map(Message::BookmarkJump))
             .padding(spacing::SM),
         Space::new().width(Length::Fill),
-        button(text("Edit (E)").size(typography::SIZE_XS))
+        button(
+            text("Edit (E)")
+                .size(typography::SIZE_XS)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+                }),
+        )
             .on_press_maybe(id.map(Message::BookmarkEdit))
             .padding(spacing::SM)
             .style(button_styles::secondary),
-        button(text("Delete").size(typography::SIZE_XS))
+        button(
+            text("Delete")
+                .size(typography::SIZE_XS)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+                }),
+        )
             .on_press_maybe(id.map(Message::BookmarkDelete))
             .padding(spacing::SM)
             .style(button_styles::danger),
     ]
     .spacing(spacing::SM)
-    .padding(spacing::SM)
+    .padding(iced::Padding {
+        top: spacing::SM + animation.offset_y,
+        bottom: spacing::SM,
+        left: spacing::SM,
+        right: spacing::SM,
+    })
     .align_y(iced::Alignment::Center)
     .into()
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ListItemAnimation {
+    opacity: f32,
+    offset_y: f32,
+}
+
+fn list_item_animation(index: usize, elapsed_ms: u64, prefers_reduced_motion: bool) -> ListItemAnimation {
+    if prefers_reduced_motion {
+        return ListItemAnimation {
+            opacity: 1.0,
+            offset_y: 0.0,
+        };
+    }
+    ListItemAnimation {
+        opacity: animations::stagger_opacity(index, 50, elapsed_ms),
+        offset_y: animations::stagger_translate_y(index, 50, elapsed_ms),
+    }
+}
+
+fn with_alpha(color: Color, alpha: f32) -> Color {
+    Color {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: (color.a * alpha).clamp(0.0, 1.0),
+    }
 }
 
 /// Formats position in milliseconds to human-readable time string

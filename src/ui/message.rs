@@ -63,6 +63,7 @@ pub enum Message {
     // Player events
     PlayerTimeUpdated(f64),
     PlayerTick,
+    UiTick,
 
     // Background tasks
     ScanComplete(String, Vec<crate::tasks::DiscoveredAudiobook>),

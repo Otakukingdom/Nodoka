@@ -167,14 +167,35 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 }
 
 fn library_panels(state: &State) -> Element<'_, Message> {
+    let audiobook_elapsed = list_animation_elapsed_ms(
+        state.audiobook_list_animation_start_ms,
+        state.ui_time_ms,
+    );
+    let file_elapsed =
+        list_animation_elapsed_ms(state.file_list_animation_start_ms, state.ui_time_ms);
+    let bookmark_elapsed =
+        list_animation_elapsed_ms(state.bookmark_list_animation_start_ms, state.ui_time_ms);
+
     let audiobook_list_widget = audiobook_list::view(
         &state.audiobooks,
         state.selected_audiobook,
         &state.cover_thumbnails,
         &state.scan_state,
+        audiobook_elapsed,
+        state.prefers_reduced_motion,
     );
-    let file_list_widget = file_list::view(&state.current_files, state.selected_file.as_ref());
-    let bookmarks_widget = bookmarks::view(&state.bookmarks, &state.current_files);
+    let file_list_widget = file_list::view(
+        &state.current_files,
+        state.selected_file.as_ref(),
+        file_elapsed,
+        state.prefers_reduced_motion,
+    );
+    let bookmarks_widget = bookmarks::view(
+        &state.bookmarks,
+        &state.current_files,
+        bookmark_elapsed,
+        state.prefers_reduced_motion,
+    );
 
     let audiobook_panel_focused = state.focused_element == FocusedElement::AudiobookList;
     let right_panel_focused = matches!(
@@ -197,6 +218,10 @@ fn library_panels(state: &State) -> Element<'_, Message> {
     .height(Length::Fill)
     .spacing(spacing::SM)
     .into()
+}
+
+fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
+    start_ms.map_or(0, |start| now_ms.saturating_sub(start))
 }
 
 fn modal_backdrop(on_press: Message) -> Element<'static, Message> {
@@ -406,6 +431,12 @@ fn notification_area(state: &State) -> Element<'_, Message> {
 }
 
 /// Renders a single notification toast with semantic colors
+///
+/// Enhanced features (v0.3.0):
+/// - Title + message support for two-line notifications
+/// - Countdown progress bar for auto-dismiss notifications
+/// - Action button support for contextual operations
+/// - Dismiss button for manual close
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
     use crate::ui::state::NotificationType;
     use iced::Shadow;
@@ -417,36 +448,139 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
         NotificationType::Error => (colors::ERROR, "✕"),
     };
 
-    container(
-        row![
-            // Icon indicator
-            container(text(icon_text).size(typography::SIZE_LG))
-                .width(Length::Fixed(32.0))
-                .center_x(Length::Fill),
-            // Message text
-            text(&notification.message)
-                .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_ON_PRIMARY),
-                }),
-        ]
-        .spacing(spacing::SM)
-        .align_y(iced::Alignment::Center),
-    )
-    .padding(spacing::MD)
-    .width(Length::Fill)
-    .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(bg_color.into()),
-        text_color: Some(colors::TEXT_ON_PRIMARY),
-        border: Border {
-            radius: border_radius::MD.into(),
+    let content_col = notification_content_column(notification);
+    let mut main_content = notification_main_content(icon_text, content_col);
+
+    if let (Some(action_label), Some(action_message)) =
+        (&notification.action_label, notification.action_message.clone())
+    {
+        main_content = main_content.push(notification_action_button(action_label, action_message));
+    }
+
+    let (progress_portion, remaining_portion) = notification.dismiss_progress_portions();
+    if progress_portion < 100 {
+        main_content = main_content.push(notification_progress_bar(
+            progress_portion,
+            remaining_portion,
+        ));
+    }
+
+    container(main_content)
+        .padding(spacing::MD)
+        .width(Length::Fill)
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(bg_color.into()),
+            text_color: Some(colors::TEXT_ON_PRIMARY),
+            border: Border {
+                radius: border_radius::MD.into(),
+                ..Default::default()
+            },
+            shadow: Shadow {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
+                offset: iced::Vector::new(0.0, 2.0),
+                blur_radius: 8.0,
+            },
             ..Default::default()
+        })
+        .into()
+}
+
+/// Builds notification content column with optional title and message
+fn notification_content_column(
+    notification: &crate::ui::state::Notification,
+) -> iced::widget::Column<'_, Message> {
+    let mut content_col = column![].spacing(spacing::XS);
+
+    if let Some(title) = &notification.title {
+        content_col = content_col.push(text(title).size(typography::SIZE_BASE).style(
+            |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(colors::TEXT_ON_PRIMARY),
+            },
+        ));
+    }
+
+    content_col = content_col.push(text(&notification.message).size(typography::SIZE_SM).style(
+        |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(colors::TEXT_ON_PRIMARY),
         },
-        shadow: Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
-            offset: iced::Vector::new(0.0, 2.0),
-            blur_radius: 8.0,
+    ));
+
+    content_col
+}
+
+/// Builds main notification content with icon and text
+fn notification_main_content<'a>(
+    icon_text: &'static str,
+    content_col: iced::widget::Column<'a, Message>,
+) -> iced::widget::Column<'a, Message> {
+    column![row![
+        container(text(icon_text).size(typography::SIZE_LG))
+            .width(Length::Fixed(32.0))
+            .center_y(Length::Fill)
+            .center_x(Length::Fill),
+        container(content_col).width(Length::Fill),
+    ]
+    .spacing(spacing::SM)
+    .align_y(iced::Alignment::Start),]
+    .spacing(spacing::XS)
+}
+
+/// Creates notification action button
+fn notification_action_button(action_label: &str, action_message: Message) -> Element<'_, Message> {
+    let action_btn = button(text(action_label).size(typography::SIZE_SM).style(
+        |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(colors::TEXT_ON_PRIMARY),
         },
+    ))
+    .on_press(action_message)
+    .padding(iced::Padding {
+        top: spacing::XS,
+        bottom: spacing::XS,
+        left: spacing::SM,
+        right: spacing::SM,
+    })
+    .style(move |_theme: &iced::Theme, status| {
+        let bg = if matches!(status, iced::widget::button::Status::Hovered) {
+            Color::from_rgba(1.0, 1.0, 1.0, 0.2)
+        } else {
+            Color::from_rgba(1.0, 1.0, 1.0, 0.1)
+        };
+
+        iced::widget::button::Style {
+            background: Some(bg.into()),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    });
+
+    container(action_btn)
+        .width(Length::Fill)
+        .align_x(iced::alignment::Horizontal::Right)
+        .into()
+}
+
+/// Creates notification progress bar for auto-dismiss countdown
+fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> Element<'static, Message> {
+    let progress_bar = container(Space::new())
+        .width(Length::FillPortion(progress_portion))
+        .height(Length::Fixed(3.0))
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.6).into()),
+            ..Default::default()
+        });
+
+    container(row![
+        progress_bar,
+        Space::new().width(Length::FillPortion(remaining_portion)),
+    ])
+    .width(Length::Fill)
+    .height(Length::Fixed(3.0))
+    .style(|_theme: &iced::Theme| container::Style {
+        background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.2).into()),
         ..Default::default()
     })
     .into()

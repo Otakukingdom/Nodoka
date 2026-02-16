@@ -91,7 +91,12 @@ pub(super) fn handle_directory_remove(
         tracing::error!("Failed to delete directory: {e}");
     } else {
         state.directories.retain(|d| d.full_path != path);
+        let before_len = state.audiobooks.len();
         state.audiobooks.retain(|a| a.directory != path);
+        if state.audiobooks.len() != before_len {
+            state.audiobook_list_animation_start_ms =
+                Some(crate::ui::state::current_time_ms());
+        }
         if should_clear_selection {
             super::reset_playback_state(state, player);
             state.selected_audiobook = None;
@@ -178,6 +183,7 @@ fn update_state_with_discovered_audiobooks(
     state: &mut State,
     audiobooks: &[crate::models::Audiobook],
 ) {
+    let mut added_any = false;
     for audiobook in audiobooks {
         let exists = state
             .audiobooks
@@ -186,7 +192,12 @@ fn update_state_with_discovered_audiobooks(
 
         if !exists {
             state.audiobooks.push(audiobook.clone());
+            added_any = true;
         }
+    }
+    if added_any {
+        state.audiobook_list_animation_start_ms =
+            Some(crate::ui::state::current_time_ms());
     }
 }
 

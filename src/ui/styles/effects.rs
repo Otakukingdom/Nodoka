@@ -95,6 +95,11 @@ pub mod cursor {
 pub mod animations {
     use super::transitions;
 
+    fn u64_to_f32(value: u64) -> f32 {
+        let clamped = u32::try_from(value).unwrap_or(u32::MAX);
+        f32::from(clamped)
+    }
+
     /// Returns appropriate transition duration based on reduced motion preference
     ///
     /// # Examples
@@ -230,11 +235,11 @@ pub mod animations {
         /// let eased = easing::ease_out_bounce(t); // Bounces at end
         /// ```
         #[must_use]
-        #[allow(clippy::suboptimal_flops)] // Mathematical formula requires specific operations
         pub fn ease_out_bounce(t: f32) -> f32 {
             let t = t.clamp(0.0, 1.0);
             if t < 1.0 / 2.75 {
-                7.5625 * t * t
+                let t2 = t * t;
+                7.5625 * t2
             } else if t < 2.0 / 2.75 {
                 let t = t - 1.5 / 2.75;
                 7.5625_f32.mul_add(t * t, 0.75)
@@ -260,20 +265,19 @@ pub mod animations {
         /// let eased = easing::ease_out_elastic(t); // Spring effect at end
         /// ```
         #[must_use]
-        #[allow(clippy::float_cmp)] // Exact comparison needed for edge cases
-        #[allow(clippy::suboptimal_flops)] // Mathematical formula requires specific operations
-        #[allow(clippy::imprecise_flops)] // Using exp2 would change mathematical meaning
         pub fn ease_out_elastic(t: f32) -> f32 {
             let t = t.clamp(0.0, 1.0);
-            if t == 0.0 {
+            if t <= f32::EPSILON {
                 0.0
-            } else if t == 1.0 {
+            } else if (1.0 - t).abs() <= f32::EPSILON {
                 1.0
             } else {
                 let p = 0.3;
                 let s = p / 4.0;
                 let t1 = t - 1.0;
-                2_f32.powf(-10.0 * t1) * ((t1 - s) * (2.0 * std::f32::consts::PI) / p).sin() + 1.0
+                (-10.0 * t1).exp2()
+                    * ((t1 - s) * (2.0 * std::f32::consts::PI) / p).sin()
+                    + 1.0
             }
         }
     }
@@ -354,15 +358,13 @@ pub mod animations {
         /// // Use opacity for element alpha channel
         /// ```
         #[must_use]
-        #[allow(clippy::suboptimal_flops)] // Clear formula more important than optimization
         pub fn opacity(&self) -> f32 {
             if self.duration_ms == 0 {
                 return self.to;
             }
-            #[allow(clippy::cast_precision_loss)]
-            let progress = self.elapsed_ms as f32 / self.duration_ms as f32;
+            let progress = u64_to_f32(self.elapsed_ms) / u64_to_f32(self.duration_ms);
             let eased = easing::ease_out(progress);
-            self.from + (self.to - self.from) * eased
+            self.to.mul_add(eased, self.from * (1.0 - eased))
         }
 
         /// Returns whether transition is complete
@@ -451,15 +453,13 @@ pub mod animations {
         /// // Apply scale to element size or use for transform calculation
         /// ```
         #[must_use]
-        #[allow(clippy::suboptimal_flops)] // Clear formula more important than optimization
         pub fn scale(&self) -> f32 {
             if self.duration_ms == 0 {
                 return self.to;
             }
-            #[allow(clippy::cast_precision_loss)]
-            let progress = self.elapsed_ms as f32 / self.duration_ms as f32;
+            let progress = u64_to_f32(self.elapsed_ms) / u64_to_f32(self.duration_ms);
             let eased = easing::ease_out(progress);
-            self.from + (self.to - self.from) * eased
+            self.to.mul_add(eased, self.from * (1.0 - eased))
         }
 
         /// Returns whether transition is complete
@@ -495,6 +495,68 @@ pub mod animations {
     #[must_use]
     pub const fn stagger_delay(index: usize, stagger_ms: u64) -> u64 {
         index as u64 * stagger_ms
+    }
+
+    /// Calculates stagger opacity for list item animations
+    ///
+    /// Returns opacity value based on stagger timing, creating a fade-in effect.
+    /// Per ui-ux-pro-max: cap stagger effect at 15 items to prevent excessive delays.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - Zero-based index of the item
+    /// * `delay_ms` - Delay between items in milliseconds (typically 50ms)
+    /// * `elapsed_ms` - Total elapsed time since animation start
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let opacity = animations::stagger_opacity(2, 50, 200);
+    /// // Returns 1.0 if elapsed_ms >= item_delay + 200, otherwise interpolated
+    /// ```
+    #[must_use]
+    pub fn stagger_opacity(index: usize, delay_ms: u64, elapsed_ms: u64) -> f32 {
+        // Cap stagger at 15 items per ui-ux-pro-max guidelines
+        let capped_index = index.min(15);
+        let item_delay = stagger_delay(capped_index, delay_ms);
+
+        if elapsed_ms < item_delay {
+            0.0
+        } else {
+            let progress = u64_to_f32(elapsed_ms - item_delay) / 200.0;
+            easing::ease_out(progress.min(1.0))
+        }
+    }
+
+    /// Calculates stagger vertical translation for list item animations
+    ///
+    /// Returns Y-offset value for slide-up animation effect.
+    /// Items start 20px below their final position and slide up.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - Zero-based index of the item
+    /// * `delay_ms` - Delay between items in milliseconds (typically 50ms)
+    /// * `elapsed_ms` - Total elapsed time since animation start
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let offset_y = animations::stagger_translate_y(2, 50, 200);
+    /// // Returns 0.0 when fully animated, 20.0 before animation starts
+    /// ```
+    #[must_use]
+    pub fn stagger_translate_y(index: usize, delay_ms: u64, elapsed_ms: u64) -> f32 {
+        // Cap stagger at 15 items per ui-ux-pro-max guidelines
+        let capped_index = index.min(15);
+        let item_delay = stagger_delay(capped_index, delay_ms);
+
+        if elapsed_ms < item_delay {
+            20.0 // Start 20px below
+        } else {
+            let progress = u64_to_f32(elapsed_ms - item_delay) / 200.0;
+            20.0 * (1.0 - easing::ease_out(progress.min(1.0)))
+        }
     }
 
     /// Pulse animation for indicating active/playing state
@@ -557,8 +619,7 @@ pub mod animations {
             if self.duration_ms == 0 {
                 return; // Avoid division by zero
             }
-            #[allow(clippy::cast_precision_loss)]
-            let progress = delta_ms as f32 / self.duration_ms as f32;
+            let progress = u64_to_f32(delta_ms) / u64_to_f32(self.duration_ms);
             self.phase = (self.phase + progress).rem_euclid(1.0);
         }
 
@@ -584,6 +645,204 @@ pub mod animations {
         /// Resets animation to start
         pub const fn reset(&mut self) {
             self.phase = 0.0;
+        }
+    }
+
+    /// Modal overlay animation system
+    ///
+    /// Provides state machine and animation utilities for modal entrance/exit
+    /// transitions following ui-ux-pro-max guidelines.
+    ///
+    /// # Animation Specifications
+    ///
+    /// - **Entrance**: 300ms ease-out with backdrop fade-in and content scale-up
+    /// - **Exit**: 200ms ease-in with backdrop fade-out and content scale-down
+    /// - **Reduced motion**: Instant appearance/disappearance when enabled
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use nodoka::ui::styles::animations::ModalState;
+    ///
+    /// let mut modal = ModalState::Opening { elapsed_ms: 0 };
+    /// modal.update(16); // Update with frame delta
+    /// let opacity = modal.backdrop_opacity();
+    /// let scale = modal.content_scale();
+    /// ```
+    pub mod modal {
+        use super::easing;
+
+        /// Modal animation state machine
+        ///
+        /// Tracks current state of modal animation for proper rendering.
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub enum ModalState {
+            /// Modal is not visible
+            Closed,
+            /// Modal is animating in (0-300ms)
+            Opening { elapsed_ms: u64 },
+            /// Modal is fully visible
+            Open,
+            /// Modal is animating out (0-200ms)
+            Closing { elapsed_ms: u64 },
+        }
+
+        impl ModalState {
+            /// Duration of modal opening animation in milliseconds
+            pub const OPENING_DURATION_MS: u64 = 300;
+
+            /// Duration of modal closing animation in milliseconds
+            pub const CLOSING_DURATION_MS: u64 = 200;
+
+            /// Maximum backdrop opacity (semi-transparent black)
+            pub const MAX_BACKDROP_OPACITY: f32 = 0.5;
+
+            /// Updates modal animation state
+            ///
+            /// Call this each frame with elapsed time since last update.
+            /// Automatically transitions to `Open` or `Closed` when animation completes.
+            ///
+            /// # Arguments
+            ///
+            /// * `delta_ms` - Milliseconds elapsed since last update
+            ///
+            /// # Examples
+            ///
+            /// ```ignore
+            /// if let ModalState::Opening { .. } = &mut modal_state {
+            ///     modal_state.update(16); // Advance by one frame at 60fps
+            /// }
+            /// ```
+            pub const fn update(&mut self, delta_ms: u64) {
+                match self {
+                    Self::Opening { elapsed_ms } => {
+                        *elapsed_ms += delta_ms;
+                        if *elapsed_ms >= Self::OPENING_DURATION_MS {
+                            *self = Self::Open;
+                        }
+                    }
+                    Self::Closing { elapsed_ms } => {
+                        *elapsed_ms += delta_ms;
+                        if *elapsed_ms >= Self::CLOSING_DURATION_MS {
+                            *self = Self::Closed;
+                        }
+                    }
+                    Self::Open | Self::Closed => {}
+                }
+            }
+
+            /// Returns current backdrop opacity (0.0 to 0.5)
+            ///
+            /// Animates from 0.0 to 0.5 during opening, and 0.5 to 0.0 during closing.
+            ///
+            /// # Examples
+            ///
+            /// ```ignore
+            /// let opacity = modal_state.backdrop_opacity();
+            /// // Use opacity for backdrop overlay color
+            /// ```
+            #[must_use]
+            pub fn backdrop_opacity(&self) -> f32 {
+                match self {
+                    Self::Closed => 0.0,
+                    Self::Opening { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                                .min(1.0);
+                        Self::MAX_BACKDROP_OPACITY * easing::ease_out(progress)
+                    }
+                    Self::Open => Self::MAX_BACKDROP_OPACITY,
+                    Self::Closing { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                                .min(1.0);
+                        Self::MAX_BACKDROP_OPACITY * (1.0 - easing::ease_in(progress))
+                    }
+                }
+            }
+
+            /// Returns current content scale factor (0.9 to 1.0)
+            ///
+            /// Creates subtle pop-in effect during opening with ease-out easing.
+            /// Content scales from 0.9 to 1.0 for gentle entrance.
+            ///
+            /// # Examples
+            ///
+            /// ```ignore
+            /// let scale = modal_state.content_scale();
+            /// // Apply scale to modal content container
+            /// ```
+            #[must_use]
+            pub fn content_scale(&self) -> f32 {
+                match self {
+                    Self::Closed | Self::Closing { .. } => 0.9,
+                    Self::Opening { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                                .min(1.0);
+                        0.1_f32.mul_add(easing::ease_out(progress), 0.9)
+                    }
+                    Self::Open => 1.0,
+                }
+            }
+
+            /// Returns current content opacity (0.0 to 1.0)
+            ///
+            /// Fades in content concurrently with scale animation.
+            ///
+            /// # Examples
+            ///
+            /// ```ignore
+            /// let opacity = modal_state.content_opacity();
+            /// ```
+            #[must_use]
+            pub fn content_opacity(&self) -> f32 {
+                match self {
+                    Self::Closed => 0.0,
+                    Self::Opening { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                                .min(1.0);
+                        easing::ease_out(progress)
+                    }
+                    Self::Open => 1.0,
+                    Self::Closing { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                                .min(1.0);
+                        1.0 - easing::ease_in(progress)
+                    }
+                }
+            }
+
+            /// Returns whether modal is currently visible (any state except Closed)
+            #[must_use]
+            pub const fn is_visible(&self) -> bool {
+                !matches!(self, Self::Closed)
+            }
+
+            /// Starts opening animation
+            ///
+            /// Transitions from `Closed` to `Opening`.
+            pub const fn open(&mut self) {
+                if matches!(self, Self::Closed) {
+                    *self = Self::Opening { elapsed_ms: 0 };
+                }
+            }
+
+            /// Starts closing animation
+            ///
+            /// Transitions from `Open` or `Opening` to `Closing`.
+            pub const fn close(&mut self) {
+                if matches!(self, Self::Open | Self::Opening { .. }) {
+                    *self = Self::Closing { elapsed_ms: 0 };
+                }
+            }
         }
     }
 }
