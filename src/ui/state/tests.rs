@@ -22,8 +22,6 @@ fn test_state_default_values() {
     assert!(state.sleep_timer_custom_error.is_none());
     assert_eq!(state.active_modal, ActiveModal::None);
     assert_eq!(state.load_state, LoadState::Loading);
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
     assert_eq!(state.scan_state, ScanState::Idle);
     assert_eq!(state.focused_element, FocusedElement::None);
     assert!(!state.operation_in_progress);
@@ -31,11 +29,13 @@ fn test_state_default_values() {
     assert!(state.notification_queue.is_empty());
     assert!(state.pulse_animations.is_empty());
     assert!(state.transition_states.is_empty());
-    assert!((state.modal_animation_progress).abs() < f32::EPSILON);
+    assert_eq!(state.modal_state, crate::ui::styles::animations::modal::ModalState::Closed);
+    assert!(!state.modal_pending_close);
     assert_eq!(state.ui_time_ms, 0);
     assert!(state.audiobook_list_animation_start_ms.is_none());
     assert!(state.file_list_animation_start_ms.is_none());
     assert!(state.bookmark_list_animation_start_ms.is_none());
+    assert!(state.tooltip_state.visible().is_none());
 }
 
 #[test]
@@ -491,11 +491,14 @@ fn test_state_with_transition_states() {
 }
 
 #[test]
-fn test_state_modal_animation_progress() {
+fn test_state_modal_state_override() {
     let state = State {
-        modal_animation_progress: 0.5,
+        modal_state: crate::ui::styles::animations::modal::ModalState::Open,
         ..Default::default()
     };
 
-    assert!((state.modal_animation_progress - 0.5).abs() < f32::EPSILON);
+    assert_eq!(
+        state.modal_state,
+        crate::ui::styles::animations::modal::ModalState::Open
+    );
 }

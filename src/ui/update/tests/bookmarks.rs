@@ -2,6 +2,7 @@ use super::{CountingFailingLoadPlayer, RecordingSeekPlayer};
 use crate::db::{self, Database};
 use crate::models::{Audiobook, AudiobookFile, Bookmark};
 use crate::ui::{ActiveModal, Message, State};
+use crate::ui::state::NotificationType;
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -64,7 +65,7 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
         "bookmark jump should not change selection when load fails"
     );
     assert!(
-        state.error_message.is_some(),
+        state.notification_queue.iter().any(|n| n.kind == NotificationType::Error),
         "bookmark jump should surface load failure to user"
     );
     assert!(
@@ -75,7 +76,7 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
 }
 
 #[test]
-fn test_bookmark_jump_seeks_after_successful_load_clears_error(
+fn test_bookmark_jump_seeks_after_successful_load_no_error_notification(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
@@ -104,8 +105,6 @@ fn test_bookmark_jump_seeks_after_successful_load_clears_error(
 
     let mut state = State {
         selected_audiobook: Some(audiobook_id),
-        error_message: Some("Stale error".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
         bookmarks: vec![bookmark],
         ..Default::default()
     };
@@ -133,12 +132,11 @@ fn test_bookmark_jump_seeks_after_successful_load_clears_error(
         "bookmark jump should update current_time after successful load"
     );
     assert!(
-        state.error_message.is_none(),
-        "stale error message should be cleared after successful load"
-    );
-    assert!(
-        state.error_timestamp.is_none(),
-        "stale error timestamp should be cleared after successful load"
+        !state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error),
+        "successful bookmark jump should not create error notification"
     );
     Ok(())
 }

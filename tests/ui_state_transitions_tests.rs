@@ -27,6 +27,7 @@ fn test_modal_close_order_bookmark_editor_then_settings() -> Result<(), Box<dyn 
             note: String::new(),
         }),
         active_modal: nodoka::ui::ActiveModal::Settings,
+        prefers_reduced_motion: true,
         ..State::default()
     };
 
@@ -82,8 +83,6 @@ fn test_scan_error_sets_error_and_stops_scanning() -> Result<(), Box<dyn Error>>
     );
 
     assert_eq!(state.scan_state, ScanState::Idle);
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
     assert_eq!(state.notification_queue.len(), 1);
     let notification = &state.notification_queue[0];
     assert!(
@@ -93,25 +92,6 @@ fn test_scan_error_sets_error_and_stops_scanning() -> Result<(), Box<dyn Error>>
             .contains("failed to scan directory"),
         "ScanError should produce a user-facing notification message"
     );
-
-    Ok(())
-}
-
-#[test]
-fn test_dismiss_error_clears_message_and_timestamp() -> Result<(), Box<dyn Error>> {
-    let db = create_test_db()?;
-    let mut player = None;
-    let now = chrono::Utc::now();
-    let mut state = State {
-        error_message: Some("Test error".to_string()),
-        error_timestamp: Some(now),
-        ..State::default()
-    };
-
-    let _task = nodoka::ui::update::update(&mut state, Message::DismissError, &mut player, &db);
-
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
 
     Ok(())
 }

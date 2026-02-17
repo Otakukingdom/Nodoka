@@ -49,6 +49,7 @@
 //! | <kbd>Ctrl</kbd>+<kbd>B</kbd> | Create Bookmark | Create bookmark at current position |
 //! | <kbd>Escape</kbd> | Close Modal | Close open modal dialog (settings, bookmark editor, help) |
 //! | <kbd>F1</kbd> | Keyboard Help | Show keyboard shortcuts help overlay |
+//! | <kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd> | Focus Cycle | Move focus forward/backward |
 //!
 //! On macOS, <kbd>Ctrl</kbd> is replaced with <kbd>Cmd</kbd> for bookmark creation.
 //!
@@ -196,6 +197,7 @@ mod message;
 pub mod settings_form;
 pub mod shortcuts;
 pub mod state;
+pub mod tooltip;
 pub mod styles;
 pub mod update;
 

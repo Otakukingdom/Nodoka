@@ -151,8 +151,6 @@ pub(super) fn handle_scan_complete(
 
     // Clear scanning state and any previous errors
     state.scan_state = ScanState::Idle;
-    state.error_message = None;
-    state.error_timestamp = None;
 
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
 
@@ -185,8 +183,6 @@ pub(super) fn handle_scan_complete(
 
 pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Task<Message> {
     state.scan_state = ScanState::Idle;
-    state.error_message = None;
-    state.error_timestamp = None;
     state
         .notification_queue
         .retain(|notification| notification.kind != NotificationType::Error);

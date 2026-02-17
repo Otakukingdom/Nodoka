@@ -13,7 +13,7 @@ use iced::{Element, Length};
 /// - Improved spacing and padding for better scannability
 /// - Visual grouping of primary/secondary actions
 #[must_use]
-pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
+pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Message> {
     let directory_list: Element<_> = if state.directories.is_empty() {
         column![text("No audiobook directories configured").size(typography::SIZE_SM)]
             .padding(spacing::MD)
@@ -94,12 +94,20 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
                     button(text("Add Directory").size(typography::SIZE_SM))
                         .on_press(Message::DirectoryAdd)
                         .padding(spacing::MD)
-                        .style(button_styles::primary),
+                        .style(if state.focused_element == crate::ui::FocusedElement::SettingsAddDirectoryButton {
+                            button_styles::primary_focused
+                        } else {
+                            button_styles::primary
+                        }),
                     Space::new().width(Length::Fill),
                     button(text("Close").size(typography::SIZE_SM))
                         .on_press(Message::CloseSettings)
                         .padding(spacing::MD)
-                        .style(button_styles::secondary),
+                        .style(if state.focused_element == crate::ui::FocusedElement::SettingsCloseButton {
+                            button_styles::secondary_focused
+                        } else {
+                            button_styles::secondary
+                        }),
                 ]
                 .spacing(spacing::MD)
             )
@@ -113,8 +121,8 @@ pub fn build_settings_dialog(state: &State) -> Element<'static, Message> {
         .padding(spacing::XL)
         .spacing(spacing::SM),
     )
-    .width(Length::Fixed(600.0))
-    .height(Length::Fixed(500.0))
+    .width(Length::Fixed(600.0 * scale))
+    .height(Length::Fixed(500.0 * scale))
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()
@@ -133,7 +141,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -145,7 +153,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -161,7 +169,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -175,7 +183,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -191,7 +199,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -206,7 +214,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -222,7 +230,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -234,7 +242,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -246,7 +254,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 
@@ -261,7 +269,7 @@ mod tests {
             ..Default::default()
         };
 
-        let element = build_settings_dialog(&state);
+        let element = build_settings_dialog(&state, 1.0);
         drop(element);
     }
 }

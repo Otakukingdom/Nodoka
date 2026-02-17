@@ -1,5 +1,7 @@
 use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use crate::ui::Message;
+use crate::ui::styles::animations::modal::ModalState;
+use crate::ui::tooltip::TooltipState;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -394,7 +396,7 @@ fn u64_to_f32(value: u64) -> f32 {
 ///
 /// Note: iced 0.14 does not expose a stable, cross-widget focus API,
 /// so we track focus in application state as a workaround.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FocusedElement {
     #[default]
     None,
@@ -407,8 +409,18 @@ pub enum FocusedElement {
     FileList,
     BookmarkList,
     SettingsButton,
-    AddDirectoryButton,
-    AddBookmarkButton,
+    SettingsAddDirectoryButton,
+    SettingsCloseButton,
+    BookmarkEditorCancelButton,
+    BookmarkEditorSaveButton,
+    KeyboardHelpCloseButton,
+}
+
+/// Ripple animation target identifiers for interactive feedback.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RippleTarget {
+    PlayPauseButton,
+    StopButton,
 }
 
 /// Active modal overlay state
@@ -484,10 +496,6 @@ pub struct State {
     pub active_modal: ActiveModal,
     pub load_state: LoadState,
 
-    // Error handling state
-    pub error_message: Option<String>,
-    pub error_timestamp: Option<chrono::DateTime<chrono::Utc>>,
-
     // Directory scanning state
     pub scan_state: ScanState,
 
@@ -506,15 +514,20 @@ pub struct State {
     // Animation tracking for smooth transitions
     pub pulse_animations: HashMap<String, crate::ui::styles::animations::PulseAnimation>,
     pub transition_states: HashMap<String, TransitionState>,
+    pub ripple_animations: HashMap<RippleTarget, crate::ui::styles::interactive::RippleAnimation>,
 
-    // Modal animation progress (0.0 to 1.0)
-    pub modal_animation_progress: f32,
+    // Modal animation state and close coordination
+    pub modal_state: ModalState,
+    pub modal_pending_close: bool,
 
     // UI animation timing (milliseconds since epoch, updated via UiTick)
     pub ui_time_ms: u64,
     pub audiobook_list_animation_start_ms: Option<u64>,
     pub file_list_animation_start_ms: Option<u64>,
     pub bookmark_list_animation_start_ms: Option<u64>,
+
+    // Tooltip tracking for discoverability
+    pub tooltip_state: TooltipState,
 }
 
 impl Default for State {
@@ -539,8 +552,6 @@ impl Default for State {
             sleep_timer_custom_error: None,
             active_modal: ActiveModal::None,
             load_state: LoadState::Loading,
-            error_message: None,
-            error_timestamp: None,
             scan_state: ScanState::Idle,
             focused_element: FocusedElement::None,
             operation_in_progress: false,
@@ -548,11 +559,14 @@ impl Default for State {
             notification_queue: Vec::new(),
             pulse_animations: HashMap::new(),
             transition_states: HashMap::new(),
-            modal_animation_progress: 0.0,
+            ripple_animations: HashMap::new(),
+            modal_state: ModalState::Closed,
+            modal_pending_close: false,
             ui_time_ms: 0,
             audiobook_list_animation_start_ms: None,
             file_list_animation_start_ms: None,
             bookmark_list_animation_start_ms: None,
+            tooltip_state: TooltipState::new(),
         }
     }
 }

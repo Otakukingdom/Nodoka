@@ -185,7 +185,7 @@ fn test_focus_management_navigation_elements() -> std::result::Result<(), Box<dy
 
     // Settings button should receive focus when opened
     let _ = nodoka::ui::update::update(&mut state, Message::OpenSettings, &mut player, &db);
-    assert_eq!(state.focused_element, FocusedElement::SettingsButton);
+    assert_eq!(state.focused_element, FocusedElement::SettingsCloseButton);
 
     let _ = nodoka::ui::update::update(&mut state, Message::CloseSettings, &mut player, &db);
 

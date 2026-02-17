@@ -65,7 +65,10 @@ fn volume_changed_clamps_and_persists() -> Result<(), Box<dyn std::error::Error>
 #[test]
 fn open_settings_sets_modal_state() -> Result<(), Box<dyn std::error::Error>> {
     let db = db_in_memory()?;
-    let mut state = State::default();
+    let mut state = State {
+        prefers_reduced_motion: true,
+        ..State::default()
+    };
     let mut player: Option<Vlc> = None;
 
     let _ = nodoka::ui::update::update(&mut state, Message::OpenSettings, &mut player, &db);
@@ -73,23 +76,6 @@ fn open_settings_sets_modal_state() -> Result<(), Box<dyn std::error::Error>> {
 
     let _ = nodoka::ui::update::update(&mut state, Message::CloseSettings, &mut player, &db);
     assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
-
-    Ok(())
-}
-
-#[test]
-fn dismiss_error_clears_error_state() -> Result<(), Box<dyn std::error::Error>> {
-    let db = db_in_memory()?;
-    let mut state = State {
-        error_message: Some("oops".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
-        ..State::default()
-    };
-    let mut player: Option<Vlc> = None;
-
-    let _ = nodoka::ui::update::update(&mut state, Message::DismissError, &mut player, &db);
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
 
     Ok(())
 }

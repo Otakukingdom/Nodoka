@@ -312,7 +312,10 @@ fn test_bug_0030_file_navigation_blocked_when_modal_open() -> Result<(), Box<dyn
 fn test_bug_0038_rapid_modal_toggle() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let mut player = None;
-    let mut state = State::default();
+    let mut state = State {
+        prefers_reduced_motion: true,
+        ..State::default()
+    };
 
     for _ in 0..10 {
         let _ = nodoka::ui::update::update(

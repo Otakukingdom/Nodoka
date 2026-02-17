@@ -16,7 +16,7 @@ fn test_focus_updates_on_play_pause_and_open_settings(
 
     let _ = super::super::update(&mut state, Message::OpenSettings, &mut player, &db);
     assert_eq!(state.active_modal, crate::ui::ActiveModal::Settings);
-    assert_eq!(state.focused_element, FocusedElement::SettingsButton);
+    assert_eq!(state.focused_element, FocusedElement::SettingsCloseButton);
 
     Ok(())
 }
@@ -79,6 +79,56 @@ fn test_focus_updates_on_volume_speed_and_progress_changes(
 
     let _ = super::super::update(&mut state, Message::SeekTo(123.0), &mut player, &db);
     assert_eq!(state.focused_element, FocusedElement::ProgressSlider);
+
+    Ok(())
+}
+
+#[test]
+fn test_tab_focus_cycles_forward_from_none() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player = None;
+
+    let _ = super::super::update(&mut state, Message::FocusNext, &mut player, &db);
+    assert_eq!(state.focused_element, FocusedElement::SettingsButton);
+
+    Ok(())
+}
+
+#[test]
+fn test_shift_tab_cycles_backward_from_none(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player = None;
+
+    let _ = super::super::update(&mut state, Message::FocusPrevious, &mut player, &db);
+    assert_eq!(state.focused_element, FocusedElement::VolumeSlider);
+
+    Ok(())
+}
+
+#[test]
+fn test_focus_trapped_in_settings_modal(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut state = State::default();
+    let mut player = None;
+
+    let _ = super::super::update(&mut state, Message::OpenSettings, &mut player, &db);
+    assert_eq!(state.active_modal, crate::ui::ActiveModal::Settings);
+
+    let _ = super::super::update(&mut state, Message::FocusNext, &mut player, &db);
+    assert!(matches!(
+        state.focused_element,
+        FocusedElement::SettingsAddDirectoryButton | FocusedElement::SettingsCloseButton
+    ));
 
     Ok(())
 }

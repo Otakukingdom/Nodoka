@@ -353,6 +353,7 @@ fn test_modal_workflow_via_update() -> Result<(), Box<dyn Error>> {
         selected_audiobook: Some(audiobook_id),
         selected_file: Some("/test/file.mp3".to_string()),
         current_time: 5_000.0,
+        prefers_reduced_motion: true,
         ..State::default()
     };
 
@@ -381,7 +382,7 @@ fn test_error_banner_workflow_via_update() -> Result<(), Box<dyn Error>> {
     let mut state = State::default();
     let mut player = None;
 
-    assert!(state.error_message.is_none());
+    assert!(state.notification_queue.is_empty());
 
     let _task = nodoka::ui::update::update(
         &mut state,
@@ -389,8 +390,6 @@ fn test_error_banner_workflow_via_update() -> Result<(), Box<dyn Error>> {
         &mut player,
         &db,
     );
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
     assert_eq!(state.notification_queue.len(), 1);
 
     let notification_id = state.notification_queue[0].id;

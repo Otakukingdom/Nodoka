@@ -84,6 +84,8 @@ pub fn update(
         Message::NextFile => navigation::handle_next_file(state, player, db),
         Message::PreviousFile => navigation::handle_previous_file(state, player, db),
         Message::CloseModal => navigation::handle_close_modal(state),
+        Message::FocusNext => navigation::handle_focus_next(state),
+        Message::FocusPrevious => navigation::handle_focus_previous(state),
 
         // Bookmarks UI
         Message::BookmarkEdit(id) => bookmarks::handle_bookmark_edit(state, id),
@@ -142,10 +144,13 @@ pub fn update(
         Message::HideKeyboardHelp => handle_hide_keyboard_help(state),
 
         // Error handling messages
-        Message::DismissError => handle_dismiss_error(state),
         Message::DismissNotification(notification_id) => {
             handle_dismiss_notification(state, notification_id)
         }
+
+        // Tooltip hover messages
+        Message::TooltipHoverStart(target) => handle_tooltip_hover_start(state, target),
+        Message::TooltipHoverEnd => handle_tooltip_hover_end(state),
 
         // Scan messages
         Message::ScanComplete(directory, discovered) => {
@@ -172,7 +177,18 @@ pub fn update(
 }
 
 fn handle_ui_tick(state: &mut State) -> Task<Message> {
-    state.ui_time_ms = crate::ui::state::current_time_ms();
+    let now = crate::ui::state::current_time_ms();
+    let delta_ms = if state.ui_time_ms == 0 {
+        0
+    } else {
+        now.saturating_sub(state.ui_time_ms)
+    };
+    state.ui_time_ms = now;
+    update_modal_animation(state, delta_ms);
+    update_ripples(state, delta_ms);
+    state
+        .tooltip_state
+        .update(now, state.prefers_reduced_motion);
     prune_notifications(state);
     Task::none()
 }
@@ -217,6 +233,14 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
     }
 
     state.focused_element = FocusedElement::PlayPauseButton;
+    state.ripple_animations.insert(
+        crate::ui::state::RippleTarget::PlayPauseButton,
+        crate::ui::styles::interactive::RippleAnimation::new(
+            iced::Point::new(0.0, 0.0),
+            80.0,
+            state.prefers_reduced_motion,
+        ),
+    );
 
     if let Some(ref mut p) = player {
         if state.playback == PlaybackStatus::Playing {
@@ -236,6 +260,14 @@ fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<Messag
 
 fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<Message> {
     state.focused_element = FocusedElement::StopButton;
+    state.ripple_animations.insert(
+        crate::ui::state::RippleTarget::StopButton,
+        crate::ui::styles::interactive::RippleAnimation::new(
+            iced::Point::new(0.0, 0.0),
+            80.0,
+            state.prefers_reduced_motion,
+        ),
+    );
 
     if let Some(ref mut p) = player {
         if let Err(e) = p.stop() {
@@ -468,8 +500,11 @@ fn handle_audiobook_selected(
         Ok(files) => files,
         Err(e) => {
             tracing::error!("Failed to load audiobook files: {e}");
-            state.error_message = Some("Failed to load audiobook files".to_string());
-            state.error_timestamp = Some(chrono::Utc::now());
+            state
+                .notification_queue
+                .push(crate::ui::state::Notification::error(
+                    "Failed to load audiobook files".to_string(),
+                ));
             return Task::none();
         }
     };
@@ -478,8 +513,11 @@ fn handle_audiobook_selected(
         Ok(bookmarks) => bookmarks,
         Err(e) => {
             tracing::error!("Failed to load bookmarks: {e}");
-            state.error_message = Some("Failed to load bookmarks".to_string());
-            state.error_timestamp = Some(chrono::Utc::now());
+            state
+                .notification_queue
+                .push(crate::ui::state::Notification::error(
+                    "Failed to load bookmarks".to_string(),
+                ));
             return Task::none();
         }
     };
@@ -611,8 +649,11 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
         let playback_path = if path.starts_with("zip://") {
             if parse_zip_virtual_path(path).is_none() {
                 tracing::warn!("Rejecting malformed ZIP virtual path: {path}");
-                state.error_message = Some("Invalid ZIP virtual path".to_string());
-                state.error_timestamp = Some(chrono::Utc::now());
+                state
+                    .notification_queue
+                    .push(crate::ui::state::Notification::error(
+                        "Invalid ZIP virtual path".to_string(),
+                    ));
                 return FileSelectionOutcome {
                     task: Task::none(),
                     file_loaded: false,
@@ -623,8 +664,11 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                 Ok(p) => p,
                 Err(e) => {
                     tracing::error!("Failed to extract ZIP entry for playback: {e}");
-                    state.error_message = Some(format!("Failed to extract audio file: {e}"));
-                    state.error_timestamp = Some(chrono::Utc::now());
+                    state
+                        .notification_queue
+                        .push(crate::ui::state::Notification::error(format!(
+                            "Failed to extract audio file: {e}"
+                        )));
                     return FileSelectionOutcome {
                         task: Task::none(),
                         file_loaded: false,
@@ -637,8 +681,11 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
         if let Err(e) = p.load_media(&playback_path) {
             tracing::error!("Failed to load media: {e}");
-            state.error_message = Some(format!("Failed to load audio file: {e}"));
-            state.error_timestamp = Some(chrono::Utc::now());
+            state
+                .notification_queue
+                .push(crate::ui::state::Notification::error(format!(
+                    "Failed to load audio file: {e}"
+                )));
             return FileSelectionOutcome {
                 task: Task::none(),
                 file_loaded: false,
@@ -650,13 +697,14 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
 
         if let Err(e) = p.play() {
             tracing::error!("Failed to auto-play: {e}");
-            state.error_message = Some(format!("Failed to start playback: {e}"));
-            state.error_timestamp = Some(chrono::Utc::now());
+            state
+                .notification_queue
+                .push(crate::ui::state::Notification::error(format!(
+                    "Failed to start playback: {e}"
+                )));
             state.playback = PlaybackStatus::Paused;
         } else {
             state.playback = PlaybackStatus::Playing;
-            state.error_message = None;
-            state.error_timestamp = None;
         }
         return FileSelectionOutcome {
             task: Task::none(),
@@ -664,8 +712,6 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
         };
     } else {
         persist_selected_file(state, db, path);
-        state.error_message = None;
-        state.error_timestamp = None;
         return FileSelectionOutcome {
             task: Task::none(),
             file_loaded: true,
@@ -678,14 +724,14 @@ fn handle_open_settings(state: &mut State) -> Task<Message> {
     // Close any other open modals to maintain single modal invariant
     state.bookmark_editor = None;
     state.active_modal = crate::ui::ActiveModal::Settings;
-    state.focused_element = FocusedElement::SettingsButton;
+    state.focused_element = FocusedElement::SettingsCloseButton;
+    open_modal(state);
     Task::none()
 }
 
 // Cannot be const fn because Task::none() is not const
 fn handle_close_settings(state: &mut State) -> Task<Message> {
-    state.active_modal = crate::ui::ActiveModal::None;
-    state.focused_element = FocusedElement::None;
+    request_modal_close(state);
     Task::none()
 }
 
@@ -693,17 +739,13 @@ fn handle_show_keyboard_help(state: &mut State) -> Task<Message> {
     // Close any other open modals to maintain single modal invariant
     state.bookmark_editor = None;
     state.active_modal = crate::ui::ActiveModal::KeyboardHelp;
+    state.focused_element = FocusedElement::KeyboardHelpCloseButton;
+    open_modal(state);
     Task::none()
 }
 
 fn handle_hide_keyboard_help(state: &mut State) -> Task<Message> {
-    state.active_modal = crate::ui::ActiveModal::None;
-    Task::none()
-}
-
-fn handle_dismiss_error(state: &mut State) -> Task<Message> {
-    state.error_message = None;
-    state.error_timestamp = None;
+    request_modal_close(state);
     Task::none()
 }
 
@@ -740,6 +782,83 @@ fn prune_notifications(state: &mut State) {
         let excess = state.notification_queue.len() - max_count;
         state.notification_queue.drain(0..excess);
     }
+}
+
+fn handle_tooltip_hover_start(
+    state: &mut State,
+    target: crate::ui::tooltip::TooltipTarget,
+) -> Task<Message> {
+    let tooltip = target.tooltip();
+    let now = if state.ui_time_ms == 0 {
+        crate::ui::state::current_time_ms()
+    } else {
+        state.ui_time_ms
+    };
+    state.tooltip_state.start_hover(tooltip, now);
+    Task::none()
+}
+
+fn handle_tooltip_hover_end(state: &mut State) -> Task<Message> {
+    state.tooltip_state.end_hover();
+    Task::none()
+}
+
+pub(super) fn open_modal(state: &mut State) {
+    state.modal_pending_close = false;
+    if state.prefers_reduced_motion {
+        state.modal_state = crate::ui::styles::animations::modal::ModalState::Open;
+    } else {
+        state.modal_state = crate::ui::styles::animations::modal::ModalState::Opening {
+            elapsed_ms: 0,
+        };
+    }
+}
+
+pub(super) fn request_modal_close(state: &mut State) {
+    if state.bookmark_editor.is_some() && state.active_modal != crate::ui::ActiveModal::None {
+        state.bookmark_editor = None;
+        state.modal_pending_close = false;
+        state.modal_state = crate::ui::styles::animations::modal::ModalState::Open;
+        state.focused_element = FocusedElement::None;
+        return;
+    }
+
+    if state.prefers_reduced_motion {
+        if state.bookmark_editor.is_some() {
+            state.bookmark_editor = None;
+        } else {
+            state.active_modal = crate::ui::ActiveModal::None;
+        }
+        state.modal_state = crate::ui::styles::animations::modal::ModalState::Closed;
+        state.focused_element = FocusedElement::None;
+        state.modal_pending_close = false;
+    } else {
+        state.modal_pending_close = true;
+        state.modal_state.close();
+    }
+}
+
+fn update_modal_animation(state: &mut State, delta_ms: u64) {
+    state.modal_state.update(delta_ms);
+    if state.modal_pending_close
+        && matches!(state.modal_state, crate::ui::styles::animations::modal::ModalState::Closed)
+    {
+        if state.bookmark_editor.is_some() {
+            state.bookmark_editor = None;
+        } else {
+            state.active_modal = crate::ui::ActiveModal::None;
+        }
+        state.focused_element = FocusedElement::None;
+        state.modal_pending_close = false;
+    }
+}
+
+fn update_ripples(state: &mut State, delta_ms: u64) {
+    state
+        .ripple_animations
+        .iter_mut()
+        .for_each(|(_, ripple)| ripple.update(delta_ms));
+    state.ripple_animations.retain(|_, ripple| !ripple.is_complete());
 }
 
 fn handle_cover_thumbnail_generated(

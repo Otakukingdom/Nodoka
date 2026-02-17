@@ -26,6 +26,8 @@ pub enum Message {
     NextFile,
     PreviousFile,
     CloseModal, // Escape to close any open modal
+    FocusNext,
+    FocusPrevious,
 
     // Bookmarks UI
     BookmarkEdit(i64),
@@ -58,8 +60,11 @@ pub enum Message {
     HideKeyboardHelp,
 
     // Error handling
-    DismissError,
     DismissNotification(u64),
+
+    // Tooltip hover tracking
+    TooltipHoverStart(crate::ui::tooltip::TooltipTarget),
+    TooltipHoverEnd,
 
     // Player events
     PlayerTimeUpdated(f64),

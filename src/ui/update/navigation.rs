@@ -132,10 +132,78 @@ pub(super) fn handle_previous_file(
 
 pub(super) fn handle_close_modal(state: &mut State) -> Task<Message> {
     if state.bookmark_editor.is_some() {
-        state.bookmark_editor = None;
+        super::request_modal_close(state);
     } else if state.active_modal != crate::ui::ActiveModal::None {
-        state.active_modal = crate::ui::ActiveModal::None;
+        super::request_modal_close(state);
     }
-    state.focused_element = FocusedElement::None;
     Task::none()
+}
+
+pub(super) fn handle_focus_next(state: &mut State) -> Task<Message> {
+    cycle_focus(state, true);
+    Task::none()
+}
+
+pub(super) fn handle_focus_previous(state: &mut State) -> Task<Message> {
+    cycle_focus(state, false);
+    Task::none()
+}
+
+fn cycle_focus(state: &mut State, forward: bool) {
+    let modal_active = state.active_modal != crate::ui::ActiveModal::None
+        || state.bookmark_editor.is_some();
+
+    let focus_order: &[FocusedElement] = if modal_active {
+        match state.active_modal {
+            crate::ui::ActiveModal::Settings => &[
+                FocusedElement::SettingsAddDirectoryButton,
+                FocusedElement::SettingsCloseButton,
+            ],
+            crate::ui::ActiveModal::KeyboardHelp => &[FocusedElement::KeyboardHelpCloseButton],
+            crate::ui::ActiveModal::BookmarkEditor => &[
+                FocusedElement::BookmarkEditorCancelButton,
+                FocusedElement::BookmarkEditorSaveButton,
+            ],
+            crate::ui::ActiveModal::None => {
+                if state.bookmark_editor.is_some() {
+                    &[
+                        FocusedElement::BookmarkEditorCancelButton,
+                        FocusedElement::BookmarkEditorSaveButton,
+                    ]
+                } else {
+                    &[]
+                }
+            }
+        }
+    } else {
+        &[
+            FocusedElement::SettingsButton,
+            FocusedElement::AudiobookList,
+            FocusedElement::FileList,
+            FocusedElement::BookmarkList,
+            FocusedElement::PlayPauseButton,
+            FocusedElement::StopButton,
+            FocusedElement::ProgressSlider,
+            FocusedElement::SpeedSlider,
+            FocusedElement::VolumeSlider,
+        ]
+    };
+
+    if focus_order.is_empty() {
+        state.focused_element = FocusedElement::None;
+        return;
+    }
+
+    let current_index = focus_order
+        .iter()
+        .position(|elem| *elem == state.focused_element);
+
+    let next_index = match (current_index, forward) {
+        (Some(idx), true) => (idx + 1) % focus_order.len(),
+        (Some(idx), false) => idx.checked_sub(1).unwrap_or(focus_order.len() - 1),
+        (None, true) => 0,
+        (None, false) => focus_order.len() - 1,
+    };
+
+    state.focused_element = focus_order[next_index];
 }

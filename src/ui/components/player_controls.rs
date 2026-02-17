@@ -1,9 +1,10 @@
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
+use crate::ui::state::RippleTarget;
 use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
-use iced::widget::{button, column, container, row, slider, text, text_input, Space};
-use iced::{Element, Length};
+use iced::widget::{button, column, container, mouse_area, row, slider, stack, text, text_input, Space};
+use iced::{Border, Color, Element, Length};
 
 /// Renders the player controls component with improved UX
 ///
@@ -32,22 +33,30 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     let speed_step = speed_step_from_speed(state.speed);
 
+    let progress_container = container({
+        let max_duration = state.total_duration.max(1.0);
+        let current_time = state.current_time.clamp(0.0, max_duration);
+        slider(0.0..=max_duration, current_time, Message::SeekTo).height(24.0)
+        // Larger height for better grab affordance
+    })
+    .style(focus_indicator(
+        state.focused_element == FocusedElement::ProgressSlider,
+    ))
+    .padding(iced::Padding::from([spacing::MD, 0.0]));
+
+    let progress_slider = mouse_area(progress_container)
+        .on_enter(Message::TooltipHoverStart(
+            crate::ui::tooltip::TooltipTarget::Progress,
+        ))
+        .on_exit(Message::TooltipHoverEnd);
+
     column![
         // Currently playing label with better typography
         container(text(format!("Now Playing: {current_file_text}")).size(typography::SIZE_SM))
             .padding(spacing::SM),
         // Progress slider with larger touch target for accessibility
         // BUG FIX #001: Ensure slider range and value are consistent to prevent invalid seeks
-        container({
-            let max_duration = state.total_duration.max(1.0);
-            let current_time = state.current_time.clamp(0.0, max_duration);
-            slider(0.0..=max_duration, current_time, Message::SeekTo).height(24.0)
-            // Larger height for better grab affordance
-        })
-        .style(focus_indicator(
-            state.focused_element == FocusedElement::ProgressSlider,
-        ))
-        .padding(iced::Padding::from([spacing::MD, 0.0])), // Increased vertical padding
+        progress_slider, // Increased vertical padding
         // Time markers with better spacing
         row![
             text(format_time(state.current_time)).size(typography::SIZE_SM),
@@ -59,16 +68,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
         // Use LG spacing (24px) between major control sections for clear visual hierarchy
         row![
             playback_controls(
+                state,
                 play_pause_label,
                 state.focused_element == FocusedElement::PlayPauseButton,
                 state.focused_element == FocusedElement::StopButton,
             ),
             Space::new().width(Length::Fixed(spacing::LG)),
-            speed_controls(
-                state,
-                speed_step,
-                state.focused_element == FocusedElement::SpeedSlider,
-            ),
+            speed_controls(state, speed_step, state.focused_element == FocusedElement::SpeedSlider),
             Space::new().width(Length::Fixed(spacing::LG)),
             volume_controls(state, state.focused_element == FocusedElement::VolumeSlider),
         ]
@@ -86,42 +92,100 @@ const SPEED_STEP_MIN: i32 = 10;
 const SPEED_STEP_MAX: i32 = 40;
 
 fn playback_controls(
+    state: &State,
     play_pause_label: &'static str,
     play_pause_focused: bool,
     stop_focused: bool,
 ) -> Element<'static, Message> {
-    container(
-        row![
-            // Ensure 44x44px minimum touch target per WCAG 2.1 Level AAA
-            button(text(play_pause_label).size(typography::SIZE_BASE))
-                .on_press(Message::PlayPause)
-                .padding(spacing::MD) // MD (16px) * 2 + text height ensures 44px+ height
-                .width(Length::Fixed(100.0)) // Explicit width for consistency
-                .style(if play_pause_focused {
-                    button_styles::primary_focused
-                } else {
-                    button_styles::primary
-                }),
-            button(text("Stop").size(typography::SIZE_BASE))
-                .on_press(Message::Stop)
-                .padding(spacing::MD)
-                .width(Length::Fixed(100.0))
-                .style(if stop_focused {
-                    button_styles::secondary_focused
-                } else {
-                    button_styles::secondary
-                }),
-        ]
-        .spacing(spacing::SM),
-    )
-    .into()
+    let play_button = button(text(play_pause_label).size(typography::SIZE_BASE))
+        .on_press(Message::PlayPause)
+        .padding(spacing::MD)
+        .width(Length::Fixed(100.0))
+        .style(if play_pause_focused {
+            button_styles::primary_focused
+        } else {
+            button_styles::primary
+        });
+
+    let stop_button = button(text("Stop").size(typography::SIZE_BASE))
+        .on_press(Message::Stop)
+        .padding(spacing::MD)
+        .width(Length::Fixed(100.0))
+        .style(if stop_focused {
+            button_styles::secondary_focused
+        } else {
+            button_styles::secondary
+        });
+
+    let play_button = mouse_area(ripple_stack(
+        play_button.into(),
+        state.ripple_animations.get(&RippleTarget::PlayPauseButton),
+    ))
+    .on_enter(Message::TooltipHoverStart(
+        crate::ui::tooltip::TooltipTarget::PlayPause,
+    ))
+    .on_exit(Message::TooltipHoverEnd);
+
+    let stop_button = mouse_area(ripple_stack(
+        stop_button.into(),
+        state.ripple_animations.get(&RippleTarget::StopButton),
+    ))
+    .on_enter(Message::TooltipHoverStart(
+        crate::ui::tooltip::TooltipTarget::Stop,
+    ))
+    .on_exit(Message::TooltipHoverEnd);
+
+    container(row![play_button, stop_button].spacing(spacing::SM)).into()
+}
+
+fn ripple_stack(
+    base: Element<'static, Message>,
+    ripple: Option<&crate::ui::styles::interactive::RippleAnimation>,
+) -> Element<'static, Message> {
+    let Some(ripple) = ripple else {
+        return base;
+    };
+
+    let radius = ripple.radius();
+    if radius <= 0.0 {
+        return base;
+    }
+
+    let diameter = radius * 2.0;
+    let opacity = ripple.opacity();
+    let origin = ripple.origin();
+    let circle = container(Space::new())
+        .width(Length::Fixed(diameter))
+        .height(Length::Fixed(diameter))
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(Color::from_rgba(1.0, 1.0, 1.0, opacity).into()),
+            border: Border {
+                radius: (diameter / 2.0).into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    let overlay = container(circle)
+        .padding(iced::Padding {
+            top: origin.y.max(0.0),
+            bottom: 0.0,
+            left: origin.x.max(0.0),
+            right: 0.0,
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill);
+
+    stack![base, overlay].into()
 }
 
 fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'_, Message> {
     // Micro-interaction: highlight current speed preset button with primary style
     // Per ui-ux-pro-max: provide immediate visual feedback for current state
 
-    container(
+    let content = container(
         column![
             row![
                 text("Speed:").size(typography::SIZE_SM),
@@ -187,8 +251,14 @@ fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'
         ]
         .spacing(spacing::XS),
     )
-    .style(focus_indicator(is_focused))
-    .into()
+    .style(focus_indicator(is_focused));
+
+    mouse_area(content)
+        .on_enter(Message::TooltipHoverStart(
+            crate::ui::tooltip::TooltipTarget::Speed,
+        ))
+        .on_exit(Message::TooltipHoverEnd)
+        .into()
 }
 
 fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
@@ -196,7 +266,7 @@ fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     let volume_level = volume_to_level(state.volume);
     let volume_color = volume_level_color(volume_level);
 
-    container(
+    let content = container(
         row![
             text("Volume:").size(typography::SIZE_SM),
             slider(0..=200, state.volume, Message::VolumeChanged)
@@ -211,8 +281,14 @@ fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
         ]
         .spacing(spacing::SM),
     )
-    .style(focus_indicator(is_focused))
-    .into()
+    .style(focus_indicator(is_focused));
+
+    mouse_area(content)
+        .on_enter(Message::TooltipHoverStart(
+            crate::ui::tooltip::TooltipTarget::Volume,
+        ))
+        .on_exit(Message::TooltipHoverEnd)
+        .into()
 }
 
 fn volume_to_level(volume: i32) -> f32 {

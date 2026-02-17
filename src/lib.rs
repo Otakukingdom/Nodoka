@@ -197,7 +197,7 @@
 //! // - notification_queue: Vec<Notification>
 //! // - active_modal: ActiveModal
 //! // - prefers_reduced_motion: bool
-//! // - modal_animation_progress: f32
+//! // - modal_state: ModalState
 //! ```
 //!
 //! #### Notification System

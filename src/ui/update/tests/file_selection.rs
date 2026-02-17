@@ -5,6 +5,7 @@ use crate::db::{self, Database};
 use crate::error::Error;
 use crate::models::{Audiobook, AudiobookFile};
 use crate::ui::{Message, PlaybackStatus, State};
+use crate::ui::state::NotificationType;
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -77,8 +78,6 @@ fn test_handle_file_selected_clears_error_on_successful_play(
 
     let mut state = State {
         selected_audiobook: Some(audiobook_id),
-        error_message: Some("Stale error".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
         ..Default::default()
     };
 
@@ -94,10 +93,12 @@ fn test_handle_file_selected_clears_error_on_successful_play(
 
     assert_eq!(load_calls.get(), 1, "media should be loaded");
     assert_eq!(play_calls.get(), 1, "play should be attempted");
-    assert_eq!(state.error_message, None, "stale error should clear");
-    assert_eq!(
-        state.error_timestamp, None,
-        "stale error timestamp should clear"
+    assert!(
+        !state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error),
+        "successful playback should not create error notification"
     );
     assert_eq!(state.playback, PlaybackStatus::Playing);
     Ok(())
@@ -133,7 +134,10 @@ fn test_handle_file_selected_sets_paused_on_play_failure(
     let _cmd = handle_file_selected(&mut state, &mut player, &db, file_path);
 
     assert!(
-        state.error_message.is_some(),
+        state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error),
         "play failure should surface error"
     );
     assert_eq!(
@@ -167,14 +171,15 @@ fn test_handle_file_selected_rejects_malformed_zip_virtual_paths(
         "malformed ZIP virtual path should not call load_media"
     );
 
-    let msg = state.error_message.as_deref().ok_or("missing error")?;
+    let msg = state
+        .notification_queue
+        .iter()
+        .find(|n| n.kind == NotificationType::Error)
+        .map(|n| n.message.as_str())
+        .ok_or("missing error")?;
     assert!(
         msg.to_lowercase().contains("zip") && msg.to_lowercase().contains("invalid"),
         "error should mention invalid ZIP virtual path"
-    );
-    assert!(
-        state.error_timestamp.is_some(),
-        "error should set timestamp"
     );
     assert!(
         state.selected_file.is_none(),

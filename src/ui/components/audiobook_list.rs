@@ -2,7 +2,7 @@ use crate::models::Audiobook;
 use crate::ui::state::ScanState;
 use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{button, column, container, image, progress_bar, row, scrollable, text, Space};
+use iced::widget::{button, column, container, image, mouse_area, progress_bar, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
@@ -107,7 +107,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
 
     // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
     // Includes pressed state for tactile feedback using interactive overlay
-    button(content_container)
+    let item_button = button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
         .style(move |_theme: &iced::Theme, status| {
@@ -143,7 +143,13 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                     ..button::Style::default()
                 },
             }
-        })
+        });
+
+    mouse_area(item_button)
+        .on_enter(Message::TooltipHoverStart(
+            crate::ui::tooltip::TooltipTarget::AudiobookItem,
+        ))
+        .on_exit(Message::TooltipHoverEnd)
         .into()
 }
 

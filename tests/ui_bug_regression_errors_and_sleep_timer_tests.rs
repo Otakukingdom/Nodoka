@@ -4,6 +4,7 @@
 
 use nodoka::models::{SleepTimer, SleepTimerMode};
 use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
+use nodoka::ui::state::NotificationType;
 use std::error::Error;
 
 mod acceptance_support;
@@ -257,8 +258,12 @@ fn test_bug_0024_audiobook_selection_load_files_failure_does_not_clear_state(
     assert!((state.total_duration - 456.0).abs() < f64::EPSILON);
 
     assert!(
-        matches!(state.error_message.as_deref(), Some(m) if m.contains("Failed to load audiobook files")),
-        "Expected an error message indicating files failed to load"
+        state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error
+                && n.message.contains("Failed to load audiobook files")),
+        "Expected an error notification indicating files failed to load"
     );
 
     Ok(())
@@ -341,8 +346,12 @@ fn test_bug_0024_audiobook_selection_load_bookmarks_failure_does_not_clear_state
     assert!((state.total_duration - 456.0).abs() < f64::EPSILON);
 
     assert!(
-        matches!(state.error_message.as_deref(), Some(m) if m.contains("Failed to load bookmarks")),
-        "Expected an error message indicating bookmarks failed to load"
+        state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error
+                && n.message.contains("Failed to load bookmarks")),
+        "Expected an error notification indicating bookmarks failed to load"
     );
 
     Ok(())
@@ -357,8 +366,9 @@ fn test_bug_0024_audiobook_selection_load_bookmarks_failure_does_not_clear_state
 #[test]
 fn test_bug_0025_errors_cleared_on_success() {
     let mut state = State {
-        error_message: Some("Failed to scan directory: Permission denied".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
+        notification_queue: vec![nodoka::ui::state::Notification::error(
+            "Failed to scan directory: Permission denied".to_string(),
+        )],
         scan_state: ScanState::Scanning {
             directory: Some("/test/audiobooks".to_string()),
         },
@@ -367,16 +377,16 @@ fn test_bug_0025_errors_cleared_on_success() {
 
     // Simulate successful scan completion
     state.scan_state = ScanState::Idle;
-    state.error_message = None;
-    state.error_timestamp = None;
+    state
+        .notification_queue
+        .retain(|n| n.kind != NotificationType::Error);
 
     assert!(
-        state.error_message.is_none(),
-        "Error message should be cleared on successful operation"
-    );
-    assert!(
-        state.error_timestamp.is_none(),
-        "Error timestamp should be cleared on successful operation"
+        !state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error),
+        "Error notifications should be cleared on successful operation"
     );
 }
 
@@ -458,31 +468,37 @@ fn test_bug_0043_error_message_special_characters() {
     let error_with_unicode = "Error: 文件找不到";
 
     let state_newline = State {
-        error_message: Some(error_with_newline.to_string()),
+        notification_queue: vec![nodoka::ui::state::Notification::error(
+            error_with_newline.to_string(),
+        )],
         ..Default::default()
     };
-    assert!(matches!(
-        state_newline.error_message.as_deref(),
-        Some(m) if m.contains('\n')
-    ));
+    assert!(state_newline
+        .notification_queue
+        .iter()
+        .any(|n| n.message.contains('\n')));
 
     let state_quotes = State {
-        error_message: Some(error_with_quotes.to_string()),
+        notification_queue: vec![nodoka::ui::state::Notification::error(
+            error_with_quotes.to_string(),
+        )],
         ..Default::default()
     };
-    assert!(matches!(
-        state_quotes.error_message.as_deref(),
-        Some(m) if m.contains('"')
-    ));
+    assert!(state_quotes
+        .notification_queue
+        .iter()
+        .any(|n| n.message.contains('\"')));
 
     let state_unicode = State {
-        error_message: Some(error_with_unicode.to_string()),
+        notification_queue: vec![nodoka::ui::state::Notification::error(
+            error_with_unicode.to_string(),
+        )],
         ..Default::default()
     };
-    assert!(matches!(
-        state_unicode.error_message.as_deref(),
-        Some(m) if m.contains('文')
-    ));
+    assert!(state_unicode
+        .notification_queue
+        .iter()
+        .any(|n| n.message.contains('文')));
 }
 
 /// Bug #0048: Dismissing error immediately after it appears
@@ -493,18 +509,25 @@ fn test_bug_0043_error_message_special_characters() {
 #[test]
 fn test_bug_0048_rapid_error_dismissal() {
     let mut state = State {
-        error_message: Some("Test error".to_string()),
-        error_timestamp: Some(chrono::Utc::now()),
+        notification_queue: vec![nodoka::ui::state::Notification::error(
+            "Test error".to_string(),
+        )],
         ..Default::default()
     };
 
-    assert!(state.error_message.is_some());
+    assert!(state
+        .notification_queue
+        .iter()
+        .any(|n| n.kind == NotificationType::Error));
 
-    state.error_message = None;
-    state.error_timestamp = None;
+    state
+        .notification_queue
+        .retain(|n| n.kind != NotificationType::Error);
 
-    assert!(state.error_message.is_none());
-    assert!(state.error_timestamp.is_none());
+    assert!(!state
+        .notification_queue
+        .iter()
+        .any(|n| n.kind == NotificationType::Error));
 }
 
 /// Bug #0053: Sleep timer cancellation during fade

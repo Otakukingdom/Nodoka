@@ -1,7 +1,7 @@
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
 use crate::ui::styles::{animations, button_styles, spacing, typography};
-use crate::ui::Message;
+use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Color, Element, Length};
 
@@ -65,7 +65,11 @@ pub fn view<'a>(
 /// - Form inputs with proper spacing
 /// - Action buttons with visual grouping
 #[must_use]
-pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
+pub fn editor(
+    editor: &BookmarkEditor,
+    focused_element: FocusedElement,
+    scale: f32,
+) -> Element<'static, Message> {
     let label_input = text_input("Label", &editor.label)
         .on_input(Message::BookmarkEditorLabelChanged)
         .padding(spacing::SM)
@@ -88,12 +92,20 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
                 button(text("Cancel").size(typography::SIZE_SM))
                     .on_press(Message::BookmarkEditorCancel)
                     .padding(spacing::SM)
-                    .style(button_styles::secondary),
+                    .style(if focused_element == FocusedElement::BookmarkEditorCancelButton {
+                        button_styles::secondary_focused
+                    } else {
+                        button_styles::secondary
+                    }),
                 Space::new().width(Length::Fill),
                 button(text("Save").size(typography::SIZE_SM))
                     .on_press(Message::BookmarkEditorSave)
                     .padding(spacing::SM)
-                    .style(button_styles::primary)
+                    .style(if focused_element == FocusedElement::BookmarkEditorSaveButton {
+                        button_styles::primary_focused
+                    } else {
+                        button_styles::primary
+                    })
             ]
             .spacing(spacing::MD)
             .padding(iced::Padding::from([spacing::MD, 0.0]))
@@ -101,7 +113,7 @@ pub fn editor(editor: &BookmarkEditor) -> Element<'static, Message> {
         .spacing(spacing::SM)
         .padding(spacing::MD),
     )
-    .width(Length::Fixed(600.0))
+    .width(Length::Fixed(600.0 * scale))
     .into()
 }
 
@@ -377,7 +389,7 @@ mod tests {
             note: String::new(),
         };
 
-        let element = editor(&editor_state);
+        let element = editor(&editor_state, FocusedElement::BookmarkEditorSaveButton, 1.0);
         drop(element);
     }
 
@@ -392,7 +404,7 @@ mod tests {
             note: "This is a key moment".to_string(),
         };
 
-        let element = editor(&editor_state);
+        let element = editor(&editor_state, FocusedElement::BookmarkEditorSaveButton, 1.0);
         drop(element);
     }
 
@@ -491,7 +503,7 @@ mod tests {
             note: String::new(),
         };
 
-        let element = editor(&editor_state);
+        let element = editor(&editor_state, FocusedElement::BookmarkEditorSaveButton, 1.0);
         drop(element);
     }
 
@@ -506,7 +518,7 @@ mod tests {
             note: String::new(),
         };
 
-        let element = editor(&editor_state);
+        let element = editor(&editor_state, FocusedElement::BookmarkEditorSaveButton, 1.0);
         drop(element);
     }
 

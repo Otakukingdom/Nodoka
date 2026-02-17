@@ -3,7 +3,7 @@
 //! This module provides utilities for applying consistent interactive
 //! overlays to colors following ui-ux-pro-max guidelines.
 
-use iced::Color;
+use iced::{Color, Point};
 
 /// Hover overlay alpha for subtle feedback (5% black overlay)
 pub const HOVER_OVERLAY_ALPHA: f32 = 0.05;
@@ -13,6 +13,12 @@ pub const ACTIVE_OVERLAY_ALPHA: f32 = 0.1;
 
 /// Disabled overlay alpha (40% opacity reduction)
 pub const DISABLED_OVERLAY_ALPHA: f32 = 0.4;
+
+/// Ripple animation duration in milliseconds.
+pub const RIPPLE_DURATION_MS: u64 = 300;
+
+/// Ripple animation maximum opacity.
+pub const RIPPLE_MAX_OPACITY: f32 = 0.2;
 
 /// Interactive element state enum
 ///
@@ -186,4 +192,94 @@ pub const fn should_show_focus_ring(state: InteractiveState) -> bool {
         state,
         InteractiveState::Focus | InteractiveState::HoverFocus
     )
+}
+
+/// Ripple animation state for interactive press feedback.
+///
+/// Per ui-ux-pro-max: use a 300ms ease-out expansion with a subtle fade.
+#[derive(Debug, Clone)]
+pub struct RippleAnimation {
+    origin: Point,
+    elapsed_ms: u64,
+    duration_ms: u64,
+    max_radius: f32,
+}
+
+impl RippleAnimation {
+    /// Creates a new ripple animation.
+    #[must_use]
+    pub const fn new(origin: Point, max_radius: f32, reduced_motion: bool) -> Self {
+        Self {
+            origin,
+            elapsed_ms: 0,
+            duration_ms: if reduced_motion { 0 } else { RIPPLE_DURATION_MS },
+            max_radius,
+        }
+    }
+
+    /// Updates animation progress with elapsed time.
+    pub fn update(&mut self, delta_ms: u64) {
+        self.elapsed_ms = (self.elapsed_ms + delta_ms).min(self.duration_ms);
+    }
+
+    /// Returns animation progress from 0.0 to 1.0.
+    #[must_use]
+    pub fn progress(&self) -> f32 {
+        if self.duration_ms == 0 {
+            return 1.0;
+        }
+        let elapsed = self.elapsed_ms.min(self.duration_ms) as f32;
+        let duration = self.duration_ms as f32;
+        (elapsed / duration).min(1.0)
+    }
+
+    /// Returns eased radius for the ripple.
+    #[must_use]
+    pub fn radius(&self) -> f32 {
+        let t = ease_out_cubic(self.progress());
+        self.max_radius * t
+    }
+
+    /// Returns current opacity for the ripple.
+    #[must_use]
+    pub fn opacity(&self) -> f32 {
+        let t = self.progress();
+        RIPPLE_MAX_OPACITY * (1.0 - t)
+    }
+
+    /// Returns ripple origin point.
+    #[must_use]
+    pub const fn origin(&self) -> Point {
+        self.origin
+    }
+
+    /// Returns whether the animation is complete.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.progress() >= 1.0
+    }
+}
+
+fn ease_out_cubic(t: f32) -> f32 {
+    let t = t.clamp(0.0, 1.0);
+    1.0 - (1.0 - t).powi(3)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ripple_progress_reduced_motion() {
+        let ripple = RippleAnimation::new(Point::new(0.0, 0.0), 50.0, true);
+        assert!((ripple.progress() - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_ripple_opacity_decreases() {
+        let mut ripple = RippleAnimation::new(Point::new(0.0, 0.0), 50.0, false);
+        let initial_opacity = ripple.opacity();
+        ripple.update(150);
+        assert!(ripple.opacity() < initial_opacity);
+    }
 }

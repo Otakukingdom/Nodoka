@@ -76,7 +76,10 @@ fn test_notification_is_expired() {
 fn test_keyboard_help_toggle() -> Result<(), Box<dyn std::error::Error>> {
     let db = new_db()?;
     let mut player: Option<Vlc> = None;
-    let mut state = State::default();
+    let mut state = State {
+        prefers_reduced_motion: true,
+        ..State::default()
+    };
 
     assert_eq!(state.active_modal, nodoka::ui::ActiveModal::None);
 
@@ -95,7 +98,10 @@ fn test_keyboard_help_toggle() -> Result<(), Box<dyn std::error::Error>> {
 fn test_settings_modal_state() -> Result<(), Box<dyn std::error::Error>> {
     let db = new_db()?;
     let mut player: Option<Vlc> = None;
-    let mut state = State::default();
+    let mut state = State {
+        prefers_reduced_motion: true,
+        ..State::default()
+    };
 
     assert_eq!(state.active_modal, nodoka::ui::ActiveModal::None);
 
@@ -355,21 +361,4 @@ fn test_main_window_with_open_modal() {
 
     let element = main_window::view(&state);
     drop(element);
-}
-
-#[test]
-fn test_error_banner_dismissal() -> Result<(), Box<dyn std::error::Error>> {
-    let db = new_db()?;
-    let mut player: Option<Vlc> = None;
-    let mut state = State {
-        error_message: Some("Test error".to_string()),
-        ..Default::default()
-    };
-
-    assert!(state.error_message.is_some());
-
-    let _ = update::update(&mut state, Message::DismissError, &mut player, &db);
-    assert!(state.error_message.is_none());
-
-    Ok(())
 }

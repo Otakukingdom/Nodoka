@@ -9,7 +9,7 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         return Task::none();
     }
 
-    state.focused_element = FocusedElement::AddBookmarkButton;
+    state.focused_element = FocusedElement::BookmarkEditorSaveButton;
 
     let (Some(audiobook_id), Some(file_path)) =
         (state.selected_audiobook, state.selected_file.clone())
@@ -58,6 +58,7 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         label: String::from("Bookmark"),
         note: String::new(),
     });
+    super::open_modal(state);
 
     Task::none()
 }
@@ -82,13 +83,13 @@ pub(super) fn handle_bookmark_editor_note_changed(state: &mut State, value: &str
 }
 
 pub(super) fn handle_bookmark_editor_cancel(state: &mut State) -> Task<Message> {
-    state.focused_element = FocusedElement::BookmarkList;
-    state.bookmark_editor = None;
+    state.focused_element = FocusedElement::BookmarkEditorCancelButton;
+    super::request_modal_close(state);
     Task::none()
 }
 
 pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> Task<Message> {
-    state.focused_element = FocusedElement::BookmarkList;
+    state.focused_element = FocusedElement::BookmarkEditorSaveButton;
     let Some(editor) = state.bookmark_editor.clone() else {
         return Task::none();
     };
@@ -149,12 +150,12 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> T
         Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
     }
 
-    state.bookmark_editor = None;
+    super::request_modal_close(state);
     Task::none()
 }
 
 pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> {
-    state.focused_element = FocusedElement::BookmarkList;
+    state.focused_element = FocusedElement::BookmarkEditorSaveButton;
     let Some(bm) = state.bookmarks.iter().find(|b| b.id == Some(id)).cloned() else {
         tracing::warn!("Bookmark {id} not found for edit");
         return Task::none();
@@ -171,6 +172,7 @@ pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> 
         label: bm.label,
         note: bm.note.unwrap_or_default(),
     });
+    super::open_modal(state);
 
     Task::none()
 }

@@ -25,6 +25,8 @@ pub enum ShortcutKey {
     Escape,
     /// F1 function key.
     F1,
+    /// Tab key.
+    Tab,
 }
 
 /// Maps a key + modifiers to a UI [`Message`].
@@ -40,6 +42,8 @@ pub enum ShortcutKey {
 /// - Down arrow: Next file
 /// - Escape: Close modal
 /// - F1: Show keyboard help
+/// - Tab: Cycle focus forward
+/// - Shift+Tab: Cycle focus backward
 #[must_use]
 pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<Message> {
     match key {
@@ -95,6 +99,15 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
         ShortcutKey::F1 => {
             if modifiers == Modifiers::default() {
                 Some(Message::ShowKeyboardHelp)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::Tab => {
+            if modifiers == Modifiers::default() {
+                Some(Message::FocusNext)
+            } else if modifiers == Modifiers::SHIFT {
+                Some(Message::FocusPrevious)
             } else {
                 None
             }
@@ -303,5 +316,28 @@ mod tests {
         assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::CTRL).is_none());
         assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::SHIFT).is_none());
         assert!(message_for_key_chord(ShortcutKey::F1, Modifiers::ALT).is_none());
+    }
+
+    #[test]
+    fn test_tab_cycles_focus_forward() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::Tab, Modifiers::default()),
+            Some(Message::FocusNext)
+        ));
+    }
+
+    #[test]
+    fn test_shift_tab_cycles_focus_backward() {
+        assert!(matches!(
+            message_for_key_chord(ShortcutKey::Tab, Modifiers::SHIFT),
+            Some(Message::FocusPrevious)
+        ));
+    }
+
+    #[test]
+    fn test_tab_with_other_modifiers_returns_none() {
+        assert!(message_for_key_chord(ShortcutKey::Tab, Modifiers::CTRL).is_none());
+        let mods = Modifiers::SHIFT | Modifiers::CTRL;
+        assert!(message_for_key_chord(ShortcutKey::Tab, mods).is_none());
     }
 }

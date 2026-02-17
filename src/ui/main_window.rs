@@ -3,7 +3,8 @@ use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
 };
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
-use iced::widget::{button, column, container, row, stack, text, Space};
+use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
+use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
 use iced::{Border, Color, Element, Length};
 
 /// Renders the main window with improved layout and visual hierarchy
@@ -19,7 +20,6 @@ use iced::{Border, Color, Element, Length};
 pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     let main_content = container(
         column![
-            error_banner(state),
             scan_status_banner(state),
             top_bar(state),
             library_panels(state),
@@ -47,10 +47,13 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     // and the settings dialog. The backdrop provides visual indication that a modal
     // is active and can be clicked to dismiss the modal (click-outside-to-dismiss pattern).
     if state.active_modal == crate::ui::ActiveModal::Settings {
-        let settings_dialog = modal_card(settings_form::build_settings_dialog(state));
+        let scale = state.modal_state.content_scale();
+        let opacity = state.modal_state.content_opacity();
+        let settings_dialog =
+            modal_card(settings_form::build_settings_dialog(state, scale), opacity);
         content = stack![
             content,
-            modal_backdrop(Message::CloseSettings),
+            modal_backdrop(state.modal_state.backdrop_opacity(), Message::CloseSettings),
             settings_dialog
         ]
         .into();
@@ -58,10 +61,13 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
 
     // Bookmark editor modal overlay with backdrop (iced 0.14)
     if let Some(editor) = state.bookmark_editor.as_ref() {
-        let editor_dialog = modal_card(bookmarks::editor(editor));
+        let scale = state.modal_state.content_scale();
+        let opacity = state.modal_state.content_opacity();
+        let editor_dialog =
+            modal_card(bookmarks::editor(editor, state.focused_element, scale), opacity);
         content = stack![
             content,
-            modal_backdrop(Message::BookmarkEditorCancel),
+            modal_backdrop(state.modal_state.backdrop_opacity(), Message::BookmarkEditorCancel),
             editor_dialog
         ]
         .into();
@@ -69,10 +75,12 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
 
     // Keyboard help overlay with backdrop (iced 0.14)
     if state.active_modal == crate::ui::ActiveModal::KeyboardHelp {
-        let help_dialog = modal_card(keyboard_help_view());
+        let scale = state.modal_state.content_scale();
+        let opacity = state.modal_state.content_opacity();
+        let help_dialog = modal_card(keyboard_help_view(state.focused_element, scale), opacity);
         content = stack![
             content,
-            modal_backdrop(Message::HideKeyboardHelp),
+            modal_backdrop(state.modal_state.backdrop_opacity(), Message::HideKeyboardHelp),
             help_dialog
         ]
         .into();
@@ -80,8 +88,8 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
 
     // Loading state indicator with backdrop (iced 0.14)
     if state.load_state == LoadState::Loading {
-        let backdrop = modal_backdrop_without_click();
-        let loading_message = modal_card(text("Loading...").size(typography::SIZE_LG));
+        let backdrop = modal_backdrop_without_click(0.5);
+        let loading_message = modal_card(text("Loading...").size(typography::SIZE_LG), 1.0);
         content = stack![content, backdrop, loading_message].into();
     }
 
@@ -91,34 +99,11 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
         content = stack![content, notification_area(state)].into();
     }
 
-    content
-}
+    if let Some(tooltip) = state.tooltip_state.visible() {
+        content = stack![content, tooltip_overlay(tooltip)].into();
+    }
 
-fn error_banner(state: &State) -> Element<'_, Message> {
-    state.error_message.as_ref().map_or_else(
-        || container(text("")).height(Length::Shrink).into(),
-        |error| {
-            container(
-                row![
-                    text("[ERROR] ").size(typography::SIZE_BASE),
-                    text(error).size(typography::SIZE_SM),
-                    Space::new().width(Length::Fill),
-                    button(text("Dismiss").size(typography::SIZE_XS))
-                        .on_press(Message::DismissError)
-                        .padding(spacing::XS),
-                ]
-                .padding(spacing::MD)
-                .spacing(spacing::SM),
-            )
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::ERROR.into()),
-                text_color: Some(colors::TEXT_ON_PRIMARY),
-                ..Default::default()
-            })
-            .width(Length::Fill)
-            .into()
-        },
-    )
+    content
 }
 
 fn scan_status_banner(state: &State) -> Element<'_, Message> {
@@ -148,18 +133,24 @@ fn scan_status_banner(state: &State) -> Element<'_, Message> {
 
 fn top_bar(state: &State) -> Element<'static, Message> {
     let settings_focused = state.focused_element == FocusedElement::SettingsButton;
+    let settings_button = mouse_area(
+        button(text("Settings").size(typography::SIZE_SM))
+            .on_press(Message::OpenSettings)
+            .padding(spacing::MD)
+            .style(if settings_focused {
+                button_styles::secondary_focused
+            } else {
+                button_styles::secondary
+            }),
+    )
+    .on_enter(Message::TooltipHoverStart(crate::ui::tooltip::TooltipTarget::Settings))
+    .on_exit(Message::TooltipHoverEnd);
+
     container(
         row![
             text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
             Space::new().width(Length::Fill),
-            button(text("Settings").size(typography::SIZE_SM))
-                .on_press(Message::OpenSettings)
-                .padding(spacing::MD)
-                .style(if settings_focused {
-                    button_styles::secondary_focused
-                } else {
-                    button_styles::secondary
-                }),
+            settings_button,
         ]
         .padding(spacing::LG), // LG padding (24px) for prominent top bar
     )
@@ -224,10 +215,10 @@ fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
     start_ms.map_or(0, |start| now_ms.saturating_sub(start))
 }
 
-fn modal_backdrop(on_press: Message) -> Element<'static, Message> {
+fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
     button(container(text("")).width(Length::Fill).height(Length::Fill))
-        .style(|_theme: &iced::Theme, _status| button::Style {
-            background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+        .style(move |_theme: &iced::Theme, _status| button::Style {
+            background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
             ..Default::default()
         })
         .on_press(on_press)
@@ -236,10 +227,10 @@ fn modal_backdrop(on_press: Message) -> Element<'static, Message> {
         .into()
 }
 
-fn modal_backdrop_without_click() -> Element<'static, Message> {
+fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Message> {
     container(text(""))
-        .style(|_theme: &iced::Theme| container::Style {
-            background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.5).into()),
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
             ..Default::default()
         })
         .width(Length::Fill)
@@ -254,7 +245,10 @@ fn modal_backdrop_without_click() -> Element<'static, Message> {
 /// Displays all available keyboard shortcuts in a modal dialog.
 /// Activated by pressing F1 key. Can be dismissed by pressing Escape
 /// or clicking outside the dialog.
-fn keyboard_help_view() -> Element<'static, Message> {
+fn keyboard_help_view(
+    focused_element: FocusedElement,
+    scale: f32,
+) -> Element<'static, Message> {
     // Platform-specific bookmark shortcut
     #[cfg(target_os = "macos")]
     let bookmark_shortcut = "Cmd+B";
@@ -299,11 +293,15 @@ fn keyboard_help_view() -> Element<'static, Message> {
         button(text("Close").size(typography::SIZE_BASE))
             .on_press(Message::HideKeyboardHelp)
             .padding(spacing::MD)
-            .style(button_styles::secondary)
+            .style(if focused_element == FocusedElement::KeyboardHelpCloseButton {
+                button_styles::secondary_focused
+            } else {
+                button_styles::secondary
+            })
             .width(Length::Fill)
     ]
     .spacing(spacing::MD)
-    .width(Length::Fixed(500.0));
+    .width(Length::Fixed(500.0 * scale));
 
     container(shortcuts).padding(spacing::XL).into()
 }
@@ -365,21 +363,23 @@ fn shortcut_group(
 /// - Shadow for depth perception and visual elevation
 /// - MD padding (16px) for content spacing
 /// - Centered both horizontally and vertically
-fn modal_card<'a, E>(content: E) -> Element<'a, Message>
+fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
 where
     E: Into<Element<'a, Message>>,
 {
     use iced::Shadow;
+    let background = with_alpha(colors::BG_SECONDARY, opacity);
+    let border_color = with_alpha(shadows::MD_BORDER, opacity);
     container(content)
-        .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::BG_SECONDARY.into()),
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(background.into()),
             border: Border {
-                color: shadows::MD_BORDER,
+                color: border_color,
                 width: 2.0,                       // Increased to 2px for better definition
                 radius: border_radius::LG.into(), // LG radius (12px) for modern modal appearance
             },
             shadow: Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.2),
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.2 * opacity),
                 offset: iced::Vector::new(0.0, 4.0),
                 blur_radius: 16.0,
             },
@@ -445,10 +445,10 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
     use iced::Shadow;
 
     let (bg_color, icon_text) = match notification.kind {
-        NotificationType::Success => (colors::SUCCESS, "✓"),
-        NotificationType::Info => (colors::INFO, "i"),
-        NotificationType::Warning => (colors::WARNING, "⚠"),
-        NotificationType::Error => (colors::ERROR, "✕"),
+        NotificationType::Success => (colors::SUCCESS, notification.icon()),
+        NotificationType::Info => (colors::INFO, notification.icon()),
+        NotificationType::Warning => (colors::WARNING, notification.icon()),
+        NotificationType::Error => (colors::ERROR, notification.icon()),
     };
 
     let content_col = notification_content_column(notification);
@@ -627,6 +627,86 @@ fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> E
         ..Default::default()
     })
     .into()
+}
+
+fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Message> {
+    use crate::ui::styles::components::tooltip_styles;
+
+    let text_element = text(tooltip.text.clone())
+        .size(typography::SIZE_SM)
+        .style(|_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(tooltip_styles::TEXT_COLOR),
+        });
+
+    let tooltip_body = container(text_element)
+        .padding(iced::Padding {
+            top: tooltip_styles::PADDING_VERTICAL,
+            bottom: tooltip_styles::PADDING_VERTICAL,
+            left: tooltip_styles::PADDING_HORIZONTAL,
+            right: tooltip_styles::PADDING_HORIZONTAL,
+        })
+        .style(tooltip_styles::container_style)
+        .width(Length::Shrink);
+
+    match tooltip.anchor {
+        TooltipAnchor::TopBar => container(row![
+            Space::new().width(Length::Fill),
+            tooltip_body
+        ])
+        .padding(iced::Padding {
+            top: if tooltip.position == TooltipPosition::Bottom {
+                spacing::LG
+            } else {
+                spacing::SM
+            },
+            right: spacing::XL,
+            bottom: 0.0,
+            left: spacing::XL,
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into(),
+        TooltipAnchor::PlayerControls => container(column![
+            Space::new().height(Length::Fill),
+            row![
+                Space::new().width(Length::Fill),
+                tooltip_body,
+                Space::new().width(Length::Fill)
+            ]
+        ])
+        .padding(iced::Padding {
+            top: spacing::XL,
+            right: spacing::XL,
+            bottom: if tooltip.position == TooltipPosition::Top {
+                spacing::XL + spacing::LG
+            } else {
+                spacing::SM
+            },
+            left: spacing::XL,
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into(),
+        TooltipAnchor::LibraryLeft => container(row![tooltip_body, Space::new().width(Length::Fill)])
+            .padding(iced::Padding {
+                top: spacing::XL,
+                right: spacing::XL,
+                bottom: spacing::XL,
+                left: spacing::XL,
+            })
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into(),
+    }
+}
+
+fn with_alpha(color: Color, alpha: f32) -> Color {
+    Color {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: (color.a * alpha).clamp(0.0, 1.0),
+    }
 }
 
 #[cfg(test)]
