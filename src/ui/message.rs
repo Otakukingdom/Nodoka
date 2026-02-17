@@ -65,6 +65,7 @@ pub enum Message {
     // Tooltip hover tracking
     TooltipHoverStart(crate::ui::tooltip::TooltipTarget),
     TooltipHoverEnd,
+    RipplePointerMoved(crate::ui::state::RippleTarget, iced::Point),
 
     // Player events
     PlayerTimeUpdated(f64),

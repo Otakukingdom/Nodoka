@@ -783,7 +783,7 @@ pub mod animations {
             #[must_use]
             pub fn content_scale(&self) -> f32 {
                 match self {
-                    Self::Closed | Self::Closing { .. } => 0.9,
+                    Self::Closed => 0.9,
                     Self::Opening { elapsed_ms } => {
                         let progress =
                             (super::u64_to_f32(*elapsed_ms)
@@ -792,6 +792,13 @@ pub mod animations {
                         0.1_f32.mul_add(easing::ease_out(progress), 0.9)
                     }
                     Self::Open => 1.0,
+                    Self::Closing { elapsed_ms } => {
+                        let progress =
+                            (super::u64_to_f32(*elapsed_ms)
+                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                                .min(1.0);
+                        1.0 - 0.1 * easing::ease_in(progress)
+                    }
                 }
             }
 

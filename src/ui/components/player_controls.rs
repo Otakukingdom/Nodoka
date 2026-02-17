@@ -121,6 +121,9 @@ fn playback_controls(
         play_button.into(),
         state.ripple_animations.get(&RippleTarget::PlayPauseButton),
     ))
+    .on_move(|point| {
+        Message::RipplePointerMoved(RippleTarget::PlayPauseButton, point)
+    })
     .on_enter(Message::TooltipHoverStart(
         crate::ui::tooltip::TooltipTarget::PlayPause,
     ))
@@ -130,6 +133,7 @@ fn playback_controls(
         stop_button.into(),
         state.ripple_animations.get(&RippleTarget::StopButton),
     ))
+    .on_move(|point| Message::RipplePointerMoved(RippleTarget::StopButton, point))
     .on_enter(Message::TooltipHoverStart(
         crate::ui::tooltip::TooltipTarget::Stop,
     ))
@@ -168,9 +172,9 @@ fn ripple_stack(
 
     let overlay = container(circle)
         .padding(iced::Padding {
-            top: origin.y.max(0.0),
+            top: origin.y,
             bottom: 0.0,
-            left: origin.x.max(0.0),
+            left: origin.x,
             right: 0.0,
         })
         .width(Length::Fill)

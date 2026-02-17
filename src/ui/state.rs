@@ -2,6 +2,7 @@ use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use crate::ui::Message;
 use crate::ui::styles::animations::modal::ModalState;
 use crate::ui::tooltip::TooltipState;
+use iced::Point;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -515,6 +516,7 @@ pub struct State {
     pub pulse_animations: HashMap<String, crate::ui::styles::animations::PulseAnimation>,
     pub transition_states: HashMap<String, TransitionState>,
     pub ripple_animations: HashMap<RippleTarget, crate::ui::styles::interactive::RippleAnimation>,
+    pub ripple_origins: HashMap<RippleTarget, Point>,
 
     // Modal animation state and close coordination
     pub modal_state: ModalState,
@@ -560,6 +562,7 @@ impl Default for State {
             pulse_animations: HashMap::new(),
             transition_states: HashMap::new(),
             ripple_animations: HashMap::new(),
+            ripple_origins: HashMap::new(),
             modal_state: ModalState::Closed,
             modal_pending_close: false,
             ui_time_ms: 0,

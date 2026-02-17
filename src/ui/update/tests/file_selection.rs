@@ -202,7 +202,7 @@ fn test_seek_to_clamps_to_total_duration_when_known() {
         length_ms: 0,
     });
 
-    let _ = super::super::handle_seek_to_media_control(&mut state, &mut player, 50_000.0);
+    let _ = super::super::playback::handle_seek_to_media_control(&mut state, &mut player, 50_000.0);
 
     assert_eq!(last_set_time_ms.get(), 10_000);
     assert!((state.current_time - 10_000.0).abs() < 0.0001);
@@ -222,7 +222,7 @@ fn test_seek_to_clamps_negative_to_zero_when_duration_known() {
         length_ms: 0,
     });
 
-    let _ = super::super::handle_seek_to_media_control(&mut state, &mut player, -100.0);
+    let _ = super::super::playback::handle_seek_to_media_control(&mut state, &mut player, -100.0);
 
     assert_eq!(last_set_time_ms.get(), 0);
     assert!(state.current_time.abs() < 0.0001);
