@@ -132,3 +132,51 @@ fn test_focus_trapped_in_settings_modal(
 
     Ok(())
 }
+
+#[test]
+fn test_audiobook_list_arrow_navigation_updates_selection(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let first = Audiobook::new(
+        "/dir".to_string(),
+        "First".to_string(),
+        "/dir/first".to_string(),
+        0,
+    );
+    let first_id = crate::db::queries::insert_audiobook(db.connection(), &first)?;
+
+    let second = Audiobook::new(
+        "/dir".to_string(),
+        "Second".to_string(),
+        "/dir/second".to_string(),
+        0,
+    );
+    let second_id = crate::db::queries::insert_audiobook(db.connection(), &second)?;
+
+    let mut state = State {
+        audiobooks: vec![
+            Audiobook {
+                id: Some(first_id),
+                ..first
+            },
+            Audiobook {
+                id: Some(second_id),
+                ..second
+            },
+        ],
+        selected_audiobook: Some(first_id),
+        focused_element: FocusedElement::AudiobookList,
+        ..Default::default()
+    };
+    let mut player = None;
+
+    let _ = super::super::update(&mut state, Message::NextFile, &mut player, &db);
+    assert_eq!(state.selected_audiobook, Some(second_id));
+
+    let _ = super::super::update(&mut state, Message::PreviousFile, &mut player, &db);
+    assert_eq!(state.selected_audiobook, Some(first_id));
+
+    Ok(())
+}

@@ -199,7 +199,7 @@ pub const fn should_show_focus_ring(state: InteractiveState) -> bool {
 /// Per ui-ux-pro-max: use a 300ms ease-out expansion with a subtle fade.
 #[derive(Debug, Clone)]
 pub struct RippleAnimation {
-    origin: Point,
+    center: Point,
     elapsed_ms: u64,
     duration_ms: u64,
     max_radius: f32,
@@ -208,9 +208,9 @@ pub struct RippleAnimation {
 impl RippleAnimation {
     /// Creates a new ripple animation.
     #[must_use]
-    pub const fn new(origin: Point, max_radius: f32, reduced_motion: bool) -> Self {
+    pub const fn new(center: Point, max_radius: f32, reduced_motion: bool) -> Self {
         Self {
-            origin,
+            center,
             elapsed_ms: 0,
             duration_ms: if reduced_motion { 0 } else { RIPPLE_DURATION_MS },
             max_radius,
@@ -247,10 +247,10 @@ impl RippleAnimation {
         RIPPLE_MAX_OPACITY * (1.0 - t)
     }
 
-    /// Returns ripple origin point.
+    /// Returns ripple center point.
     #[must_use]
-    pub const fn origin(&self) -> Point {
-        self.origin
+    pub const fn center(&self) -> Point {
+        self.center
     }
 
     /// Returns whether the animation is complete.

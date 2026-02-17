@@ -4,7 +4,7 @@ use crate::ui::state::RippleTarget;
 use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{button, column, container, mouse_area, row, slider, stack, text, text_input, Space};
-use iced::{Border, Color, Element, Length};
+use iced::{Border, Color, Element, Length, Point};
 
 /// Renders the player controls component with improved UX
 ///
@@ -157,7 +157,8 @@ fn ripple_stack(
 
     let diameter = radius * 2.0;
     let opacity = ripple.opacity();
-    let origin = ripple.origin();
+    let center = ripple.center();
+    let origin = Point::new(center.x - radius, center.y - radius);
     let circle = container(Space::new())
         .width(Length::Fixed(diameter))
         .height(Length::Fixed(diameter))

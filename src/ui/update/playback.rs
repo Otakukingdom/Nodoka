@@ -17,10 +17,10 @@ const PLAYBACK_RIPPLE_RADIUS: f32 = 80.0;
 const PLAYBACK_BUTTON_WIDTH: f32 = 100.0;
 const PLAYBACK_BUTTON_HEIGHT: f32 = typography::SIZE_BASE + spacing::MD * 2.0;
 
-fn ripple_origin(state: &State, target: RippleTarget, max_radius: f32) -> Point {
+fn ripple_center(state: &State, target: RippleTarget) -> Point {
     let fallback = Point::new(PLAYBACK_BUTTON_WIDTH / 2.0, PLAYBACK_BUTTON_HEIGHT / 2.0);
     let position = state.ripple_origins.get(&target).copied().unwrap_or(fallback);
-    Point::new(position.x - max_radius, position.y - max_radius)
+    position
 }
 
 pub(super) fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<crate::ui::Message> {
@@ -33,7 +33,7 @@ pub(super) fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> 
     state.ripple_animations.insert(
         RippleTarget::PlayPauseButton,
         RippleAnimation::new(
-            ripple_origin(state, RippleTarget::PlayPauseButton, PLAYBACK_RIPPLE_RADIUS),
+            ripple_center(state, RippleTarget::PlayPauseButton),
             PLAYBACK_RIPPLE_RADIUS,
             state.prefers_reduced_motion,
         ),
@@ -60,7 +60,7 @@ pub(super) fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<c
     state.ripple_animations.insert(
         RippleTarget::StopButton,
         RippleAnimation::new(
-            ripple_origin(state, RippleTarget::StopButton, PLAYBACK_RIPPLE_RADIUS),
+            ripple_center(state, RippleTarget::StopButton),
             PLAYBACK_RIPPLE_RADIUS,
             state.prefers_reduced_motion,
         ),

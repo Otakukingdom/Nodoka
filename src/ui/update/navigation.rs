@@ -78,6 +78,10 @@ pub(super) fn handle_next_file(
         return Task::none();
     }
 
+    if state.focused_element == FocusedElement::AudiobookList {
+        return handle_next_audiobook(state, player, db);
+    }
+
     state.focused_element = FocusedElement::FileList;
 
     let Some(ref current_path) = state.selected_file else {
@@ -106,6 +110,10 @@ pub(super) fn handle_previous_file(
         return Task::none();
     }
 
+    if state.focused_element == FocusedElement::AudiobookList {
+        return handle_previous_audiobook(state, player, db);
+    }
+
     state.focused_element = FocusedElement::FileList;
 
     let Some(ref current_path) = state.selected_file else {
@@ -127,6 +135,50 @@ pub(super) fn handle_previous_file(
 
     prev_path.map_or_else(Task::none, |path| {
         super::handle_file_selected(state, player, db, &path).task
+    })
+}
+
+fn handle_next_audiobook(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+) -> Task<Message> {
+    state.focused_element = FocusedElement::AudiobookList;
+
+    let next_id = match state.selected_audiobook {
+        Some(id) => state
+            .audiobooks
+            .iter()
+            .position(|book| book.id == Some(id))
+            .and_then(|idx| state.audiobooks.get(idx + 1))
+            .and_then(|book| book.id),
+        None => state.audiobooks.first().and_then(|book| book.id),
+    };
+
+    next_id.map_or_else(Task::none, |id| {
+        super::library::handle_audiobook_selected(state, player, db, id)
+    })
+}
+
+fn handle_previous_audiobook(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+) -> Task<Message> {
+    state.focused_element = FocusedElement::AudiobookList;
+
+    let prev_id = match state.selected_audiobook {
+        Some(id) => state
+            .audiobooks
+            .iter()
+            .position(|book| book.id == Some(id))
+            .and_then(|idx| idx.checked_sub(1).and_then(|prev| state.audiobooks.get(prev)))
+            .and_then(|book| book.id),
+        None => state.audiobooks.last().and_then(|book| book.id),
+    };
+
+    prev_id.map_or_else(Task::none, |id| {
+        super::library::handle_audiobook_selected(state, player, db, id)
     })
 }
 

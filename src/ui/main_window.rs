@@ -649,54 +649,74 @@ fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Me
         .width(Length::Shrink);
 
     match tooltip.anchor {
-        TooltipAnchor::TopBar => container(row![
-            Space::new().width(Length::Fill),
-            tooltip_body
-        ])
-        .padding(iced::Padding {
-            top: if tooltip.position == TooltipPosition::Bottom {
-                spacing::LG
-            } else {
-                spacing::SM
-            },
-            right: spacing::XL,
-            bottom: 0.0,
-            left: spacing::XL,
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into(),
-        TooltipAnchor::PlayerControls => container(column![
-            Space::new().height(Length::Fill),
-            row![
-                Space::new().width(Length::Fill),
-                tooltip_body,
-                Space::new().width(Length::Fill)
-            ]
-        ])
-        .padding(iced::Padding {
-            top: spacing::XL,
-            right: spacing::XL,
-            bottom: if tooltip.position == TooltipPosition::Top {
-                spacing::XL + spacing::LG
-            } else {
-                spacing::SM
-            },
-            left: spacing::XL,
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into(),
-        TooltipAnchor::LibraryLeft => container(row![tooltip_body, Space::new().width(Length::Fill)])
-            .padding(iced::Padding {
-                top: spacing::XL,
-                right: spacing::XL,
-                bottom: spacing::XL,
-                left: spacing::XL,
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into(),
+        TooltipAnchor::TopBar => {
+            let row = match tooltip.position {
+                TooltipPosition::Left => row![tooltip_body, Space::new().width(Length::Fill)],
+                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
+                _ => row![Space::new().width(Length::Fill), tooltip_body],
+            };
+
+            container(row)
+                .padding(iced::Padding {
+                    top: if tooltip.position == TooltipPosition::Bottom {
+                        spacing::LG
+                    } else {
+                        spacing::SM
+                    },
+                    right: spacing::XL,
+                    bottom: 0.0,
+                    left: spacing::XL,
+                })
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
+        }
+        TooltipAnchor::PlayerControls => {
+            let row = match tooltip.position {
+                TooltipPosition::Left => row![tooltip_body, Space::new().width(Length::Fill)],
+                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
+                _ => row![
+                    Space::new().width(Length::Fill),
+                    tooltip_body,
+                    Space::new().width(Length::Fill)
+                ],
+            };
+
+            container(column![Space::new().height(Length::Fill), row])
+                .padding(iced::Padding {
+                    top: spacing::XL,
+                    right: spacing::XL,
+                    bottom: if matches!(
+                        tooltip.position,
+                        TooltipPosition::Top | TooltipPosition::Left | TooltipPosition::Right
+                    ) {
+                        spacing::XL + spacing::LG
+                    } else {
+                        spacing::SM
+                    },
+                    left: spacing::XL,
+                })
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
+        }
+        TooltipAnchor::LibraryLeft => {
+            let row = match tooltip.position {
+                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
+                _ => row![tooltip_body, Space::new().width(Length::Fill)],
+            };
+
+            container(row)
+                .padding(iced::Padding {
+                    top: spacing::XL,
+                    right: spacing::XL,
+                    bottom: spacing::XL,
+                    left: spacing::XL,
+                })
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
+        }
     }
 }
 

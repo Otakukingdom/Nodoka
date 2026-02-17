@@ -86,7 +86,7 @@ impl TooltipTarget {
                 anchor: TooltipAnchor::TopBar,
             },
             Self::AudiobookItem => Tooltip {
-                text: "Select Audiobook (Enter)".to_string(),
+                text: "Select Audiobook".to_string(),
                 position: TooltipPosition::Right,
                 anchor: TooltipAnchor::LibraryLeft,
             },
