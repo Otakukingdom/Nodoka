@@ -92,7 +92,7 @@ pub(super) fn handle_next_file(
         .map(|file| file.full_path.clone());
 
     next_path.map_or_else(Task::none, |path| {
-        super::handle_file_selected(state, player, db, &path)
+        super::handle_file_selected(state, player, db, &path).task
     })
 }
 
@@ -126,7 +126,7 @@ pub(super) fn handle_previous_file(
         .map(|file| file.full_path.clone());
 
     prev_path.map_or_else(Task::none, |path| {
-        super::handle_file_selected(state, player, db, &path)
+        super::handle_file_selected(state, player, db, &path).task
     })
 }
 

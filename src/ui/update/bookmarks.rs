@@ -212,10 +212,9 @@ pub(super) fn handle_bookmark_jump<P: super::MediaControl>(
         return Task::none();
     };
 
-    let error_timestamp_before = state.error_timestamp;
-    let cmd = super::handle_file_selected(state, player, db, &bm.file_path);
-
-    let load_failed = state.error_timestamp != error_timestamp_before;
+    let selection = super::handle_file_selected(state, player, db, &bm.file_path);
+    let cmd = selection.task;
+    let load_failed = !selection.file_loaded;
     let selected_target = state.selected_file.as_deref() == Some(bm.file_path.as_str());
 
     if !load_failed && selected_target {

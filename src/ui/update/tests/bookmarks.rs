@@ -75,6 +75,75 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
 }
 
 #[test]
+fn test_bookmark_jump_seeks_after_successful_load_clears_error(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let mut file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    file.length_of_file = Some(5_000);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let bookmark_id = 99;
+    let mut bookmark = Bookmark::new(
+        audiobook_id,
+        file_path.to_string(),
+        1_000,
+        "Resume".to_string(),
+    );
+    bookmark.id = Some(bookmark_id);
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        error_message: Some("Stale error".to_string()),
+        error_timestamp: Some(chrono::Utc::now()),
+        bookmarks: vec![bookmark],
+        ..Default::default()
+    };
+
+    let last_set_time_ms = Rc::new(Cell::new(-1));
+    let mut player = Some(RecordingSeekPlayer {
+        last_set_time_ms: last_set_time_ms.clone(),
+        length_ms: 5_000,
+    });
+
+    let _ = super::super::bookmarks::handle_bookmark_jump(
+        &mut state,
+        &mut player,
+        &db,
+        bookmark_id,
+    );
+
+    assert_eq!(
+        last_set_time_ms.get(),
+        1_000,
+        "bookmark jump should seek after successful load"
+    );
+    assert!(
+        (state.current_time - 1_000.0).abs() < 0.0001,
+        "bookmark jump should update current_time after successful load"
+    );
+    assert!(
+        state.error_message.is_none(),
+        "stale error message should be cleared after successful load"
+    );
+    assert!(
+        state.error_timestamp.is_none(),
+        "stale error timestamp should be cleared after successful load"
+    );
+    Ok(())
+}
+
+#[test]
 fn test_bookmark_jump_clamps_seek_target_to_known_duration(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let db = Database::new_in_memory()?;

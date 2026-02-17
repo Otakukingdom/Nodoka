@@ -100,7 +100,7 @@ pub fn update(
 
         // Selection messages
         Message::AudiobookSelected(id) => handle_audiobook_selected(state, player, db, id),
-        Message::FileSelected(path) => handle_file_selected(state, player, db, &path),
+        Message::FileSelected(path) => handle_file_selected(state, player, db, &path).task,
 
         // Directory management messages
         Message::DirectoryAdd => {
@@ -534,12 +534,17 @@ fn handle_audiobook_selected(
     generate_cover_thumbnail_command(selected_id, ab.full_path.clone())
 }
 
+pub(crate) struct FileSelectionOutcome {
+    pub(crate) task: Task<Message>,
+    pub(crate) file_loaded: bool,
+}
+
 pub(crate) fn handle_file_selected<P: MediaControl>(
     state: &mut State,
     player: &mut Option<P>,
     db: &Database,
     path: &str,
-) -> Task<Message> {
+) -> FileSelectionOutcome {
     fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
         state.selected_file = Some(path.to_string());
 
@@ -608,7 +613,10 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                 tracing::warn!("Rejecting malformed ZIP virtual path: {path}");
                 state.error_message = Some("Invalid ZIP virtual path".to_string());
                 state.error_timestamp = Some(chrono::Utc::now());
-                return Task::none();
+                return FileSelectionOutcome {
+                    task: Task::none(),
+                    file_loaded: false,
+                };
             }
 
             match materialize_zip_virtual_path(path) {
@@ -617,7 +625,10 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
                     tracing::error!("Failed to extract ZIP entry for playback: {e}");
                     state.error_message = Some(format!("Failed to extract audio file: {e}"));
                     state.error_timestamp = Some(chrono::Utc::now());
-                    return Task::none();
+                    return FileSelectionOutcome {
+                        task: Task::none(),
+                        file_loaded: false,
+                    };
                 }
             }
         } else {
@@ -628,7 +639,10 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
             tracing::error!("Failed to load media: {e}");
             state.error_message = Some(format!("Failed to load audio file: {e}"));
             state.error_timestamp = Some(chrono::Utc::now());
-            return Task::none();
+            return FileSelectionOutcome {
+                task: Task::none(),
+                file_loaded: false,
+            };
         }
 
         persist_selected_file(state, db, path);
@@ -644,13 +658,19 @@ pub(crate) fn handle_file_selected<P: MediaControl>(
             state.error_message = None;
             state.error_timestamp = None;
         }
+        return FileSelectionOutcome {
+            task: Task::none(),
+            file_loaded: true,
+        };
     } else {
         persist_selected_file(state, db, path);
         state.error_message = None;
         state.error_timestamp = None;
+        return FileSelectionOutcome {
+            task: Task::none(),
+            file_loaded: true,
+        };
     }
-
-    Task::none()
 }
 
 // Cannot be const fn because Task::none() is not const
@@ -842,7 +862,7 @@ fn advance_to_next_file(
         .map(|file| file.full_path.clone());
 
     if let Some(next_path) = next_path {
-        return handle_file_selected(state, player, db, &next_path);
+        return handle_file_selected(state, player, db, &next_path).task;
     }
 
     if let Some(ref mut p) = player {

@@ -410,11 +410,14 @@ fn notification_area(state: &State) -> Element<'_, Message> {
         });
 
     // Position in top-right corner with padding
-    container(
-        container(notifications_to_show)
-            .width(Length::Fixed(320.0))
-            .padding(spacing::MD),
-    )
+    let notifications = container(notifications_to_show)
+        .width(Length::Fixed(320.0))
+        .padding(spacing::MD);
+
+    container(row![
+        Space::new().width(Length::Fill),
+        notifications
+    ])
     .width(Length::Fill)
     .height(Length::Fill)
     .padding(iced::Padding {
