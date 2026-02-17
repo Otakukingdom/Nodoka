@@ -67,7 +67,6 @@ pub(super) fn handle_bookmark_editor_label_changed(
     state: &mut State,
     value: &str,
 ) -> Task<Message> {
-    state.focused_element = FocusedElement::BookmarkList;
     if let Some(editor) = state.bookmark_editor.as_mut() {
         editor.label = value.to_string();
     }
@@ -75,7 +74,6 @@ pub(super) fn handle_bookmark_editor_label_changed(
 }
 
 pub(super) fn handle_bookmark_editor_note_changed(state: &mut State, value: &str) -> Task<Message> {
-    state.focused_element = FocusedElement::BookmarkList;
     if let Some(editor) = state.bookmark_editor.as_mut() {
         editor.note = value.to_string();
     }

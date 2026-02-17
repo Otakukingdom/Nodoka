@@ -1,7 +1,7 @@
 use super::{CountingFailingLoadPlayer, RecordingSeekPlayer};
 use crate::db::{self, Database};
 use crate::models::{Audiobook, AudiobookFile, Bookmark};
-use crate::ui::{ActiveModal, Message, State};
+use crate::ui::{ActiveModal, FocusedElement, Message, State};
 use crate::ui::state::NotificationType;
 use std::cell::Cell;
 use std::rc::Rc;
@@ -333,6 +333,65 @@ fn test_bookmark_editor_save_inserts_and_closes(
     let first = saved.first().ok_or("no bookmark")?;
     assert_eq!(first.label, "Chapter 1");
     assert_eq!(first.note.as_deref(), Some("note"));
+    Ok(())
+}
+
+#[test]
+fn test_bookmark_editor_input_preserves_modal_focus() -> std::result::Result<(), Box<dyn std::error::Error>>
+{
+    use super::super::update;
+
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 2000.0,
+        ..Default::default()
+    };
+    let mut player = None;
+
+    let _ = update(&mut state, Message::CreateBookmark, &mut player, &db);
+    assert_eq!(
+        state.focused_element,
+        FocusedElement::BookmarkEditorSaveButton
+    );
+
+    let _ = update(
+        &mut state,
+        Message::BookmarkEditorLabelChanged("Chapter 1".to_string()),
+        &mut player,
+        &db,
+    );
+    assert_eq!(
+        state.focused_element,
+        FocusedElement::BookmarkEditorSaveButton
+    );
+
+    let _ = update(
+        &mut state,
+        Message::BookmarkEditorNoteChanged("note".to_string()),
+        &mut player,
+        &db,
+    );
+    assert_eq!(
+        state.focused_element,
+        FocusedElement::BookmarkEditorSaveButton
+    );
+
     Ok(())
 }
 
