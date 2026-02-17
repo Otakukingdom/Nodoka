@@ -5,6 +5,10 @@ use crate::ui::{FocusedElement, Message, State};
 use iced::Task;
 
 pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<Message> {
+    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
+        return Task::none();
+    }
+
     state.focused_element = FocusedElement::AddBookmarkButton;
 
     let (Some(audiobook_id), Some(file_path)) =

@@ -1,7 +1,7 @@
 use super::{CountingFailingLoadPlayer, RecordingSeekPlayer};
 use crate::db::{self, Database};
 use crate::models::{Audiobook, AudiobookFile, Bookmark};
-use crate::ui::{Message, State};
+use crate::ui::{ActiveModal, Message, State};
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -166,6 +166,54 @@ fn test_create_bookmark_opens_editor() -> std::result::Result<(), Box<dyn std::e
     assert_eq!(editor.position_ms, 1500);
     assert_eq!(editor.label, "Bookmark");
     assert!(editor.note.is_empty());
+    Ok(())
+}
+
+#[test]
+fn test_create_bookmark_ignored_when_modal_open(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    use super::super::update;
+
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        active_modal: ActiveModal::Settings,
+        selected_audiobook: Some(audiobook_id),
+        selected_file: Some(file_path.to_string()),
+        current_time: 1500.0,
+        ..Default::default()
+    };
+
+    let mut player = None;
+    let _cmd = update(&mut state, Message::CreateBookmark, &mut player, &db);
+
+    assert_eq!(
+        state.active_modal,
+        ActiveModal::Settings,
+        "modal should remain open when create-bookmark shortcut is used"
+    );
+    assert!(
+        state.bookmark_editor.is_none(),
+        "bookmark editor should not open when modal is active"
+    );
+    let bookmarks = crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
+    assert!(
+        bookmarks.is_empty(),
+        "bookmark should not be created when modal is active"
+    );
     Ok(())
 }
 
