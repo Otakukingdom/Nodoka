@@ -266,6 +266,9 @@ fn format_position(position_ms: i64) -> String {
 mod tests {
     use super::*;
 
+    const TEST_ANIMATION_ELAPSED_MS: u64 = 1000;
+    const TEST_PREFERS_REDUCED_MOTION: bool = false;
+
     fn create_test_bookmark(
         id: i64,
         label: &str,
@@ -303,12 +306,24 @@ mod tests {
         }
     }
 
+    fn test_animation() -> ListItemAnimation {
+        ListItemAnimation {
+            opacity: 1.0,
+            offset_y: 0.0,
+        }
+    }
+
     #[test]
     fn test_view_renders_empty_list() {
         let bookmarks: Vec<Bookmark> = vec![];
         let files: Vec<AudiobookFile> = vec![];
 
-        let element = view(&bookmarks, &files);
+        let element = view(
+            &bookmarks,
+            &files,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -317,7 +332,12 @@ mod tests {
         let bookmarks = vec![create_test_bookmark(1, "Start", 1000, "", "/path/file.mp3")];
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = view(&bookmarks, &files);
+        let element = view(
+            &bookmarks,
+            &files,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -334,7 +354,12 @@ mod tests {
             create_test_file("/path/file3.mp3", true),
         ];
 
-        let element = view(&bookmarks, &files);
+        let element = view(
+            &bookmarks,
+            &files,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -373,7 +398,7 @@ mod tests {
         let bookmark = create_test_bookmark(1, "Test Bookmark", 60000, "", "/path/file.mp3");
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -388,7 +413,7 @@ mod tests {
         );
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -399,7 +424,7 @@ mod tests {
             create_test_file("/path/file.mp3", false), // File does not exist
         ];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -408,7 +433,7 @@ mod tests {
         let bookmark = create_test_bookmark(1, "Test Bookmark", 60000, "", "/path/file.mp3");
         let files: Vec<AudiobookFile> = vec![];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -448,7 +473,7 @@ mod tests {
         };
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -488,7 +513,7 @@ mod tests {
         let bookmark = create_test_bookmark(1, long_label, 60000, "", "/path/file.mp3");
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = bookmark_row(&bookmark, &files);
+        let element = bookmark_row(&bookmark, &files, test_animation());
         drop(element);
     }
 
@@ -501,7 +526,12 @@ mod tests {
             .collect();
         let files = vec![create_test_file("/path/file.mp3", true)];
 
-        let element = view(&bookmarks, &files);
+        let element = view(
+            &bookmarks,
+            &files,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 }

@@ -408,6 +408,9 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
+    const TEST_ANIMATION_ELAPSED_MS: u64 = 1000;
+    const TEST_PREFERS_REDUCED_MOTION: bool = false;
+
     fn create_test_audiobook(id: i64, name: &str, completeness: i32) -> Audiobook {
         Audiobook {
             id: Some(id),
@@ -421,13 +424,27 @@ mod tests {
         }
     }
 
+    fn test_animation() -> ListItemAnimation {
+        ListItemAnimation {
+            opacity: 1.0,
+            offset_y: 0.0,
+        }
+    }
+
     #[test]
     fn test_view_renders_empty_list() {
         let audiobooks: Vec<Audiobook> = vec![];
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -437,7 +454,14 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -451,7 +475,14 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -464,7 +495,14 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, Some(2), &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            Some(2),
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -475,7 +513,14 @@ mod tests {
         cover_thumbnails.insert(1, PathBuf::from("/test/cover1.jpg"));
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -484,7 +529,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "Test Book", 50);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -493,7 +538,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "Test Book", 50);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, true, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, true, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -502,7 +547,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "New Book", 0);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -511,7 +556,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "Finished Book", 100);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -521,7 +566,7 @@ mod tests {
         let mut cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         cover_thumbnails.insert(1, PathBuf::from("/test/cover.jpg"));
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -530,7 +575,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "Book Without Cover", 50);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -540,7 +585,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, long_name, 50);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -549,7 +594,7 @@ mod tests {
         let audiobook = create_test_audiobook(1, "Book: Name (2024) [Edition]", 50);
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -561,7 +606,14 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -579,7 +631,7 @@ mod tests {
         };
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
-        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element = build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element);
     }
 
@@ -589,10 +641,12 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
         // Verify both selected and unselected states render without panic
-        let element_unselected = build_audiobook_item(&audiobook, false, &cover_thumbnails);
+        let element_unselected =
+            build_audiobook_item(&audiobook, false, &cover_thumbnails, test_animation());
         drop(element_unselected);
 
-        let element_selected = build_audiobook_item(&audiobook, true, &cover_thumbnails);
+        let element_selected =
+            build_audiobook_item(&audiobook, true, &cover_thumbnails, test_animation());
         drop(element_selected);
 
         // Note: Cannot verify visual styling due to iced Element opacity,
@@ -610,11 +664,25 @@ mod tests {
         let scan_state = ScanState::Idle;
 
         // Test with no selection
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
 
         // Test with book 2 selected
-        let element = view(&audiobooks, Some(2), &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            Some(2),
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -626,7 +694,14 @@ mod tests {
             directory: Some("/test/path".to_string()),
         };
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -636,7 +711,14 @@ mod tests {
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
         let scan_state = ScanState::Idle;
 
-        let element = view(&audiobooks, None, &cover_thumbnails, &scan_state);
+        let element = view(
+            &audiobooks,
+            None,
+            &cover_thumbnails,
+            &scan_state,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 }

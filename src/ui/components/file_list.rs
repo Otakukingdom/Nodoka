@@ -338,6 +338,9 @@ fn format_duration(duration_ms: Option<i64>) -> String {
 mod tests {
     use super::*;
 
+    const TEST_ANIMATION_ELAPSED_MS: u64 = 1000;
+    const TEST_PREFERS_REDUCED_MOTION: bool = false;
+
     fn create_test_file(
         name: &str,
         full_path: &str,
@@ -358,10 +361,22 @@ mod tests {
         }
     }
 
+    fn test_animation() -> ListItemAnimation {
+        ListItemAnimation {
+            opacity: 1.0,
+            offset_y: 0.0,
+        }
+    }
+
     #[test]
     fn test_view_renders_empty_list() {
         let files: Vec<AudiobookFile> = vec![];
-        let element = view(&files, None);
+        let element = view(
+            &files,
+            None,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -373,7 +388,12 @@ mod tests {
             50,
             false,
         )];
-        let element = view(&files, None);
+        let element = view(
+            &files,
+            None,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -384,7 +404,12 @@ mod tests {
             create_test_file("chapter2.mp3", "/path/chapter2.mp3", 50, false),
             create_test_file("chapter3.mp3", "/path/chapter3.mp3", 0, false),
         ];
-        let element = view(&files, None);
+        let element = view(
+            &files,
+            None,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -395,42 +420,47 @@ mod tests {
             create_test_file("chapter2.mp3", "/path/chapter2.mp3", 25, false),
         ];
         let selected = "/path/chapter2.mp3".to_string();
-        let element = view(&files, Some(&selected));
+        let element = view(
+            &files,
+            Some(&selected),
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_not_selected() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_selected() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, true, 1);
+        let element = build_file_item(&file, true, 1, test_animation());
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_missing_file() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 0, true);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_complete() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 100, false);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
     #[test]
     fn test_build_file_item_with_progress() {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
@@ -438,7 +468,7 @@ mod tests {
     fn test_build_file_item_no_progress() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 0, false);
         file.seek_position = None;
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
@@ -473,7 +503,7 @@ mod tests {
     fn test_build_file_item_with_long_filename() {
         let long_name = "This is a very long chapter name that should still render correctly without causing layout issues.mp3";
         let file = create_test_file(long_name, "/path/long.mp3", 50, false);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
@@ -485,7 +515,7 @@ mod tests {
             50,
             false,
         );
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
@@ -501,7 +531,12 @@ mod tests {
                 )
             })
             .collect();
-        let element = view(&files, None);
+        let element = view(
+            &files,
+            None,
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 
@@ -509,7 +544,7 @@ mod tests {
     fn test_file_without_duration() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
         file.length_of_file = None;
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
@@ -517,14 +552,14 @@ mod tests {
     fn test_file_with_zero_duration() {
         let mut file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
         file.length_of_file = Some(0);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         drop(element);
     }
 
     #[test]
     fn test_missing_file_not_clickable() {
         let file = create_test_file("missing.mp3", "/path/missing.mp3", 0, true);
-        let element = build_file_item(&file, false, 1);
+        let element = build_file_item(&file, false, 1, test_animation());
         // Just verify it renders without panic
         drop(element);
     }
@@ -534,10 +569,10 @@ mod tests {
         let file = create_test_file("chapter1.mp3", "/path/chapter1.mp3", 50, false);
 
         // Verify both selected and unselected states render without panic
-        let element_unselected = build_file_item(&file, false, 1);
+        let element_unselected = build_file_item(&file, false, 1, test_animation());
         drop(element_unselected);
 
-        let element_selected = build_file_item(&file, true, 2);
+        let element_selected = build_file_item(&file, true, 2, test_animation());
         drop(element_selected);
 
         // Note: Cannot verify visual styling due to iced Element opacity,
@@ -553,7 +588,12 @@ mod tests {
         ];
 
         let selected = "/path/chapter2.mp3".to_string();
-        let element = view(&files, Some(&selected));
+        let element = view(
+            &files,
+            Some(&selected),
+            TEST_ANIMATION_ELAPSED_MS,
+            TEST_PREFERS_REDUCED_MOTION,
+        );
         drop(element);
     }
 }

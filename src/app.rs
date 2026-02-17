@@ -55,6 +55,14 @@ const fn sanitize_speed(speed: f32) -> f32 {
     speed.clamp(0.5, 2.0)
 }
 
+fn parse_bool_metadata(value: &str) -> Option<bool> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" | "on" => Some(true),
+        "0" | "false" | "no" | "off" => Some(false),
+        _ => None,
+    }
+}
+
 fn i32_to_f32_window_size(v: i32) -> Option<f32> {
     let v_u16 = u16::try_from(v).ok()?;
     Some(f32::from(v_u16))
@@ -230,6 +238,16 @@ impl iced::Program for App {
             }
         }
 
+        if let Ok(Some(pref_str)) =
+            crate::db::queries::get_metadata(flags.connection(), "prefers_reduced_motion")
+        {
+            if let Some(prefers_reduced_motion) = parse_bool_metadata(&pref_str) {
+                state.prefers_reduced_motion = prefers_reduced_motion;
+            } else {
+                tracing::warn!("Invalid prefers_reduced_motion metadata: {pref_str}");
+            }
+        }
+
         // Load current audiobook if set
         if let Ok(Some(id_str)) =
             crate::db::queries::get_metadata(flags.connection(), "current_audiobook_id")
@@ -240,6 +258,9 @@ impl iced::Program for App {
                 // Load files for current audiobook
                 if let Ok(files) = crate::db::queries::get_audiobook_files(flags.connection(), id) {
                     state.current_files = files;
+                    if !state.current_files.is_empty() {
+                        state.file_list_animation_start_ms = Some(state.ui_time_ms);
+                    }
                 }
 
                 // Load bookmarks for current audiobook
@@ -247,6 +268,9 @@ impl iced::Program for App {
                     crate::db::queries::get_bookmarks_for_audiobook(flags.connection(), id)
                 {
                     state.bookmarks = bookmarks;
+                    if !state.bookmarks.is_empty() {
+                        state.bookmark_list_animation_start_ms = Some(state.ui_time_ms);
+                    }
                 }
             }
         }
@@ -325,6 +349,7 @@ impl iced::Program for App {
 mod tests {
     use super::*;
     use crate::db;
+    use crate::models::{Audiobook, AudiobookFile, Bookmark};
 
     #[test]
     fn test_boot_sanitizes_persisted_volume_and_speed(
@@ -376,6 +401,79 @@ mod tests {
             (state.speed - 2.0).abs() < f32::EPSILON,
             "speed should clamp to 2.0 on load"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_boot_loads_prefers_reduced_motion() -> std::result::Result<(), Box<dyn std::error::Error>>
+    {
+        use iced::Program as _;
+
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        crate::db::queries::set_metadata(db.connection(), "prefers_reduced_motion", "true")?;
+
+        let app = App {
+            player: RefCell::new(None),
+            db,
+        };
+
+        let (state, _cmd) = app.boot();
+
+        assert!(state.prefers_reduced_motion);
+        Ok(())
+    }
+
+    #[test]
+    fn test_boot_sets_list_animation_start_for_persisted_audiobook(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        use iced::Program as _;
+
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        let audiobook = Audiobook::new(
+            "/test".to_string(),
+            "Test Book".to_string(),
+            "/test/book".to_string(),
+            0,
+        );
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+
+        let file = AudiobookFile::new(
+            audiobook_id,
+            "chapter1.mp3".to_string(),
+            "/test/chapter1.mp3".to_string(),
+            0,
+        );
+        crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+        let bookmark = Bookmark::new(
+            audiobook_id,
+            "/test/chapter1.mp3".to_string(),
+            1000,
+            "Start".to_string(),
+        );
+        crate::db::queries::insert_bookmark(db.connection(), &bookmark)?;
+
+        crate::db::queries::set_metadata(
+            db.connection(),
+            "current_audiobook_id",
+            &audiobook_id.to_string(),
+        )?;
+
+        let app = App {
+            player: RefCell::new(None),
+            db,
+        };
+
+        let (state, _cmd) = app.boot();
+
+        assert!(!state.current_files.is_empty());
+        assert!(!state.bookmarks.is_empty());
+        assert!(state.file_list_animation_start_ms.is_some());
+        assert!(state.bookmark_list_animation_start_ms.is_some());
         Ok(())
     }
 }
