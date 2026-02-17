@@ -441,15 +441,11 @@ fn notification_area(state: &State) -> Element<'_, Message> {
 /// - Action button support for contextual operations
 /// - Dismiss button for manual close
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
-    use crate::ui::state::NotificationType;
+    use crate::ui::styles::components::notification_styles;
     use iced::Shadow;
 
-    let (bg_color, icon_text) = match notification.kind {
-        NotificationType::Success => (colors::SUCCESS, notification.icon()),
-        NotificationType::Info => (colors::INFO, notification.icon()),
-        NotificationType::Warning => (colors::WARNING, notification.icon()),
-        NotificationType::Error => (colors::ERROR, notification.icon()),
-    };
+    let bg_color = notification_styles::background_color(&notification.kind);
+    let icon_text = notification.icon();
 
     let content_col = notification_content_column(notification);
     let mut main_content = notification_main_content(icon_text, content_col);
@@ -475,7 +471,7 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
         .width(Length::Fill)
         .style(move |_theme: &iced::Theme| container::Style {
             background: Some(bg_color.into()),
-            text_color: Some(colors::TEXT_ON_PRIMARY),
+            text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
                 radius: border_radius::MD.into(),
                 ..Default::default()
@@ -499,14 +495,14 @@ fn notification_content_column(
     if let Some(title) = &notification.title {
         content_col = content_col.push(text(title).size(typography::SIZE_BASE).style(
             |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_ON_PRIMARY),
+                color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
             },
         ));
     }
 
     content_col = content_col.push(text(&notification.message).size(typography::SIZE_SM).style(
         |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(colors::TEXT_ON_PRIMARY),
+            color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
         },
     ));
 
@@ -532,9 +528,11 @@ fn notification_main_content<'a>(
 
 /// Creates notification action button
 fn notification_action_button(action_label: &str, action_message: Message) -> Element<'_, Message> {
+    use crate::ui::styles::components::notification_styles;
+
     let action_btn = button(text(action_label).size(typography::SIZE_SM).style(
         |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(colors::TEXT_ON_PRIMARY),
+            color: Some(notification_styles::TEXT_COLOR),
         },
     ))
     .on_press(action_message)
@@ -553,7 +551,7 @@ fn notification_action_button(action_label: &str, action_message: Message) -> El
 
         iced::widget::button::Style {
             background: Some(bg.into()),
-            text_color: colors::TEXT_ON_PRIMARY,
+            text_color: notification_styles::TEXT_COLOR,
             border: Border {
                 radius: border_radius::SM.into(),
                 ..Default::default()
@@ -570,9 +568,11 @@ fn notification_action_button(action_label: &str, action_message: Message) -> El
 
 /// Creates notification dismiss button
 fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message> {
+    use crate::ui::styles::components::notification_styles;
+
     let dismiss_btn = button(text("Dismiss").size(typography::SIZE_SM).style(
         |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(colors::TEXT_ON_PRIMARY),
+            color: Some(notification_styles::TEXT_COLOR),
         },
     ))
     .on_press(Message::DismissNotification(notification_id))
@@ -591,7 +591,7 @@ fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message
 
         iced::widget::button::Style {
             background: Some(bg.into()),
-            text_color: colors::TEXT_ON_PRIMARY,
+            text_color: notification_styles::TEXT_COLOR,
             border: Border {
                 radius: border_radius::SM.into(),
                 ..Default::default()
@@ -608,11 +608,13 @@ fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message
 
 /// Creates notification progress bar for auto-dismiss countdown
 fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> Element<'static, Message> {
+    use crate::ui::styles::components::notification_styles;
+
     let progress_bar = container(Space::new())
         .width(Length::FillPortion(progress_portion))
         .height(Length::Fixed(3.0))
         .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.6).into()),
+            background: Some(notification_styles::PROGRESS_COLOR.into()),
             ..Default::default()
         });
 
@@ -623,7 +625,7 @@ fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> E
     .width(Length::Fill)
     .height(Length::Fixed(3.0))
     .style(|_theme: &iced::Theme| container::Style {
-        background: Some(Color::from_rgba(0.0, 0.0, 0.0, 0.2).into()),
+        background: Some(notification_styles::PROGRESS_BG.into()),
         ..Default::default()
     })
     .into()
@@ -631,9 +633,12 @@ fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> E
 
 fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Message> {
     use crate::ui::styles::components::tooltip_styles;
+    use iced::widget::text::Wrapping;
 
     let text_element = text(tooltip.text.clone())
         .size(typography::SIZE_SM)
+        .width(Length::Fill)
+        .wrapping(Wrapping::Word)
         .style(|_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(tooltip_styles::TEXT_COLOR),
         });
@@ -646,7 +651,8 @@ fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Me
             right: tooltip_styles::PADDING_HORIZONTAL,
         })
         .style(tooltip_styles::container_style)
-        .width(Length::Shrink);
+        .width(Length::Shrink)
+        .max_width(tooltip_styles::MAX_WIDTH);
 
     match tooltip.anchor {
         TooltipAnchor::TopBar => {
