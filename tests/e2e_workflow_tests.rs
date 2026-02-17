@@ -389,12 +389,18 @@ fn test_error_banner_workflow_via_update() -> Result<(), Box<dyn Error>> {
         &mut player,
         &db,
     );
-    assert!(state.error_message.is_some());
-    assert!(state.error_timestamp.is_some());
-
-    let _task = nodoka::ui::update::update(&mut state, Message::DismissError, &mut player, &db);
     assert!(state.error_message.is_none());
     assert!(state.error_timestamp.is_none());
+    assert_eq!(state.notification_queue.len(), 1);
+
+    let notification_id = state.notification_queue[0].id;
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::DismissNotification(notification_id),
+        &mut player,
+        &db,
+    );
+    assert!(state.notification_queue.is_empty());
 
     Ok(())
 }

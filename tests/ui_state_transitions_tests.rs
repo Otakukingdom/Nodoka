@@ -4,6 +4,7 @@
 //! `nodoka::ui::update::update` and asserting on resulting observable state/DB effects.
 
 use nodoka::models::{Audiobook, Directory};
+use nodoka::ui::state::Notification;
 use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
 use std::error::Error;
 
@@ -81,14 +82,17 @@ fn test_scan_error_sets_error_and_stops_scanning() -> Result<(), Box<dyn Error>>
     );
 
     assert_eq!(state.scan_state, ScanState::Idle);
+    assert!(state.error_message.is_none());
+    assert!(state.error_timestamp.is_none());
+    assert_eq!(state.notification_queue.len(), 1);
+    let notification = &state.notification_queue[0];
     assert!(
-        state
-            .error_message
-            .as_deref()
-            .is_some_and(|m| m.contains("Failed to scan directory")),
-        "ScanError should produce a user-facing error message"
+        notification
+            .message
+            .to_lowercase()
+            .contains("failed to scan directory"),
+        "ScanError should produce a user-facing notification message"
     );
-    assert!(state.error_timestamp.is_some());
 
     Ok(())
 }
@@ -108,6 +112,28 @@ fn test_dismiss_error_clears_message_and_timestamp() -> Result<(), Box<dyn Error
 
     assert!(state.error_message.is_none());
     assert!(state.error_timestamp.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn test_dismiss_notification_removes_toast() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let mut player = None;
+    let mut state = State::default();
+
+    let notification = Notification::error("Test error".to_string());
+    let notification_id = notification.id;
+    state.notification_queue.push(notification);
+
+    let _task = nodoka::ui::update::update(
+        &mut state,
+        Message::DismissNotification(notification_id),
+        &mut player,
+        &db,
+    );
+
+    assert!(state.notification_queue.is_empty());
 
     Ok(())
 }

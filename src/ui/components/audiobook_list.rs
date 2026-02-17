@@ -156,17 +156,17 @@ fn build_cover<'a, S: BuildHasher>(
 
     // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
-        || {
+        move || {
             container(
                 text("No cover")
                     .size(typography::SIZE_XS)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
                     }),
             )
             .width(Length::Fixed(80.0))
             .height(Length::Fixed(80.0))
-            .style(|_theme: &iced::Theme| container::Style {
+            .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
                     radius: border_radius::MD.into(),
                     ..Default::default()
@@ -176,13 +176,13 @@ fn build_cover<'a, S: BuildHasher>(
             })
             .into()
         },
-        |path| {
+        move |path| {
             container(
                 image(iced::widget::image::Handle::from_path(path.clone()))
                     .width(Length::Fixed(80.0))
                     .height(Length::Fixed(80.0)),
             )
-            .style(|_theme: &iced::Theme| container::Style {
+            .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
                     radius: border_radius::MD.into(),
                     ..Default::default()
@@ -202,12 +202,12 @@ fn build_completion_badge(is_complete: bool, opacity: f32) -> Element<'static, M
         container(
             text("COMPLETE")
                 .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 }),
         )
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-        .style(|_theme: &iced::Theme| container::Style {
+        .style(move |_theme: &iced::Theme| container::Style {
             background: Some(with_alpha(colors::SUCCESS, opacity).into()),
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
@@ -223,7 +223,7 @@ fn build_completion_badge(is_complete: bool, opacity: f32) -> Element<'static, M
 }
 
 fn build_content_row<'a>(
-    name: &str,
+    name: &'a str,
     completeness: i32,
     cover: Element<'a, Message>,
     completion_badge: Element<'a, Message>,
@@ -232,6 +232,9 @@ fn build_content_row<'a>(
 ) -> iced::widget::Row<'a, Message> {
     use crate::ui::styles::colors;
 
+    let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
+    let offset_y = offset_y.clamp(0.0, max_offset);
+
     // Progress bar for visual representation of completeness
     // Per ui-ux-pro-max: progress bars should be at least 6px height for visibility
     let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
@@ -239,12 +242,12 @@ fn build_content_row<'a>(
 
     row![
         cover,
-        column![
-            text(name)
-                .size(typography::SIZE_BASE)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
+    column![
+        text(name)
+            .size(typography::SIZE_BASE)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+            }),
             // Progress bar visualization with minimum 6px height
             container(progress)
                 .width(Length::Fill)
@@ -252,7 +255,7 @@ fn build_content_row<'a>(
             row![
                 text(format!("{completeness}%"))
                     .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
                     }),
                 Space::new().width(Length::Fill),
@@ -265,7 +268,7 @@ fn build_content_row<'a>(
     .spacing(spacing::MD)
     .padding(iced::Padding {
         top: spacing::MD + offset_y,
-        bottom: spacing::MD,
+        bottom: spacing::MD + (max_offset - offset_y),
         left: spacing::MD,
         right: spacing::MD,
     })

@@ -97,7 +97,7 @@ pub mod animations {
 
     fn u64_to_f32(value: u64) -> f32 {
         let clamped = u32::try_from(value).unwrap_or(u32::MAX);
-        f32::from(clamped)
+        clamped as f32
     }
 
     /// Returns appropriate transition duration based on reduced motion preference
@@ -528,6 +528,12 @@ pub mod animations {
         }
     }
 
+    /// Vertical translation distance for stagger animations (pixels)
+    ///
+    /// This constant is shared with layout padding calculations to prevent
+    /// layout shifts during animation.
+    pub const STAGGER_TRANSLATE_Y_PX: f32 = 20.0;
+
     /// Calculates stagger vertical translation for list item animations
     ///
     /// Returns Y-offset value for slide-up animation effect.
@@ -552,10 +558,10 @@ pub mod animations {
         let item_delay = stagger_delay(capped_index, delay_ms);
 
         if elapsed_ms < item_delay {
-            20.0 // Start 20px below
+            STAGGER_TRANSLATE_Y_PX // Start below
         } else {
             let progress = u64_to_f32(elapsed_ms - item_delay) / 200.0;
-            20.0 * (1.0 - easing::ease_out(progress.min(1.0)))
+            STAGGER_TRANSLATE_Y_PX * (1.0 - easing::ease_out(progress.min(1.0)))
         }
     }
 

@@ -383,7 +383,7 @@ pub(crate) fn current_time_ms() -> u64 {
 
 fn u64_to_f32(value: u64) -> f32 {
     let clamped = u32::try_from(value).unwrap_or(u32::MAX);
-    f32::from(clamped)
+    clamped as f32
 }
 
 
@@ -559,4 +559,3 @@ impl Default for State {
 
 #[cfg(test)]
 mod tests;
-

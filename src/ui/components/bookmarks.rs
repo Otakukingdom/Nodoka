@@ -125,6 +125,9 @@ fn bookmark_row(
         .find(|f| f.full_path == bm.file_path)
         .is_some_and(|f| !f.file_exists);
 
+    let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
+    let offset_y = animation.offset_y.clamp(0.0, max_offset);
+
     let label_text = if is_missing {
         format!("[MISSING] {}", bm.label)
     } else {
@@ -137,12 +140,12 @@ fn bookmark_row(
 
     // Timestamp badge with colored background per ui-ux-pro-max
     let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
-        |_theme: &iced::Theme| iced::widget::text::Style {
+        move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         },
     ))
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-    .style(|_theme: &iced::Theme| container::Style {
+    .style(move |_theme: &iced::Theme| container::Style {
         background: Some(with_alpha(colors::ACCENT, opacity).into()),
         text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
@@ -157,12 +160,12 @@ fn bookmark_row(
         container(
             text("NOTE")
                 .size(typography::SIZE_XS)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 }),
         )
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-        .style(|_theme: &iced::Theme| container::Style {
+        .style(move |_theme: &iced::Theme| container::Style {
             background: Some(with_alpha(colors::INFO, opacity).into()),
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
@@ -181,7 +184,7 @@ fn bookmark_row(
         button(
             text(label_text)
                 .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
@@ -191,7 +194,7 @@ fn bookmark_row(
         button(
             text("Edit (E)")
                 .size(typography::SIZE_XS)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
@@ -201,7 +204,7 @@ fn bookmark_row(
         button(
             text("Delete")
                 .size(typography::SIZE_XS)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
@@ -211,8 +214,8 @@ fn bookmark_row(
     ]
     .spacing(spacing::SM)
     .padding(iced::Padding {
-        top: spacing::SM + animation.offset_y,
-        bottom: spacing::SM,
+        top: spacing::SM + offset_y,
+        bottom: spacing::SM + (max_offset - offset_y),
         left: spacing::SM,
         right: spacing::SM,
     })

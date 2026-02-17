@@ -79,8 +79,8 @@ fn build_file_item(
         build_progress_element(has_progress, is_complete, is_missing, completeness);
     let file_number_badge = build_file_number_badge(file_number, opacity);
     let content_column = build_content_column(
-        &file.name,
-        &duration,
+        file.name.clone(),
+        duration,
         file_number_badge,
         progress_element,
         status_indicator,
@@ -179,14 +179,15 @@ fn build_status_indicator(
     use crate::ui::styles::colors;
 
     if is_missing {
-        container(text("[MISSING]").size(typography::SIZE_SM)).style(|_theme: &iced::Theme| {
+        container(text("[MISSING]").size(typography::SIZE_SM)).style(move |_theme: &iced::Theme| {
             container::Style {
                 text_color: Some(with_alpha(colors::WARNING, opacity)),
                 ..Default::default()
             }
         })
     } else if is_complete {
-        container(text("[COMPLETE]").size(typography::SIZE_SM)).style(|_theme: &iced::Theme| {
+        container(text("[COMPLETE]").size(typography::SIZE_SM)).style(
+            move |_theme: &iced::Theme| {
             container::Style {
                 text_color: Some(with_alpha(colors::SUCCESS, opacity)),
                 ..Default::default()
@@ -194,7 +195,7 @@ fn build_status_indicator(
         })
     } else if has_progress {
         container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
-            |_theme: &iced::Theme| container::Style {
+            move |_theme: &iced::Theme| container::Style {
                 text_color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
                 ..Default::default()
             },
@@ -232,12 +233,12 @@ fn build_file_number_badge(
     container(
         text(format!("#{file_number}"))
             .size(typography::SIZE_XS)
-            .style(|_theme: &iced::Theme| iced::widget::text::Style {
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                 color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
             }),
     )
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-    .style(|_theme: &iced::Theme| container::Style {
+    .style(move |_theme: &iced::Theme| container::Style {
         background: Some(with_alpha(colors::BG_ELEVATED, opacity).into()),
         border: Border {
             radius: border_radius::SM.into(),
@@ -247,30 +248,33 @@ fn build_file_number_badge(
     })
 }
 
-fn build_content_column<'a>(
-    name: &'a str,
-    duration: &'a str,
-    file_number_badge: iced::widget::Container<'a, Message>,
-    progress_element: iced::widget::Container<'a, Message>,
-    status_indicator: iced::widget::Container<'a, Message>,
+fn build_content_column(
+    name: String,
+    duration: String,
+    file_number_badge: iced::widget::Container<'static, Message>,
+    progress_element: iced::widget::Container<'static, Message>,
+    status_indicator: iced::widget::Container<'static, Message>,
     opacity: f32,
     offset_y: f32,
-) -> iced::widget::Column<'a, Message> {
+) -> iced::widget::Column<'static, Message> {
     use crate::ui::styles::colors;
+
+    let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
+    let offset_y = offset_y.clamp(0.0, max_offset);
 
     column![
         row![
             file_number_badge,
             text(name)
                 .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
             Space::new().width(Length::Fill),
             // Duration display prominently next to file name
             text(duration)
                 .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
                 }),
         ]
@@ -281,7 +285,7 @@ fn build_content_column<'a>(
     ]
     .padding(iced::Padding {
         top: spacing::SM + offset_y,
-        bottom: spacing::SM,
+        bottom: spacing::SM + (max_offset - offset_y),
         left: spacing::SM,
         right: spacing::SM,
     })

@@ -143,6 +143,9 @@ pub fn update(
 
         // Error handling messages
         Message::DismissError => handle_dismiss_error(state),
+        Message::DismissNotification(notification_id) => {
+            handle_dismiss_notification(state, notification_id)
+        }
 
         // Scan messages
         Message::ScanComplete(directory, discovered) => {
@@ -681,6 +684,13 @@ fn handle_hide_keyboard_help(state: &mut State) -> Task<Message> {
 fn handle_dismiss_error(state: &mut State) -> Task<Message> {
     state.error_message = None;
     state.error_timestamp = None;
+    Task::none()
+}
+
+fn handle_dismiss_notification(state: &mut State, notification_id: u64) -> Task<Message> {
+    state
+        .notification_queue
+        .retain(|notification| notification.id != notification_id);
     Task::none()
 }
 

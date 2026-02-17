@@ -59,6 +59,7 @@ pub enum Message {
 
     // Error handling
     DismissError,
+    DismissNotification(u64),
 
     // Player events
     PlayerTimeUpdated(f64),

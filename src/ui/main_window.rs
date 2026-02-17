@@ -457,6 +457,8 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
         main_content = main_content.push(notification_action_button(action_label, action_message));
     }
 
+    main_content = main_content.push(notification_dismiss_button(notification.id));
+
     let (progress_portion, remaining_portion) = notification.dismiss_progress_portions();
     if progress_portion < 100 {
         main_content = main_content.push(notification_progress_bar(
@@ -558,6 +560,44 @@ fn notification_action_button(action_label: &str, action_message: Message) -> El
     });
 
     container(action_btn)
+        .width(Length::Fill)
+        .align_x(iced::alignment::Horizontal::Right)
+        .into()
+}
+
+/// Creates notification dismiss button
+fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message> {
+    let dismiss_btn = button(text("Dismiss").size(typography::SIZE_SM).style(
+        |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(colors::TEXT_ON_PRIMARY),
+        },
+    ))
+    .on_press(Message::DismissNotification(notification_id))
+    .padding(iced::Padding {
+        top: spacing::XS,
+        bottom: spacing::XS,
+        left: spacing::SM,
+        right: spacing::SM,
+    })
+    .style(move |_theme: &iced::Theme, status| {
+        let bg = if matches!(status, iced::widget::button::Status::Hovered) {
+            Color::from_rgba(1.0, 1.0, 1.0, 0.2)
+        } else {
+            Color::from_rgba(1.0, 1.0, 1.0, 0.1)
+        };
+
+        iced::widget::button::Style {
+            background: Some(bg.into()),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                radius: border_radius::SM.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    });
+
+    container(dismiss_btn)
         .width(Length::Fill)
         .align_x(iced::alignment::Horizontal::Right)
         .into()

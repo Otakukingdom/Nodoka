@@ -1,6 +1,7 @@
 use crate::db::Database;
 use crate::player::Vlc;
 use crate::tasks::{convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile};
+use crate::ui::state::{Notification, NotificationType};
 use crate::ui::{Message, ScanState, State};
 use iced::Task;
 
@@ -146,6 +147,8 @@ pub(super) fn handle_scan_complete(
     directory: &str,
     discovered: Vec<DiscoveredAudiobook>,
 ) -> Task<Message> {
+    let discovered_count = discovered.len();
+
     // Clear scanning state and any previous errors
     state.scan_state = ScanState::Idle;
     state.error_message = None;
@@ -167,13 +170,32 @@ pub(super) fn handle_scan_complete(
 
     finalize_directory_scan(state, db, directory);
 
+    state
+        .notification_queue
+        .push(Notification::info_with_title(
+            "Scan Complete".to_string(),
+            format!(
+                "Found {discovered_count} audiobook{} in {directory}.",
+                if discovered_count == 1 { "" } else { "s" }
+            ),
+        ));
+
     Task::batch(cmds)
 }
 
 pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Task<Message> {
     state.scan_state = ScanState::Idle;
-    state.error_message = Some(format!("Failed to scan directory: {error}"));
-    state.error_timestamp = Some(chrono::Utc::now());
+    state.error_message = None;
+    state.error_timestamp = None;
+    state
+        .notification_queue
+        .retain(|notification| notification.kind != NotificationType::Error);
+    state
+        .notification_queue
+        .push(Notification::error_with_title(
+            "Scan Failed".to_string(),
+            format!("Failed to scan directory: {error}"),
+        ));
 
     tracing::error!("Scan error: {error}");
     Task::none()

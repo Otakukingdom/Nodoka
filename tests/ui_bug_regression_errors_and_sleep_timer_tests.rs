@@ -27,7 +27,10 @@ fn test_bug_0002_error_messages_replace_not_accumulate() -> Result<(), Box<dyn E
         &mut player,
         &db,
     );
-    assert!(matches!(state.error_message.as_deref(), Some(m) if m.contains("First error")));
+    assert_eq!(state.notification_queue.len(), 1);
+    assert!(state.notification_queue[0]
+        .message
+        .contains("First error"));
 
     let _ = nodoka::ui::update::update(
         &mut state,
@@ -36,7 +39,10 @@ fn test_bug_0002_error_messages_replace_not_accumulate() -> Result<(), Box<dyn E
         &db,
     );
 
-    assert!(matches!(state.error_message.as_deref(), Some(m) if m.contains("Second error")));
+    assert_eq!(state.notification_queue.len(), 1);
+    assert!(state.notification_queue[0]
+        .message
+        .contains("Second error"));
 
     Ok(())
 }
