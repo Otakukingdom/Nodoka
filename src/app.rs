@@ -48,7 +48,12 @@ const fn sanitize_volume(volume: i32) -> i32 {
     }
 }
 
-const fn sanitize_speed(speed: f32) -> f32 {
+/// Clamps a persisted speed value into the valid [0.5, 2.0] range without quantizing.
+///
+/// Unlike [`crate::ui::update::playback::sanitize_speed`] (used for interactive speed changes),
+/// this function does not round to the slider step so that persisted presets like 0.75x
+/// survive a round-trip through the database exactly.
+const fn sanitize_speed_for_restore(speed: f32) -> f32 {
     if !speed.is_finite() {
         return 1.0;
     }
@@ -225,7 +230,7 @@ impl iced::Program for App {
 
         if let Ok(Some(speed_str)) = crate::db::queries::get_metadata(flags.connection(), "speed") {
             if let Ok(speed) = speed_str.parse::<f32>() {
-                let sanitized = sanitize_speed(speed);
+                let sanitized = sanitize_speed_for_restore(speed);
                 state.speed = sanitized;
                 if (sanitized - speed).abs() > f32::EPSILON {
                     if let Err(e) = crate::db::queries::set_metadata(

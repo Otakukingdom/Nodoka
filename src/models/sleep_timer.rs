@@ -7,7 +7,7 @@ use chrono::{DateTime, Duration, Utc};
 
 /// Sleep timer mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Mode {
+pub enum SleepTimerMode {
     /// Pause after a specific duration in seconds
     Duration(i64),
     /// Pause at the end of the current file/chapter
@@ -18,7 +18,7 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 pub struct SleepTimer {
     /// Timer mode
-    pub mode: Mode,
+    pub mode: SleepTimerMode,
     /// When the timer was started
     pub started_at: DateTime<Utc>,
     /// Fade out duration in seconds before pausing
@@ -33,7 +33,7 @@ impl SleepTimer {
     /// * `mode` - Timer mode (duration or end of chapter)
     /// * `fade_duration_secs` - How many seconds to fade out before pausing
     #[must_use]
-    pub fn new(mode: Mode, fade_duration_secs: u32) -> Self {
+    pub fn new(mode: SleepTimerMode, fade_duration_secs: u32) -> Self {
         Self {
             mode,
             started_at: Utc::now(),
@@ -45,11 +45,11 @@ impl SleepTimer {
     #[must_use]
     pub fn is_expired(&self) -> bool {
         match self.mode {
-            Mode::Duration(secs) => {
+            SleepTimerMode::Duration(secs) => {
                 let elapsed = Utc::now().signed_duration_since(self.started_at);
                 elapsed >= Duration::seconds(secs)
             }
-            Mode::EndOfChapter => false, // Handled by playback logic
+            SleepTimerMode::EndOfChapter => false, // Handled by playback logic
         }
     }
 
@@ -57,11 +57,11 @@ impl SleepTimer {
     #[must_use]
     pub fn remaining_seconds(&self) -> Option<i64> {
         match self.mode {
-            Mode::Duration(secs) => {
+            SleepTimerMode::Duration(secs) => {
                 let elapsed = Utc::now().signed_duration_since(self.started_at);
                 Some((secs - elapsed.num_seconds()).max(0))
             }
-            Mode::EndOfChapter => None,
+            SleepTimerMode::EndOfChapter => None,
         }
     }
 }

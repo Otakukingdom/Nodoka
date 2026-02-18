@@ -219,8 +219,6 @@ fn fs_fingerprint(path: &Path) -> std::io::Result<String> {
     Ok(format!("fs:v1:{size}:{modified_ns}"))
 }
 
-
-
 /// Converts discovered audiobooks to domain models
 #[must_use]
 pub fn convert_to_audiobooks(

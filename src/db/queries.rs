@@ -334,19 +334,7 @@ pub fn get_all_directories(conn: &Connection) -> Result<Vec<Directory>> {
 ///
 /// Returns an error if the database delete fails
 pub fn delete_directory(conn: &Connection, path: &str) -> Result<()> {
-    // First get all audiobook IDs in this directory
-    let mut stmt = conn.prepare("SELECT id FROM audiobooks WHERE directory = ?1")?;
-    let ids: Vec<i64> = stmt
-        .query_map([path], |row| row.get(0))?
-        .collect::<rusqlite::Result<Vec<_>>>()?;
-
-    // Delete all files and bookmarks for these audiobooks
-    for id in ids {
-        conn.execute("DELETE FROM bookmarks WHERE audiobook_id = ?1", [id])?;
-        conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
-    }
-
-    // Delete all audiobooks in this directory
+    // Deleting audiobooks cascades to audiobook_file and bookmarks via ON DELETE CASCADE.
     conn.execute("DELETE FROM audiobooks WHERE directory = ?1", [path])?;
 
     // Delete the directory itself
@@ -513,21 +501,8 @@ pub fn delete_bookmark(conn: &Connection, id: i64) -> Result<()> {
 ///
 /// Returns an error if the database delete fails
 pub fn delete_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result<()> {
-    // Get all audiobook IDs in this directory
-    let mut stmt = conn.prepare("SELECT id FROM audiobooks WHERE directory = ?1")?;
-    let ids: Vec<i64> = stmt
-        .query_map([directory], |row| row.get(0))?
-        .collect::<rusqlite::Result<Vec<_>>>()?;
-
-    // Delete all files and bookmarks for these audiobooks
-    for id in ids {
-        conn.execute("DELETE FROM bookmarks WHERE audiobook_id = ?1", [id])?;
-        conn.execute("DELETE FROM audiobook_file WHERE audiobook_id = ?1", [id])?;
-    }
-
-    // Delete all audiobooks
+    // Deleting audiobooks cascades to audiobook_file and bookmarks via ON DELETE CASCADE.
     conn.execute("DELETE FROM audiobooks WHERE directory = ?1", [directory])?;
-
     Ok(())
 }
 
