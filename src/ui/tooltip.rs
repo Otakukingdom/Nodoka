@@ -148,8 +148,14 @@ impl TooltipState {
 
     /// Returns the currently visible tooltip, if any.
     #[must_use]
-    pub fn visible(&self) -> Option<&Tooltip> {
+    pub const fn visible(&self) -> Option<&Tooltip> {
         self.visible.as_ref()
+    }
+}
+
+impl Default for TooltipState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

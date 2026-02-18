@@ -84,7 +84,10 @@ fn test_scan_error_sets_error_and_stops_scanning() -> Result<(), Box<dyn Error>>
 
     assert_eq!(state.scan_state, ScanState::Idle);
     assert_eq!(state.notification_queue.len(), 1);
-    let notification = &state.notification_queue[0];
+    let notification = state
+        .notification_queue
+        .first()
+        .ok_or("notification must exist after scan error")?;
     assert!(
         notification
             .message

@@ -363,12 +363,12 @@ fn test_modal_workflow_via_update() -> Result<(), Box<dyn Error>> {
     assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_none());
 
-    // Creating a bookmark closes settings and opens the editor (single-modal invariant).
+    // CreateBookmark closes Settings and opens the bookmark editor (single-modal invariant).
     let _task = nodoka::ui::update::update(&mut state, Message::CreateBookmark, &mut player, &db);
     assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     assert!(state.bookmark_editor.is_some());
 
-    // CloseModal closes the topmost modal.
+    // CloseModal closes the bookmark editor modal.
     let _task = nodoka::ui::update::update(&mut state, Message::CloseModal, &mut player, &db);
     assert!(state.bookmark_editor.is_none());
     assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
@@ -392,7 +392,11 @@ fn test_error_banner_workflow_via_update() -> Result<(), Box<dyn Error>> {
     );
     assert_eq!(state.notification_queue.len(), 1);
 
-    let notification_id = state.notification_queue[0].id;
+    let notification_id = state
+        .notification_queue
+        .first()
+        .map(|n| n.id)
+        .ok_or("no notification")?;
     let _task = nodoka::ui::update::update(
         &mut state,
         Message::DismissNotification(notification_id),

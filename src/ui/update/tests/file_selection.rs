@@ -4,15 +4,15 @@ use super::{
 use crate::db::{self, Database};
 use crate::error::Error;
 use crate::models::{Audiobook, AudiobookFile};
-use crate::ui::{Message, PlaybackStatus, State};
 use crate::ui::state::NotificationType;
+use crate::ui::{Message, PlaybackStatus, State};
 use std::cell::Cell;
 use std::rc::Rc;
 
 #[test]
 fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    use super::super::handle_file_selected;
+    use super::super::library::handle_file_selected;
 
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
@@ -63,7 +63,7 @@ fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
 #[test]
 fn test_handle_file_selected_clears_error_on_successful_play(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    use super::super::handle_file_selected;
+    use super::super::library::handle_file_selected;
 
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
@@ -107,7 +107,7 @@ fn test_handle_file_selected_clears_error_on_successful_play(
 #[test]
 fn test_handle_file_selected_sets_paused_on_play_failure(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    use super::super::handle_file_selected;
+    use super::super::library::handle_file_selected;
 
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
@@ -151,7 +151,7 @@ fn test_handle_file_selected_sets_paused_on_play_failure(
 #[test]
 fn test_handle_file_selected_rejects_malformed_zip_virtual_paths(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    use super::super::handle_file_selected;
+    use super::super::library::handle_file_selected;
 
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;

@@ -3,8 +3,8 @@
 //! Tests in this file focus on error handling and sleep timer behavior.
 
 use nodoka::models::{SleepTimer, SleepTimerMode};
-use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
 use nodoka::ui::state::NotificationType;
+use nodoka::ui::{Message, PlaybackStatus, ScanState, State};
 use std::error::Error;
 
 mod acceptance_support;
@@ -29,7 +29,10 @@ fn test_bug_0002_error_messages_replace_not_accumulate() -> Result<(), Box<dyn E
         &db,
     );
     assert_eq!(state.notification_queue.len(), 1);
-    assert!(state.notification_queue[0]
+    assert!(state
+        .notification_queue
+        .first()
+        .ok_or("expected first notification")?
         .message
         .contains("First error"));
 
@@ -41,7 +44,10 @@ fn test_bug_0002_error_messages_replace_not_accumulate() -> Result<(), Box<dyn E
     );
 
     assert_eq!(state.notification_queue.len(), 1);
-    assert!(state.notification_queue[0]
+    assert!(state
+        .notification_queue
+        .first()
+        .ok_or("expected first notification")?
         .message
         .contains("Second error"));
 

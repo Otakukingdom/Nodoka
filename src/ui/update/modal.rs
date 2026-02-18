@@ -30,7 +30,7 @@ pub(super) fn handle_hide_keyboard_help(state: &mut State) -> Task<Message> {
     Task::none()
 }
 
-pub(super) fn open_modal(state: &mut State) {
+pub(super) const fn open_modal(state: &mut State) {
     state.modal_pending_close = false;
     if state.prefers_reduced_motion {
         state.modal_state = ModalState::Open;
@@ -48,14 +48,11 @@ pub(super) fn request_modal_close(state: &mut State) {
         return;
     }
 
+    state.bookmark_editor = None;
+    state.active_modal = ActiveModal::None;
+    state.focused_element = FocusedElement::None;
     if state.prefers_reduced_motion {
-        if state.bookmark_editor.is_some() {
-            state.bookmark_editor = None;
-        } else {
-            state.active_modal = ActiveModal::None;
-        }
         state.modal_state = ModalState::Closed;
-        state.focused_element = FocusedElement::None;
         state.modal_pending_close = false;
     } else {
         state.modal_pending_close = true;

@@ -212,7 +212,11 @@ impl RippleAnimation {
         Self {
             center,
             elapsed_ms: 0,
-            duration_ms: if reduced_motion { 0 } else { RIPPLE_DURATION_MS },
+            duration_ms: if reduced_motion {
+                0
+            } else {
+                RIPPLE_DURATION_MS
+            },
             max_radius,
         }
     }
@@ -228,8 +232,9 @@ impl RippleAnimation {
         if self.duration_ms == 0 {
             return 1.0;
         }
-        let elapsed = self.elapsed_ms.min(self.duration_ms) as f32;
-        let duration = self.duration_ms as f32;
+        let elapsed =
+            f32::from(u16::try_from(self.elapsed_ms.min(self.duration_ms)).unwrap_or(u16::MAX));
+        let duration = f32::from(u16::try_from(self.duration_ms).unwrap_or(u16::MAX));
         (elapsed / duration).min(1.0)
     }
 

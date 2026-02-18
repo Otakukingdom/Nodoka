@@ -101,72 +101,72 @@ pub(super) fn handle_audiobook_selected(
     generate_cover_thumbnail_command(selected_id, ab.full_path.clone())
 }
 
+fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
+    state.selected_file = Some(path.to_string());
+
+    if let Some(id) = state.selected_audiobook {
+        if let Err(e) =
+            crate::db::queries::update_audiobook_selected_file(db.connection(), id, Some(path))
+        {
+            tracing::error!("Failed to save selected file: {e}");
+        }
+        return;
+    }
+
+    if let Ok(Some(file)) =
+        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+    {
+        if let Err(e) = crate::db::queries::update_audiobook_selected_file(
+            db.connection(),
+            file.audiobook_id,
+            Some(path),
+        ) {
+            tracing::error!("Failed to save selected file: {e}");
+        }
+    }
+}
+
+fn restore_progress_and_duration<P: MediaControl>(
+    state: &mut State,
+    player: &P,
+    db: &Database,
+    path: &str,
+) {
+    if let Ok(Some(file)) =
+        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
+    {
+        if let Some(length_ms) = file.length_of_file {
+            if let Ok(duration_f64) = ms_to_f64(length_ms) {
+                state.total_duration = duration_f64;
+            }
+        }
+
+        if let Some(seek_position) = file.seek_position {
+            if let Err(e) = player.set_time(seek_position) {
+                tracing::error!("Failed to restore seek position: {e}");
+            } else if let Ok(position_f64) = ms_to_f64(seek_position) {
+                state.current_time = position_f64;
+            }
+        } else {
+            state.current_time = 0.0;
+        }
+    }
+
+    if let Ok(duration) = player.get_length() {
+        if duration > 0 {
+            if let Ok(duration_f64) = ms_to_f64(duration) {
+                state.total_duration = duration_f64;
+            }
+        }
+    }
+}
+
 pub(super) fn handle_file_selected<P: MediaControl>(
     state: &mut State,
     player: &mut Option<P>,
     db: &Database,
     path: &str,
 ) -> FileSelectionOutcome {
-    fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
-        state.selected_file = Some(path.to_string());
-
-        if let Some(id) = state.selected_audiobook {
-            if let Err(e) =
-                crate::db::queries::update_audiobook_selected_file(db.connection(), id, Some(path))
-            {
-                tracing::error!("Failed to save selected file: {e}");
-            }
-            return;
-        }
-
-        if let Ok(Some(file)) =
-            crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-        {
-            if let Err(e) = crate::db::queries::update_audiobook_selected_file(
-                db.connection(),
-                file.audiobook_id,
-                Some(path),
-            ) {
-                tracing::error!("Failed to save selected file: {e}");
-            }
-        }
-    }
-
-    fn restore_progress_and_duration<P: MediaControl>(
-        state: &mut State,
-        player: &P,
-        db: &Database,
-        path: &str,
-    ) {
-        if let Ok(Some(file)) =
-            crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-        {
-            if let Some(length_ms) = file.length_of_file {
-                if let Ok(duration_f64) = ms_to_f64(length_ms) {
-                    state.total_duration = duration_f64;
-                }
-            }
-
-            if let Some(seek_position) = file.seek_position {
-                if let Err(e) = player.set_time(seek_position) {
-                    tracing::error!("Failed to restore seek position: {e}");
-                } else if let Ok(position_f64) = ms_to_f64(seek_position) {
-                    state.current_time = position_f64;
-                }
-            } else {
-                state.current_time = 0.0;
-            }
-        }
-
-        if let Ok(duration) = player.get_length() {
-            if duration > 0 {
-                if let Ok(duration_f64) = ms_to_f64(duration) {
-                    state.total_duration = duration_f64;
-                }
-            }
-        }
-    }
-
     state.focused_element = FocusedElement::FileList;
 
     if let Some(p) = player.as_mut() {
@@ -273,7 +273,7 @@ pub(super) fn handle_initial_load_complete(state: &mut State) -> Task<crate::ui:
     Task::batch(cmds)
 }
 
-fn generate_cover_thumbnail_command(
+pub(super) fn generate_cover_thumbnail_command(
     audiobook_id: i64,
     full_path: String,
 ) -> Task<crate::ui::Message> {

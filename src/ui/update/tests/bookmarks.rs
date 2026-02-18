@@ -1,8 +1,8 @@
 use super::{CountingFailingLoadPlayer, RecordingSeekPlayer};
 use crate::db::{self, Database};
 use crate::models::{Audiobook, AudiobookFile, Bookmark};
-use crate::ui::{ActiveModal, FocusedElement, Message, State};
 use crate::ui::state::NotificationType;
+use crate::ui::{ActiveModal, FocusedElement, Message, State};
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -65,7 +65,10 @@ fn test_bookmark_jump_does_not_seek_when_file_load_fails(
         "bookmark jump should not change selection when load fails"
     );
     assert!(
-        state.notification_queue.iter().any(|n| n.kind == NotificationType::Error),
+        state
+            .notification_queue
+            .iter()
+            .any(|n| n.kind == NotificationType::Error),
         "bookmark jump should surface load failure to user"
     );
     assert!(
@@ -115,12 +118,8 @@ fn test_bookmark_jump_seeks_after_successful_load_no_error_notification(
         length_ms: 5_000,
     });
 
-    let _ = super::super::bookmarks::handle_bookmark_jump(
-        &mut state,
-        &mut player,
-        &db,
-        bookmark_id,
-    );
+    let _ =
+        super::super::bookmarks::handle_bookmark_jump(&mut state, &mut player, &db, bookmark_id);
 
     assert_eq!(
         last_set_time_ms.get(),
@@ -237,7 +236,7 @@ fn test_create_bookmark_opens_editor() -> std::result::Result<(), Box<dyn std::e
 }
 
 #[test]
-fn test_create_bookmark_ignored_when_modal_open(
+fn test_create_bookmark_closes_settings_and_opens_editor(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
     use super::super::update;
 
@@ -267,19 +266,19 @@ fn test_create_bookmark_ignored_when_modal_open(
     let mut player = None;
     let _cmd = update(&mut state, Message::CreateBookmark, &mut player, &db);
 
-    assert_eq!(
-        state.active_modal,
-        ActiveModal::Settings,
-        "modal should remain open when create-bookmark shortcut is used"
+    assert!(
+        state.active_modal != ActiveModal::Settings,
+        "CreateBookmark should close Settings to maintain the single-modal invariant"
     );
     assert!(
-        state.bookmark_editor.is_none(),
-        "bookmark editor should not open when modal is active"
+        state.bookmark_editor.is_some(),
+        "CreateBookmark should open the bookmark editor"
     );
     let bookmarks = crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id)?;
-    assert!(
-        bookmarks.is_empty(),
-        "bookmark should not be created when modal is active"
+    assert_eq!(
+        bookmarks.len(),
+        1,
+        "bookmark should be created when CreateBookmark is triggered with Settings open"
     );
     Ok(())
 }
@@ -337,8 +336,8 @@ fn test_bookmark_editor_save_inserts_and_closes(
 }
 
 #[test]
-fn test_bookmark_editor_input_preserves_modal_focus() -> std::result::Result<(), Box<dyn std::error::Error>>
-{
+fn test_bookmark_editor_input_preserves_modal_focus(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
     use super::super::update;
 
     let db = Database::new_in_memory()?;

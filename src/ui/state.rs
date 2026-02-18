@@ -1,7 +1,7 @@
 use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
-use crate::ui::Message;
 use crate::ui::styles::animations::modal::ModalState;
 use crate::ui::tooltip::TooltipState;
+use crate::ui::Message;
 use iced::Point;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -207,7 +207,11 @@ impl Notification {
     /// );
     /// ```
     #[must_use]
-    pub fn error_with_action(message: String, action_label: String, action_message: Message) -> Self {
+    pub fn error_with_action(
+        message: String,
+        action_label: String,
+        action_message: Message,
+    ) -> Self {
         Self {
             id: Self::next_id(),
             kind: NotificationType::Error,
@@ -385,10 +389,11 @@ pub(crate) fn current_time_ms() -> u64 {
 }
 
 fn u64_to_f32(value: u64) -> f32 {
-    let clamped = u32::try_from(value).unwrap_or(u32::MAX);
-    clamped as f32
+    // Clamp to u16::MAX before converting to f32 to ensure a lossless widening
+    // conversion: all integers in [0, 65535] are exactly representable in f32.
+    // Animation and timing durations in this codebase are well below this bound.
+    f32::from(u16::try_from(value).unwrap_or(u16::MAX))
 }
-
 
 /// Focus tracking for keyboard navigation accessibility
 ///

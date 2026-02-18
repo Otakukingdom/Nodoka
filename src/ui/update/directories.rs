@@ -99,7 +99,7 @@ pub(super) fn handle_directory_remove(
                 Some(crate::ui::state::current_time_ms());
         }
         if should_clear_selection {
-            super::reset_playback_state(state, player);
+            super::playback::reset_playback_state(state, player);
             state.selected_audiobook = None;
             state.selected_file = None;
             state.current_files.clear();
@@ -308,7 +308,7 @@ fn update_state_audiobook_id(
     }
 
     // Generate cover thumbnails asynchronously to keep directory scans non-blocking.
-    Some(super::generate_cover_thumbnail_command(
+    Some(super::library::generate_cover_thumbnail_command(
         audiobook_id,
         resolved_audiobook.full_path.clone(),
     ))

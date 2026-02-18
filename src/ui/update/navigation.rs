@@ -37,7 +37,7 @@ pub(super) fn handle_seek_forward(
         return Task::none();
     };
 
-    super::handle_seek_to(state, player, seek_f64)
+    super::playback::handle_seek_to(state, player, seek_f64)
 }
 
 pub(super) fn handle_seek_backward(
@@ -65,7 +65,7 @@ pub(super) fn handle_seek_backward(
         return Task::none();
     };
 
-    super::handle_seek_to(state, player, seek_f64)
+    super::playback::handle_seek_to(state, player, seek_f64)
 }
 
 pub(super) fn handle_next_file(
@@ -96,7 +96,7 @@ pub(super) fn handle_next_file(
         .map(|file| file.full_path.clone());
 
     next_path.map_or_else(Task::none, |path| {
-        super::handle_file_selected(state, player, db, &path).task
+        super::library::handle_file_selected(state, player, db, &path).task
     })
 }
 
@@ -134,7 +134,7 @@ pub(super) fn handle_previous_file(
         .map(|file| file.full_path.clone());
 
     prev_path.map_or_else(Task::none, |path| {
-        super::handle_file_selected(state, player, db, &path).task
+        super::library::handle_file_selected(state, player, db, &path).task
     })
 }
 
@@ -172,7 +172,10 @@ fn handle_previous_audiobook(
             .audiobooks
             .iter()
             .position(|book| book.id == Some(id))
-            .and_then(|idx| idx.checked_sub(1).and_then(|prev| state.audiobooks.get(prev)))
+            .and_then(|idx| {
+                idx.checked_sub(1)
+                    .and_then(|prev| state.audiobooks.get(prev))
+            })
             .and_then(|book| book.id),
         None => state.audiobooks.last().and_then(|book| book.id),
     };
@@ -183,10 +186,8 @@ fn handle_previous_audiobook(
 }
 
 pub(super) fn handle_close_modal(state: &mut State) -> Task<Message> {
-    if state.bookmark_editor.is_some() {
-        super::request_modal_close(state);
-    } else if state.active_modal != crate::ui::ActiveModal::None {
-        super::request_modal_close(state);
+    if state.bookmark_editor.is_some() || state.active_modal != crate::ui::ActiveModal::None {
+        super::modal::request_modal_close(state);
     }
     Task::none()
 }
@@ -202,8 +203,8 @@ pub(super) fn handle_focus_previous(state: &mut State) -> Task<Message> {
 }
 
 fn cycle_focus(state: &mut State, forward: bool) {
-    let modal_active = state.active_modal != crate::ui::ActiveModal::None
-        || state.bookmark_editor.is_some();
+    let modal_active =
+        state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some();
 
     let focus_order: &[FocusedElement] = if modal_active {
         match state.active_modal {
@@ -257,5 +258,7 @@ fn cycle_focus(state: &mut State, forward: bool) {
         (None, false) => focus_order.len() - 1,
     };
 
-    state.focused_element = focus_order[next_index];
+    if let Some(&element) = focus_order.get(next_index) {
+        state.focused_element = element;
+    }
 }

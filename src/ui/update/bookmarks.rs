@@ -5,10 +5,6 @@ use crate::ui::{FocusedElement, Message, State};
 use iced::Task;
 
 pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<Message> {
-    if state.active_modal != crate::ui::ActiveModal::None || state.bookmark_editor.is_some() {
-        return Task::none();
-    }
-
     state.focused_element = FocusedElement::BookmarkEditorSaveButton;
 
     let (Some(audiobook_id), Some(file_path)) =
@@ -47,8 +43,9 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         state.bookmark_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
     }
 
-    // Close any other open modals to maintain single modal invariant
+    // Close any existing modal to maintain single-modal invariant, then open editor
     state.active_modal = crate::ui::ActiveModal::None;
+    super::modal::open_modal(state);
 
     state.bookmark_editor = Some(crate::ui::state::BookmarkEditor {
         id: Some(created_id),
@@ -58,7 +55,6 @@ pub(super) fn handle_create_bookmark(state: &mut State, db: &Database) -> Task<M
         label: String::from("Bookmark"),
         note: String::new(),
     });
-    super::open_modal(state);
 
     Task::none()
 }
@@ -82,7 +78,7 @@ pub(super) fn handle_bookmark_editor_note_changed(state: &mut State, value: &str
 
 pub(super) fn handle_bookmark_editor_cancel(state: &mut State) -> Task<Message> {
     state.focused_element = FocusedElement::BookmarkEditorCancelButton;
-    super::request_modal_close(state);
+    super::modal::request_modal_close(state);
     Task::none()
 }
 
@@ -142,13 +138,12 @@ pub(super) fn handle_bookmark_editor_save(state: &mut State, db: &Database) -> T
     match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), editor.audiobook_id) {
         Ok(bms) => {
             state.bookmarks = bms;
-            state.bookmark_list_animation_start_ms =
-                Some(crate::ui::state::current_time_ms());
+            state.bookmark_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
         }
         Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
     }
 
-    super::request_modal_close(state);
+    super::modal::request_modal_close(state);
     Task::none()
 }
 
@@ -170,7 +165,7 @@ pub(super) fn handle_bookmark_edit(state: &mut State, id: i64) -> Task<Message> 
         label: bm.label,
         note: bm.note.unwrap_or_default(),
     });
-    super::open_modal(state);
+    super::modal::open_modal(state);
 
     Task::none()
 }
@@ -187,8 +182,7 @@ pub(super) fn handle_bookmark_delete(state: &mut State, db: &Database, id: i64) 
         match crate::db::queries::get_bookmarks_for_audiobook(db.connection(), audiobook_id) {
             Ok(bms) => {
                 state.bookmarks = bms;
-                state.bookmark_list_animation_start_ms =
-                    Some(crate::ui::state::current_time_ms());
+                state.bookmark_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
             }
             Err(e) => tracing::error!("Failed to reload bookmarks: {e}"),
         }
@@ -212,7 +206,7 @@ pub(super) fn handle_bookmark_jump<P: super::MediaControl>(
         return Task::none();
     };
 
-    let selection = super::handle_file_selected(state, player, db, &bm.file_path);
+    let selection = super::library::handle_file_selected(state, player, db, &bm.file_path);
     let cmd = selection.task;
     let load_failed = !selection.file_loaded;
     let selected_target = state.selected_file.as_deref() == Some(bm.file_path.as_str());

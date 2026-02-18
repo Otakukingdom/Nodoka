@@ -2,7 +2,9 @@ use crate::models::Audiobook;
 use crate::ui::state::ScanState;
 use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{button, column, container, image, mouse_area, progress_bar, row, scrollable, text, Space};
+use iced::widget::{
+    button, column, container, image, mouse_area, progress_bar, row, scrollable, text, Space,
+};
 use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
@@ -46,7 +48,8 @@ pub fn view<'a, S: BuildHasher>(
         .enumerate()
         .fold(column![].spacing(spacing::SM), |col, (index, ab)| {
             let is_selected = selected_id == ab.id;
-            let animation = list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
+            let animation =
+                list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
             let item = build_audiobook_item(ab, is_selected, cover_thumbnails, animation);
             col.push(item)
         })
@@ -153,23 +156,21 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         .into()
 }
 
-fn build_cover<'a, S: BuildHasher>(
+fn build_cover<S: BuildHasher>(
     id: Option<i64>,
-    cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+    cover_thumbnails: &HashMap<i64, PathBuf, S>,
     opacity: f32,
-) -> Element<'a, Message> {
+) -> Element<'_, Message> {
     use crate::ui::styles::{border_radius, colors};
 
     // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
-            container(
-                text("No cover")
-                    .size(typography::SIZE_XS)
-                    .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-                    }),
-            )
+            container(text("No cover").size(typography::SIZE_XS).style(
+                move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                },
+            ))
             .width(Length::Fixed(80.0))
             .height(Length::Fixed(80.0))
             .style(move |_theme: &iced::Theme| container::Style {
@@ -248,12 +249,12 @@ fn build_content_row<'a>(
 
     row![
         cover,
-    column![
-        text(name)
-            .size(typography::SIZE_BASE)
-            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-            }),
+        column![
+            text(name)
+                .size(typography::SIZE_BASE)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+                }),
             // Progress bar visualization with minimum 6px height
             container(progress)
                 .width(Length::Fill)
@@ -286,7 +287,11 @@ struct ListItemAnimation {
     offset_y: f32,
 }
 
-fn list_item_animation(index: usize, elapsed_ms: u64, prefers_reduced_motion: bool) -> ListItemAnimation {
+fn list_item_animation(
+    index: usize,
+    elapsed_ms: u64,
+    prefers_reduced_motion: bool,
+) -> ListItemAnimation {
     if prefers_reduced_motion {
         return ListItemAnimation {
             opacity: 1.0,

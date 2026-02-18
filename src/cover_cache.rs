@@ -337,7 +337,7 @@ mod tests {
         let mut bytes = Vec::new();
         dyn_img.write_to(
             &mut std::io::Cursor::new(&mut bytes),
-            image::ImageOutputFormat::Png,
+            image::ImageFormat::Png,
         )?;
         fs::write(path, &bytes)?;
         Ok(bytes)

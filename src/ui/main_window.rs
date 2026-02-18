@@ -2,8 +2,8 @@ use crate::ui::components::{audiobook_list, bookmarks, file_list, player_control
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
 };
-use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
+use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
 use iced::{Border, Color, Element, Length};
 
@@ -63,11 +63,16 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     if let Some(editor) = state.bookmark_editor.as_ref() {
         let scale = state.modal_state.content_scale();
         let opacity = state.modal_state.content_opacity();
-        let editor_dialog =
-            modal_card(bookmarks::editor(editor, state.focused_element, scale), opacity);
+        let editor_dialog = modal_card(
+            bookmarks::editor(editor, state.focused_element, scale),
+            opacity,
+        );
         content = stack![
             content,
-            modal_backdrop(state.modal_state.backdrop_opacity(), Message::BookmarkEditorCancel),
+            modal_backdrop(
+                state.modal_state.backdrop_opacity(),
+                Message::BookmarkEditorCancel
+            ),
             editor_dialog
         ]
         .into();
@@ -80,7 +85,10 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
         let help_dialog = modal_card(keyboard_help_view(state.focused_element, scale), opacity);
         content = stack![
             content,
-            modal_backdrop(state.modal_state.backdrop_opacity(), Message::HideKeyboardHelp),
+            modal_backdrop(
+                state.modal_state.backdrop_opacity(),
+                Message::HideKeyboardHelp
+            ),
             help_dialog
         ]
         .into();
@@ -143,7 +151,9 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                 button_styles::secondary
             }),
     )
-    .on_enter(Message::TooltipHoverStart(crate::ui::tooltip::TooltipTarget::Settings))
+    .on_enter(Message::TooltipHoverStart(
+        crate::ui::tooltip::TooltipTarget::Settings,
+    ))
     .on_exit(Message::TooltipHoverEnd);
 
     container(
@@ -158,10 +168,8 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 }
 
 fn library_panels(state: &State) -> Element<'_, Message> {
-    let audiobook_elapsed = list_animation_elapsed_ms(
-        state.audiobook_list_animation_start_ms,
-        state.ui_time_ms,
-    );
+    let audiobook_elapsed =
+        list_animation_elapsed_ms(state.audiobook_list_animation_start_ms, state.ui_time_ms);
     let file_elapsed =
         list_animation_elapsed_ms(state.file_list_animation_start_ms, state.ui_time_ms);
     let bookmark_elapsed =
@@ -245,10 +253,7 @@ fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Message> {
 /// Displays all available keyboard shortcuts in a modal dialog.
 /// Activated by pressing F1 key. Can be dismissed by pressing Escape
 /// or clicking outside the dialog.
-fn keyboard_help_view(
-    focused_element: FocusedElement,
-    scale: f32,
-) -> Element<'static, Message> {
+fn keyboard_help_view(focused_element: FocusedElement, scale: f32) -> Element<'static, Message> {
     // Platform-specific bookmark shortcut
     #[cfg(target_os = "macos")]
     let bookmark_shortcut = "Cmd+B";
@@ -293,11 +298,13 @@ fn keyboard_help_view(
         button(text("Close").size(typography::SIZE_BASE))
             .on_press(Message::HideKeyboardHelp)
             .padding(spacing::MD)
-            .style(if focused_element == FocusedElement::KeyboardHelpCloseButton {
-                button_styles::secondary_focused
-            } else {
-                button_styles::secondary
-            })
+            .style(
+                if focused_element == FocusedElement::KeyboardHelpCloseButton {
+                    button_styles::secondary_focused
+                } else {
+                    button_styles::secondary
+                }
+            )
             .width(Length::Fill)
     ]
     .spacing(spacing::MD)
@@ -414,23 +421,20 @@ fn notification_area(state: &State) -> Element<'_, Message> {
         .width(Length::Fixed(320.0))
         .padding(spacing::MD);
 
-    container(row![
-        Space::new().width(Length::Fill),
-        notifications
-    ])
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .padding(iced::Padding {
-        top: spacing::XL,
-        right: spacing::XL,
-        bottom: 0.0,
-        left: 0.0,
-    })
-    .style(|_theme: &iced::Theme| container::Style {
-        background: None, // Transparent background for overlay
-        ..Default::default()
-    })
-    .into()
+    container(row![Space::new().width(Length::Fill), notifications])
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .padding(iced::Padding {
+            top: spacing::XL,
+            right: spacing::XL,
+            bottom: 0.0,
+            left: 0.0,
+        })
+        .style(|_theme: &iced::Theme| container::Style {
+            background: None, // Transparent background for overlay
+            ..Default::default()
+        })
+        .into()
 }
 
 /// Renders a single notification toast with semantic colors
@@ -450,9 +454,10 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
     let content_col = notification_content_column(notification);
     let mut main_content = notification_main_content(icon_text, content_col);
 
-    if let (Some(action_label), Some(action_message)) =
-        (&notification.action_label, notification.action_message.clone())
-    {
+    if let (Some(action_label), Some(action_message)) = (
+        &notification.action_label,
+        notification.action_message.clone(),
+    ) {
         main_content = main_content.push(notification_action_button(action_label, action_message));
     }
 
@@ -607,7 +612,10 @@ fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message
 }
 
 /// Creates notification progress bar for auto-dismiss countdown
-fn notification_progress_bar(progress_portion: u16, remaining_portion: u16) -> Element<'static, Message> {
+fn notification_progress_bar(
+    progress_portion: u16,
+    remaining_portion: u16,
+) -> Element<'static, Message> {
     use crate::ui::styles::components::notification_styles;
 
     let progress_bar = container(Space::new())
@@ -658,7 +666,6 @@ fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Me
         TooltipAnchor::TopBar => {
             let row = match tooltip.position {
                 TooltipPosition::Left => row![tooltip_body, Space::new().width(Length::Fill)],
-                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
                 _ => row![Space::new().width(Length::Fill), tooltip_body],
             };
 

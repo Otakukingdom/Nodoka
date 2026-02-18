@@ -97,16 +97,14 @@ fn test_audiobook_palette_contrast_ratios() {
     let ratio = wcag_contrast_ratio(colors_audiobook::TEXT_PRIMARY, colors_audiobook::BG_PRIMARY);
     assert!(
         ratio >= 4.5,
-        "Audiobook primary text contrast {:.2}:1 below WCAG AA minimum 4.5:1",
-        ratio
+        "Audiobook primary text contrast {ratio:.2}:1 below WCAG AA minimum 4.5:1"
     );
 
     // Text on primary buttons
     let ratio = wcag_contrast_ratio(colors_audiobook::TEXT_ON_PRIMARY, colors_audiobook::PRIMARY);
     assert!(
         ratio >= 4.5,
-        "Audiobook text on primary contrast {:.2}:1 below WCAG AA minimum 4.5:1",
-        ratio
+        "Audiobook text on primary contrast {ratio:.2}:1 below WCAG AA minimum 4.5:1"
     );
 }
 
@@ -116,16 +114,20 @@ fn test_audiobook_palette_cooler_tones() {
 
     // Audiobook palette should have cooler tones (more blue/cyan)
     // compared to the vibrant rose palette
-    assert!(
-        colors_audiobook::PRIMARY.b > colors::PRIMARY.b,
-        "Audiobook primary should have more blue than rose primary"
-    );
+    const {
+        assert!(
+            colors_audiobook::PRIMARY.b > colors::PRIMARY.b,
+            "Audiobook primary should have more blue than rose primary"
+        );
+    };
 
     // Background should have cyan tint
-    assert!(
-        colors_audiobook::BG_PRIMARY.b >= colors_audiobook::BG_PRIMARY.r,
-        "Audiobook background should have cyan/blue tint"
-    );
+    const {
+        assert!(
+            colors_audiobook::BG_PRIMARY.b >= colors_audiobook::BG_PRIMARY.r,
+            "Audiobook background should have cyan/blue tint"
+        );
+    };
 }
 
 // Volume level color indicator tests
@@ -140,15 +142,21 @@ fn test_volume_color_indicators_semantic() {
     // Muted (0%) should use TEXT_DISABLED gray
 
     // Verify semantic colors are distinct
-    assert!(
-        colors::SUCCESS.g > colors::SUCCESS.r,
-        "Success should be green"
-    );
-    assert!(
-        colors::WARNING.r > colors::WARNING.g && colors::WARNING.g > colors::WARNING.b,
-        "Warning should be yellow/orange"
-    );
-    assert!(colors::ERROR.r > colors::ERROR.g, "Error should be red");
+    const {
+        assert!(
+            colors::SUCCESS.g > colors::SUCCESS.r,
+            "Success should be green"
+        );
+    };
+    const {
+        assert!(
+            colors::WARNING.r > colors::WARNING.g && colors::WARNING.g > colors::WARNING.b,
+            "Warning should be yellow/orange"
+        );
+    };
+    const {
+        assert!(colors::ERROR.r > colors::ERROR.g, "Error should be red");
+    };
 }
 
 // Empty state icon tests
@@ -321,17 +329,17 @@ fn test_hover_overlay_darkens_consistently() {
     let tolerance = 0.001;
 
     assert!(
-        (hovered.r - base.r * expected_factor).abs() < tolerance,
+        base.r.mul_add(-expected_factor, hovered.r).abs() < tolerance,
         "Red channel should be darkened by {}%",
         interactive::HOVER_OVERLAY_ALPHA * 100.0
     );
     assert!(
-        (hovered.g - base.g * expected_factor).abs() < tolerance,
+        base.g.mul_add(-expected_factor, hovered.g).abs() < tolerance,
         "Green channel should be darkened by {}%",
         interactive::HOVER_OVERLAY_ALPHA * 100.0
     );
     assert!(
-        (hovered.b - base.b * expected_factor).abs() < tolerance,
+        base.b.mul_add(-expected_factor, hovered.b).abs() < tolerance,
         "Blue channel should be darkened by {}%",
         interactive::HOVER_OVERLAY_ALPHA * 100.0
     );
@@ -476,9 +484,8 @@ fn test_fade_transition_bounds() {
 
     // Test instant transition (duration = 0)
     let instant = FadeTransition::new(0, 0.0, 1.0);
-    assert_eq!(
-        instant.opacity(),
-        1.0,
+    assert!(
+        (instant.opacity() - 1.0).abs() < 0.001,
         "Instant transition should be immediate"
     );
 }
@@ -531,26 +538,22 @@ fn test_interactive_state_border_width() {
     use nodoka::ui::interactive::{state_border_width, InteractiveState};
 
     // Focus states should have 3px borders per WCAG
-    assert_eq!(
-        state_border_width(InteractiveState::Focus),
-        3.0,
+    assert!(
+        (state_border_width(InteractiveState::Focus) - 3.0).abs() < 0.001,
         "Focus should have 3px border"
     );
-    assert_eq!(
-        state_border_width(InteractiveState::HoverFocus),
-        3.0,
+    assert!(
+        (state_border_width(InteractiveState::HoverFocus) - 3.0).abs() < 0.001,
         "HoverFocus should have 3px border"
     );
 
     // Other states should have 1px borders
-    assert_eq!(
-        state_border_width(InteractiveState::Idle),
-        1.0,
+    assert!(
+        (state_border_width(InteractiveState::Idle) - 1.0).abs() < 0.001,
         "Idle should have 1px border"
     );
-    assert_eq!(
-        state_border_width(InteractiveState::Hover),
-        1.0,
+    assert!(
+        (state_border_width(InteractiveState::Hover) - 1.0).abs() < 0.001,
         "Hover should have 1px border"
     );
 }
@@ -702,14 +705,18 @@ fn test_skeleton_ui_dimensions_match_real_components() {
         (0.0..=120.0).contains(&AUDIOBOOK_COVER_SIZE) && AUDIOBOOK_COVER_SIZE > 0.0,
         "Audiobook cover size should be reasonable (0-120px)"
     );
-    assert!(
-        FILE_ITEM_HEIGHT >= 40.0,
-        "File items should be at least 40px for readability"
-    );
-    assert!(
-        BOOKMARK_ITEM_HEIGHT >= 40.0,
-        "Bookmark items should be at least 40px for readability"
-    );
+    const {
+        assert!(
+            FILE_ITEM_HEIGHT >= 40.0,
+            "File items should be at least 40px for readability"
+        );
+    };
+    const {
+        assert!(
+            BOOKMARK_ITEM_HEIGHT >= 40.0,
+            "Bookmark items should be at least 40px for readability"
+        );
+    };
     assert!(
         (20.0..=32.0).contains(&FILE_NUMBER_BADGE_SIZE),
         "File number badge should be readable but not too large"
@@ -725,16 +732,20 @@ fn test_modal_animations_complete_within_budget() {
     const STAGGER_DELAY_MS: u64 = 50;
 
     // Test backdrop fade (200ms)
-    assert!(
-        BACKDROP_FADE_DURATION_MS <= MODAL_ANIMATION_BUDGET_MS,
-        "Backdrop fade duration (200ms) should be within budget (300ms)"
-    );
+    const {
+        assert!(
+            BACKDROP_FADE_DURATION_MS <= MODAL_ANIMATION_BUDGET_MS,
+            "Backdrop fade duration (200ms) should be within budget (300ms)"
+        );
+    };
 
     // Test modal card scale (200ms)
-    assert!(
-        CARD_SCALE_DURATION_MS <= MODAL_ANIMATION_BUDGET_MS,
-        "Modal card scale duration (200ms) should be within budget (300ms)"
-    );
+    const {
+        assert!(
+            CARD_SCALE_DURATION_MS <= MODAL_ANIMATION_BUDGET_MS,
+            "Modal card scale duration (200ms) should be within budget (300ms)"
+        );
+    };
 
     // Test combined animation time (staggered by 50ms)
     let total_animation_time = CARD_SCALE_DURATION_MS + STAGGER_DELAY_MS;
@@ -843,9 +854,7 @@ fn test_notification_color_contrast_wcag_aa() {
 
         assert!(
             contrast >= 4.5,
-            "Notification {:?} should have 4.5:1 contrast (WCAG AA), got {:.2}",
-            variant,
-            contrast
+            "Notification {variant:?} should have 4.5:1 contrast (WCAG AA), got {contrast:.2}"
         );
     }
 }
@@ -880,9 +889,8 @@ fn test_empty_state_visual_hierarchy() {
 fn test_tooltip_max_width_prevents_excessive_length() {
     use styles::components::tooltip_styles;
 
-    assert_eq!(
-        tooltip_styles::MAX_WIDTH,
-        250.0,
+    assert!(
+        (tooltip_styles::MAX_WIDTH - 250.0).abs() < 0.001,
         "Tooltip max width should be 250px per ui-ux-pro-max"
     );
 }
@@ -897,8 +905,7 @@ fn test_tooltip_contrast_wcag_aaa() {
 
     assert!(
         contrast >= 7.0,
-        "Tooltip should have 7:1 contrast (WCAG AAA), got {:.2}",
-        contrast
+        "Tooltip should have 7:1 contrast (WCAG AAA), got {contrast:.2}"
     );
 }
 
@@ -932,9 +939,8 @@ fn test_modal_backdrop_opacity_max() {
 
     // Backdrop should never exceed 0.5 opacity
     let open = ModalState::Open;
-    assert_eq!(
-        open.backdrop_opacity(),
-        0.5,
+    assert!(
+        (open.backdrop_opacity() - 0.5).abs() < 0.001,
         "Modal backdrop max opacity should be 0.5"
     );
 }
@@ -952,18 +958,24 @@ fn test_skeleton_ui_matches_real_dimensions() {
     const TITLE_HEIGHT: f32 = 20.0;
 
     // Skeleton should use these exact dimensions
-    assert_eq!(
-        AUDIOBOOK_COVER_SIZE, 80.0,
-        "Skeleton cover should match real size"
-    );
-    assert_eq!(
-        PROGRESS_BAR_HEIGHT, 4.0,
-        "Skeleton progress bar should match real height"
-    );
-    assert_eq!(
-        TITLE_HEIGHT, 20.0,
-        "Skeleton title should match real height"
-    );
+    const {
+        assert!(
+            (AUDIOBOOK_COVER_SIZE - 80.0).abs() < 0.001,
+            "Skeleton cover should match real size"
+        );
+    };
+    const {
+        assert!(
+            (PROGRESS_BAR_HEIGHT - 4.0).abs() < 0.001,
+            "Skeleton progress bar should match real height"
+        );
+    };
+    const {
+        assert!(
+            (TITLE_HEIGHT - 20.0).abs() < 0.001,
+            "Skeleton title should match real height"
+        );
+    };
 }
 
 #[test]
@@ -976,7 +988,6 @@ fn test_focus_indicator_minimum_width() {
     let focus_width = state_border_width(InteractiveState::Focus);
     assert!(
         focus_width >= 3.0,
-        "Focus indicator should be at least 3px wide (WCAG 2.1), got {}",
-        focus_width
+        "Focus indicator should be at least 3px wide (WCAG 2.1), got {focus_width}"
     );
 }

@@ -62,11 +62,6 @@ pub use archive_handling::{
 };
 pub use checksum::sha256;
 
-#[deprecated(
-    since = "0.2.0",
-    note = "Renamed: use `nodoka::tasks::sha256` instead of `calculate_checksum`"
-)]
-pub use checksum::sha256 as calculate_checksum;
 pub use player_scan::scan_media_properties;
 pub use scan_directory::{
     convert_to_audiobooks, scan_directory, DiscoveredAudiobook, DiscoveredFile,

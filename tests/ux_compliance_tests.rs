@@ -308,9 +308,7 @@ fn test_all_spacing_multiples_of_4px() {
         let remainder = spacing_value % BASE_GRID;
         assert!(
             remainder.abs() < EPSILON,
-            "Spacing {} is not a multiple of {}",
-            spacing_value,
-            BASE_GRID
+            "Spacing {spacing_value} is not a multiple of {BASE_GRID}"
         );
     }
 }
@@ -336,10 +334,7 @@ fn test_typography_scale_consistency() {
             // where small differences in pixel sizes are acceptable (e.g., 13px -> 14px)
             assert!(
                 (1.05..=1.6).contains(&ratio),
-                "Typography ratio between {:.1} and {:.1} is {:.2}, expected 1.05-1.6",
-                current,
-                next,
-                ratio
+                "Typography ratio between {current:.1} and {next:.1} is {ratio:.2}, expected 1.05-1.6"
             );
         }
     }
@@ -361,10 +356,7 @@ fn test_all_text_backgrounds_meet_wcag_aa() {
         let contrast = wcag_contrast_ratio(fg, bg);
         assert!(
             contrast >= 4.5,
-            "Contrast ratio {:.2} does not meet WCAG AA (4.5:1) for colors {:?} on {:?}",
-            contrast,
-            fg,
-            bg
+            "Contrast ratio {contrast:.2} does not meet WCAG AA (4.5:1) for colors {fg:?} on {bg:?}"
         );
     }
 }
@@ -380,10 +372,7 @@ fn test_transition_durations_in_ux_guidelines_range() {
     for &duration in &durations {
         assert!(
             (MIN_DURATION..=MAX_DURATION).contains(&duration),
-            "Transition duration {}ms outside UX guidelines range {}-{}ms",
-            duration,
-            MIN_DURATION,
-            MAX_DURATION
+            "Transition duration {duration}ms outside UX guidelines range {MIN_DURATION}-{MAX_DURATION}ms"
         );
     }
 }
@@ -641,8 +630,7 @@ fn test_border_radius_values_appropriate() {
     for &radius in &radii {
         assert!(
             (4.0..=16.0).contains(&radius),
-            "Border radius {} should be between 4px and 16px",
-            radius
+            "Border radius {radius} should be between 4px and 16px"
         );
     }
 }
@@ -656,13 +644,11 @@ fn test_text_secondary_color_has_sufficient_contrast() {
     // Secondary text should meet 4.5:1 for normal text
     assert!(
         contrast_primary_bg >= 4.5,
-        "Secondary text on primary background contrast {:.2} does not meet WCAG AA",
-        contrast_primary_bg
+        "Secondary text on primary background contrast {contrast_primary_bg:.2} does not meet WCAG AA"
     );
     assert!(
         contrast_secondary_bg >= 4.5,
-        "Secondary text on secondary background contrast {:.2} does not meet WCAG AA",
-        contrast_secondary_bg
+        "Secondary text on secondary background contrast {contrast_secondary_bg:.2} does not meet WCAG AA"
     );
 }
 
@@ -699,27 +685,19 @@ fn test_easing_functions_bounded() {
 
         assert!(
             (0.0..=1.0).contains(&linear),
-            "Linear easing at t={} returned {} (out of bounds)",
-            t,
-            linear
+            "Linear easing at t={t} returned {linear} (out of bounds)"
         );
         assert!(
             (0.0..=1.0).contains(&ease_in_out),
-            "Ease-in-out at t={} returned {} (out of bounds)",
-            t,
-            ease_in_out
+            "Ease-in-out at t={t} returned {ease_in_out} (out of bounds)"
         );
         assert!(
             (0.0..=1.0).contains(&ease_out),
-            "Ease-out at t={} returned {} (out of bounds)",
-            t,
-            ease_out
+            "Ease-out at t={t} returned {ease_out} (out of bounds)"
         );
         assert!(
             (0.0..=1.0).contains(&ease_in),
-            "Ease-in at t={} returned {} (out of bounds)",
-            t,
-            ease_in
+            "Ease-in at t={t} returned {ease_in} (out of bounds)"
         );
     }
 }
@@ -733,31 +711,26 @@ fn test_pulse_animation_cycles() {
     let initial = pulse.opacity();
     assert!(
         (0.5..=1.0).contains(&initial),
-        "Initial pulse opacity {} should be between 0.5 and 1.0",
-        initial
+        "Initial pulse opacity {initial} should be between 0.5 and 1.0"
     );
 
     pulse.update(500);
     let mid = pulse.opacity();
     assert!(
         (0.4..=1.0).contains(&mid),
-        "Mid-cycle pulse opacity {} should be between 0.4 and 1.0",
-        mid
+        "Mid-cycle pulse opacity {mid} should be between 0.4 and 1.0"
     );
 
     pulse.update(500);
     let final_val = pulse.opacity();
     assert!(
         (0.5..=1.0).contains(&final_val),
-        "Final pulse opacity {} should be between 0.5 and 1.0",
-        final_val
+        "Final pulse opacity {final_val} should be between 0.5 and 1.0"
     );
 
     assert!(
         (initial - final_val).abs() < 0.2,
-        "Pulse should cycle back to near initial value (initial={}, final={})",
-        initial,
-        final_val
+        "Pulse should cycle back to near initial value (initial={initial}, final={final_val})"
     );
 }
 
@@ -776,8 +749,7 @@ fn test_transition_state_interpolation() {
     let mid = transition.current_value();
     assert!(
         mid > 25.0 && mid < 75.0,
-        "Transition midpoint value {} should be between 25 and 75 (easing affects exact midpoint)",
-        mid
+        "Transition midpoint value {mid} should be between 25 and 75 (easing affects exact midpoint)"
     );
 
     transition.update(500);

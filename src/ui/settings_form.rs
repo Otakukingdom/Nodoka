@@ -3,18 +3,8 @@ use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Element, Length};
 
-/// Builds the settings dialog modal with improved layout and visual hierarchy
-///
-/// Features:
-/// - Clear modal title with proper typography
-/// - Section headers with visual separators (horizontal rules)
-/// - Help text tooltips explaining each setting's purpose
-/// - Scrollable directory list with action buttons
-/// - Improved spacing and padding for better scannability
-/// - Visual grouping of primary/secondary actions
-#[must_use]
-pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Message> {
-    let directory_list: Element<_> = if state.directories.is_empty() {
+fn build_directory_list(state: &State) -> Element<'static, Message> {
+    if state.directories.is_empty() {
         column![text("No audiobook directories configured").size(typography::SIZE_SM)]
             .padding(spacing::MD)
             .into()
@@ -29,7 +19,7 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
 
                 col.push(container(
                     row![
-                        text(path).size(typography::SIZE_SM), // Pass owned String, not reference
+                        text(path).size(typography::SIZE_SM),
                         Space::new().width(Length::Fill),
                         button(text("Rescan").size(typography::SIZE_XS))
                             .on_press(Message::DirectoryRescan(rescan_path))
@@ -45,13 +35,64 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                 ))
             })
             .into()
-    };
+    }
+}
+
+fn build_action_buttons(state: &State) -> Element<'static, Message> {
+    container(
+        row![
+            button(text("Add Directory").size(typography::SIZE_SM))
+                .on_press(Message::DirectoryAdd)
+                .padding(spacing::MD)
+                .style(
+                    if state.focused_element
+                        == crate::ui::FocusedElement::SettingsAddDirectoryButton
+                    {
+                        button_styles::primary_focused
+                    } else {
+                        button_styles::primary
+                    }
+                ),
+            Space::new().width(Length::Fill),
+            button(text("Close").size(typography::SIZE_SM))
+                .on_press(Message::CloseSettings)
+                .padding(spacing::MD)
+                .style(
+                    if state.focused_element == crate::ui::FocusedElement::SettingsCloseButton {
+                        button_styles::secondary_focused
+                    } else {
+                        button_styles::secondary
+                    }
+                ),
+        ]
+        .spacing(spacing::MD),
+    )
+    .padding(iced::Padding {
+        top: spacing::LG,
+        right: 0.0,
+        bottom: 0.0,
+        left: 0.0,
+    })
+    .into()
+}
+
+/// Builds the settings dialog modal with improved layout and visual hierarchy
+///
+/// Features:
+/// - Clear modal title with proper typography
+/// - Section headers with visual separators (horizontal rules)
+/// - Help text tooltips explaining each setting's purpose
+/// - Scrollable directory list with action buttons
+/// - Improved spacing and padding for better scannability
+/// - Visual grouping of primary/secondary actions
+#[must_use]
+pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Message> {
+    let directory_list = build_directory_list(state);
+    let action_buttons = build_action_buttons(state);
 
     container(
         column![
-            // Modal header
             text("Settings").size(typography::SIZE_XXL),
-            // Section header with LG spacing for clear visual hierarchy
             container(text("Audiobook Directories").size(typography::SIZE_LG))
                 .padding(iced::Padding {
                     top: spacing::LG,
@@ -63,7 +104,6 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                     text_color: Some(crate::ui::styles::colors::PRIMARY),
                     ..Default::default()
                 }),
-            // Visual separator (horizontal rule) per ui-ux-pro-max
             container(Space::new())
                 .width(Length::Fill)
                 .height(Length::Fixed(2.0))
@@ -71,7 +111,6 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                     background: Some(crate::ui::styles::colors::BORDER_DEFAULT.into()),
                     ..Default::default()
                 }),
-            // Help text explaining the setting's purpose
             container(
                 text("Add directories containing audiobooks. Nodoka will scan for supported audio files.")
                     .size(typography::SIZE_SM)
@@ -86,37 +125,8 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                 text_color: Some(crate::ui::styles::colors::TEXT_SECONDARY),
                 ..Default::default()
             }),
-            // Directory list with scrolling
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
-            // Action buttons with proper grouping and LG spacing above for separation
-            container(
-                row![
-                    button(text("Add Directory").size(typography::SIZE_SM))
-                        .on_press(Message::DirectoryAdd)
-                        .padding(spacing::MD)
-                        .style(if state.focused_element == crate::ui::FocusedElement::SettingsAddDirectoryButton {
-                            button_styles::primary_focused
-                        } else {
-                            button_styles::primary
-                        }),
-                    Space::new().width(Length::Fill),
-                    button(text("Close").size(typography::SIZE_SM))
-                        .on_press(Message::CloseSettings)
-                        .padding(spacing::MD)
-                        .style(if state.focused_element == crate::ui::FocusedElement::SettingsCloseButton {
-                            button_styles::secondary_focused
-                        } else {
-                            button_styles::secondary
-                        }),
-                ]
-                .spacing(spacing::MD)
-            )
-            .padding(iced::Padding {
-                top: spacing::LG,
-                right: 0.0,
-                bottom: 0.0,
-                left: 0.0,
-            }),
+            action_buttons,
         ]
         .padding(spacing::XL)
         .spacing(spacing::SM),

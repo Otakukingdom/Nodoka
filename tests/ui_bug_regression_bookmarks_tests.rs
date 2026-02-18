@@ -159,7 +159,8 @@ fn test_bug_0035_bookmark_with_extremely_long_text() {
         note: long_note,
     };
 
-    let element = nodoka::ui::components::bookmarks::editor(&editor);
+    let element =
+        nodoka::ui::components::bookmarks::editor(&editor, nodoka::ui::FocusedElement::None, 1.0);
     drop(element);
 }
 

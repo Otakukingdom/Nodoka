@@ -96,8 +96,9 @@ pub mod animations {
     use super::transitions;
 
     fn u64_to_f32(value: u64) -> f32 {
-        let clamped = u32::try_from(value).unwrap_or(u32::MAX);
-        clamped as f32
+        // Clamp to u16::MAX (65535ms) — all animation durations in this codebase
+        // are well below this bound; transitions range from 150-300ms.
+        f32::from(u16::try_from(value).unwrap_or(u16::MAX))
     }
 
     /// Returns appropriate transition duration based on reduced motion preference
@@ -275,9 +276,9 @@ pub mod animations {
                 let p = 0.3;
                 let s = p / 4.0;
                 let t1 = t - 1.0;
-                (-10.0 * t1).exp2()
-                    * ((t1 - s) * (2.0 * std::f32::consts::PI) / p).sin()
-                    + 1.0
+                (-10.0 * t1)
+                    .exp2()
+                    .mul_add(((t1 - s) * (2.0 * std::f32::consts::PI) / p).sin(), 1.0)
             }
         }
     }
@@ -752,18 +753,16 @@ pub mod animations {
                 match self {
                     Self::Closed => 0.0,
                     Self::Opening { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
-                                .min(1.0);
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                        .min(1.0);
                         Self::MAX_BACKDROP_OPACITY * easing::ease_out(progress)
                     }
                     Self::Open => Self::MAX_BACKDROP_OPACITY,
                     Self::Closing { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
-                                .min(1.0);
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                        .min(1.0);
                         Self::MAX_BACKDROP_OPACITY * (1.0 - easing::ease_in(progress))
                     }
                 }
@@ -785,19 +784,17 @@ pub mod animations {
                 match self {
                     Self::Closed => 0.9,
                     Self::Opening { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
-                                .min(1.0);
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                        .min(1.0);
                         0.1_f32.mul_add(easing::ease_out(progress), 0.9)
                     }
                     Self::Open => 1.0,
                     Self::Closing { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
-                                .min(1.0);
-                        1.0 - 0.1 * easing::ease_in(progress)
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                        .min(1.0);
+                        0.1f32.mul_add(-easing::ease_in(progress), 1.0)
                     }
                 }
             }
@@ -816,18 +813,16 @@ pub mod animations {
                 match self {
                     Self::Closed => 0.0,
                     Self::Opening { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::OPENING_DURATION_MS))
-                                .min(1.0);
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::OPENING_DURATION_MS))
+                        .min(1.0);
                         easing::ease_out(progress)
                     }
                     Self::Open => 1.0,
                     Self::Closing { elapsed_ms } => {
-                        let progress =
-                            (super::u64_to_f32(*elapsed_ms)
-                                / super::u64_to_f32(Self::CLOSING_DURATION_MS))
-                                .min(1.0);
+                        let progress = (super::u64_to_f32(*elapsed_ms)
+                            / super::u64_to_f32(Self::CLOSING_DURATION_MS))
+                        .min(1.0);
                         1.0 - easing::ease_in(progress)
                     }
                 }

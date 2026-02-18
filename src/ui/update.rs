@@ -18,8 +18,6 @@ mod window;
 #[cfg(test)]
 mod tests;
 
-pub(super) use modal::{open_modal, request_modal_close};
-
 pub(crate) trait MediaControl {
     fn load_media(&mut self, path: &Path) -> Result<()>;
     fn set_time(&self, time_ms: i64) -> Result<()>;
