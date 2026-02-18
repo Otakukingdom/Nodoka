@@ -11,8 +11,8 @@ use super::{border_radius, colors, shadows};
 /// Loading states and skeleton UI patterns
 ///
 /// Provides color constants and utilities for loading indicators and skeleton UI
-/// patterns. Per ui-ux-pro-max guidelines, loading indicators should be shown for
-/// operations taking longer than 200ms to provide clear feedback.
+/// patterns. Loading indicators should be shown for operations taking longer than
+/// 200ms to provide clear feedback.
 pub mod loading {
     use super::{colors, Color};
 
@@ -245,7 +245,7 @@ pub mod button_styles {
 /// Empty state component styling utilities
 ///
 /// Provides consistent styling for empty state components following
-/// ui-ux-pro-max visual hierarchy specifications.
+/// a clear visual hierarchy.
 pub mod empty_state_styles {
     use super::{border_radius, colors, Border, Color};
 
@@ -279,7 +279,7 @@ pub mod empty_state_styles {
 /// Notification toast styling utilities
 ///
 /// Provides consistent styling for notification toasts following
-/// ui-ux-pro-max feedback patterns with semantic color variants.
+/// feedback patterns with semantic color variants.
 ///
 /// # Notification Variants
 ///
@@ -293,8 +293,8 @@ pub mod notification_styles {
 
     /// Returns background color for notification variant
     ///
-    /// Per ui-ux-pro-max: use semantic colors with sufficient contrast
-    /// for WCAG AA compliance (4.5:1 minimum).
+    /// Use semantic colors with sufficient contrast for WCAG AA compliance
+    /// (4.5:1 minimum).
     #[must_use]
     pub const fn background_color(kind: &NotificationType) -> Color {
         match kind {
@@ -347,8 +347,7 @@ pub mod notification_styles {
 
 /// Tooltip styling utilities
 ///
-/// Provides consistent styling for tooltips following ui-ux-pro-max
-/// discoverability patterns.
+/// Provides consistent styling for tooltips.
 ///
 /// # Tooltip Specifications
 ///

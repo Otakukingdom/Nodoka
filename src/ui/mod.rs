@@ -111,7 +111,7 @@
 //!
 //! ### UX Best Practices
 //!
-//! Following `ui-ux-pro-max` guidelines for audiobook player applications:
+//! Following Nodoka UI guidelines for audiobook player applications:
 //!
 //! - ✅ Keyboard navigation for all functionality
 //! - ✅ Loading states for operations >300ms (directory scanning)
@@ -139,7 +139,7 @@
 //!
 //! #### Interactive Feedback
 //!
-//! All interactive elements follow ui-ux-pro-max guidelines:
+//! All interactive elements follow these interaction guidelines:
 //!
 //! - **Cursor affordances**: Buttons use pointer cursor automatically via `on_press`
 //! - **Hover states**: 5% darker overlay with 150-200ms transitions

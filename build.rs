@@ -62,8 +62,10 @@ fn main() {
         if !found {
             let msg = "libvlc.lib not found. Install the VLC SDK and set VLC_SDK_PATH to its root (or set VLC_LIB_PATH to the SDK 'lib' directory).";
             println!("cargo:warning={msg}");
-            eprintln!("{msg}");
-            std::process::exit(1);
+            // Avoid hard-failing the build script here. If the crate is linked
+            // into a binary/test on Windows without the import libraries
+            // available, the linker will emit a clear error.
+            return;
         }
         println!("cargo:rustc-link-lib=dylib=libvlc");
     }

@@ -1,8 +1,8 @@
 //! Accessibility utilities for WCAG 2.1 Level AA compliance.
 //!
 //! This module provides utilities and constants for ensuring the application
-//! meets WCAG 2.1 Level AA accessibility standards. Per ui-ux-pro-max guidelines,
-//! all interactive elements must:
+//! meets WCAG 2.1 Level AA accessibility standards. In Nodoka, all interactive
+//! elements must:
 //!
 //! - Have minimum touch target size of 44x44px (WCAG 2.5.5 Level AAA)
 //! - Provide sufficient color contrast (4.5:1 for normal text)

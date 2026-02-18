@@ -17,15 +17,15 @@ pub mod transitions {
 
 /// Cursor styles for interactive elements
 ///
-/// Provides cursor type constants for different interaction states per ui-ux-pro-max guidelines.
+/// Provides cursor type constants for different interaction states.
 /// All clickable elements must use cursor-pointer for clear affordance.
 pub mod cursor {
     use iced::mouse;
 
     /// Returns cursor style for interactive elements
     ///
-    /// Per ui-ux-pro-max: all clickable elements must have cursor-pointer
-    /// to provide clear visual feedback that the element is interactive.
+    /// All clickable elements use cursor-pointer to provide clear visual
+    /// feedback that the element is interactive.
     #[must_use]
     pub const fn clickable() -> mouse::Interaction {
         mouse::Interaction::Pointer
@@ -167,7 +167,7 @@ pub mod easing {
     ///
     /// Creates a bouncing effect at the end of the animation.
     /// Best for playful feedback on button clicks or confirmations.
-    /// Per ui-ux-pro-max: use sparingly to avoid overwhelming UI.
+    /// Use sparingly to avoid overwhelming the UI.
     ///
     /// # Examples
     ///
@@ -197,7 +197,7 @@ pub mod easing {
     ///
     /// Creates a spring-like oscillation at the end of the animation.
     /// Best for modal entrances or important notifications.
-    /// Per ui-ux-pro-max: use for attention-grabbing moments only.
+    /// Use for attention-grabbing moments only.
     ///
     /// # Examples
     ///
@@ -225,7 +225,7 @@ pub mod easing {
 
 /// Shadow depth utilities for elevation hierarchy
 ///
-/// Based on ui-ux-pro-max design system shadow specifications.
+/// Shadow depth utilities for elevation hierarchy.
 /// Shadows create visual depth and establish hierarchy between UI layers.
 ///
 /// # Shadow Levels
@@ -255,8 +255,8 @@ pub mod shadows {
     ///
     /// Equivalent to: 0 1px 2px rgba(0,0,0,0.05)
     ///
-    /// Per ui-ux-pro-max: use for interactive elements that need minimal
-    /// elevation like buttons and form inputs.
+    /// Use for interactive elements that need minimal elevation like buttons
+    /// and form inputs.
     #[must_use]
     pub const fn shadow_sm() -> Shadow {
         Shadow {
@@ -270,8 +270,8 @@ pub mod shadows {
     ///
     /// Equivalent to: 0 4px 6px rgba(0,0,0,0.1)
     ///
-    /// Per ui-ux-pro-max: use for cards, raised panels, and floating buttons
-    /// that need clear separation from the background.
+    /// Use for cards, raised panels, and floating buttons that need clear
+    /// separation from the background.
     #[must_use]
     pub const fn shadow_md() -> Shadow {
         Shadow {
@@ -285,8 +285,8 @@ pub mod shadows {
     ///
     /// Equivalent to: 0 10px 15px rgba(0,0,0,0.1)
     ///
-    /// Per ui-ux-pro-max: use for modals, dropdowns, and popovers that
-    /// float above the main content layer.
+    /// Use for modals, dropdowns, and popovers that float above the main
+    /// content layer.
     #[must_use]
     pub const fn shadow_lg() -> Shadow {
         Shadow {
@@ -300,8 +300,8 @@ pub mod shadows {
     ///
     /// Equivalent to: 0 20px 25px rgba(0,0,0,0.15)
     ///
-    /// Per ui-ux-pro-max: use for hero images, featured content, or
-    /// elements that need maximum visual prominence.
+    /// Use for hero images, featured content, or elements that need maximum
+    /// visual prominence.
     #[must_use]
     pub const fn shadow_xl() -> Shadow {
         Shadow {

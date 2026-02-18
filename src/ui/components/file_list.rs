@@ -27,7 +27,7 @@ pub fn view<'a>(
     // Show empty state when no files are available
     if files.is_empty() {
         return super::empty_state(
-            Some("▤"),
+            None,
             "No Files",
             "Select an audiobook from the list to view its files.",
             None,
@@ -52,7 +52,7 @@ pub fn view<'a>(
 
 /// Builds a single file list item with improved status indicators and visual hierarchy
 ///
-/// Applies ui-ux-pro-max interactive patterns:
+/// Applies consistent interactive patterns:
 /// - File number prefix for better navigation context
 /// - Duration display for better scannability
 /// - Cursor-pointer on hover for available files
@@ -115,7 +115,7 @@ fn build_file_item(
         item_button = item_button.on_press(Message::FileSelected(path));
     }
 
-    // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
+    // Apply hover styling with smooth transitions
     // Disabled files (missing) show no hover effect
     // Includes pressed state for tactile feedback using interactive overlay
     item_button

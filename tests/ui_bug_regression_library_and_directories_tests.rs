@@ -2,9 +2,21 @@
 //!
 //! Tests in this file focus on library lists, directories, and related UI state.
 
+use nodoka::db::Database;
 use nodoka::models::{AudiobookFile, Directory};
+use nodoka::tasks::{DiscoveredAudiobook, DiscoveredFile};
+use nodoka::ui::Message;
 use nodoka::ui::{ScanState, State};
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::path::PathBuf;
+use temp_dir::TempDir;
+
+fn create_test_db() -> Result<Database, Box<dyn Error>> {
+    let db = Database::new_in_memory()?;
+    nodoka::db::initialize(db.connection())?;
+    Ok(db)
+}
 
 /// Bug #0004: Audiobook selection clears file selection
 ///
@@ -299,4 +311,35 @@ fn test_bug_0058_empty_audiobook_list() {
 
     assert!(state.audiobooks.is_empty());
     assert!(state.selected_audiobook.is_none());
+}
+
+/// Regression: scan completion must not retain provisional audiobooks on DB errors.
+///
+/// Scenario: A discovered audiobook cannot be inserted due to invalid metadata.
+///
+/// Expected: The UI state does not retain an audiobook entry with `id == None`.
+#[test]
+fn test_scan_complete_does_not_keep_audiobook_without_db_row() -> Result<(), Box<dyn Error>> {
+    let temp = TempDir::new()?;
+    let db = create_test_db()?;
+
+    let dir_str = temp.path().to_string_lossy().to_string();
+    let discovered = vec![DiscoveredAudiobook {
+        path: PathBuf::from(format!("{dir_str}/Book")),
+        name: "Bad\0Name".to_string(),
+        files: Vec::<DiscoveredFile>::new(),
+    }];
+
+    let mut state = State::default();
+    let mut player: Option<nodoka::player::Vlc> = None;
+
+    let _ = nodoka::ui::update::update(
+        &mut state,
+        Message::ScanComplete(dir_str, discovered),
+        &mut player,
+        &db,
+    );
+
+    assert!(state.audiobooks.is_empty());
+    Ok(())
 }

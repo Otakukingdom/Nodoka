@@ -1,7 +1,6 @@
 //! Tooltip state and targeting for hover-based discoverability.
 //!
-//! Tooltips follow ui-ux-pro-max guidelines with delayed show, instant hide,
-//! and reduced-motion support.
+//! Tooltips use delayed show, instant hide, and reduced-motion support.
 
 /// Tooltip placement relative to its anchor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,7 +1,7 @@
 //! Layout constants for spacing, typography, and border radius.
 //!
 //! This module provides consistent design tokens for layout and typography
-//! following the ui-ux-pro-max 4px base grid system.
+//! following a 4px base grid system.
 
 /// Spacing scale based on 4px base grid system
 pub mod spacing {

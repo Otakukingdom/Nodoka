@@ -194,7 +194,7 @@ fn ripple_stack(
 
 fn speed_controls(state: &State, speed_step: i32, is_focused: bool) -> Element<'_, Message> {
     // Micro-interaction: highlight current speed preset button with primary style
-    // Per ui-ux-pro-max: provide immediate visual feedback for current state
+    // Provide immediate visual feedback for current state
 
     let content = container(
         column![
@@ -308,7 +308,7 @@ fn volume_to_level(volume: i32) -> f32 {
     f32::from(as_u16) / 200.0
 }
 
-/// Returns color-coded volume level indicator per ui-ux-pro-max guidelines
+/// Returns color-coded volume level indicator
 ///
 /// - High volume (70%+): Success green
 /// - Medium volume (30-70%): Warning yellow

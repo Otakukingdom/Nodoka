@@ -16,7 +16,7 @@ use std::path::PathBuf;
 /// Notification message for user feedback
 ///
 /// Provides non-intrusive toast notifications for user actions.
-/// Per ui-ux-pro-max guidelines, notifications should auto-dismiss
+/// In Nodoka, notifications auto-dismiss
 /// after 3 seconds for success/info, and allow manual dismiss for errors.
 ///
 /// # Enhanced Features (v0.3.0)
@@ -334,7 +334,7 @@ pub enum NotificationType {
 /// Transition state for component animations
 ///
 /// Provides smooth interpolation between values for animated transitions.
-/// Per ui-ux-pro-max: use ease-in-out for most transitions (200-300ms).
+/// Use ease-in-out for most transitions (200-300ms).
 #[derive(Debug, Clone)]
 pub struct TransitionState {
     /// Starting value

@@ -45,7 +45,7 @@ fn test_border_radius_consistency() {
     assert!(ordered(border_radius::LG, border_radius::XL));
 }
 
-// Notification timing tests per ui-ux-pro-max guidelines
+// Notification timing tests
 
 #[test]
 fn test_notification_auto_dismiss_timing() {
@@ -165,9 +165,8 @@ fn test_volume_color_indicators_semantic() {
 fn test_empty_state_accepts_icons() {
     use nodoka::ui::components::empty_state;
 
-    // Empty state should accept optional icon parameter
-    // Icons are Unicode symbols (not functional icons per ui-ux-pro-max)
-    let _with_icon = empty_state(Some("📚"), "No Items", "Description text", None, None);
+    // Empty state should accept optional icon parameter.
+    let _with_icon = empty_state(Some("[icon]"), "No Items", "Description text", None, None);
 
     let _without_icon = empty_state(None, "No Items", "Description text", None, None);
 
@@ -725,7 +724,7 @@ fn test_skeleton_ui_dimensions_match_real_components() {
 
 #[test]
 fn test_modal_animations_complete_within_budget() {
-    // Modal animations should complete within 300ms budget per ui-ux-pro-max
+    // Modal animations should complete within a 300ms budget.
     const MODAL_ANIMATION_BUDGET_MS: u64 = 300;
     const BACKDROP_FADE_DURATION_MS: u64 = 200;
     const CARD_SCALE_DURATION_MS: u64 = 200;
@@ -759,7 +758,7 @@ fn test_modal_animations_complete_within_budget() {
 fn test_volume_color_semantic_thresholds() {
     use nodoka::ui::colors;
 
-    // Test volume level semantic colors per ui-ux-pro-max guidelines
+    // Test volume level semantic colors.
     // Green for healthy (>70%), Yellow for medium (30-70%), Red for low (<30%)
 
     // Helper function to determine volume color (matches player_controls.rs logic)
@@ -891,7 +890,7 @@ fn test_tooltip_max_width_prevents_excessive_length() {
 
     assert!(
         (tooltip_styles::MAX_WIDTH - 250.0).abs() < 0.001,
-        "Tooltip max width should be 250px per ui-ux-pro-max"
+        "Tooltip max width should be 250px"
     );
 }
 
@@ -947,7 +946,7 @@ fn test_modal_backdrop_opacity_max() {
 
 #[test]
 fn test_skeleton_ui_matches_real_dimensions() {
-    // Per ui-ux-pro-max: skeleton dimensions should match real content
+    // Skeleton dimensions should match real content.
     // Audiobook cover: 80x80px
     // Progress bar: 4px height
     // These are validated in audiobook_list.rs skeleton implementation

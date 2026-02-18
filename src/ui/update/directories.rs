@@ -153,8 +153,6 @@ pub(super) fn handle_scan_complete(
 
     let audiobooks = convert_to_audiobooks(discovered.clone(), directory);
 
-    update_state_with_discovered_audiobooks(state, &audiobooks);
-
     let mut cmds: Vec<Task<Message>> = Vec::new();
 
     for (idx, disc) in discovered.into_iter().enumerate() {
@@ -192,27 +190,6 @@ pub(super) fn handle_scan_error(state: &mut State, error: &str) -> Task<Message>
 
     tracing::error!("Scan error: {error}");
     Task::none()
-}
-
-fn update_state_with_discovered_audiobooks(
-    state: &mut State,
-    audiobooks: &[crate::models::Audiobook],
-) {
-    let mut added_any = false;
-    for audiobook in audiobooks {
-        let exists = state
-            .audiobooks
-            .iter()
-            .any(|a| a.full_path == audiobook.full_path);
-
-        if !exists {
-            state.audiobooks.push(audiobook.clone());
-            added_any = true;
-        }
-    }
-    if added_any {
-        state.audiobook_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
-    }
 }
 
 fn process_discovered_audiobook(
@@ -287,6 +264,7 @@ fn update_state_audiobook_id(
     resolved_audiobook: &crate::models::Audiobook,
     audiobook_id: i64,
 ) -> Option<Task<Message>> {
+    let mut inserted_new = false;
     if let Some(entry) = state
         .audiobooks
         .iter_mut()
@@ -297,6 +275,11 @@ fn update_state_audiobook_id(
         let mut ab = resolved_audiobook.clone();
         ab.id = Some(audiobook_id);
         state.audiobooks.push(ab);
+        inserted_new = true;
+    }
+
+    if inserted_new {
+        state.audiobook_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
     }
 
     if state.cover_thumbnails.contains_key(&audiobook_id) {

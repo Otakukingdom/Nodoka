@@ -81,7 +81,7 @@ pub const FILE_LIST_BG: Color = BG_SECONDARY;
 
 /// Audiobook-optimized color palette (calm cyan + health green)
 ///
-/// Based on ui-ux-pro-max recommendations for extended reading sessions.
+/// Intended for extended listening sessions.
 /// This alternative palette uses cooler tones to reduce eye strain during
 /// long audiobook listening sessions.
 pub mod colors_audiobook {

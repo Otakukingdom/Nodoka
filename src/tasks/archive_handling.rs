@@ -448,21 +448,57 @@ fn write_zip_entry_atomic(
         }
     };
 
-    match fs::remove_file(output_path) {
-        Ok(()) => {}
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-        Err(err) => {
+    #[cfg(not(windows))]
+    {
+        // On Unix platforms, rename replaces the destination atomically.
+        if let Err(err) = fs::rename(&tmp_path, output_path) {
             let _ = fs::remove_file(&tmp_path);
             return Err(err.into());
         }
     }
 
-    if let Err(err) = fs::rename(&tmp_path, output_path) {
-        let _ = fs::remove_file(&tmp_path);
-        return Err(err.into());
+    #[cfg(windows)]
+    {
+        if let Err(err) = rename_replace_windows(&tmp_path, output_path) {
+            let _ = fs::remove_file(&tmp_path);
+            return Err(err.into());
+        }
     }
 
     Ok(written)
+}
+
+#[cfg(windows)]
+fn rename_replace_windows(tmp_path: &Path, output_path: &Path) -> std::io::Result<()> {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    if !output_path.exists() {
+        return fs::rename(tmp_path, output_path);
+    }
+
+    let file_name = output_path
+        .file_name()
+        .and_then(|v| v.to_str())
+        .unwrap_or("zip-entry");
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let pid = std::process::id();
+    let backup_name = format!(".{file_name}.bak.{pid}.{nanos}");
+    let backup_path = output_path.with_file_name(backup_name);
+
+    fs::rename(output_path, &backup_path)?;
+    match fs::rename(tmp_path, output_path) {
+        Ok(()) => {
+            let _ = fs::remove_file(&backup_path);
+            Ok(())
+        }
+        Err(err) => {
+            let _ = fs::rename(&backup_path, output_path);
+            Err(err)
+        }
+    }
 }
 
 /// Cleanup temporary extracted files

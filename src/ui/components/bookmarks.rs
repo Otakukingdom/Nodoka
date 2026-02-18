@@ -36,7 +36,7 @@ pub fn view<'a>(
 
     let items: Element<_> = if bookmarks.is_empty() {
         super::empty_state(
-            Some("◆"),
+            None,
             "No Bookmarks",
             "Create bookmarks to mark important positions in your audiobooks.",
             Some("Add Bookmark"),
@@ -125,7 +125,7 @@ pub fn editor(
 
 /// Builds a single bookmark row with improved action button layout and timestamp badge
 ///
-/// Applies ui-ux-pro-max patterns:
+/// Applies consistent interaction and hierarchy patterns:
 /// - Timestamp badge with colored background (ACCENT color) for better visibility
 /// - Visual indicators for missing files with WARNING color
 /// - Note indicator badge for bookmarks with notes
@@ -156,7 +156,7 @@ fn bookmark_row(
     let pos = format_position(bm.position_ms);
     let id = bm.id;
 
-    // Timestamp badge with colored background per ui-ux-pro-max
+    // Timestamp badge with colored background
     let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
         move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),

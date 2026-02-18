@@ -1,7 +1,7 @@
 //! Interactive feedback patterns for hover, focus, and pressed states.
 //!
 //! This module provides utilities for applying consistent interactive
-//! overlays to colors following ui-ux-pro-max guidelines.
+//! overlays to colors.
 
 use iced::{Color, Point};
 
@@ -23,7 +23,7 @@ pub const RIPPLE_MAX_OPACITY: f32 = 0.2;
 /// Interactive element state enum
 ///
 /// Represents the combined interaction state of a UI element.
-/// Per ui-ux-pro-max: compound states (e.g., `HoverFocus`) should
+/// Compound states (e.g., `HoverFocus`) should
 /// provide cumulative visual feedback.
 ///
 /// # Examples
@@ -61,7 +61,7 @@ pub enum InteractiveState {
 
 /// Applies hover overlay to a color for subtle interactive feedback
 ///
-/// Per ui-ux-pro-max guidelines, hover states should provide clear visual
+/// Hover states should provide clear visual
 /// feedback without causing layout shift. This function applies a 5% black
 /// overlay to darken the base color slightly.
 ///
@@ -104,7 +104,7 @@ pub fn apply_active_overlay(base: Color) -> Color {
 
 /// Applies appropriate overlay based on interactive state
 ///
-/// Per ui-ux-pro-max: visual feedback should progress naturally
+/// Visual feedback should progress naturally
 /// from Idle → Hover → Focus → Pressed with increasing emphasis.
 ///
 /// # Arguments
@@ -158,7 +158,7 @@ pub const fn should_show_pointer(state: InteractiveState) -> bool {
 
 /// Returns border width based on interactive state
 ///
-/// Per ui-ux-pro-max: focus indicators should be 3px minimum for WCAG 2.1 compliance.
+/// Focus indicators should be 3px minimum for WCAG 2.1 compliance.
 /// Regular borders are 1px for subtle separation.
 ///
 /// # Examples
@@ -176,8 +176,7 @@ pub const fn state_border_width(state: InteractiveState) -> f32 {
 
 /// Returns whether state should show focus ring
 ///
-/// Focus rings should only appear for keyboard focus, not mouse clicks,
-/// per ui-ux-pro-max guidelines.
+/// Focus rings should only appear for keyboard focus, not mouse clicks.
 ///
 /// # Examples
 ///
@@ -196,7 +195,7 @@ pub const fn should_show_focus_ring(state: InteractiveState) -> bool {
 
 /// Ripple animation state for interactive press feedback.
 ///
-/// Per ui-ux-pro-max: use a 300ms ease-out expansion with a subtle fade.
+/// Uses a 300ms ease-out expansion with a subtle fade.
 #[derive(Debug, Clone)]
 pub struct RippleAnimation {
     center: Point,

@@ -1,3 +1,4 @@
+use nodoka::db::queries;
 use nodoka::db::Database;
 use nodoka::settings::Settings;
 use std::error::Error;
@@ -58,6 +59,19 @@ fn test_settings_current_audiobook() -> Result<(), Box<dyn Error>> {
 
     settings.set_current_audiobook(42)?;
     assert_eq!(settings.get_current_audiobook()?, Some(42));
+
+    Ok(())
+}
+
+#[test]
+fn test_settings_current_audiobook_corruption_is_recoverable() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+    let settings = Settings::new(conn);
+
+    queries::set_metadata(conn, "current_audiobook_id", "not-an-int")?;
+    assert_eq!(settings.get_current_audiobook()?, None);
+    assert_eq!(queries::get_metadata(conn, "current_audiobook_id")?, None);
 
     Ok(())
 }

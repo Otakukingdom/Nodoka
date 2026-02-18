@@ -1,7 +1,6 @@
 //! UX animation compliance tests
 //!
-//! Validates animation behavior, timing, and reduced motion support
-//! per ui-ux-pro-max guidelines.
+//! Validates animation behavior, timing, and reduced motion support.
 
 use nodoka::ui::styles::animations::*;
 fn assert_approx_eq(actual: f32, expected: f32, tolerance: f32, context: &str) {

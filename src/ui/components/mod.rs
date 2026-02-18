@@ -1,7 +1,7 @@
 //! UI Components Module
 //!
 //! This module contains all reusable UI components for the Nodoka audiobook player,
-//! implementing consistent design patterns from the ui-ux-pro-max design system.
+//! implementing consistent project design patterns.
 //!
 //! # Component Overview
 //!
@@ -49,7 +49,7 @@ pub mod player_controls;
 
 /// Empty state component for when lists have no items
 ///
-/// Provides helpful guidance following ui-ux-pro-max patterns:
+/// Provides helpful guidance with consistent layout and hierarchy:
 /// - Clear title explaining why the list is empty (`SIZE_XXL` for prominence)
 /// - Descriptive text providing context (`SIZE_BASE` with proper line spacing)
 /// - Optional call-to-action button for resolution
@@ -58,7 +58,7 @@ pub mod player_controls;
 ///
 /// # Design Guidelines
 ///
-/// Per ui-ux-pro-max empty state patterns:
+/// Empty state guidelines:
 /// - Use secondary text color to differentiate from main content
 /// - Provide actionable guidance on how to resolve the empty state
 /// - Keep messaging concise but helpful (1-2 sentences)
@@ -72,7 +72,7 @@ pub mod player_controls;
 ///
 /// // Empty state with CTA button and icon
 /// let state = empty_state(
-///     Some("▦"), // Unicode icon
+///     Some("[icon]"),
 ///     "No Audiobooks Found",
 ///     "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
 ///     Some("Open Settings"),
@@ -103,7 +103,7 @@ pub fn empty_state<'a>(
         .align_x(iced::Alignment::Center)
         .spacing(spacing::MD); // Reduced from LG for tighter hierarchy
 
-    // Optional icon at top (Unicode symbol)
+    // Optional icon label at top
     if let Some(icon_text) = icon {
         content = content.push(
             text(icon_text)

@@ -1,7 +1,7 @@
 //! UX interaction compliance tests
 //!
 //! Validates interactive patterns, keyboard navigation,
-//! and notification system behavior per ui-ux-pro-max guidelines.
+//! and notification system behavior.
 
 use nodoka::ui::state::Notification;
 use nodoka::ui::Message;

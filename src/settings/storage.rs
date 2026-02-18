@@ -88,14 +88,19 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_current_audiobook(&self) -> Result<Option<i64>> {
-        (get_metadata(self.conn, "current_audiobook_id")?).map_or_else(
-            || Ok(None),
-            |v| {
-                v.parse().ok().map(Some).ok_or_else(|| {
-                    crate::error::Error::InvalidState("Invalid audiobook ID".to_string())
-                })
-            },
-        )
+        let value = get_metadata(self.conn, "current_audiobook_id")?;
+        let Some(value) = value else {
+            return Ok(None);
+        };
+
+        match value.parse::<i64>() {
+            Ok(id) => Ok(Some(id)),
+            Err(_e) => {
+                tracing::warn!("Corrupted current_audiobook_id metadata; clearing key");
+                self.clear_metadata_keys(&["current_audiobook_id"])?;
+                Ok(None)
+            }
+        }
     }
 
     /// Sets the current audiobook ID

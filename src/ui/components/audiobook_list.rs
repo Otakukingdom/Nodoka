@@ -36,7 +36,7 @@ pub fn view<'a, S: BuildHasher>(
         return match scan_state {
             ScanState::Scanning { .. } => skeleton_audiobook_list(),
             ScanState::Idle => super::empty_state(
-                Some("▦"),
+                None,
                 "No Audiobooks Found",
                 "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
                 Some("Open Settings"),
@@ -62,7 +62,7 @@ pub fn view<'a, S: BuildHasher>(
 
 /// Builds a single audiobook list item with improved visual feedback
 ///
-/// Applies ui-ux-pro-max interactive patterns:
+/// Applies consistent interactive patterns:
 /// - Cursor-pointer on hover for clear affordance
 /// - Subtle background color change on hover (200ms transition)
 /// - Selection highlighting with primary color
@@ -91,7 +91,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         animation.offset_y,
     );
 
-    // Apply selection styling with left border accent per ui-ux-pro-max
+    // Apply selection styling with left border accent
     // Left border (4px PRIMARY color) provides clear visual indicator for selected item
     let content_container = if selected {
         container(content_row)
@@ -110,7 +110,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         container(content_row).width(Length::Fill)
     };
 
-    // Apply hover styling with smooth transitions per ui-ux-pro-max guidelines
+    // Apply hover styling with smooth transitions
     // Includes pressed state for tactile feedback using interactive overlay
     let item_button = button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
@@ -165,7 +165,7 @@ fn build_cover<S: BuildHasher>(
 ) -> Element<'_, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    // Larger cover thumbnail (80x80px) for better visibility per ui-ux-pro-max
+    // Larger cover thumbnail (80x80px) for better visibility
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
             container(text("No cover").size(typography::SIZE_XS).style(
@@ -244,8 +244,8 @@ fn build_content_row<'a>(
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = offset_y.clamp(0.0, max_offset);
 
-    // Progress bar for visual representation of completeness
-    // Per ui-ux-pro-max: progress bars should be at least 6px height for visibility
+    // Progress bar for visual representation of completeness.
+    // Keep progress bars at least 6px tall for visibility.
     let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
     let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
 
@@ -317,10 +317,10 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
 
 /// Skeleton UI for audiobook list during scanning
 ///
-/// Shows 5 placeholder items to indicate loading activity per ui-ux-pro-max guidelines.
+/// Shows 5 placeholder items to indicate loading activity.
 /// Skeleton UI provides better feedback than spinners for list-based content.
 ///
-/// Per ui-ux-pro-max loading state patterns:
+/// Loading state patterns:
 /// - Show skeleton UI for operations taking longer than 200ms
 /// - Use grayscale colors (`SKELETON_BG`, `SKELETON_SHIMMER`) from loading module
 /// - Match skeleton structure to real content layout (cover + text + progress)
@@ -338,14 +338,14 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 /// Single skeleton audiobook item
 ///
 /// Creates a placeholder with complete structure matching real audiobook items:
-/// - 80x80px skeleton cover (matches real cover size per ui-ux-pro-max)
+/// - 80x80px skeleton cover (matches real cover size)
 /// - Title placeholder (60% width, 20px height for realistic match)
 /// - Progress bar placeholder (100% width, 4px height)
 /// - Status text placeholder (50x12px for percentage display)
 /// - Consistent spacing following 4px grid system
 ///
 /// Uses `SKELETON_BG` color (#E5E5E5) from loading module per design system.
-/// Per ui-ux-pro-max: skeleton dimensions should match real content exactly.
+/// Skeleton dimensions should match real content exactly.
 fn skeleton_audiobook_item() -> Element<'static, Message> {
     // Skeleton cover placeholder (80x80px) - matches real thumbnail size
     let skeleton_cover = container(Space::new())

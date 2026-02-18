@@ -23,6 +23,97 @@ fn create_existing_directory() -> Result<(TempDir, String), Box<dyn Error>> {
 }
 
 #[test]
+fn test_invalid_audiobook_created_at_is_error() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    let (_temp, dir_path) = create_existing_directory()?;
+
+    let dir = Directory {
+        full_path: dir_path.clone(),
+        created_at: Utc::now(),
+        last_scanned: None,
+    };
+    queries::insert_directory(conn, &dir)?;
+
+    conn.execute(
+        "INSERT INTO audiobooks (directory, name, full_path, completeness, default_order, selected_file, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        rusqlite::params![
+            dir_path,
+            "Corrupted Timestamp",
+            "corrupt://audiobook",
+            0,
+            0,
+            Option::<String>::None,
+            "not-a-timestamp",
+        ],
+    )?;
+
+    assert!(queries::get_all_audiobooks(conn).is_err());
+    Ok(())
+}
+
+#[test]
+fn test_invalid_directory_timestamps_are_error() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    let (_temp, dir_path) = create_existing_directory()?;
+
+    conn.execute(
+        "INSERT INTO directories (full_path, created_at, last_scanned) VALUES (?1, ?2, ?3)",
+        rusqlite::params![dir_path, "not-a-timestamp", "also-bad"],
+    )?;
+
+    assert!(queries::get_all_directories(conn).is_err());
+    Ok(())
+}
+
+#[test]
+fn test_invalid_bookmark_created_at_is_error() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    let (_temp, dir_path) = create_existing_directory()?;
+
+    let dir = Directory {
+        full_path: dir_path.clone(),
+        created_at: Utc::now(),
+        last_scanned: None,
+    };
+    queries::insert_directory(conn, &dir)?;
+
+    let audiobook = Audiobook {
+        id: None,
+        directory: dir_path.clone(),
+        name: "Test Audiobook".to_string(),
+        full_path: format!("{dir_path}/test"),
+        completeness: 0,
+        default_order: 0,
+        selected_file: None,
+        created_at: Utc::now(),
+    };
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
+
+    conn.execute(
+        "INSERT INTO bookmarks (audiobook_id, file_path, position_ms, label, note, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        rusqlite::params![
+            audiobook_id,
+            format!("{}/test/Chapter 1.mp3", dir_path),
+            0,
+            "Bad created_at",
+            Option::<String>::None,
+            "not-a-timestamp",
+        ],
+    )?;
+
+    assert!(queries::get_bookmarks_for_audiobook(conn, audiobook_id).is_err());
+    Ok(())
+}
+
+#[test]
 fn test_directory_crud_operations() -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
@@ -135,6 +226,49 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
     assert!(queries::get_audiobook_by_id(conn, id)?.is_none());
     assert_eq!(queries::get_all_audiobooks(conn)?.len(), 0);
     assert_eq!(queries::get_audiobook_files(conn, id)?.len(), 0);
+
+    Ok(())
+}
+
+#[test]
+fn test_insert_audiobook_file_rejects_nul_bytes() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let conn = db.connection();
+
+    let (_temp, dir_path) = create_existing_directory()?;
+    let dir = Directory {
+        full_path: dir_path.clone(),
+        created_at: Utc::now(),
+        last_scanned: None,
+    };
+    queries::insert_directory(conn, &dir)?;
+
+    let audiobook = Audiobook {
+        id: None,
+        directory: dir_path.clone(),
+        name: "Test Audiobook".to_string(),
+        full_path: format!("{dir_path}/test"),
+        completeness: 0,
+        default_order: 0,
+        selected_file: None,
+        created_at: Utc::now(),
+    };
+    let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
+
+    let bad_file = AudiobookFile {
+        audiobook_id,
+        name: "Chapter\0One.mp3".to_string(),
+        full_path: format!("{dir_path}/test/Chapter 1.mp3"),
+        length_of_file: Some(1),
+        seek_position: None,
+        checksum: None,
+        position: 0,
+        completeness: 0,
+        file_exists: true,
+        created_at: Utc::now(),
+    };
+
+    assert!(queries::insert_audiobook_file(conn, &bad_file).is_err());
 
     Ok(())
 }

@@ -9,7 +9,73 @@ use crate::error::{Error, Result};
 use crate::models::{Audiobook, AudiobookFile, Directory};
 use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, OptionalExtension};
+use std::error::Error as StdError;
+use std::fmt;
 use std::path::Path;
+
+#[derive(Debug)]
+struct InvalidRfc3339Timestamp {
+    column: &'static str,
+    value: String,
+    source: chrono::ParseError,
+}
+
+impl fmt::Display for InvalidRfc3339Timestamp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid RFC3339 timestamp in {column}: {value}",
+            column = self.column,
+            value = self.value
+        )
+    }
+}
+
+impl StdError for InvalidRfc3339Timestamp {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        Some(&self.source)
+    }
+}
+
+fn parse_rfc3339_utc_with_context(
+    column_index: usize,
+    column: &'static str,
+    value: String,
+) -> rusqlite::Result<DateTime<Utc>> {
+    DateTime::parse_from_rfc3339(&value)
+        .map(|dt| dt.with_timezone(&Utc))
+        .map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                column_index,
+                rusqlite::types::Type::Text,
+                Box::new(InvalidRfc3339Timestamp {
+                    column,
+                    value,
+                    source: e,
+                }),
+            )
+        })
+}
+
+fn row_rfc3339_utc(
+    row: &rusqlite::Row<'_>,
+    column_index: usize,
+    column: &'static str,
+) -> rusqlite::Result<DateTime<Utc>> {
+    let value: String = row.get(column_index)?;
+    parse_rfc3339_utc_with_context(column_index, column, value)
+}
+
+fn row_rfc3339_utc_optional(
+    row: &rusqlite::Row<'_>,
+    column_index: usize,
+    column: &'static str,
+) -> rusqlite::Result<Option<DateTime<Utc>>> {
+    let value: Option<String> = row.get(column_index)?;
+    value
+        .map(|v| parse_rfc3339_utc_with_context(column_index, column, v))
+        .transpose()
+}
 
 /// Maps a rusqlite [`rusqlite::Row`] to an [`Audiobook`].
 ///
@@ -17,9 +83,7 @@ use std::path::Path;
 /// `SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at`
 /// projection used in all audiobook queries.
 fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
-    let created_str: String = row.get(7)?;
-    let created_at = DateTime::parse_from_rfc3339(&created_str)
-        .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+    let created_at = row_rfc3339_utc(row, 7, "audiobooks.created_at")?;
     Ok(Audiobook {
         id: Some(row.get(0)?),
         directory: row.get(1)?,
@@ -42,9 +106,7 @@ fn row_to_audiobook_file(row: &rusqlite::Row<'_>) -> rusqlite::Result<AudiobookF
     let length_str: Option<String> = row.get(3)?;
     let seek_str: Option<String> = row.get(4)?;
     let checksum: Option<String> = row.get(5)?;
-    let created_str: String = row.get(9)?;
-    let created_at = DateTime::parse_from_rfc3339(&created_str)
-        .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+    let created_at = row_rfc3339_utc(row, 9, "audiobook_file.created_at")?;
     Ok(AudiobookFile {
         audiobook_id: row.get(0)?,
         name: row.get(1)?,
@@ -196,6 +258,12 @@ pub fn delete_audiobook(conn: &Connection, id: i64) -> Result<()> {
 ///
 /// Returns an error if the database insert fails
 pub fn insert_audiobook_file(conn: &Connection, file: &AudiobookFile) -> Result<()> {
+    validate_no_nul("audiobook_file.name", &file.name)?;
+    validate_no_nul("audiobook_file.full_path", &file.full_path)?;
+    if let Some(checksum) = file.checksum.as_deref() {
+        validate_no_nul("audiobook_file.checksum", checksum)?;
+    }
+
     conn.execute(
         "INSERT OR REPLACE INTO audiobook_file 
          (audiobook_id, name, full_path, length_of_file, seek_position, checksum, position, completeness, file_exists, created_at)
@@ -306,16 +374,8 @@ pub fn get_all_directories(conn: &Connection) -> Result<Vec<Directory>> {
     let mut stmt = conn.prepare("SELECT full_path, created_at, last_scanned FROM directories")?;
 
     let rows = stmt.query_map([], |row| {
-        let created_str: String = row.get(1)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-        let last_scanned_str: Option<String> = row.get(2)?;
-        let last_scanned = last_scanned_str.and_then(|s| {
-            DateTime::parse_from_rfc3339(&s)
-                .map(|dt| dt.with_timezone(&Utc))
-                .ok()
-        });
+        let created_at = row_rfc3339_utc(row, 1, "directories.created_at")?;
+        let last_scanned = row_rfc3339_utc_optional(row, 2, "directories.last_scanned")?;
 
         Ok(Directory {
             full_path: row.get(0)?,
@@ -436,9 +496,7 @@ pub fn get_bookmarks_for_audiobook(
     )?;
 
     let rows = stmt.query_map([audiobook_id], |row| {
-        let created_str: String = row.get(6)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+        let created_at = row_rfc3339_utc(row, 6, "bookmarks.created_at")?;
 
         Ok(crate::models::Bookmark {
             id: Some(row.get(0)?),

@@ -1,8 +1,8 @@
 //! UI Styles Module - Nodoka Design System
 //!
-//! This module provides a comprehensive design system for the Nodoka audiobook player
-//! following ui-ux-pro-max guidelines and best practices. It implements a vibrant rose
-//! palette optimized for audiobook player applications with WCAG AA accessibility compliance.
+//! This module provides a comprehensive design system for the Nodoka audiobook player.
+//! It implements a vibrant rose palette optimized for audiobook player applications with
+//! WCAG AA accessibility compliance.
 //!
 //! # Design System Overview
 //!
@@ -46,7 +46,7 @@
 //!
 //! ## Loading State Pattern
 //!
-//! Show skeleton UI for operations taking longer than 200ms per ui-ux-pro-max:
+//! Show skeleton UI for operations taking longer than 200ms to provide clear feedback:
 //!
 //! ```ignore
 //! match scan_state {
