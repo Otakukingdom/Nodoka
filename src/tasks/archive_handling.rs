@@ -120,6 +120,12 @@ fn extract_zip_for_playback_with_limits(
             ));
         }
 
+        if entry_size > remaining_total {
+            return Err(crate::error::Error::InvalidInput(
+                "ZIP extraction exceeds maximum allowed total size".to_string(),
+            ));
+        }
+
         let output_path = temp_dir.join(&file_path);
 
         if let Some(parent) = output_path.parent() {
@@ -526,6 +532,37 @@ mod tests {
 
         let result = extract_zip_for_playback_with_limits(&zip_path, &out_dir, limits);
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_extract_zip_for_playback_rejects_entries_over_remaining_total_without_writing(
+    ) -> Result<()> {
+        let temp = temp_dir::TempDir::new()?;
+        let zip_path = temp.path().join("book.zip");
+
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(&zip_path)?);
+        zip.start_file("chapter.mp3", zip::write::FileOptions::default())?;
+        zip.write_all(b"01234567890")?;
+        zip.finish()?;
+
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(&out_dir)?;
+
+        let limits = ZipExtractionLimits {
+            entries: 10,
+            total_bytes: 10,
+            entry_bytes: 1024,
+            path_depth: 10,
+        };
+
+        let result = extract_zip_for_playback_with_limits(&zip_path, &out_dir, limits);
+        assert!(result.is_err());
+        assert!(
+            !out_dir.join("chapter.mp3").exists(),
+            "extraction must fail before creating an oversized output file"
+        );
+
         Ok(())
     }
 }

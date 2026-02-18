@@ -140,14 +140,19 @@ fn is_allowlisted_artwork_path(media_path: &Path, artwork_path: &Path) -> bool {
 fn allowlisted_artwork_roots(media_path: &Path) -> Vec<std::path::PathBuf> {
     let mut roots = Vec::new();
 
-    roots.push(std::env::temp_dir());
-
     if let Some(parent) = media_path.parent() {
         roots.push(parent.to_path_buf());
     }
 
     if let Some(vlc_dirs) = ProjectDirs::from("org", "videolan", "vlc") {
         roots.push(vlc_dirs.cache_dir().to_path_buf());
+        roots.push(vlc_dirs.data_local_dir().to_path_buf());
+        roots.push(vlc_dirs.data_dir().to_path_buf());
+    }
+
+    if let Some(nodoka_dirs) = ProjectDirs::from("com", "Otakukingdom", "Nodoka") {
+        roots.push(nodoka_dirs.cache_dir().to_path_buf());
+        roots.push(nodoka_dirs.data_dir().to_path_buf());
     }
 
     roots
@@ -446,7 +451,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_artwork_bytes_accepts_temp_dir_images(
+    fn test_read_artwork_bytes_accepts_media_directory_images(
     ) -> std::result::Result<(), Box<dyn std::error::Error>> {
         let media_dir = TempDir::new()?;
         let media_path = media_dir.path().join("media.mp3");
@@ -461,6 +466,30 @@ mod tests {
             .ok_or_else(|| std::io::Error::other("expected bytes"))?;
 
         assert_eq!(bytes, png);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_artwork_bytes_rejects_unrelated_temp_dir_images(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let media_dir = TempDir::new()?;
+        let media_path = media_dir.path().join("media.mp3");
+        std::fs::write(&media_path, "")?;
+
+        let unrelated_temp = TempDir::new()?;
+        assert_ne!(
+            media_dir.path().canonicalize()?,
+            unrelated_temp.path().canonicalize()?,
+            "test requires distinct temp directories"
+        );
+
+        let cover_path = unrelated_temp.path().join("cover.png");
+        let png = png_1x1_bytes()?;
+        std::fs::write(&cover_path, &png)?;
+        let url = file_url_for_path(&cover_path);
+
+        let bytes = read_artwork_bytes_from_vlc_url(&media_path, &url, 10 * 1024 * 1024);
+        assert!(bytes.is_none());
         Ok(())
     }
 
