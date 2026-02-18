@@ -106,7 +106,12 @@ fn test_stagger_translate_y_ends_at_zero() {
     let offset = stagger_translate_y(2, 50, 350); // Item 2 delay 100ms + 200ms animation
 
     // Then offset should be 0 (final position)
-    assert_approx_eq(offset, 0.0, 0.001, "Stagger translate should end at 0 offset");
+    assert_approx_eq(
+        offset,
+        0.0,
+        0.001,
+        "Stagger translate should end at 0 offset",
+    );
 }
 
 #[test]
@@ -200,7 +205,12 @@ fn test_scale_transition_maintains_bounds() {
     let mut scale = ScaleTransition::new(200, 0.95, 1.0);
 
     // Initial state
-    assert_approx_eq(scale.scale(), 0.95, 0.001, "Scale should start at from value");
+    assert_approx_eq(
+        scale.scale(),
+        0.95,
+        0.001,
+        "Scale should start at from value",
+    );
 
     // Mid-transition
     scale.update(100);
@@ -220,7 +230,12 @@ fn test_fade_transition_bounds() {
     let mut fade = FadeTransition::new(200, 0.0, 1.0);
 
     // Initial state
-    assert_approx_eq(fade.opacity(), 0.0, 0.001, "Opacity should start at from value");
+    assert_approx_eq(
+        fade.opacity(),
+        0.0,
+        0.001,
+        "Opacity should start at from value",
+    );
 
     // Throughout transition, opacity should stay in bounds
     for _ in 0..20 {
@@ -302,7 +317,12 @@ fn test_all_animations_respect_reduced_motion() {
 
     // Scale with 0 duration
     let scale = ScaleTransition::new(0, 0.9, 1.0);
-    assert_approx_eq(scale.scale(), 1.0, 0.001, "Scale with 0 duration should be instant");
+    assert_approx_eq(
+        scale.scale(),
+        1.0,
+        0.001,
+        "Scale with 0 duration should be instant",
+    );
 
     // Pulse with 0 duration
     let mut pulse = PulseAnimation::new(0);

@@ -463,8 +463,7 @@ fn test_file_list_rendering_with_progress_bars() {
 
     // Render file list
     let start = Instant::now();
-    let element =
-        file_list::view(&files, Some(&"/test/chapter050.mp3".to_string()), 0, false);
+    let element = file_list::view(&files, Some(&"/test/chapter050.mp3".to_string()), 0, false);
     drop(element);
     let render_duration = start.elapsed();
 

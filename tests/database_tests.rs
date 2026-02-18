@@ -504,6 +504,19 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
     };
     queries::insert_audiobook_file(conn, &file)?;
 
+    let bookmark = Bookmark::new(
+        audiobook_id,
+        format!("{dir_path}/test/Chapter 1.mp3"),
+        1234,
+        "Test".to_string(),
+    );
+    let _bookmark_id = queries::insert_bookmark(conn, &bookmark)?;
+
+    assert_eq!(
+        queries::get_bookmarks_for_audiobook(conn, audiobook_id)?.len(),
+        1
+    );
+
     // Delete directory should cascade
     queries::delete_directory(conn, &dir_path)?;
 
@@ -516,11 +529,17 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
 
     let files = queries::get_audiobook_files(conn, audiobook_id)?;
     assert_eq!(files.len(), 0);
+
+    assert_eq!(
+        queries::get_bookmarks_for_audiobook(conn, audiobook_id)?.len(),
+        0
+    );
     Ok(())
 }
 
 #[test]
-fn test_delete_directory_removes_bookmarks() -> Result<(), Box<dyn Error>> {
+fn test_delete_audiobooks_by_directory_cascades_to_files_and_bookmarks(
+) -> Result<(), Box<dyn Error>> {
     let db = create_test_db()?;
     let conn = db.connection();
 
@@ -545,6 +564,20 @@ fn test_delete_directory_removes_bookmarks() -> Result<(), Box<dyn Error>> {
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
+    let file = AudiobookFile {
+        audiobook_id,
+        name: "Chapter 1.mp3".to_string(),
+        full_path: format!("{dir_path}/Book/Chapter 1.mp3"),
+        length_of_file: Some(300_000),
+        seek_position: None,
+        checksum: None,
+        position: 0,
+        completeness: 0,
+        file_exists: true,
+        created_at: Utc::now(),
+    };
+    queries::insert_audiobook_file(conn, &file)?;
+
     let bookmark = Bookmark::new(
         audiobook_id,
         format!("{dir_path}/Book/chapter1.mp3"),
@@ -558,7 +591,11 @@ fn test_delete_directory_removes_bookmarks() -> Result<(), Box<dyn Error>> {
         1
     );
 
-    queries::delete_directory(conn, &dir_path)?;
+    queries::delete_audiobooks_by_directory(conn, &dir_path)?;
+
+    assert_eq!(queries::get_all_directories(conn)?.len(), 1);
+    assert_eq!(queries::get_all_audiobooks(conn)?.len(), 0);
+    assert_eq!(queries::get_audiobook_files(conn, audiobook_id)?.len(), 0);
 
     assert_eq!(
         queries::get_bookmarks_for_audiobook(conn, audiobook_id)?.len(),

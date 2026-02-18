@@ -10,11 +10,7 @@ pub(super) fn handle_window_moved(db: &Database, x: i32, y: i32) -> Task<Message
     Task::none()
 }
 
-pub(super) fn handle_window_resized(
-    db: &Database,
-    width: u32,
-    height: u32,
-) -> Task<Message> {
+pub(super) fn handle_window_resized(db: &Database, width: u32, height: u32) -> Task<Message> {
     let settings = crate::settings::Settings::new(db.connection());
 
     let width_i32 = match i32::try_from(width) {

@@ -113,9 +113,7 @@ fn persist_selected_file(state: &mut State, db: &Database, path: &str) {
         return;
     }
 
-    if let Ok(Some(file)) =
-        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-    {
+    if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(db.connection(), path) {
         if let Err(e) = crate::db::queries::update_audiobook_selected_file(
             db.connection(),
             file.audiobook_id,
@@ -132,9 +130,7 @@ fn restore_progress_and_duration<P: MediaControl>(
     db: &Database,
     path: &str,
 ) {
-    if let Ok(Some(file)) =
-        crate::db::queries::get_audiobook_file_by_path(db.connection(), path)
-    {
+    if let Ok(Some(file)) = crate::db::queries::get_audiobook_file_by_path(db.connection(), path) {
         if let Some(length_ms) = file.length_of_file {
             if let Ok(duration_f64) = ms_to_f64(length_ms) {
                 state.total_duration = duration_f64;

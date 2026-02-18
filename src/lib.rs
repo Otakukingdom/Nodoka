@@ -378,8 +378,8 @@
 //!
 //! MIT License - see LICENSE file for details
 
-pub(crate) mod audio_extensions;
 pub mod app;
+pub(crate) mod audio_extensions;
 pub mod conversions;
 pub mod cover_art;
 pub mod cover_cache;
@@ -395,20 +395,17 @@ pub mod ui;
 /// Contribution guidelines.
 ///
 /// This module exists to provide stable rustdoc navigation for `nodoka::contributing`.
-pub mod contributing {
-}
+pub mod contributing {}
 
 /// Security notes.
 ///
 /// This module exists to provide stable rustdoc navigation for `nodoka::security`.
-pub mod security {
-}
+pub mod security {}
 
 /// Project goals.
 ///
 /// This module exists to provide stable rustdoc navigation for `nodoka::project_goals`.
-pub mod project_goals {
-}
+pub mod project_goals {}
 
 #[cfg(test)]
 pub(crate) mod test_support;

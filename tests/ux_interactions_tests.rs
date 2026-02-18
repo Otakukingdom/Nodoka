@@ -43,24 +43,24 @@ fn test_notification_variants_use_correct_icons() {
     let success = Notification::success("Success".to_string());
     assert_eq!(
         success.icon(),
-        "✓",
-        "Success notification should use checkmark icon"
+        "OK",
+        "Success notification should use OK icon"
     );
 
     let info = Notification::info("Info".to_string());
-    assert_eq!(info.icon(), "ℹ", "Info notification should use info icon");
+    assert_eq!(info.icon(), "i", "Info notification should use info icon");
 
     let warning = Notification::warning("Warning".to_string());
     assert_eq!(
         warning.icon(),
-        "⚠",
+        "!",
         "Warning notification should use warning icon"
     );
 
     let error = Notification::error("Error".to_string());
     assert_eq!(
         error.icon(),
-        "✕",
+        "X",
         "Error notification should use error icon"
     );
 }

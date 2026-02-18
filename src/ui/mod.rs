@@ -192,15 +192,15 @@
 
 pub mod components;
 pub mod main_window;
-pub(super) mod modal_views;
-pub(super) mod notification_views;
 mod media_paths;
 mod message;
+pub(super) mod modal_views;
+pub(super) mod notification_views;
 pub mod settings_form;
 pub mod shortcuts;
 pub mod state;
-pub mod tooltip;
 pub mod styles;
+pub mod tooltip;
 pub mod update;
 
 pub use message::Message;

@@ -65,7 +65,9 @@ pub fn update(
         Message::PlayPause => playback::handle_play_pause(state, player),
         Message::Stop => playback::handle_stop(state, player),
         Message::SeekTo(position) => playback::handle_seek_to(state, player, position),
-        Message::VolumeChanged(volume) => playback::handle_volume_changed(state, player, db, volume),
+        Message::VolumeChanged(volume) => {
+            playback::handle_volume_changed(state, player, db, volume)
+        }
         Message::SpeedChanged(speed) => playback::handle_speed_changed(state, player, db, speed),
         Message::PlayerTimeUpdated(time) => playback::handle_time_updated(state, db, time),
         Message::PlayerTick => playback::handle_player_tick(state, player, db),

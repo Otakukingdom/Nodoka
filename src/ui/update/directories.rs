@@ -95,8 +95,7 @@ pub(super) fn handle_directory_remove(
         let before_len = state.audiobooks.len();
         state.audiobooks.retain(|a| a.directory != path);
         if state.audiobooks.len() != before_len {
-            state.audiobook_list_animation_start_ms =
-                Some(crate::ui::state::current_time_ms());
+            state.audiobook_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
         }
         if should_clear_selection {
             super::playback::reset_playback_state(state, player);
@@ -168,15 +167,13 @@ pub(super) fn handle_scan_complete(
 
     finalize_directory_scan(state, db, directory);
 
-    state
-        .notification_queue
-        .push(Notification::info_with_title(
-            "Scan Complete".to_string(),
-            format!(
-                "Found {discovered_count} audiobook{} in {directory}.",
-                if discovered_count == 1 { "" } else { "s" }
-            ),
-        ));
+    state.notification_queue.push(Notification::info_with_title(
+        "Scan Complete".to_string(),
+        format!(
+            "Found {discovered_count} audiobook{} in {directory}.",
+            if discovered_count == 1 { "" } else { "s" }
+        ),
+    ));
 
     Task::batch(cmds)
 }
@@ -214,8 +211,7 @@ fn update_state_with_discovered_audiobooks(
         }
     }
     if added_any {
-        state.audiobook_list_animation_start_ms =
-            Some(crate::ui::state::current_time_ms());
+        state.audiobook_list_animation_start_ms = Some(crate::ui::state::current_time_ms());
     }
 }
 

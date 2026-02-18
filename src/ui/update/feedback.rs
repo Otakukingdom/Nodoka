@@ -3,7 +3,10 @@ use crate::ui::tooltip::TooltipTarget;
 use crate::ui::{Message, State};
 use iced::{Point, Task};
 
-pub(super) fn handle_dismiss_notification(state: &mut State, notification_id: u64) -> Task<Message> {
+pub(super) fn handle_dismiss_notification(
+    state: &mut State,
+    notification_id: u64,
+) -> Task<Message> {
     state
         .notification_queue
         .retain(|notification| notification.id != notification_id);
@@ -43,7 +46,9 @@ pub(super) fn update_ripples(state: &mut State, delta_ms: u64) {
         .ripple_animations
         .iter_mut()
         .for_each(|(_, ripple)| ripple.update(delta_ms));
-    state.ripple_animations.retain(|_, ripple| !ripple.is_complete());
+    state
+        .ripple_animations
+        .retain(|_, ripple| !ripple.is_complete());
 }
 
 pub(super) fn handle_ripple_pointer_moved(

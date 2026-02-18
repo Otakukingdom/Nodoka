@@ -19,11 +19,18 @@ const PLAYBACK_BUTTON_HEIGHT: f32 = typography::SIZE_BASE + spacing::MD * 2.0;
 
 fn ripple_center(state: &State, target: RippleTarget) -> Point {
     let fallback = Point::new(PLAYBACK_BUTTON_WIDTH / 2.0, PLAYBACK_BUTTON_HEIGHT / 2.0);
-    let position = state.ripple_origins.get(&target).copied().unwrap_or(fallback);
+    let position = state
+        .ripple_origins
+        .get(&target)
+        .copied()
+        .unwrap_or(fallback);
     position
 }
 
-pub(super) fn handle_play_pause(state: &mut State, player: &mut Option<Vlc>) -> Task<crate::ui::Message> {
+pub(super) fn handle_play_pause(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+) -> Task<crate::ui::Message> {
     // Don't process play/pause when a modal is open (keyboard shortcut should not work in modal context)
     if state.active_modal != ActiveModal::None || state.bookmark_editor.is_some() {
         return Task::none();
@@ -289,7 +296,11 @@ pub(super) fn handle_speed_changed(
     Task::none()
 }
 
-pub(super) fn handle_time_updated(state: &mut State, db: &Database, time: f64) -> Task<crate::ui::Message> {
+pub(super) fn handle_time_updated(
+    state: &mut State,
+    db: &Database,
+    time: f64,
+) -> Task<crate::ui::Message> {
     if !time.is_finite() {
         tracing::warn!("Ignoring non-finite time update: {time}");
         return Task::none();

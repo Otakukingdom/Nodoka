@@ -84,7 +84,8 @@ fn test_focus_updates_on_volume_speed_and_progress_changes(
 }
 
 #[test]
-fn test_tab_focus_cycles_forward_from_none() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn test_tab_focus_cycles_forward_from_none() -> std::result::Result<(), Box<dyn std::error::Error>>
+{
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
 
@@ -98,8 +99,8 @@ fn test_tab_focus_cycles_forward_from_none() -> std::result::Result<(), Box<dyn 
 }
 
 #[test]
-fn test_shift_tab_cycles_backward_from_none(
-) -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn test_shift_tab_cycles_backward_from_none() -> std::result::Result<(), Box<dyn std::error::Error>>
+{
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
 
@@ -113,8 +114,7 @@ fn test_shift_tab_cycles_backward_from_none(
 }
 
 #[test]
-fn test_focus_trapped_in_settings_modal(
-) -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn test_focus_trapped_in_settings_modal() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let db = Database::new_in_memory()?;
     db::initialize(db.connection())?;
 

@@ -302,18 +302,18 @@ impl Notification {
 
     /// Returns semantic icon for notification type
     ///
-    /// Uses Unicode symbols suitable for iced framework:
-    /// - Success: ✓ (U+2713)
-    /// - Info: ℹ (U+2139)
-    /// - Warning: ⚠ (U+26A0)
-    /// - Error: ✕ (U+2715)
+    /// Uses ASCII symbols to avoid terminal/font rendering issues.
+    /// - Success: OK
+    /// - Info: i
+    /// - Warning: !
+    /// - Error: X
     #[must_use]
     pub const fn icon(&self) -> &'static str {
         match self.kind {
-            NotificationType::Success => "✓",
-            NotificationType::Info => "ℹ",
-            NotificationType::Warning => "⚠",
-            NotificationType::Error => "✕",
+            NotificationType::Success => "OK",
+            NotificationType::Info => "i",
+            NotificationType::Warning => "!",
+            NotificationType::Error => "X",
         }
     }
 }
@@ -559,9 +559,9 @@ pub struct State {
 
     /// Whether audio is currently playing or paused.
     pub playback: PlaybackStatus,
-    /// Current playback position in seconds (interpolated between VLC ticks).
+    /// Current playback position in milliseconds (interpolated between VLC ticks).
     pub current_time: f64,
-    /// Total duration of the current file in seconds.
+    /// Total duration of the current file in milliseconds.
     pub total_duration: f64,
     /// Current volume level in the range [0, 200] (100 = unity gain).
     pub volume: i32,

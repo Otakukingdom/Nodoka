@@ -127,14 +127,8 @@ fn extract_zip_for_playback_with_limits(
         }
 
         let output_path = temp_dir.join(&file_path);
-
-        if let Some(parent) = output_path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-
-        let mut output_file = fs::File::create(&output_path)?;
         let max_for_entry = limits.entry_bytes.min(remaining_total);
-        let written = copy_zip_entry_limited(&mut entry, &mut output_file, max_for_entry)?;
+        let written = write_zip_entry_atomic(&mut entry, &output_path, max_for_entry)?;
         total_written = total_written.saturating_add(written);
 
         audio_files.push(output_path);
@@ -393,11 +387,7 @@ fn extract_zip_entry_for_playback_with_limits(
     }
 
     let output_path = temp_dir.join(enclosed);
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    let mut output_file = fs::File::create(&output_path)?;
-    let _written = copy_zip_entry_limited(&mut entry, &mut output_file, limits.entry_bytes)?;
+    let _written = write_zip_entry_atomic(&mut entry, &output_path, limits.entry_bytes)?;
     Ok(output_path)
 }
 
@@ -417,6 +407,64 @@ fn copy_zip_entry_limited(
     Ok(written)
 }
 
+fn write_zip_entry_atomic(
+    entry: &mut ZipFile<'_>,
+    output_path: &Path,
+    max_bytes: u64,
+) -> Result<u64> {
+    use std::io::Write as _;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let Some(parent) = output_path.parent() else {
+        return Err(crate::error::Error::InvalidInput(
+            "ZIP output path has no parent directory".to_string(),
+        ));
+    };
+    fs::create_dir_all(parent)?;
+
+    let file_name = output_path
+        .file_name()
+        .and_then(|v| v.to_str())
+        .unwrap_or("zip-entry");
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let pid = std::process::id();
+    let tmp_name = format!(".{file_name}.partial.{pid}.{nanos}");
+    let tmp_path = output_path.with_file_name(tmp_name);
+
+    let written = {
+        let mut tmp_file = fs::File::create(&tmp_path)?;
+        match copy_zip_entry_limited(entry, &mut tmp_file, max_bytes) {
+            Ok(written) => {
+                tmp_file.flush()?;
+                written
+            }
+            Err(err) => {
+                let _ = fs::remove_file(&tmp_path);
+                return Err(err);
+            }
+        }
+    };
+
+    match fs::remove_file(output_path) {
+        Ok(()) => {}
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+        Err(err) => {
+            let _ = fs::remove_file(&tmp_path);
+            return Err(err.into());
+        }
+    }
+
+    if let Err(err) = fs::rename(&tmp_path, output_path) {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(err.into());
+    }
+
+    Ok(written)
+}
+
 /// Cleanup temporary extracted files
 ///
 /// # Errors
@@ -433,6 +481,8 @@ pub fn cleanup_temp_files(temp_dir: &Path) -> Result<()> {
 mod tests {
     use super::*;
     use std::io::Write;
+
+    const LOCAL_FILE_HEADER_SIG: [u8; 4] = [0x50, 0x4B, 0x03, 0x04];
 
     #[test]
     fn test_is_zip_archive_true() {
@@ -561,6 +611,84 @@ mod tests {
         assert!(
             !out_dir.join("chapter.mp3").exists(),
             "extraction must fail before creating an oversized output file"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_extract_zip_for_playback_removes_partial_output_on_copy_error() -> Result<()> {
+        let temp = temp_dir::TempDir::new()?;
+        let zip_path = temp.path().join("book.zip");
+
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(&zip_path)?);
+        zip.start_file(
+            "chapter.mp3",
+            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated),
+        )?;
+        zip.write_all(&vec![b'a'; 1024])?;
+        zip.finish()?;
+
+        let mut bytes = std::fs::read(&zip_path)?;
+
+        // Corrupt the compressed payload so extraction fails during streaming.
+        // This ensures the code path where the output file has been created and
+        // some bytes may already have been written.
+        if bytes.get(0..4) != Some(&LOCAL_FILE_HEADER_SIG) {
+            return Err(crate::error::Error::InvalidState(
+                "unexpected ZIP local header signature".to_string(),
+            ));
+        }
+        if bytes.len() < 30 {
+            return Err(crate::error::Error::InvalidState(
+                "ZIP too small for local header".to_string(),
+            ));
+        }
+        let name_len = u16::from_le_bytes(
+            bytes
+                .get(26..28)
+                .ok_or_else(|| {
+                    crate::error::Error::InvalidState("ZIP missing name_len".to_string())
+                })?
+                .try_into()
+                .map_err(|_| {
+                    crate::error::Error::InvalidState("ZIP invalid name_len".to_string())
+                })?,
+        ) as usize;
+        let extra_len = u16::from_le_bytes(
+            bytes
+                .get(28..30)
+                .ok_or_else(|| {
+                    crate::error::Error::InvalidState("ZIP missing extra_len".to_string())
+                })?
+                .try_into()
+                .map_err(|_| {
+                    crate::error::Error::InvalidState("ZIP invalid extra_len".to_string())
+                })?,
+        ) as usize;
+        let data_start = 30usize.saturating_add(name_len).saturating_add(extra_len);
+        let corrupt_at = data_start.saturating_add(8);
+        let b = bytes.get_mut(corrupt_at).ok_or_else(|| {
+            crate::error::Error::InvalidState("ZIP too small to corrupt payload".to_string())
+        })?;
+        *b = b.wrapping_add(1);
+        std::fs::write(&zip_path, bytes)?;
+
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(&out_dir)?;
+
+        let limits = ZipExtractionLimits {
+            entries: 10,
+            total_bytes: 10 * 1024,
+            entry_bytes: 10 * 1024,
+            path_depth: 10,
+        };
+
+        let result = extract_zip_for_playback_with_limits(&zip_path, &out_dir, limits);
+        assert!(result.is_err());
+        assert!(
+            !out_dir.join("chapter.mp3").exists(),
+            "output file must not be left on disk when extraction fails"
         );
 
         Ok(())

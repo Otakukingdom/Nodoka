@@ -13,7 +13,7 @@ pub enum Message {
     PlayPause,
     /// Stop playback and reset position.
     Stop,
-    /// Seek to a specific position in seconds.
+    /// Seek to a specific position in milliseconds.
     SeekTo(f64),
     /// Change the playback volume to the given level (0–200).
     VolumeChanged(i32),
@@ -115,7 +115,7 @@ pub enum Message {
     RipplePointerMoved(crate::ui::state::RippleTarget, iced::Point),
 
     // Player events
-    /// The player reported a new playback position (in seconds).
+    /// The player reported a new playback position (in milliseconds).
     PlayerTimeUpdated(f64),
     /// Periodic tick from the player subscription loop.
     PlayerTick,
