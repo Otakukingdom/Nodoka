@@ -148,8 +148,6 @@ fn allowlisted_artwork_roots(media_path: &Path) -> Vec<std::path::PathBuf> {
 
     if let Some(vlc_dirs) = ProjectDirs::from("org", "videolan", "vlc") {
         roots.push(vlc_dirs.cache_dir().to_path_buf());
-        roots.push(vlc_dirs.data_dir().to_path_buf());
-        roots.push(vlc_dirs.config_dir().to_path_buf());
     }
 
     roots
@@ -228,32 +226,20 @@ fn artwork_url_to_path(url: &str) -> Option<std::path::PathBuf> {
     let authority_decoded = percent_decode_utf8(authority.as_bytes())?;
     let path_decoded = percent_decode_utf8(path_part.as_bytes())?;
 
-    if authority_decoded.eq_ignore_ascii_case("localhost") {
-        let joined = format!("/{path_decoded}");
-        #[cfg(windows)]
-        {
-            return Some(std::path::PathBuf::from(normalize_windows_file_url_path(
-                &joined,
-            )));
-        }
-        #[cfg(not(windows))]
-        {
-            return Some(std::path::PathBuf::from(joined));
-        }
+    if !authority_decoded.eq_ignore_ascii_case("localhost") {
+        return None;
     }
 
+    let joined = format!("/{path_decoded}");
     #[cfg(windows)]
     {
-        let tail = path_decoded.replace('/', "\\");
-        return Some(std::path::PathBuf::from(format!(
-            "\\\\{authority_decoded}\\{tail}"
-        )));
+        Some(std::path::PathBuf::from(normalize_windows_file_url_path(
+            &joined,
+        )))
     }
     #[cfg(not(windows))]
     {
-        Some(std::path::PathBuf::from(format!(
-            "//{authority_decoded}/{path_decoded}"
-        )))
+        Some(std::path::PathBuf::from(joined))
     }
 }
 
@@ -433,22 +419,9 @@ mod tests {
     }
 
     #[test]
-    fn test_artwork_url_to_path_unc_or_host_path() {
+    fn test_artwork_url_to_path_rejects_non_localhost_authority() {
         let p = artwork_url_to_path("file://example.com/share/cover.png");
-        #[cfg(windows)]
-        {
-            assert_eq!(
-                p,
-                Some(std::path::PathBuf::from(r"\\example.com\share\cover.png"))
-            );
-        }
-        #[cfg(not(windows))]
-        {
-            assert_eq!(
-                p,
-                Some(std::path::PathBuf::from("//example.com/share/cover.png"))
-            );
-        }
+        assert!(p.is_none());
     }
 
     #[test]

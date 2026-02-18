@@ -83,11 +83,7 @@ impl Database {
     }
 
     fn get_db_path() -> Result<PathBuf> {
-        let proj_dirs =
-            ProjectDirs::from("com", "Otakukingdom", "Nodoka").ok_or(Error::ProjectDirNotFound)?;
-        let data_dir = proj_dirs.data_dir();
-        std::fs::create_dir_all(data_dir)?;
-        Ok(data_dir.join("nodoka.db"))
+        db_path_from_project_dirs(ProjectDirs::from("com", "Otakukingdom", "Nodoka"))
     }
 
     /// Returns the underlying `SQLite` connection.
@@ -96,10 +92,16 @@ impl Database {
     }
 }
 
+fn db_path_from_project_dirs(proj_dirs: Option<ProjectDirs>) -> Result<PathBuf> {
+    let proj_dirs = proj_dirs.ok_or(Error::ProjectDirNotFound)?;
+    let data_dir = proj_dirs.data_dir();
+    std::fs::create_dir_all(data_dir)?;
+    Ok(data_dir.join("nodoka.db"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::{env_lock, EnvVarGuard};
 
     #[test]
     fn test_new_in_memory_creates_database() {
@@ -146,22 +148,8 @@ mod tests {
 
     #[test]
     fn test_database_open_error_on_missing_project_dir() {
-        // Test that Database::open returns an error when project directory cannot be determined
-        // This simulates the ProjectDirNotFound error scenario
-        let _lock = env_lock();
-        let _guard = EnvVarGuard::capture("HOME");
-
-        std::env::remove_var("HOME");
-
-        let result = Database::open();
-
-        // On some platforms, ProjectDirs may have fallback behavior
-        // If it fails, it should return an informative error
-        if let Err(err) = result {
-            let err_string = format!("{err}");
-            // Error should be informative, not generic
-            assert!(!err_string.is_empty(), "Error message should not be empty");
-        }
+        let result = db_path_from_project_dirs(None);
+        assert!(matches!(result, Err(Error::ProjectDirNotFound)));
     }
 
     #[test]
