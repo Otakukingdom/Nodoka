@@ -99,9 +99,7 @@ impl Database {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Mutex, OnceLock};
-
-    static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    use crate::test_support::{env_lock, EnvVarGuard};
 
     #[test]
     fn test_new_in_memory_creates_database() {
@@ -150,25 +148,12 @@ mod tests {
     fn test_database_open_error_on_missing_project_dir() {
         // Test that Database::open returns an error when project directory cannot be determined
         // This simulates the ProjectDirNotFound error scenario
-        use std::env;
+        let _lock = env_lock();
+        let _guard = EnvVarGuard::capture("HOME");
 
-        // HOME is process-global and tests run in parallel; serialize mutations.
-        let lock = ENV_LOCK.get_or_init(|| Mutex::new(()));
-        let _lock = match lock.lock() {
-            Ok(guard) => guard,
-            Err(poisoned) => poisoned.into_inner(),
-        };
-
-        let original_home = env::var_os("HOME");
-        env::remove_var("HOME");
+        std::env::remove_var("HOME");
 
         let result = Database::open();
-
-        // Restore original HOME
-        match original_home {
-            Some(home) => env::set_var("HOME", home),
-            None => env::remove_var("HOME"),
-        }
 
         // On some platforms, ProjectDirs may have fallback behavior
         // If it fails, it should return an informative error

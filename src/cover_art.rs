@@ -114,9 +114,23 @@ pub(crate) fn push_first_match<const N: usize>(
     names: [&str; N],
 ) {
     for name in names {
-        if let Some((_, path)) = entries.iter().find(|(lower, _)| lower == name) {
+        let needle = name.to_ascii_lowercase();
+        if let Some((_, path)) = entries.iter().find(|(lower, _)| lower == &needle) {
             out.push(path.clone());
             return;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_push_first_match_is_case_insensitive_for_names() {
+        let entries = vec![("folder.jpg".to_string(), PathBuf::from("/tmp/folder.jpg"))];
+        let mut out = Vec::new();
+        push_first_match(&mut out, &entries, ["FOLDER.JPG"]);
+        assert_eq!(out, vec![PathBuf::from("/tmp/folder.jpg")]);
     }
 }

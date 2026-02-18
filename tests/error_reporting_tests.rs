@@ -1,8 +1,6 @@
 use nodoka::Database;
-use std::env;
-use std::sync::{Mutex, OnceLock};
-
-static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+mod test_support;
+use test_support::{env_lock, EnvVarGuard};
 
 #[test]
 fn test_database_open_error_contains_details() {
@@ -10,22 +8,12 @@ fn test_database_open_error_contains_details() {
     // Note: On some systems, this may result in different error types
     // depending on fallback behavior. The key is that we get a detailed
     // error message, not a generic "Failed to load the config file"
-    // HOME is process-global and tests run in parallel; serialize mutations.
-    let _lock = ENV_LOCK
-        .get_or_init(|| Mutex::new(()))
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let _lock = env_lock();
+    let _guard = EnvVarGuard::capture("HOME");
 
-    let original_home = env::var_os("HOME");
-    env::remove_var("HOME");
+    std::env::remove_var("HOME");
 
     let result = Database::open();
-
-    // Restore original HOME
-    match original_home {
-        Some(home) => env::set_var("HOME", home),
-        None => env::remove_var("HOME"),
-    }
 
     // The test may pass if HOME fallback works on this platform
     // which is acceptable - we're primarily testing that errors are detailed

@@ -2,6 +2,7 @@ use super::media_duration;
 use super::vlc_env;
 use crate::error::{Error, Result};
 use crate::models::MediaProperty;
+use directories::ProjectDirs;
 use std::path::Path;
 use std::time::Duration;
 use vlc::{Instance, Media, Meta};
@@ -101,21 +102,82 @@ impl Scanner {
             return Ok(None);
         };
 
-        let Some(path) = artwork_url_to_path(&art_url) else {
-            return Ok(None);
-        };
-
-        let file = std::fs::File::open(&path)?;
-        let meta = file.metadata()?;
-        if meta.len() > MAX_BYTES {
-            return Ok(None);
-        }
-
-        let mut reader = std::io::BufReader::new(file);
-        let mut out = Vec::new();
-        std::io::Read::read_to_end(&mut reader, &mut out)?;
-        Ok(Some(out))
+        Ok(read_artwork_bytes_from_vlc_url(path, &art_url, MAX_BYTES))
     }
+}
+
+fn read_artwork_bytes_from_vlc_url(
+    media_path: &Path,
+    url: &str,
+    max_bytes: u64,
+) -> Option<Vec<u8>> {
+    let artwork_path = artwork_url_to_path(url)?;
+    if !artwork_path.is_absolute() {
+        return None;
+    }
+
+    if !is_allowlisted_artwork_path(media_path, &artwork_path) {
+        return None;
+    }
+
+    read_image_file_bytes(&artwork_path, max_bytes)
+}
+
+fn is_allowlisted_artwork_path(media_path: &Path, artwork_path: &Path) -> bool {
+    let Ok(target) = std::fs::canonicalize(artwork_path) else {
+        return false;
+    };
+
+    for root in allowlisted_artwork_roots(media_path) {
+        if path_is_within(&target, &root) {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn allowlisted_artwork_roots(media_path: &Path) -> Vec<std::path::PathBuf> {
+    let mut roots = Vec::new();
+
+    roots.push(std::env::temp_dir());
+
+    if let Some(parent) = media_path.parent() {
+        roots.push(parent.to_path_buf());
+    }
+
+    if let Some(vlc_dirs) = ProjectDirs::from("org", "videolan", "vlc") {
+        roots.push(vlc_dirs.cache_dir().to_path_buf());
+        roots.push(vlc_dirs.data_dir().to_path_buf());
+        roots.push(vlc_dirs.config_dir().to_path_buf());
+    }
+
+    roots
+}
+
+fn path_is_within(target: &Path, root: &Path) -> bool {
+    let Ok(root) = std::fs::canonicalize(root) else {
+        return false;
+    };
+    target.starts_with(root)
+}
+
+fn read_image_file_bytes(path: &Path, max_bytes: u64) -> Option<Vec<u8>> {
+    let file = std::fs::File::open(path).ok()?;
+    let meta = file.metadata().ok()?;
+    if meta.len() > max_bytes {
+        return None;
+    }
+
+    let mut reader = std::io::BufReader::new(file);
+    let mut out = Vec::new();
+    std::io::Read::read_to_end(&mut reader, &mut out).ok()?;
+
+    if image::load_from_memory(&out).is_err() {
+        return None;
+    }
+
+    Some(out)
 }
 
 fn parse_year(input: &str) -> Option<i32> {
@@ -243,6 +305,27 @@ mod tests {
     use super::*;
     use temp_dir::TempDir;
 
+    fn png_1x1_bytes() -> std::result::Result<Vec<u8>, image::ImageError> {
+        let img = image::RgbaImage::from_pixel(1, 1, image::Rgba([255, 0, 0, 255]));
+        let dyn_img = image::DynamicImage::ImageRgba8(img);
+
+        let mut cursor = std::io::Cursor::new(Vec::new());
+        dyn_img.write_to(&mut cursor, image::ImageFormat::Png)?;
+        Ok(cursor.into_inner())
+    }
+
+    fn file_url_for_path(path: &std::path::Path) -> String {
+        #[cfg(windows)]
+        {
+            let p = path.to_string_lossy().replace('\\', "/");
+            format!("file:/{p}")
+        }
+        #[cfg(not(windows))]
+        {
+            format!("file:{}", path.display())
+        }
+    }
+
     fn skip_if_vlc_unavailable() -> Option<Scanner> {
         Scanner::new().ok()
     }
@@ -366,5 +449,61 @@ mod tests {
                 Some(std::path::PathBuf::from("//example.com/share/cover.png"))
             );
         }
+    }
+
+    #[test]
+    fn test_read_artwork_bytes_rejects_non_allowlisted_paths(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let media_dir = TempDir::new()?;
+        let media_path = media_dir.path().join("media.mp3");
+        std::fs::write(&media_path, "")?;
+
+        let target_dir = std::env::current_dir()?
+            .join("target")
+            .join("scan_player_tests");
+        std::fs::create_dir_all(&target_dir)?;
+        let cover_path = target_dir.join("cover.png");
+        let png = png_1x1_bytes()?;
+        std::fs::write(&cover_path, &png)?;
+
+        let url = file_url_for_path(&cover_path);
+        let bytes = read_artwork_bytes_from_vlc_url(&media_path, &url, 10 * 1024 * 1024);
+        assert!(bytes.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_artwork_bytes_accepts_temp_dir_images(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let media_dir = TempDir::new()?;
+        let media_path = media_dir.path().join("media.mp3");
+        std::fs::write(&media_path, "")?;
+
+        let cover_path = media_dir.path().join("cover.png");
+        let png = png_1x1_bytes()?;
+        std::fs::write(&cover_path, &png)?;
+        let url = file_url_for_path(&cover_path);
+
+        let bytes = read_artwork_bytes_from_vlc_url(&media_path, &url, 10 * 1024 * 1024)
+            .ok_or_else(|| std::io::Error::other("expected bytes"))?;
+
+        assert_eq!(bytes, png);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_artwork_bytes_rejects_non_image_payloads(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let media_dir = TempDir::new()?;
+        let media_path = media_dir.path().join("media.mp3");
+        std::fs::write(&media_path, "")?;
+
+        let cover_path = media_dir.path().join("cover.png");
+        std::fs::write(&cover_path, "not an image")?;
+        let url = file_url_for_path(&cover_path);
+
+        let bytes = read_artwork_bytes_from_vlc_url(&media_path, &url, 10 * 1024 * 1024);
+        assert!(bytes.is_none());
+        Ok(())
     }
 }

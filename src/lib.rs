@@ -392,6 +392,24 @@ pub mod settings;
 pub mod tasks;
 pub mod ui;
 
+/// Contribution guidelines.
+///
+/// This module exists to provide stable rustdoc navigation for `nodoka::contributing`.
+pub mod contributing {
+}
+
+/// Security notes.
+///
+/// This module exists to provide stable rustdoc navigation for `nodoka::security`.
+pub mod security {
+}
+
+/// Project goals.
+///
+/// This module exists to provide stable rustdoc navigation for `nodoka::project_goals`.
+pub mod project_goals {
+}
+
 #[cfg(test)]
 pub(crate) mod test_support;
 
