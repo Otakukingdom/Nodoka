@@ -41,12 +41,19 @@ pub struct Tooltip {
 /// Targets that can produce tooltips.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TooltipTarget {
+    /// The play/pause transport button.
     PlayPause,
+    /// The stop transport button.
     Stop,
+    /// The progress/seek slider.
     Progress,
+    /// The playback speed control.
     Speed,
+    /// The volume control.
     Volume,
+    /// The settings open button.
     Settings,
+    /// An audiobook item in the library list.
     AudiobookItem,
 }
 

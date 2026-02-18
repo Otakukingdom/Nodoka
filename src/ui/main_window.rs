@@ -1,11 +1,18 @@
+//! Top-level window layout coordinator for the Nodoka application.
+//!
+//! The [`view`] function is the single entry point called by the iced runtime
+//! for every render cycle.  It composes the library panels, player controls,
+//! modal overlays, and notification toasts into one coherent layout.
+
 use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
 };
-use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
-use iced::{Border, Color, Element, Length};
+use iced::{Border, Element, Length};
+
+use super::{modal_views, notification_views};
 
 /// Renders the main window with improved layout and visual hierarchy
 ///
@@ -50,10 +57,13 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
         let scale = state.modal_state.content_scale();
         let opacity = state.modal_state.content_opacity();
         let settings_dialog =
-            modal_card(settings_form::build_settings_dialog(state, scale), opacity);
+            modal_views::modal_card(settings_form::build_settings_dialog(state, scale), opacity);
         content = stack![
             content,
-            modal_backdrop(state.modal_state.backdrop_opacity(), Message::CloseSettings),
+            modal_views::modal_backdrop(
+                state.modal_state.backdrop_opacity(),
+                Message::CloseSettings
+            ),
             settings_dialog
         ]
         .into();
@@ -63,13 +73,13 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     if let Some(editor) = state.bookmark_editor.as_ref() {
         let scale = state.modal_state.content_scale();
         let opacity = state.modal_state.content_opacity();
-        let editor_dialog = modal_card(
+        let editor_dialog = modal_views::modal_card(
             bookmarks::editor(editor, state.focused_element, scale),
             opacity,
         );
         content = stack![
             content,
-            modal_backdrop(
+            modal_views::modal_backdrop(
                 state.modal_state.backdrop_opacity(),
                 Message::BookmarkEditorCancel
             ),
@@ -82,10 +92,13 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
     if state.active_modal == crate::ui::ActiveModal::KeyboardHelp {
         let scale = state.modal_state.content_scale();
         let opacity = state.modal_state.content_opacity();
-        let help_dialog = modal_card(keyboard_help_view(state.focused_element, scale), opacity);
+        let help_dialog = modal_views::modal_card(
+            modal_views::keyboard_help_view(state.focused_element, scale),
+            opacity,
+        );
         content = stack![
             content,
-            modal_backdrop(
+            modal_views::modal_backdrop(
                 state.modal_state.backdrop_opacity(),
                 Message::HideKeyboardHelp
             ),
@@ -96,19 +109,20 @@ pub fn view<'a>(state: &'a State) -> Element<'a, Message> {
 
     // Loading state indicator with backdrop (iced 0.14)
     if state.load_state == LoadState::Loading {
-        let backdrop = modal_backdrop_without_click(0.5);
-        let loading_message = modal_card(text("Loading...").size(typography::SIZE_LG), 1.0);
+        let backdrop = modal_views::modal_backdrop_without_click(0.5);
+        let loading_message =
+            modal_views::modal_card(text("Loading...").size(typography::SIZE_LG), 1.0);
         content = stack![content, backdrop, loading_message].into();
     }
 
     // Notification toasts overlay in top-right corner (iced 0.14)
     // Shows up to 3 concurrent notifications with auto-dismiss
     if !state.notification_queue.is_empty() {
-        content = stack![content, notification_area(state)].into();
+        content = stack![content, notification_views::notification_area(state)].into();
     }
 
     if let Some(tooltip) = state.tooltip_state.visible() {
-        content = stack![content, tooltip_overlay(tooltip)].into();
+        content = stack![content, modal_views::tooltip_overlay(tooltip)].into();
     }
 
     content
@@ -221,525 +235,6 @@ fn library_panels(state: &State) -> Element<'_, Message> {
 
 fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
     start_ms.map_or(0, |start| now_ms.saturating_sub(start))
-}
-
-fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
-    button(container(text("")).width(Length::Fill).height(Length::Fill))
-        .style(move |_theme: &iced::Theme, _status| button::Style {
-            background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
-            ..Default::default()
-        })
-        .on_press(on_press)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
-}
-
-fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Message> {
-    container(text(""))
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
-            ..Default::default()
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
-}
-
-/// Modal card wrapper with elevated styling
-///
-/// Renders the keyboard shortcuts help overlay
-///
-/// Displays all available keyboard shortcuts in a modal dialog.
-/// Activated by pressing F1 key. Can be dismissed by pressing Escape
-/// or clicking outside the dialog.
-fn keyboard_help_view(focused_element: FocusedElement, scale: f32) -> Element<'static, Message> {
-    // Platform-specific bookmark shortcut
-    #[cfg(target_os = "macos")]
-    let bookmark_shortcut = "Cmd+B";
-    #[cfg(not(target_os = "macos"))]
-    let bookmark_shortcut = "Ctrl+B";
-
-    let shortcuts = column![
-        // Header
-        text("Keyboard Shortcuts")
-            .size(typography::SIZE_XXL)
-            .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_PRIMARY),
-            }),
-        container(text("")).height(Length::Fixed(spacing::LG)),
-        // Playback controls group
-        shortcut_group(
-            "Playback",
-            vec![
-                ("Space", "Play / Pause"),
-                ("← →", "Seek backward / forward 5s"),
-            ]
-        ),
-        // Navigation controls group
-        shortcut_group(
-            "Navigation",
-            vec![
-                ("↑ ↓", "Previous / Next file"),
-                ("Tab", "Cycle through UI elements"),
-            ]
-        ),
-        // Library controls group
-        shortcut_group(
-            "Library",
-            vec![
-                (bookmark_shortcut, "Create bookmark"),
-                ("Escape", "Close modal"),
-                ("F1", "Show this help"),
-            ]
-        ),
-        container(text("")).height(Length::Fixed(spacing::LG)),
-        // Close button
-        button(text("Close").size(typography::SIZE_BASE))
-            .on_press(Message::HideKeyboardHelp)
-            .padding(spacing::MD)
-            .style(
-                if focused_element == FocusedElement::KeyboardHelpCloseButton {
-                    button_styles::secondary_focused
-                } else {
-                    button_styles::secondary
-                }
-            )
-            .width(Length::Fill)
-    ]
-    .spacing(spacing::MD)
-    .width(Length::Fixed(500.0 * scale));
-
-    container(shortcuts).padding(spacing::XL).into()
-}
-
-/// Renders a grouped section of keyboard shortcuts with styled keys
-fn shortcut_group(
-    title: &'static str,
-    shortcuts: Vec<(&'static str, &'static str)>,
-) -> Element<'static, Message> {
-    let mut group = column![text(title)
-        .size(typography::SIZE_LG)
-        .style(|_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(colors::TEXT_PRIMARY),
-        })]
-    .spacing(spacing::SM);
-
-    for (key, description) in shortcuts {
-        group = group.push(
-            row![
-                // Styled keyboard key (bordered container)
-                container(
-                    text(key)
-                        .size(typography::SIZE_SM)
-                        .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                            color: Some(colors::TEXT_PRIMARY),
-                        })
-                )
-                .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                .style(|_theme: &iced::Theme| container::Style {
-                    background: Some(colors::BG_ELEVATED.into()),
-                    border: Border {
-                        color: colors::BORDER_DEFAULT,
-                        width: 1.0,
-                        radius: border_radius::SM.into(),
-                    },
-                    ..Default::default()
-                }),
-                Space::new().width(Length::Fixed(spacing::MD)),
-                // Description text
-                text(description)
-                    .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::TEXT_SECONDARY),
-                    }),
-            ]
-            .spacing(spacing::SM)
-            .align_y(iced::alignment::Vertical::Center),
-        );
-    }
-
-    container(group)
-        .padding(iced::Padding::from([spacing::SM, 0.0]))
-        .into()
-}
-
-/// Applies design system styling for modal overlays per ui-ux-pro-max:
-/// - White background (`BG_SECONDARY`) for contrast against backdrop
-/// - LG border radius (12px) for modern appearance
-/// - Shadow for depth perception and visual elevation
-/// - MD padding (16px) for content spacing
-/// - Centered both horizontally and vertically
-fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
-where
-    E: Into<Element<'a, Message>>,
-{
-    use iced::Shadow;
-    let background = with_alpha(colors::BG_SECONDARY, opacity);
-    let border_color = with_alpha(shadows::MD_BORDER, opacity);
-    container(content)
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(background.into()),
-            border: Border {
-                color: border_color,
-                width: 2.0,                       // Increased to 2px for better definition
-                radius: border_radius::LG.into(), // LG radius (12px) for modern modal appearance
-            },
-            shadow: Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.2 * opacity),
-                offset: iced::Vector::new(0.0, 4.0),
-                blur_radius: 16.0,
-            },
-            ..Default::default()
-        })
-        .padding(spacing::MD)
-        .center_x(Length::Fill)
-        .center_y(Length::Fill)
-        .into()
-}
-
-/// Renders notification toasts in top-right corner per ui-ux-pro-max
-///
-/// Features:
-/// - Displays up to 3 concurrent notifications
-/// - Auto-dismiss after duration specified in Notification
-/// - Fade-in/fade-out animations using `TransitionState`
-/// - Semantic colors based on notification type
-/// - Non-intrusive positioning in top-right corner
-fn notification_area(state: &State) -> Element<'_, Message> {
-    // Take up to 3 most recent notifications
-    let notifications_to_show = state
-        .notification_queue
-        .iter()
-        .take(3)
-        .fold(column![].spacing(spacing::SM), |col, notification| {
-            col.push(notification_toast(notification))
-        });
-
-    // Position in top-right corner with padding
-    let notifications = container(notifications_to_show)
-        .width(Length::Fixed(320.0))
-        .padding(spacing::MD);
-
-    container(row![Space::new().width(Length::Fill), notifications])
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .padding(iced::Padding {
-            top: spacing::XL,
-            right: spacing::XL,
-            bottom: 0.0,
-            left: 0.0,
-        })
-        .style(|_theme: &iced::Theme| container::Style {
-            background: None, // Transparent background for overlay
-            ..Default::default()
-        })
-        .into()
-}
-
-/// Renders a single notification toast with semantic colors
-///
-/// Enhanced features (v0.3.0):
-/// - Title + message support for two-line notifications
-/// - Countdown progress bar for auto-dismiss notifications
-/// - Action button support for contextual operations
-/// - Dismiss button for manual close
-fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
-    use crate::ui::styles::components::notification_styles;
-    use iced::Shadow;
-
-    let bg_color = notification_styles::background_color(&notification.kind);
-    let icon_text = notification.icon();
-
-    let content_col = notification_content_column(notification);
-    let mut main_content = notification_main_content(icon_text, content_col);
-
-    if let (Some(action_label), Some(action_message)) = (
-        &notification.action_label,
-        notification.action_message.clone(),
-    ) {
-        main_content = main_content.push(notification_action_button(action_label, action_message));
-    }
-
-    main_content = main_content.push(notification_dismiss_button(notification.id));
-
-    let (progress_portion, remaining_portion) = notification.dismiss_progress_portions();
-    if progress_portion < 100 {
-        main_content = main_content.push(notification_progress_bar(
-            progress_portion,
-            remaining_portion,
-        ));
-    }
-
-    container(main_content)
-        .padding(spacing::MD)
-        .width(Length::Fill)
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(bg_color.into()),
-            text_color: Some(notification_styles::TEXT_COLOR),
-            border: Border {
-                radius: border_radius::MD.into(),
-                ..Default::default()
-            },
-            shadow: Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
-                offset: iced::Vector::new(0.0, 2.0),
-                blur_radius: 8.0,
-            },
-            ..Default::default()
-        })
-        .into()
-}
-
-/// Builds notification content column with optional title and message
-fn notification_content_column(
-    notification: &crate::ui::state::Notification,
-) -> iced::widget::Column<'_, Message> {
-    let mut content_col = column![].spacing(spacing::XS);
-
-    if let Some(title) = &notification.title {
-        content_col = content_col.push(text(title).size(typography::SIZE_BASE).style(
-            |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
-            },
-        ));
-    }
-
-    content_col = content_col.push(text(&notification.message).size(typography::SIZE_SM).style(
-        |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
-        },
-    ));
-
-    content_col
-}
-
-/// Builds main notification content with icon and text
-fn notification_main_content<'a>(
-    icon_text: &'static str,
-    content_col: iced::widget::Column<'a, Message>,
-) -> iced::widget::Column<'a, Message> {
-    column![row![
-        container(text(icon_text).size(typography::SIZE_LG))
-            .width(Length::Fixed(32.0))
-            .center_y(Length::Fill)
-            .center_x(Length::Fill),
-        container(content_col).width(Length::Fill),
-    ]
-    .spacing(spacing::SM)
-    .align_y(iced::Alignment::Start),]
-    .spacing(spacing::XS)
-}
-
-/// Creates notification action button
-fn notification_action_button(action_label: &str, action_message: Message) -> Element<'_, Message> {
-    use crate::ui::styles::components::notification_styles;
-
-    let action_btn = button(text(action_label).size(typography::SIZE_SM).style(
-        |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(notification_styles::TEXT_COLOR),
-        },
-    ))
-    .on_press(action_message)
-    .padding(iced::Padding {
-        top: spacing::XS,
-        bottom: spacing::XS,
-        left: spacing::SM,
-        right: spacing::SM,
-    })
-    .style(move |_theme: &iced::Theme, status| {
-        let bg = if matches!(status, iced::widget::button::Status::Hovered) {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.2)
-        } else {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.1)
-        };
-
-        iced::widget::button::Style {
-            background: Some(bg.into()),
-            text_color: notification_styles::TEXT_COLOR,
-            border: Border {
-                radius: border_radius::SM.into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
-    });
-
-    container(action_btn)
-        .width(Length::Fill)
-        .align_x(iced::alignment::Horizontal::Right)
-        .into()
-}
-
-/// Creates notification dismiss button
-fn notification_dismiss_button(notification_id: u64) -> Element<'static, Message> {
-    use crate::ui::styles::components::notification_styles;
-
-    let dismiss_btn = button(text("Dismiss").size(typography::SIZE_SM).style(
-        |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(notification_styles::TEXT_COLOR),
-        },
-    ))
-    .on_press(Message::DismissNotification(notification_id))
-    .padding(iced::Padding {
-        top: spacing::XS,
-        bottom: spacing::XS,
-        left: spacing::SM,
-        right: spacing::SM,
-    })
-    .style(move |_theme: &iced::Theme, status| {
-        let bg = if matches!(status, iced::widget::button::Status::Hovered) {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.2)
-        } else {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.1)
-        };
-
-        iced::widget::button::Style {
-            background: Some(bg.into()),
-            text_color: notification_styles::TEXT_COLOR,
-            border: Border {
-                radius: border_radius::SM.into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
-    });
-
-    container(dismiss_btn)
-        .width(Length::Fill)
-        .align_x(iced::alignment::Horizontal::Right)
-        .into()
-}
-
-/// Creates notification progress bar for auto-dismiss countdown
-fn notification_progress_bar(
-    progress_portion: u16,
-    remaining_portion: u16,
-) -> Element<'static, Message> {
-    use crate::ui::styles::components::notification_styles;
-
-    let progress_bar = container(Space::new())
-        .width(Length::FillPortion(progress_portion))
-        .height(Length::Fixed(3.0))
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(notification_styles::PROGRESS_COLOR.into()),
-            ..Default::default()
-        });
-
-    container(row![
-        progress_bar,
-        Space::new().width(Length::FillPortion(remaining_portion)),
-    ])
-    .width(Length::Fill)
-    .height(Length::Fixed(3.0))
-    .style(|_theme: &iced::Theme| container::Style {
-        background: Some(notification_styles::PROGRESS_BG.into()),
-        ..Default::default()
-    })
-    .into()
-}
-
-fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Message> {
-    use crate::ui::styles::components::tooltip_styles;
-    use iced::widget::text::Wrapping;
-
-    let text_element = text(tooltip.text.clone())
-        .size(typography::SIZE_SM)
-        .width(Length::Fill)
-        .wrapping(Wrapping::Word)
-        .style(|_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(tooltip_styles::TEXT_COLOR),
-        });
-
-    let tooltip_body = container(text_element)
-        .padding(iced::Padding {
-            top: tooltip_styles::PADDING_VERTICAL,
-            bottom: tooltip_styles::PADDING_VERTICAL,
-            left: tooltip_styles::PADDING_HORIZONTAL,
-            right: tooltip_styles::PADDING_HORIZONTAL,
-        })
-        .style(tooltip_styles::container_style)
-        .width(Length::Shrink)
-        .max_width(tooltip_styles::MAX_WIDTH);
-
-    match tooltip.anchor {
-        TooltipAnchor::TopBar => {
-            let row = match tooltip.position {
-                TooltipPosition::Left => row![tooltip_body, Space::new().width(Length::Fill)],
-                _ => row![Space::new().width(Length::Fill), tooltip_body],
-            };
-
-            container(row)
-                .padding(iced::Padding {
-                    top: if tooltip.position == TooltipPosition::Bottom {
-                        spacing::LG
-                    } else {
-                        spacing::SM
-                    },
-                    right: spacing::XL,
-                    bottom: 0.0,
-                    left: spacing::XL,
-                })
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .into()
-        }
-        TooltipAnchor::PlayerControls => {
-            let row = match tooltip.position {
-                TooltipPosition::Left => row![tooltip_body, Space::new().width(Length::Fill)],
-                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
-                _ => row![
-                    Space::new().width(Length::Fill),
-                    tooltip_body,
-                    Space::new().width(Length::Fill)
-                ],
-            };
-
-            container(column![Space::new().height(Length::Fill), row])
-                .padding(iced::Padding {
-                    top: spacing::XL,
-                    right: spacing::XL,
-                    bottom: if matches!(
-                        tooltip.position,
-                        TooltipPosition::Top | TooltipPosition::Left | TooltipPosition::Right
-                    ) {
-                        spacing::XL + spacing::LG
-                    } else {
-                        spacing::SM
-                    },
-                    left: spacing::XL,
-                })
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .into()
-        }
-        TooltipAnchor::LibraryLeft => {
-            let row = match tooltip.position {
-                TooltipPosition::Right => row![Space::new().width(Length::Fill), tooltip_body],
-                _ => row![tooltip_body, Space::new().width(Length::Fill)],
-            };
-
-            container(row)
-                .padding(iced::Padding {
-                    top: spacing::XL,
-                    right: spacing::XL,
-                    bottom: spacing::XL,
-                    left: spacing::XL,
-                })
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .into()
-        }
-    }
-}
-
-fn with_alpha(color: Color, alpha: f32) -> Color {
-    Color {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: (color.a * alpha).clamp(0.0, 1.0),
-    }
 }
 
 #[cfg(test)]

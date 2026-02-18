@@ -116,7 +116,7 @@
 //! - Screen reader semantics are limited by framework-level accessibility support; Nodoka prioritizes clear text labels and keyboard navigation.
 //! - Modal backdrops are implemented using iced 0.14 stack overlays, including click-outside-to-dismiss behavior.
 //!
-//! ## User Experience Enhancements (v0.2.1+)
+//! ## User Experience Enhancements
 //!
 //! Nodoka includes comprehensive UX improvements following modern design principles:
 //!
@@ -187,7 +187,7 @@
 //!
 //! If you're using Nodoka's UI components as a library:
 //!
-//! #### New State Fields (v0.2.1+)
+//! #### New State Fields
 //! ```rust,no_run
 //! use nodoka::ui::State;
 //!
@@ -234,7 +234,7 @@
 //! use nodoka::ui::TransitionState;
 //!
 //! // Create smooth value transitions
-//! let transition = TransitionState::new(0.0, 100.0, 300); // from, to, duration_ms
+//! let mut transition = TransitionState::new(0.0, 100.0, 300); // from, to, duration_ms
 //! transition.update(150); // Update with delta time
 //! let current = transition.current_value(); // Returns interpolated value
 //! let complete = transition.is_complete(); // Check if finished
@@ -243,7 +243,7 @@
 //! ### UX Testing & Quality
 //!
 //! All UX enhancements maintain strict quality standards:
-//! - **64 UX compliance tests**: Verify design system adherence and animation behavior
+//! - **UX compliance tests**: Verify design system adherence and animation behavior
 //! - **23 integration tests**: Validate notifications, modals, and interactive states
 //! - **WCAG AA compliance**: All color pairs tested for 4.5:1 contrast minimum
 //! - **Reduced motion**: Automated tests verify animations disable correctly
@@ -356,9 +356,9 @@
 //!
 //! ## Testing & Quality
 //!
-//! Nodoka v0.2.0 includes **comprehensive acceptance testing**:
+//! Nodoka includes a comprehensive acceptance test suite:
 //!
-//! - **290 automated acceptance tests** (100% pass rate)
+//! - Automated acceptance tests covering core flows
 //! - **Specification coverage** validated by the acceptance suite
 //! - **All 9 audio formats tested** (MP3, M4A, M4B, OGG, FLAC, OPUS, AAC, WAV, WMA)
 //! - **Performance validated** for libraries with 1000+ audiobooks
@@ -378,6 +378,7 @@
 //!
 //! MIT License - see LICENSE file for details
 
+pub(crate) mod audio_extensions;
 pub mod app;
 pub mod conversions;
 pub mod cover_art;

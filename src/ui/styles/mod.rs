@@ -74,6 +74,7 @@ use iced::{Border, Color, Theme};
 
 // Module declarations
 pub mod accessibility;
+pub mod animations;
 pub mod colors;
 pub mod components;
 pub mod effects;
@@ -84,7 +85,7 @@ pub mod layout;
 pub use accessibility::*;
 pub use colors::*;
 pub use components::*;
-pub use effects::*;
+pub use effects::{cursor, shadows, transitions};
 pub use interactive::*;
 pub use layout::*;
 
@@ -124,13 +125,19 @@ pub fn focus_indicator(is_focused: bool) -> impl Fn(&iced::Theme) -> container::
     }
 }
 
-// Legacy color exports for backwards compatibility
+/// Legacy top-bar color re-export (alias for [`colors::TOP_BAR_COLOR`]).
 pub const TOP_BAR_COLOR: Color = colors::TOP_BAR_COLOR;
+/// Legacy player background re-export (alias for [`colors::PLAYER_BG_COLOR`]).
 pub const PLAYER_BG_COLOR: Color = colors::PLAYER_BG_COLOR;
+/// Legacy player text color re-export (alias for [`colors::PLAYER_TEXT_COLOR`]).
 pub const PLAYER_TEXT_COLOR: Color = colors::PLAYER_TEXT_COLOR;
+/// Legacy audiobook list background re-export (alias for [`colors::AUDIOBOOK_LIST_BG`]).
 pub const AUDIOBOOK_LIST_BG: Color = colors::AUDIOBOOK_LIST_BG;
+/// Legacy file list background re-export (alias for [`colors::FILE_LIST_BG`]).
 pub const FILE_LIST_BG: Color = colors::FILE_LIST_BG;
+/// Legacy selected item background re-export (alias for [`colors::SELECTION_BG`]).
 pub const SELECTED_ITEM_BG: Color = colors::SELECTION_BG;
+/// Legacy text color re-export (alias for [`colors::TEXT_PRIMARY`]).
 pub const TEXT_COLOR: Color = colors::TEXT_PRIMARY;
 
 /// Creates the custom Nodoka theme based on the design system

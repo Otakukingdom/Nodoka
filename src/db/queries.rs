@@ -1,9 +1,63 @@
+//! Database query functions for audiobooks, files, directories, and settings.
+//!
+//! All functions accept a [`rusqlite::Connection`] reference and return
+//! [`crate::error::Result`].  Callers obtain the connection via
+//! [`crate::db::Database::connection`].
+
 use crate::conversions::f64_to_ms;
 use crate::error::{Error, Result};
 use crate::models::{Audiobook, AudiobookFile, Directory};
 use chrono::{DateTime, Utc};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
+
+/// Maps a rusqlite [`rusqlite::Row`] to an [`Audiobook`].
+///
+/// Column order must match the
+/// `SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at`
+/// projection used in all audiobook queries.
+fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
+    let created_str: String = row.get(7)?;
+    let created_at = DateTime::parse_from_rfc3339(&created_str)
+        .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+    Ok(Audiobook {
+        id: Some(row.get(0)?),
+        directory: row.get(1)?,
+        name: row.get(2)?,
+        full_path: row.get(3)?,
+        completeness: row.get(4)?,
+        default_order: row.get(5)?,
+        selected_file: row.get(6)?,
+        created_at,
+    })
+}
+
+/// Maps a rusqlite [`rusqlite::Row`] to an [`AudiobookFile`].
+///
+/// Column order must match the
+/// `SELECT audiobook_id, name, full_path, length_of_file, seek_position, checksum,
+/// position, completeness, file_exists, created_at`
+/// projection used in audiobook-file queries.
+fn row_to_audiobook_file(row: &rusqlite::Row<'_>) -> rusqlite::Result<AudiobookFile> {
+    let length_str: Option<String> = row.get(3)?;
+    let seek_str: Option<String> = row.get(4)?;
+    let checksum: Option<String> = row.get(5)?;
+    let created_str: String = row.get(9)?;
+    let created_at = DateTime::parse_from_rfc3339(&created_str)
+        .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
+    Ok(AudiobookFile {
+        audiobook_id: row.get(0)?,
+        name: row.get(1)?,
+        full_path: row.get(2)?,
+        length_of_file: length_str.and_then(|s| s.parse().ok()),
+        seek_position: seek_str.and_then(|s| s.parse().ok()),
+        checksum,
+        position: row.get(6)?,
+        completeness: row.get(7)?,
+        file_exists: row.get(8)?,
+        created_at,
+    })
+}
 
 /// Inserts a new audiobook into the database
 ///
@@ -54,22 +108,7 @@ pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result
          FROM audiobooks WHERE directory = ?1 ORDER BY default_order"
     )?;
 
-    let rows = stmt.query_map([directory], |row| {
-        let created_str: String = row.get(7)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-        Ok(Audiobook {
-            id: Some(row.get(0)?),
-            directory: row.get(1)?,
-            name: row.get(2)?,
-            full_path: row.get(3)?,
-            completeness: row.get(4)?,
-            default_order: row.get(5)?,
-            selected_file: row.get(6)?,
-            created_at,
-        })
-    })?;
+    let rows = stmt.query_map([directory], row_to_audiobook)?;
 
     rows.collect::<rusqlite::Result<Vec<_>>>()
         .map_err(Into::into)
@@ -86,22 +125,7 @@ pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
          FROM audiobooks ORDER BY default_order"
     )?;
 
-    let rows = stmt.query_map([], |row| {
-        let created_str: String = row.get(7)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-        Ok(Audiobook {
-            id: Some(row.get(0)?),
-            directory: row.get(1)?,
-            name: row.get(2)?,
-            full_path: row.get(3)?,
-            completeness: row.get(4)?,
-            default_order: row.get(5)?,
-            selected_file: row.get(6)?,
-            created_at,
-        })
-    })?;
+    let rows = stmt.query_map([], row_to_audiobook)?;
 
     rows.collect::<rusqlite::Result<Vec<_>>>()
         .map_err(Into::into)
@@ -117,22 +141,7 @@ pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audioboo
         "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
          FROM audiobooks WHERE id = ?1",
         [id],
-        |row| {
-            let created_str: String = row.get(7)?;
-            let created_at = DateTime::parse_from_rfc3339(&created_str)
-                .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-            Ok(Audiobook {
-                id: Some(row.get(0)?),
-                directory: row.get(1)?,
-                name: row.get(2)?,
-                full_path: row.get(3)?,
-                completeness: row.get(4)?,
-                default_order: row.get(5)?,
-                selected_file: row.get(6)?,
-                created_at,
-            })
-        }
+        row_to_audiobook,
     ).optional()?;
 
     Ok(result)
@@ -218,27 +227,7 @@ pub fn get_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<Vec<A
          FROM audiobook_file WHERE audiobook_id = ?1 ORDER BY position"
     )?;
 
-    let rows = stmt.query_map([audiobook_id], |row| {
-        let length_str: Option<String> = row.get(3)?;
-        let seek_str: Option<String> = row.get(4)?;
-        let checksum: Option<String> = row.get(5)?;
-        let created_str: String = row.get(9)?;
-        let created_at = DateTime::parse_from_rfc3339(&created_str)
-            .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-        Ok(AudiobookFile {
-            audiobook_id: row.get(0)?,
-            name: row.get(1)?,
-            full_path: row.get(2)?,
-            length_of_file: length_str.and_then(|s| s.parse().ok()),
-            seek_position: seek_str.and_then(|s| s.parse().ok()),
-            checksum,
-            position: row.get(6)?,
-            completeness: row.get(7)?,
-            file_exists: row.get(8)?,
-            created_at,
-        })
-    })?;
+    let rows = stmt.query_map([audiobook_id], row_to_audiobook_file)?;
 
     rows.collect::<rusqlite::Result<Vec<_>>>()
         .map_err(Into::into)
@@ -565,22 +554,7 @@ pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Aud
         "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
          FROM audiobooks WHERE full_path = ?1",
         [path],
-        |row| {
-            let created_str: String = row.get(7)?;
-            let created_at = DateTime::parse_from_rfc3339(&created_str)
-                .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-            Ok(Audiobook {
-                id: Some(row.get(0)?),
-                directory: row.get(1)?,
-                name: row.get(2)?,
-                full_path: row.get(3)?,
-                completeness: row.get(4)?,
-                default_order: row.get(5)?,
-                selected_file: row.get(6)?,
-                created_at,
-            })
-        }
+        row_to_audiobook,
     ).optional()?;
 
     Ok(result)
@@ -596,27 +570,7 @@ pub fn get_audiobook_file_by_path(conn: &Connection, path: &str) -> Result<Optio
         "SELECT audiobook_id, name, full_path, length_of_file, seek_position, checksum, position, completeness, file_exists, created_at
          FROM audiobook_file WHERE full_path = ?1",
         [path],
-        |row| {
-            let length_str: Option<String> = row.get(3)?;
-            let seek_str: Option<String> = row.get(4)?;
-            let checksum: Option<String> = row.get(5)?;
-            let created_str: String = row.get(9)?;
-            let created_at = DateTime::parse_from_rfc3339(&created_str)
-                .map_or_else(|_| Utc::now(), |dt| dt.with_timezone(&Utc));
-
-            Ok(AudiobookFile {
-                audiobook_id: row.get(0)?,
-                name: row.get(1)?,
-                full_path: row.get(2)?,
-                length_of_file: length_str.and_then(|s| s.parse().ok()),
-                seek_position: seek_str.and_then(|s| s.parse().ok()),
-                checksum,
-                position: row.get(6)?,
-                completeness: row.get(7)?,
-                file_exists: row.get(8)?,
-                created_at,
-            })
-        }
+        row_to_audiobook_file,
     ).optional()?;
 
     Ok(result)

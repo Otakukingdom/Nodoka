@@ -53,6 +53,18 @@ fn main() {
     }
 }
 
+/// Initialises the `tracing` logging subscriber.
+///
+/// The log level is controlled by the `RUST_LOG` environment variable.
+/// When `RUST_LOG` is not set the subscriber defaults to `nodoka=info`,
+/// which shows informational messages from this crate only.
+///
+/// # Example
+///
+/// ```sh
+/// RUST_LOG=nodoka=debug ./nodoka   # verbose logging for the nodoka crate
+/// RUST_LOG=trace ./nodoka          # full trace logging for all crates
+/// ```
 fn init_logging() {
     use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -64,7 +76,14 @@ fn init_logging() {
         .init();
 }
 
+/// RAII guard that holds an exclusive application-wide lock file.
+///
+/// The guard is created by [`check_single_instance`] and must be kept alive
+/// for the duration of the process.  When the guard is dropped (on normal
+/// exit or on panic) the lock file is removed from disk, allowing a new
+/// instance to start.
 struct SingleInstanceGuard {
+    /// Absolute path to the lock file that this guard owns.
     lock_file_path: std::path::PathBuf,
 }
 
@@ -79,6 +98,19 @@ impl Drop for SingleInstanceGuard {
     }
 }
 
+/// Ensures that only one instance of Nodoka is running.
+///
+/// Creates a PID lock file in the application's data directory.  If a lock
+/// file already exists the function reads the stored PID and checks whether
+/// that process is still alive.  A stale lock (dead PID) is removed and a
+/// fresh lock is created.  A live lock causes [`Error::LockError`] to be
+/// returned so the caller can exit gracefully.
+///
+/// # Errors
+///
+/// - [`Error::ProjectDirNotFound`] – platform project directories could not be determined.
+/// - [`Error::LockError`] – another live Nodoka instance holds the lock.
+/// - [`Error::Io`] – an I/O error occurred while creating or reading the lock file.
 fn check_single_instance() -> Result<SingleInstanceGuard, Error> {
     use directories::ProjectDirs;
 
@@ -111,6 +143,16 @@ fn check_single_instance() -> Result<SingleInstanceGuard, Error> {
     }
 }
 
+/// Attempts to create a new lock file at `lock_file_path` using an exclusive
+/// create (`O_CREAT` | `O_EXCL`), writing the current process ID into it.
+///
+/// Returns the owning [`SingleInstanceGuard`] on success.  If the file
+/// already exists [`std::io::ErrorKind::AlreadyExists`] is returned and the
+/// caller should decide whether the existing lock is stale.
+///
+/// # Errors
+///
+/// Returns any [`std::io::Error`] produced by opening or writing the file.
 fn try_create_lock(
     lock_file_path: &std::path::Path,
 ) -> Result<SingleInstanceGuard, std::io::Error> {
@@ -126,11 +168,28 @@ fn try_create_lock(
     })
 }
 
+/// Reads the PID stored in an existing lock file.
+///
+/// The file is expected to contain a single decimal integer (the PID of the
+/// instance that created the lock).  Returns `None` if the file cannot be
+/// read or its contents cannot be parsed as a [`u32`].
 fn read_lock_pid(lock_file_path: &std::path::Path) -> Option<u32> {
     let contents = std::fs::read_to_string(lock_file_path).ok()?;
     contents.trim().parse::<u32>().ok()
 }
 
+/// Returns `true` when a process with the given `pid` is currently alive.
+///
+/// The check is platform-specific:
+///
+/// - **Unix**: runs `ps -p <pid>` and inspects whether a second line (the
+///   process row) is present in the output.
+/// - **Windows**: runs `tasklist /FI "PID eq <pid>"` and checks that the
+///   output does not contain the "No tasks are running" sentinel string.
+///
+/// Both approaches have a small TOCTOU window but are sufficient for the
+/// single-instance guard use-case, where false positives (claiming a dead
+/// process is alive) cause only a temporary denial of launch.
 fn is_pid_running(pid: u32) -> bool {
     #[cfg(unix)]
     {

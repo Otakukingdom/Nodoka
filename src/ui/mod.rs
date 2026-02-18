@@ -192,6 +192,8 @@
 
 pub mod components;
 pub mod main_window;
+pub(super) mod modal_views;
+pub(super) mod notification_views;
 mod media_paths;
 mod message;
 pub mod settings_form;

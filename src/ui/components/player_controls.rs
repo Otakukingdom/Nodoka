@@ -1,9 +1,13 @@
+//! Player controls component: transport buttons, seek bar, speed, and volume.
+
 use crate::conversions::f64_to_ms;
 use crate::models::SleepTimerMode;
 use crate::ui::state::RippleTarget;
 use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
-use iced::widget::{button, column, container, mouse_area, row, slider, stack, text, text_input, Space};
+use iced::widget::{
+    button, column, container, mouse_area, row, slider, stack, text, text_input, Space,
+};
 use iced::{Border, Color, Element, Length, Point};
 
 /// Renders the player controls component with improved UX
@@ -74,7 +78,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 state.focused_element == FocusedElement::StopButton,
             ),
             Space::new().width(Length::Fixed(spacing::LG)),
-            speed_controls(state, speed_step, state.focused_element == FocusedElement::SpeedSlider),
+            speed_controls(
+                state,
+                speed_step,
+                state.focused_element == FocusedElement::SpeedSlider
+            ),
             Space::new().width(Length::Fixed(spacing::LG)),
             volume_controls(state, state.focused_element == FocusedElement::VolumeSlider),
         ]
@@ -121,9 +129,7 @@ fn playback_controls(
         play_button.into(),
         state.ripple_animations.get(&RippleTarget::PlayPauseButton),
     ))
-    .on_move(|point| {
-        Message::RipplePointerMoved(RippleTarget::PlayPauseButton, point)
-    })
+    .on_move(|point| Message::RipplePointerMoved(RippleTarget::PlayPauseButton, point))
     .on_enter(Message::TooltipHoverStart(
         crate::ui::tooltip::TooltipTarget::PlayPause,
     ))
@@ -332,8 +338,12 @@ fn speed_step_from_speed(speed: f32) -> i32 {
     }
 
     let clamped = speed.clamp(0.5, 2.0);
-    let step_f = (clamped * 20.0).round();
-    let step = format!("{step_f:.0}").parse::<i32>().ok().unwrap_or(20);
+    // step_f is in [10.0, 40.0] after clamping; convert to i32 via u64 bit
+    // extraction to avoid numeric-cast lints.
+    let step_f64 = f64::from((clamped * 20.0).round());
+    let step = crate::conversions::f64_to_u64_exact(step_f64)
+        .and_then(|u| i32::try_from(u).ok())
+        .unwrap_or(20);
     step.clamp(SPEED_STEP_MIN, SPEED_STEP_MAX)
 }
 

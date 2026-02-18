@@ -60,11 +60,11 @@ fn main() {
         }
 
         if !found {
+            // cargo:error= causes Cargo to display the message and fail the build automatically.
             println!(
-                "cargo:warning=libvlc.lib not found. Install the VLC SDK and set VLC_SDK_PATH \
+                "cargo:error=libvlc.lib not found. Install the VLC SDK and set VLC_SDK_PATH \
 to its root (or set VLC_LIB_PATH to the SDK 'lib' directory)."
             );
-            std::process::exit(1);
         }
         println!("cargo:rustc-link-lib=dylib=libvlc");
     }

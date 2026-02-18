@@ -1,3 +1,5 @@
+//! Bookmark list component for displaying and managing position bookmarks.
+
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
 use crate::ui::styles::{animations, button_styles, spacing, typography};
@@ -92,20 +94,24 @@ pub fn editor(
                 button(text("Cancel").size(typography::SIZE_SM))
                     .on_press(Message::BookmarkEditorCancel)
                     .padding(spacing::SM)
-                    .style(if focused_element == FocusedElement::BookmarkEditorCancelButton {
-                        button_styles::secondary_focused
-                    } else {
-                        button_styles::secondary
-                    }),
+                    .style(
+                        if focused_element == FocusedElement::BookmarkEditorCancelButton {
+                            button_styles::secondary_focused
+                        } else {
+                            button_styles::secondary
+                        }
+                    ),
                 Space::new().width(Length::Fill),
                 button(text("Save").size(typography::SIZE_SM))
                     .on_press(Message::BookmarkEditorSave)
                     .padding(spacing::SM)
-                    .style(if focused_element == FocusedElement::BookmarkEditorSaveButton {
-                        button_styles::primary_focused
-                    } else {
-                        button_styles::primary
-                    })
+                    .style(
+                        if focused_element == FocusedElement::BookmarkEditorSaveButton {
+                            button_styles::primary_focused
+                        } else {
+                            button_styles::primary
+                        }
+                    )
             ]
             .spacing(spacing::MD)
             .padding(iced::Padding::from([spacing::MD, 0.0]))
@@ -200,8 +206,8 @@ fn bookmark_row(
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
-            .on_press_maybe(id.map(Message::BookmarkJump))
-            .padding(spacing::SM),
+        .on_press_maybe(id.map(Message::BookmarkJump))
+        .padding(spacing::SM),
         Space::new().width(Length::Fill),
         button(
             text("Edit (E)")
@@ -210,9 +216,9 @@ fn bookmark_row(
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
-            .on_press_maybe(id.map(Message::BookmarkEdit))
-            .padding(spacing::SM)
-            .style(button_styles::secondary),
+        .on_press_maybe(id.map(Message::BookmarkEdit))
+        .padding(spacing::SM)
+        .style(button_styles::secondary),
         button(
             text("Delete")
                 .size(typography::SIZE_XS)
@@ -220,9 +226,9 @@ fn bookmark_row(
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
         )
-            .on_press_maybe(id.map(Message::BookmarkDelete))
-            .padding(spacing::SM)
-            .style(button_styles::danger),
+        .on_press_maybe(id.map(Message::BookmarkDelete))
+        .padding(spacing::SM)
+        .style(button_styles::danger),
     ]
     .spacing(spacing::SM)
     .padding(iced::Padding {
@@ -241,7 +247,11 @@ struct ListItemAnimation {
     offset_y: f32,
 }
 
-fn list_item_animation(index: usize, elapsed_ms: u64, prefers_reduced_motion: bool) -> ListItemAnimation {
+fn list_item_animation(
+    index: usize,
+    elapsed_ms: u64,
+    prefers_reduced_motion: bool,
+) -> ListItemAnimation {
     if prefers_reduced_motion {
         return ListItemAnimation {
             opacity: 1.0,

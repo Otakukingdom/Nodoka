@@ -1,3 +1,5 @@
+//! Error types for the Nodoka audiobook reader application.
+
 use thiserror::Error;
 
 /// Error types for the Nodoka audiobook reader application.

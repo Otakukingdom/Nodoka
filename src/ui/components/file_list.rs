@@ -1,3 +1,5 @@
+//! File list component showing individual audio files within an audiobook.
+
 use crate::models::AudiobookFile;
 use crate::ui::styles::{animations, spacing, typography};
 use crate::ui::Message;
@@ -38,7 +40,8 @@ pub fn view<'a>(
         .enumerate()
         .fold(column![].spacing(spacing::XS), |col, (index, file)| {
             let is_selected = selected_path == Some(&file.full_path);
-            let animation = list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
+            let animation =
+                list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
             let item = build_file_item(file, is_selected, index + 1, animation);
             col.push(item)
         })
@@ -187,12 +190,11 @@ fn build_status_indicator(
         })
     } else if is_complete {
         container(text("[COMPLETE]").size(typography::SIZE_SM)).style(
-            move |_theme: &iced::Theme| {
-            container::Style {
+            move |_theme: &iced::Theme| container::Style {
                 text_color: Some(with_alpha(colors::SUCCESS, opacity)),
                 ..Default::default()
-            }
-        })
+            },
+        )
     } else if has_progress {
         container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
             move |_theme: &iced::Theme| container::Style {
@@ -298,7 +300,11 @@ struct ListItemAnimation {
     offset_y: f32,
 }
 
-fn list_item_animation(index: usize, elapsed_ms: u64, prefers_reduced_motion: bool) -> ListItemAnimation {
+fn list_item_animation(
+    index: usize,
+    elapsed_ms: u64,
+    prefers_reduced_motion: bool,
+) -> ListItemAnimation {
     if prefers_reduced_motion {
         return ListItemAnimation {
             opacity: 1.0,

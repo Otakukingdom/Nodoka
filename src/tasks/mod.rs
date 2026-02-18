@@ -46,7 +46,10 @@
 //! - Network latency (local vs network drives)
 //!
 //! Each file may involve:
-//! 1. SHA-256 checksum calculation (I/O bound; stored per [`crate::tasks::DiscoveredFile`])
+//! 1. Filesystem fingerprint calculation (file size + modification time; stored per
+//!    [`crate::tasks::DiscoveredFile`]).  The SHA-256 hasher in [`crate::tasks::sha256`]
+//!    is available for callers that require content-based deduplication but is not used
+//!    during directory scanning.
 //! 2. Optional VLC metadata extraction (CPU bound; performed by callers via [`crate::player::Scanner`])
 //! 3. Database writes (I/O bound; performed by the UI update layer)
 

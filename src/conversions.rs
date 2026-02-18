@@ -33,7 +33,12 @@ fn u64_to_f64_exact(value: u64) -> f64 {
     f64::from_bits(exponent | mantissa)
 }
 
-fn f64_to_u64_exact(value: f64) -> Option<u64> {
+/// Converts an exact-integer non-negative `f64` value to `u64` using IEEE 754
+/// bit extraction.
+///
+/// Returns `None` if the value is negative, not finite, or not an exact integer.
+/// All values in the range `[0, 2^53]` that are integers can be converted losslessly.
+pub(crate) fn f64_to_u64_exact(value: f64) -> Option<u64> {
     if value == 0.0 {
         return Some(0);
     }

@@ -1,9 +1,17 @@
 use crate::error::{Error, Result};
 use std::time::{Duration, Instant};
 
+/// Minimum poll interval when waiting for VLC to report duration.
 const POLL_INTERVAL_MIN: Duration = Duration::from_millis(25);
+/// Maximum poll interval when waiting for VLC to report duration.
 const POLL_INTERVAL_MAX: Duration = Duration::from_millis(200);
 
+/// Parses media duration, failing if not available before `timeout`.
+///
+/// # Errors
+///
+/// Returns an error when VLC reports that the media was parsed but a duration is
+/// still unavailable, or when `timeout` is exceeded.
 pub(super) fn parse_duration_with_timeout(media: &vlc::Media, timeout: Duration) -> Result<i64> {
     media.parse_async();
     wait_for_duration(

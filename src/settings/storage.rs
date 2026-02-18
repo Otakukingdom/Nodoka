@@ -2,16 +2,39 @@ use crate::db::queries::{delete_metadata, get_metadata, set_metadata};
 use crate::error::Result;
 use rusqlite::Connection;
 
+/// Persistent settings gateway backed by the application `SQLite` database.
+///
+/// `Settings<'a>` borrows the database connection for its lifetime `'a`, which
+/// must not outlive the owning [`Connection`].  All reads and writes are
+/// synchronous and go directly to `SQLite` via [`crate::db::queries`] metadata
+/// helpers.
 pub struct Settings<'a> {
+    /// Borrowed `SQLite` connection used for all settings reads and writes.
+    ///
+    /// The lifetime `'a` ties this struct to the connection so that the
+    /// connection cannot be closed while a `Settings` value is alive.
     conn: &'a Connection,
 }
 
 impl<'a> Settings<'a> {
+    /// Creates a new `Settings` view over the given database connection.
+    ///
+    /// The returned struct borrows `conn` for its lifetime; the connection must
+    /// remain open for as long as this value is in use.
     #[must_use]
     pub const fn new(conn: &'a Connection) -> Self {
         Self { conn }
     }
 
+    /// Deletes all metadata rows whose keys appear in `keys`.
+    ///
+    /// Used internally to clear a group of settings atomically (e.g. clearing
+    /// all audiobook-specific metadata when switching books).  Missing keys are
+    /// silently ignored by the underlying DELETE statement.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any individual DELETE statement fails.
     fn clear_metadata_keys(&self, keys: &[&'static str]) -> Result<()> {
         for key in keys {
             delete_metadata(self.conn, key)?;
@@ -100,70 +123,6 @@ impl<'a> Settings<'a> {
     /// Returns an error if the database update fails
     pub fn set_current_file(&self, path: &str) -> Result<()> {
         set_metadata(self.conn, "current_file", path)
-    }
-
-    /// Gets the last audiobook ID (alias for `get_current_audiobook`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database query fails
-    pub fn get_last_audiobook_id(&self) -> Result<Option<i64>> {
-        self.get_current_audiobook()
-    }
-
-    /// Sets the last audiobook ID (alias for `set_current_audiobook`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database update fails
-    pub fn set_last_audiobook_id(&self, id: i64) -> Result<()> {
-        self.set_current_audiobook(id)
-    }
-
-    /// Gets the default speed setting (alias for `get_speed`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database query fails
-    pub fn get_default_speed(&self) -> Result<Option<f32>> {
-        Ok(Some(self.get_speed()?))
-    }
-
-    /// Sets the default speed setting (alias for `set_speed`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database update fails or speed is out of range
-    pub fn set_default_speed(&self, speed: f32) -> Result<()> {
-        if !(0.5..=2.0).contains(&speed) {
-            return Err(crate::error::Error::InvalidState(format!(
-                "Speed {speed} out of range (0.5-2.0)"
-            )));
-        }
-        self.set_speed(speed)
-    }
-
-    /// Gets the default volume setting (alias for `get_volume`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database query fails
-    pub fn get_default_volume(&self) -> Result<Option<i32>> {
-        Ok(Some(self.get_volume()?))
-    }
-
-    /// Sets the default volume setting (alias for `set_volume`)
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database update fails or volume is out of range
-    pub fn set_default_volume(&self, volume: i32) -> Result<()> {
-        if !(0..=200).contains(&volume) {
-            return Err(crate::error::Error::InvalidState(format!(
-                "Volume {volume} out of range (0-200)"
-            )));
-        }
-        self.set_volume(volume)
     }
 
     /// Gets window position

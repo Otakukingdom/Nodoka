@@ -1,24 +1,37 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// A discovered audiobook directory tracked by the application.
+///
+/// This is the top-level domain model used by the library UI and the database.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Audiobook {
+    /// Database ID (None if not yet persisted).
     pub id: Option<i64>,
+    /// Directory identifier used for grouping (typically the user-added root directory).
     pub directory: String,
+    /// Display name derived from the folder name.
     pub name: String,
+    /// Full path to the audiobook directory.
     pub full_path: String,
+    /// Completion percentage in the range 0-100.
     pub completeness: i32,
+    /// Default ordering key used for stable library sorting.
     pub default_order: i32,
+    /// Selected file path (if the user chose a specific chapter/file to start from).
     pub selected_file: Option<String>,
+    /// When this audiobook entry was created.
     pub created_at: DateTime<Utc>,
 }
 
 impl Audiobook {
+    /// Returns whether the audiobook is considered complete.
     #[must_use]
     pub const fn is_complete(&self) -> bool {
         self.completeness >= 100
     }
 
+    /// Creates a new audiobook model with zero completeness.
     #[must_use]
     pub fn new(directory: String, name: String, full_path: String, default_order: i32) -> Self {
         Self {

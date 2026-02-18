@@ -5,12 +5,16 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+/// Cache manager for proxy handles.
+///
+/// This keeps a small in-memory map of recently requested [`AudiobookHandle`]s.
 pub struct Cache {
     db: Rc<Database>,
     audiobook_cache: Rc<RefCell<HashMap<i64, AudiobookHandle>>>,
 }
 
 impl Cache {
+    /// Creates a new cache manager.
     #[must_use]
     pub fn new(db: Rc<Database>) -> Self {
         Self {
@@ -48,6 +52,7 @@ impl Cache {
 }
 
 impl Clone for Cache {
+    /// Clones the cache while sharing underlying storage via [`Rc`].
     fn clone(&self) -> Self {
         Self {
             db: Rc::clone(&self.db),

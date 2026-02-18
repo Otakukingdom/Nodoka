@@ -1,3 +1,5 @@
+//! Audiobook library list component with cover thumbnails and scan status.
+
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
 use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};

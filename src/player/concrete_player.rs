@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
 use vlc::{Instance, Media, MediaPlayer, MediaPlayerAudioEx, State as VlcState};
 
+/// Concrete VLC-backed player used for application playback.
 pub struct Vlc {
     instance: Instance,
     player: MediaPlayer,

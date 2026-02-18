@@ -371,8 +371,9 @@ pub mod tooltip_styles {
     /// Tooltip text color (white for high contrast)
     pub const TEXT_COLOR: Color = Color::WHITE;
 
-    /// Tooltip padding (vertical, horizontal) in pixels
+    /// Tooltip vertical padding in pixels.
     pub const PADDING_VERTICAL: f32 = 8.0;
+    /// Tooltip horizontal padding in pixels.
     pub const PADDING_HORIZONTAL: f32 = 12.0;
 
     /// Returns container style for tooltip

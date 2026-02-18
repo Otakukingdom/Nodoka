@@ -1,3 +1,4 @@
+use crate::audio_extensions::is_audio_file;
 use crate::error::Result;
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -8,14 +9,23 @@ use zip::ZipArchive;
 const ZIP_VIRTUAL_PREFIX: &str = "zip://";
 const ZIP_VIRTUAL_DELIM: &str = "::";
 
+/// Resource limits applied during ZIP extraction to prevent zip-bomb attacks.
 #[derive(Clone, Copy, Debug)]
 struct ZipExtractionLimits {
+    /// Maximum number of entries in the ZIP archive.
     entries: usize,
+    /// Maximum total uncompressed bytes extracted across all entries.
     total_bytes: u64,
+    /// Maximum uncompressed bytes for a single entry.
     entry_bytes: u64,
+    /// Maximum directory depth allowed in entry paths.
     path_depth: usize,
 }
 
+/// Default ZIP extraction limits.
+///
+/// These values are large enough for real audiobook archives while bounding
+/// extraction to prevent zip-bomb denial-of-service attacks.
 const DEFAULT_ZIP_LIMITS: ZipExtractionLimits = ZipExtractionLimits {
     // Defensive defaults: large enough for real libraries, bounded for safety.
     entries: 10_000,
@@ -24,6 +34,11 @@ const DEFAULT_ZIP_LIMITS: ZipExtractionLimits = ZipExtractionLimits {
     path_depth: 32,
 };
 
+/// Maps a `zip` crate error to a Nodoka [`crate::error::Error`].
+///
+/// Password-protected archives are mapped to [`crate::error::Error::ZipPasswordProtected`]
+/// so callers can handle that case specifically.  All other errors map to
+/// [`crate::error::Error::Zip`].
 fn map_zip_error(err: zip::result::ZipError) -> crate::error::Error {
     match err {
         zip::result::ZipError::UnsupportedArchive(msg)
@@ -406,21 +421,6 @@ pub fn cleanup_temp_files(temp_dir: &Path) -> Result<()> {
         fs::remove_dir_all(temp_dir)?;
     }
     Ok(())
-}
-
-/// Check if a file is an audio file based on extension
-fn is_audio_file(path: &Path) -> bool {
-    let audio_extensions = [
-        "mp3", "m4a", "m4b", "ogg", "flac", "opus", "aac", "wma", "wav",
-    ];
-
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| {
-            audio_extensions
-                .iter()
-                .any(|audio_ext| ext.eq_ignore_ascii_case(audio_ext))
-        })
 }
 
 #[cfg(test)]

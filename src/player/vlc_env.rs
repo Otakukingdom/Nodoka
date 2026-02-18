@@ -207,7 +207,7 @@ pub(super) fn create_vlc_instance() -> Option<vlc::Instance> {
 
 /// Installs or clears a test observer for VLC initialization ordering.
 #[cfg(test)]
-fn __set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTestHookGuard {
+fn set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTestHookGuard {
     let lock = VLC_INIT_OBSERVER.get_or_init(|| Mutex::new(None));
     let mut guard = lock_unpoison(lock);
 
@@ -227,7 +227,7 @@ fn __set_vlc_init_observer_for_tests(observer: Option<VlcInitObserver>) -> VlcTe
 /// Passing a factory that always returns `None` allows tests to force the VLC
 /// error path even on machines where VLC is installed.
 #[cfg(test)]
-fn __set_vlc_instance_factory_for_tests(factory: InstanceFactory) -> VlcTestHookGuard {
+fn set_vlc_instance_factory_for_tests(factory: InstanceFactory) -> VlcTestHookGuard {
     let lock = VLC_INSTANCE_FACTORY
         .get_or_init(|| Mutex::new(default_instance_factory as InstanceFactory));
     let mut guard = lock_unpoison(lock);
@@ -477,8 +477,8 @@ mod tests {
             events.clear();
         }
 
-        let _observer_guard = __set_vlc_init_observer_for_tests(Some(record_init_event));
-        let _factory_guard = __set_vlc_instance_factory_for_tests(always_fail_instance_creation);
+        let _observer_guard = set_vlc_init_observer_for_tests(Some(record_init_event));
+        let _factory_guard = set_vlc_instance_factory_for_tests(always_fail_instance_creation);
 
         let result = crate::player::Vlc::new();
         assert!(

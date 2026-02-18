@@ -119,6 +119,7 @@ impl Scanner {
 }
 
 fn parse_year(input: &str) -> Option<i32> {
+    // VLC metadata strings are often non-normalized; extract up to four digits.
     let trimmed = input.trim();
     let digits: String = trimmed
         .chars()
@@ -132,6 +133,7 @@ fn parse_year(input: &str) -> Option<i32> {
 }
 
 fn artwork_url_to_path(url: &str) -> Option<std::path::PathBuf> {
+    // VLC reports embedded artwork as a file URL on some platforms.
     let trimmed = url.trim();
 
     let rest = if let Some(after) = trimmed.strip_prefix("file://") {

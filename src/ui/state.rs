@@ -1,5 +1,12 @@
+//! Application UI state and related types.
+//!
+//! [`State`] is the single source of truth for all UI state.  Every render
+//! cycle receives a `&State` and every user interaction produces a [`Message`]
+//! that is handled in [`crate::ui::update`] to produce the next `State`.
+
 use crate::models::{Audiobook, AudiobookFile, Bookmark, Directory, SleepTimer};
 use crate::ui::styles::animations::modal::ModalState;
+use crate::ui::styles::effects::u64_to_f32;
 use crate::ui::tooltip::TooltipState;
 use crate::ui::Message;
 use iced::Point;
@@ -388,13 +395,6 @@ pub(crate) fn current_time_ms() -> u64 {
         .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX))
 }
 
-fn u64_to_f32(value: u64) -> f32 {
-    // Clamp to u16::MAX before converting to f32 to ensure a lossless widening
-    // conversion: all integers in [0, 65535] are exactly representable in f32.
-    // Animation and timing durations in this codebase are well below this bound.
-    f32::from(u16::try_from(value).unwrap_or(u16::MAX))
-}
-
 /// Focus tracking for keyboard navigation accessibility
 ///
 /// Tracks which UI element currently has keyboard focus to provide
@@ -404,28 +404,45 @@ fn u64_to_f32(value: u64) -> f32 {
 /// so we track focus in application state as a workaround.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FocusedElement {
+    /// No element is focused.
     #[default]
     None,
+    /// The play/pause transport button.
     PlayPauseButton,
+    /// The stop transport button.
     StopButton,
+    /// The volume slider.
     VolumeSlider,
+    /// The playback speed slider.
     SpeedSlider,
+    /// The progress/seek slider.
     ProgressSlider,
+    /// The audiobook library list.
     AudiobookList,
+    /// The audio file list.
     FileList,
+    /// The bookmarks list.
     BookmarkList,
+    /// The settings open button in the top bar.
     SettingsButton,
+    /// The "Add Directory" button in the settings panel.
     SettingsAddDirectoryButton,
+    /// The settings close button.
     SettingsCloseButton,
+    /// The bookmark editor's cancel button.
     BookmarkEditorCancelButton,
+    /// The bookmark editor's save button.
     BookmarkEditorSaveButton,
+    /// The keyboard help modal close button.
     KeyboardHelpCloseButton,
 }
 
 /// Ripple animation target identifiers for interactive feedback.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RippleTarget {
+    /// Ripple on the play/pause button.
     PlayPauseButton,
+    /// Ripple on the stop button.
     StopButton,
 }
 
@@ -435,105 +452,176 @@ pub enum RippleTarget {
 /// can be active at a time to maintain UI clarity and focus management.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum ActiveModal {
+    /// No modal is open.
     #[default]
     None,
+    /// The settings modal is open.
     Settings,
+    /// The bookmark editor modal is open.
     BookmarkEditor,
+    /// The keyboard shortcuts help modal is open.
     KeyboardHelp,
 }
 
+/// In-progress bookmark creation or edit form.
+///
+/// This struct is populated when the user opens the bookmark editor modal and
+/// is cleared when the modal is dismissed (either saved or cancelled).
 #[derive(Debug, Clone)]
 pub struct BookmarkEditor {
+    /// Database ID of an existing bookmark being edited, or `None` when creating a new one.
     pub id: Option<i64>,
+    /// ID of the audiobook this bookmark belongs to.
     pub audiobook_id: i64,
+    /// Absolute path of the audio file that was playing when the bookmark was created.
     pub file_path: String,
+    /// Playback position in milliseconds at which the bookmark was created.
     pub position_ms: i64,
+    /// User-supplied short label for the bookmark (displayed in the bookmark list).
     pub label: String,
+    /// Optional longer note attached to the bookmark.
     pub note: String,
 }
 
+/// Whether the player is currently playing or paused.
+///
+/// This status drives the play/pause button icon and controls whether
+/// the progress slider is updated on each UI tick.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PlaybackStatus {
+    /// Audio is actively playing.
     Playing,
+    /// Audio is paused or stopped.
     #[default]
     Paused,
 }
 
+/// Whether the initial audiobook list has finished loading from the database.
+///
+/// The UI starts in [`LoadState::Loading`] so that a spinner or placeholder
+/// can be shown while the async database query is in flight.  Once the query
+/// resolves the state transitions to [`LoadState::Ready`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LoadState {
+    /// The audiobook list is being fetched; the UI shows a loading indicator.
     #[default]
     Loading,
+    /// The audiobook list has been fetched and is ready for display.
     Ready,
 }
 
+/// Whether the application is currently scanning a directory for new audiobooks.
+///
+/// The `Scanning` variant carries the path that is being scanned so the UI can
+/// display it in a progress message.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum ScanState {
+    /// No scan is in progress.
     #[default]
     Idle,
+    /// A directory scan is running.
     Scanning {
+        /// The directory path being scanned, or `None` when the path is not known.
         directory: Option<String>,
     },
 }
 
+/// Single source of truth for all mutable UI state.
+///
+/// Every view function in the `ui` module receives a shared reference to this
+/// struct and produces an `Element` that may emit [`crate::ui::Message`] values.
+/// The application's `update` handler applies those messages to produce the next
+/// `State`.
+///
+/// The initial state has `load_state == LoadState::Loading` because the
+/// audiobook list is fetched asynchronously at startup; all view functions must
+/// handle this case gracefully.
 #[derive(Debug, Clone)]
 pub struct State {
+    /// Full list of audiobooks loaded from the database.
     pub audiobooks: Vec<Audiobook>,
+    /// ID of the currently selected audiobook, if any.
     pub selected_audiobook: Option<i64>,
+    /// Audio files belonging to the selected audiobook.
     pub current_files: Vec<AudiobookFile>,
+    /// File path of the currently selected audio file.
     pub selected_file: Option<String>,
+    /// Watched directories configured by the user.
     pub directories: Vec<Directory>,
 
+    /// Cached cover thumbnail paths keyed by audiobook ID.
     pub cover_thumbnails: HashMap<i64, PathBuf>,
 
+    /// Bookmarks for the selected audiobook.
     pub bookmarks: Vec<Bookmark>,
+    /// Bookmark editor form state when the editor modal is open.
     pub bookmark_editor: Option<BookmarkEditor>,
 
+    /// Whether audio is currently playing or paused.
     pub playback: PlaybackStatus,
+    /// Current playback position in seconds (interpolated between VLC ticks).
     pub current_time: f64,
+    /// Total duration of the current file in seconds.
     pub total_duration: f64,
+    /// Current volume level in the range [0, 200] (100 = unity gain).
     pub volume: i32,
+    /// Current playback speed (1.0 = normal speed).
     pub speed: f32,
 
+    /// Active sleep timer, if set by the user.
     pub sleep_timer: Option<SleepTimer>,
+    /// Volume captured before a sleep-timer fade began, used to restore after cancel.
     pub sleep_timer_base_volume: Option<i32>,
+    /// Raw text from the custom-duration input field.
     pub sleep_timer_custom_minutes: String,
+    /// Validation error for the custom-duration input, if any.
     pub sleep_timer_custom_error: Option<String>,
 
+    /// Which modal overlay is currently visible (at most one at a time).
     pub active_modal: ActiveModal,
+    /// Whether the initial audiobook list has been loaded.
     pub load_state: LoadState,
 
-    // Directory scanning state
+    /// Directory scanning state; updated while a scan task is running.
     pub scan_state: ScanState,
 
-    // Focus tracking for keyboard navigation accessibility
+    /// Keyboard focus tracking for accessibility (WCAG 2.1 AA 2.4.7).
     pub focused_element: FocusedElement,
 
-    // Operation in progress flag to prevent duplicate operations from rapid input
+    /// Set to `true` while an async operation is in flight to prevent duplicate
+    /// submissions from rapid user input.
     pub operation_in_progress: bool,
 
-    // Reduced motion preference for accessibility (WCAG 2.1 2.3.3)
+    /// Mirrors the user's system-level reduced-motion preference (WCAG 2.1 2.3.3).
     pub prefers_reduced_motion: bool,
 
-    // Notification system for user feedback (max 3 concurrent)
+    /// Queue of pending toast notifications (capped at [`MAX_NOTIFICATIONS`]).
     pub notification_queue: Vec<Notification>,
 
-    // Animation tracking for smooth transitions
+    /// Per-element pulse animation state, keyed by a stable string identifier.
     pub pulse_animations: HashMap<String, crate::ui::styles::animations::PulseAnimation>,
+    /// Per-element value-transition state, keyed by a stable string identifier.
     pub transition_states: HashMap<String, TransitionState>,
+    /// Ripple click-feedback animations keyed by the interactive target.
     pub ripple_animations: HashMap<RippleTarget, crate::ui::styles::interactive::RippleAnimation>,
+    /// Screen-space origin of each ripple, used to position the expanding ring.
     pub ripple_origins: HashMap<RippleTarget, Point>,
 
-    // Modal animation state and close coordination
+    /// Lifecycle state of the currently open (or closing) modal overlay.
     pub modal_state: ModalState,
+    /// `true` while the modal is playing its close animation before being hidden.
     pub modal_pending_close: bool,
 
-    // UI animation timing (milliseconds since epoch, updated via UiTick)
+    /// Milliseconds since the UNIX epoch, updated on every [`crate::ui::Message::UiTick`].
     pub ui_time_ms: u64,
+    /// Timestamp when the audiobook list entry animation started, if active.
     pub audiobook_list_animation_start_ms: Option<u64>,
+    /// Timestamp when the file list entry animation started, if active.
     pub file_list_animation_start_ms: Option<u64>,
+    /// Timestamp when the bookmark list entry animation started, if active.
     pub bookmark_list_animation_start_ms: Option<u64>,
 
-    // Tooltip tracking for discoverability
+    /// Hover and visibility tracking for contextual tooltips.
     pub tooltip_state: TooltipState,
 }
 

@@ -1,3 +1,7 @@
+//! Settings panel view for configuring directories, volume, and speed.
+//!
+//! Renders the settings form shown inside the settings modal overlay.
+
 use crate::ui::styles::{button_styles, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};

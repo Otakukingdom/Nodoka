@@ -5,6 +5,10 @@ use crate::proxy::AudiobookFileHandle;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+/// Cached handle around an [`Audiobook`] and its associated files.
+///
+/// This type lazily loads the audiobook files on first access and caches them
+/// for subsequent calls.
 pub struct AudiobookHandle {
     id: i64,
     data: Rc<RefCell<Audiobook>>,
@@ -87,6 +91,7 @@ impl AudiobookHandle {
         self.data.borrow().clone()
     }
 
+    /// Returns the database ID of the audiobook this handle refers to.
     #[must_use]
     pub const fn id(&self) -> i64 {
         self.id
@@ -94,6 +99,7 @@ impl AudiobookHandle {
 }
 
 impl Clone for AudiobookHandle {
+    /// Clones the handle while sharing the underlying caches via [`Rc`].
     fn clone(&self) -> Self {
         Self {
             id: self.id,

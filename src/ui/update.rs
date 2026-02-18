@@ -1,3 +1,8 @@
+//! Message update handlers for the Nodoka UI.
+//!
+//! The [`update`] function dispatches each [`Message`] to a focused
+//! submodule handler, producing the next [`State`] and an iced [`Task`].
+
 use crate::db::Database;
 use crate::error::Result;
 use crate::player::Vlc;
@@ -43,6 +48,12 @@ impl MediaControl for Vlc {
     }
 }
 
+/// Processes a [`Message`] and updates [`State`], returning any follow-up [`Task`].
+///
+/// # Errors
+///
+/// Individual handlers may produce error notifications via the notification
+/// queue rather than returning `Err`; those are not propagated here.
 pub fn update(
     state: &mut State,
     message: Message,

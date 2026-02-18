@@ -2,6 +2,10 @@ use crate::db::Database;
 use crate::models::AudiobookFile;
 use std::rc::Rc;
 
+/// Cached handle around an [`AudiobookFile`] with access to the backing database.
+///
+/// The handle is lightweight and cloneable; it stores the file snapshot data and
+/// a shared [`crate::db::Database`] reference for future operations.
 #[derive(Clone)]
 pub struct AudiobookFileHandle {
     data: AudiobookFile,
@@ -9,22 +13,25 @@ pub struct AudiobookFileHandle {
 }
 
 impl AudiobookFileHandle {
+    /// Creates a new handle from file data and a database reference.
     #[must_use]
     pub const fn new(data: AudiobookFile, db: Rc<Database>) -> Self {
         Self { data, db }
     }
 
+    /// Returns the stored completion percentage (0-100).
     #[must_use]
     pub const fn completeness(&self) -> i32 {
         self.data.completeness
     }
 
+    /// Returns a reference to the cached file snapshot.
     #[must_use]
     pub const fn data(&self) -> &AudiobookFile {
         &self.data
     }
 
-    /// Gets a reference to the database connection
+    /// Returns the database handle used to load this file.
     #[must_use]
     pub const fn database(&self) -> &Rc<Database> {
         &self.db

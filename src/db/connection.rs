@@ -3,10 +3,15 @@ use directories::ProjectDirs;
 use rusqlite::Connection;
 use std::path::PathBuf;
 
+/// `SQLite` database wrapper used by Nodoka.
+///
+/// This type owns a [`rusqlite::Connection`] and provides constructors for the
+/// on-disk application database and for in-memory databases used by tests.
 pub struct Database {
     conn: Connection,
 }
 
+/// Enables `SQLite` foreign key enforcement for the given connection.
 fn enable_foreign_keys(conn: &Connection) -> Result<()> {
     conn.execute("PRAGMA foreign_keys = ON", [])
         .map(|_| ())
@@ -85,6 +90,7 @@ impl Database {
         Ok(data_dir.join("nodoka.db"))
     }
 
+    /// Returns the underlying `SQLite` connection.
     pub const fn connection(&self) -> &Connection {
         &self.conn
     }

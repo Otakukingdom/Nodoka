@@ -3,6 +3,8 @@
 //! This module bridges [`crate::cover_art`] selection and UI display by generating a resized
 //! thumbnail in the application data directory.
 
+use crate::audio_extensions::is_audio_extension;
+use crate::cover_art::push_first_match;
 use crate::error::Result;
 use std::path::{Path, PathBuf};
 
@@ -202,19 +204,6 @@ fn existing_cover_file_candidates(selection_root: &Path) -> Option<Vec<PathBuf>>
     Some(out)
 }
 
-fn push_first_match<const N: usize>(
-    out: &mut Vec<PathBuf>,
-    entries: &[(String, PathBuf)],
-    names: [&str; N],
-) {
-    for name in names {
-        if let Some((_, path)) = entries.iter().find(|(lower, _)| lower == name) {
-            out.push(path.clone());
-            return;
-        }
-    }
-}
-
 fn probe_embedded_cover_bytes(audiobook_path: &Path) -> Option<Vec<u8>> {
     let media_path = first_audio_file_candidate(audiobook_path)?;
 
@@ -285,18 +274,6 @@ fn first_audio_file_candidate(audiobook_path: &Path) -> Option<std::path::PathBu
 
     candidates.sort();
     candidates.into_iter().next()
-}
-
-const fn is_audio_extension(ext: &str) -> bool {
-    ext.eq_ignore_ascii_case("mp3")
-        || ext.eq_ignore_ascii_case("m4a")
-        || ext.eq_ignore_ascii_case("m4b")
-        || ext.eq_ignore_ascii_case("ogg")
-        || ext.eq_ignore_ascii_case("flac")
-        || ext.eq_ignore_ascii_case("opus")
-        || ext.eq_ignore_ascii_case("aac")
-        || ext.eq_ignore_ascii_case("wma")
-        || ext.eq_ignore_ascii_case("wav")
 }
 
 #[cfg(test)]

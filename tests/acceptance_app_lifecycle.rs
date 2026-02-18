@@ -346,7 +346,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
         nodoka::db::initialize(db.connection())?;
 
         let settings = Settings::new(db.connection());
-        settings.set_default_volume(125)?;
+        settings.set_volume(125)?;
     }
 
     // Second launch
@@ -354,7 +354,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
         let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
-        assert_eq!(settings.get_default_volume()?, Some(125));
+        assert_eq!(settings.get_volume()?, 125);
     }
 
     // Third launch
@@ -362,7 +362,7 @@ fn test_subsequent_launches_restore_state() -> Result<(), Box<dyn Error>> {
         let db = nodoka::db::Database::open_with_path(&db_path)?;
         let settings = Settings::new(db.connection());
 
-        assert_eq!(settings.get_default_volume()?, Some(125));
+        assert_eq!(settings.get_volume()?, 125);
     }
 
     Ok(())

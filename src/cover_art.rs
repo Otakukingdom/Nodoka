@@ -26,8 +26,11 @@ pub enum Source {
 /// A validated cover art selection.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
+    /// Where the image was found (embedded metadata or filesystem file).
     pub source: Source,
+    /// Image width in pixels.
     pub width: u32,
+    /// Image height in pixels.
     pub height: u32,
 }
 
@@ -101,7 +104,11 @@ fn candidate_paths(audiobook_dir: &Path) -> Result<Vec<PathBuf>> {
     Ok(out)
 }
 
-fn push_first_match<const N: usize>(
+/// Scans `entries` for the first filename that case-insensitively matches any
+/// entry in `names`, then pushes the full path onto `out`.
+///
+/// Only the first match across all `names` is pushed.
+pub(crate) fn push_first_match<const N: usize>(
     out: &mut Vec<PathBuf>,
     entries: &[(String, PathBuf)],
     names: [&str; N],

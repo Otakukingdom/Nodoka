@@ -1,3 +1,4 @@
+use crate::audio_extensions::is_audio_file;
 use crate::models::Audiobook;
 use chrono::Utc;
 use std::path::{Path, PathBuf};
@@ -5,13 +6,18 @@ use walkdir::WalkDir;
 
 use super::archive_handling;
 
+/// An audiobook directory discovered during a filesystem scan.
 #[derive(Debug, Clone)]
 pub struct DiscoveredAudiobook {
+    /// Absolute path to the audiobook directory.
     pub path: PathBuf,
+    /// Display name derived from the directory name.
     pub name: String,
+    /// Audio files found within the audiobook directory, in natural sort order.
     pub files: Vec<DiscoveredFile>,
 }
 
+/// A single audio file discovered within an audiobook directory.
 #[derive(Debug, Clone)]
 pub struct DiscoveredFile {
     /// File identifier stored in the database.
@@ -213,17 +219,7 @@ fn fs_fingerprint(path: &Path) -> std::io::Result<String> {
     Ok(format!("fs:v1:{size}:{modified_ns}"))
 }
 
-fn is_audio_file(path: &Path) -> bool {
-    if let Some(ext) = path.extension() {
-        if let Some(ext_str) = ext.to_str() {
-            return matches!(
-                ext_str.to_lowercase().as_str(),
-                "mp3" | "m4a" | "m4b" | "ogg" | "flac" | "opus" | "aac" | "wma" | "wav"
-            );
-        }
-    }
-    false
-}
+
 
 /// Converts discovered audiobooks to domain models
 #[must_use]

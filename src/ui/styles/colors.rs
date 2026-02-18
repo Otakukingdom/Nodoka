@@ -8,50 +8,75 @@
 
 use iced::Color;
 
-// Primary brand colors (vibrant rose palette from design system)
-pub const PRIMARY: Color = Color::from_rgb(0.882, 0.114, 0.282); // #E11D48
-pub const PRIMARY_HOVER: Color = Color::from_rgb(0.753, 0.098, 0.239); // #C0183D (darker on hover)
-pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.639, 0.082, 0.200); // #A31533 (darker on active)
-pub const SECONDARY: Color = Color::from_rgb(0.984, 0.443, 0.522); // #FB7185
-pub const ACCENT: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB (engagement blue for CTA)
+/// Primary brand color – vibrant rose `#E11D48`.
+pub const PRIMARY: Color = Color::from_rgb(0.882, 0.114, 0.282);
+/// Primary brand color on hover – slightly darker rose.
+pub const PRIMARY_HOVER: Color = Color::from_rgb(0.753, 0.098, 0.239);
+/// Primary brand color when pressed/active – darkest rose.
+pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.639, 0.082, 0.200);
+/// Secondary accent – soft rose `#FB7185`.
+pub const SECONDARY: Color = Color::from_rgb(0.984, 0.443, 0.522);
+/// Call-to-action accent – engagement blue `#2563EB`.
+pub const ACCENT: Color = Color::from_rgb(0.149, 0.388, 0.922);
 
-// Semantic colors
-pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133); // #228B22
-pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376); // #F4A460
-pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149); // #DC2626
-pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110); // #B91C1C
-pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106); // #991B1B
-pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922); // Same as accent
+/// Semantic success color – forest green `#228B22`.
+pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133);
+/// Semantic warning color – warm sandy orange `#F4A460`.
+pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376);
+/// Semantic error color – vivid red `#DC2626`.
+pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149);
+/// Error color on hover – darker red `#B91C1C`.
+pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110);
+/// Error color when pressed – darkest red `#991B1B`.
+pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106);
+/// Semantic informational color – blue, same hue as accent.
+pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922);
 
-// Background colors (light mode optimized)
-pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 0.945, 0.949); // #FFF1F2
-pub const BG_SECONDARY: Color = Color::from_rgb(1.0, 1.0, 1.0); // White
-pub const BG_ELEVATED: Color = Color::from_rgb(0.98, 0.98, 0.98); // Slightly darker for elevation
-pub const BG_HOVER: Color = Color::from_rgb(0.97, 0.97, 0.97); // Hover background
+/// Primary page background – very light rose tint `#FFF1F2`.
+pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 0.945, 0.949);
+/// Secondary content background – pure white.
+pub const BG_SECONDARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
+/// Elevated surface background – slight gray lift.
+pub const BG_ELEVATED: Color = Color::from_rgb(0.98, 0.98, 0.98);
+/// Background color on hover.
+pub const BG_HOVER: Color = Color::from_rgb(0.97, 0.97, 0.97);
 
-// Text colors (proper contrast for accessibility - WCAG AA compliant)
-pub const TEXT_PRIMARY: Color = Color::from_rgb(0.45, 0.06, 0.18); // #730F2E (darker for better contrast)
-pub const TEXT_SECONDARY: Color = Color::from_rgb(0.4, 0.4, 0.4); // #666666 (gray)
-pub const TEXT_DISABLED: Color = Color::from_rgb(0.6, 0.6, 0.6); // #999999 (light gray)
-pub const TEXT_ON_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0); // White text on primary color
+/// Primary text – dark rose-gray `#730F2E` for WCAG AA contrast.
+pub const TEXT_PRIMARY: Color = Color::from_rgb(0.45, 0.06, 0.18);
+/// Secondary text – medium gray `#666666`.
+pub const TEXT_SECONDARY: Color = Color::from_rgb(0.4, 0.4, 0.4);
+/// Disabled text – light gray `#999999`.
+pub const TEXT_DISABLED: Color = Color::from_rgb(0.6, 0.6, 0.6);
+/// White text for use on primary-color backgrounds (WCAG AA contrast).
+pub const TEXT_ON_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
 
-// Interactive element colors
+/// Semi-transparent dark overlay applied on hover (5 % opacity).
 pub const HOVER_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.05);
+/// Semi-transparent dark overlay applied when active/pressed (10 % opacity).
 pub const ACTIVE_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
-pub const FOCUS_RING: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB (blue for focus states)
-pub const SELECTION_BG: Color = Color::from_rgb(0.882, 0.114, 0.282); // Primary color for selections
-pub const SELECTION_TEXT: Color = TEXT_ON_PRIMARY; // White text on selection (WCAG AA contrast)
+/// Keyboard-focus ring color – accessible blue `#2563EB`.
+pub const FOCUS_RING: Color = Color::from_rgb(0.149, 0.388, 0.922);
+/// Background used for selected list items.
+pub const SELECTION_BG: Color = Color::from_rgb(0.882, 0.114, 0.282);
+/// Text color on selected list items – white for WCAG AA contrast.
+pub const SELECTION_TEXT: Color = TEXT_ON_PRIMARY;
 
-// Border colors
-pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9); // #E5E5E5
-pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922); // #2563EB
+/// Default border color – light gray `#E5E5E5`.
+pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9);
+/// Border color when an element has keyboard focus.
+pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922);
+/// Border color when an element is in an error state.
 pub const BORDER_ERROR: Color = ERROR;
 
-// Legacy colors for backwards compatibility (deprecated, use design system colors instead)
-pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325); // #FEDB53 (legacy)
+/// Legacy top-bar color – golden yellow `#FEDB53` (superseded by design system colors).
+pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325);
+/// Legacy player background (alias for [`BG_ELEVATED`]).
 pub const PLAYER_BG_COLOR: Color = BG_ELEVATED;
+/// Legacy player text color (alias for [`TEXT_PRIMARY`]).
 pub const PLAYER_TEXT_COLOR: Color = TEXT_PRIMARY;
+/// Legacy audiobook list background (alias for [`BG_PRIMARY`]).
 pub const AUDIOBOOK_LIST_BG: Color = BG_PRIMARY;
+/// Legacy file list background (alias for [`BG_SECONDARY`]).
 pub const FILE_LIST_BG: Color = BG_SECONDARY;
 
 /// Audiobook-optimized color palette (calm cyan + health green)
@@ -74,13 +99,18 @@ pub mod colors_audiobook {
     /// Call-to-action accent - health green (#059669)
     pub const ACCENT: Color = Color::from_rgb(0.020, 0.588, 0.412);
 
-    // Semantic colors (shared with main palette)
-    pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133); // #228B22
-    pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376); // #F4A460
-    pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149); // #DC2626
-    pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110); // #B91C1C
-    pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106); // #991B1B
-    pub const INFO: Color = Color::from_rgb(0.133, 0.827, 0.933); // Soft cyan
+    /// Semantic success color – forest green `#228B22`.
+    pub const SUCCESS: Color = Color::from_rgb(0.133, 0.545, 0.133);
+    /// Semantic warning color – warm sandy orange `#F4A460`.
+    pub const WARNING: Color = Color::from_rgb(0.957, 0.643, 0.376);
+    /// Semantic error color – vivid red `#DC2626`.
+    pub const ERROR: Color = Color::from_rgb(0.863, 0.149, 0.149);
+    /// Error color on hover – darker red `#B91C1C`.
+    pub const ERROR_HOVER: Color = Color::from_rgb(0.725, 0.110, 0.110);
+    /// Error color when pressed – darkest red `#991B1B`.
+    pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106);
+    /// Informational color – soft cyan, same hue as secondary.
+    pub const INFO: Color = Color::from_rgb(0.133, 0.827, 0.933);
 
     // Background colors with cyan tint for reduced eye strain
     /// Primary background - soft cyan tint (#ECFEFF)
@@ -102,8 +132,9 @@ pub mod colors_audiobook {
     /// Text on primary color buttons - white for contrast
     pub const TEXT_ON_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
 
-    // Interactive element colors
+    /// Semi-transparent dark overlay on hover (5 % opacity).
     pub const HOVER_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.05);
+    /// Semi-transparent dark overlay when active/pressed (10 % opacity).
     pub const ACTIVE_OVERLAY: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
     /// Focus ring - health green for accessibility
     pub const FOCUS_RING: Color = Color::from_rgb(0.020, 0.588, 0.412);
@@ -112,8 +143,10 @@ pub mod colors_audiobook {
     /// Selection text - white for WCAG AA contrast
     pub const SELECTION_TEXT: Color = TEXT_ON_PRIMARY;
 
-    // Border colors
+    /// Default border color – light gray `#E5E5E5`.
     pub const BORDER_DEFAULT: Color = Color::from_rgb(0.9, 0.9, 0.9);
+    /// Border color for focused elements.
     pub const BORDER_FOCUS: Color = FOCUS_RING;
+    /// Border color for elements in an error state.
     pub const BORDER_ERROR: Color = ERROR;
 }

@@ -154,6 +154,7 @@ impl Drop for App {
 
 /// Initialization flags passed to the application on startup
 pub struct Flags {
+    /// The open database connection to use for all persistence operations.
     pub db: Database,
 }
 
@@ -405,8 +406,8 @@ mod tests {
     }
 
     #[test]
-    fn test_boot_loads_prefers_reduced_motion() -> std::result::Result<(), Box<dyn std::error::Error>>
-    {
+    fn test_boot_loads_prefers_reduced_motion(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
         use iced::Program as _;
 
         let db = Database::new_in_memory()?;
@@ -478,35 +479,51 @@ mod tests {
     }
 }
 
+/// Converts an `f32` to `i32` by truncating toward zero.
+///
+/// Returns `None` when the value is not finite or is outside `i32` range.
+/// Uses `f64` for exact bounds checking to avoid precision-loss in comparisons
+/// against `i32::MIN` and `i32::MAX`.
 fn f32_to_i32(value: f32) -> Option<i32> {
     if !value.is_finite() {
         return None;
     }
-
     let value_f64 = f64::from(value);
-    if value_f64 < f64::from(i32::MIN) || value_f64 > f64::from(i32::MAX) {
+    // i32 bounds expressed as f64 (exact, since |i32::MIN/MAX| < 2^31 < 2^53).
+    let min_f64 = f64::from(i32::MIN);
+    let max_f64 = f64::from(i32::MAX);
+    if value_f64 < min_f64 || value_f64 > max_f64 {
         return None;
     }
-
-    // Preserve the previous semantics of truncation toward zero.
-    let truncated = value.trunc();
-    let text = format!("{truncated:.0}");
-    text.parse::<i32>().ok()
+    // Truncate toward zero: split into sign and magnitude, then extract integer.
+    let truncated = value_f64.trunc();
+    if truncated < 0.0 {
+        // Negative: negate, extract u64, negate back as i64, then try i32.
+        let magnitude = crate::conversions::f64_to_u64_exact(-truncated)?;
+        let as_i64 = i64::try_from(magnitude).ok()?.checked_neg()?;
+        i32::try_from(as_i64).ok()
+    } else {
+        let magnitude = crate::conversions::f64_to_u64_exact(truncated)?;
+        i32::try_from(magnitude).ok()
+    }
 }
 
+/// Converts an `f32` to `u32` by truncating toward zero.
+///
+/// Returns `None` when the value is not finite, negative, or exceeds `u32::MAX`.
+/// Uses `f64` for exact bounds checking to avoid precision-loss in comparisons
+/// against `u32::MAX`.
 fn f32_to_u32(value: f32) -> Option<u32> {
     if !value.is_finite() {
         return None;
     }
-
     let value_f64 = f64::from(value);
+    // u32::MAX = 4_294_967_295 < 2^53, so the f64 comparison is exact.
     if value_f64 < 0.0 || value_f64 > f64::from(u32::MAX) {
         return None;
     }
-
-    let truncated = value.trunc();
-    let text = format!("{truncated:.0}");
-    text.parse::<u32>().ok()
+    let magnitude = crate::conversions::f64_to_u64_exact(value_f64.trunc())?;
+    u32::try_from(magnitude).ok()
 }
 
 impl App {
