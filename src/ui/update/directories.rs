@@ -390,7 +390,7 @@ fn finalize_directory_scan(state: &mut State, db: &Database, directory: &str) {
 
 /// Calculates and updates the total duration for an audiobook
 ///
-/// Sums all file durations and stores in the audiobook's total_duration_ms field.
+/// Sums all file durations and stores in the audiobook's `total_duration_ms` field.
 /// This enables accurate remaining time calculations in the UI.
 fn update_audiobook_total_duration(db: &Database, audiobook_id: i64) {
     // Get all files for this audiobook
@@ -442,6 +442,7 @@ fn start_directory_scan(path: String) -> Task<Message> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)] // Test assertions use unwrap for clarity
 mod tests {
     use super::*;
 

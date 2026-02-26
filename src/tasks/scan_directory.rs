@@ -275,6 +275,32 @@ fn extract_author_from_path(path: &Path) -> Option<String> {
     None
 }
 
+/// Converts discovered audiobooks to domain models
+#[must_use]
+pub fn convert_to_audiobooks(
+    discovered: Vec<DiscoveredAudiobook>,
+    directory: &str,
+) -> Vec<Audiobook> {
+    discovered
+        .into_iter()
+        .enumerate()
+        .map(|(idx, disc)| Audiobook {
+            id: None,
+            directory: directory.to_string(),
+            name: disc.name,
+            author: disc.author,
+            full_path: disc.path.display().to_string(),
+            completeness: 0,
+            // Safe cast: we cap at i32::MAX for extremely large collections
+            default_order: i32::try_from(idx).unwrap_or(i32::MAX),
+            selected_file: None,
+            total_duration_ms: None,
+            created_at: Utc::now(),
+            last_listened: None,
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -338,30 +364,4 @@ mod tests {
         // Should return None because author is too long (>50 chars)
         assert_eq!(extract_author_from_path(path), None);
     }
-}
-
-/// Converts discovered audiobooks to domain models
-#[must_use]
-pub fn convert_to_audiobooks(
-    discovered: Vec<DiscoveredAudiobook>,
-    directory: &str,
-) -> Vec<Audiobook> {
-    discovered
-        .into_iter()
-        .enumerate()
-        .map(|(idx, disc)| Audiobook {
-            id: None,
-            directory: directory.to_string(),
-            name: disc.name,
-            author: disc.author,
-            full_path: disc.path.display().to_string(),
-            completeness: 0,
-            // Safe cast: we cap at i32::MAX for extremely large collections
-            default_order: i32::try_from(idx).unwrap_or(i32::MAX),
-            selected_file: None,
-            total_duration_ms: None,
-            created_at: Utc::now(),
-            last_listened: None,
-        })
-        .collect()
 }

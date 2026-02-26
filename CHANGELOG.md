@@ -23,7 +23,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Edge Case #0035**: Bookmark editor accepts extremely long labels and notes (2000+ characters) without UI breaking (src/ui/components/bookmarks.rs)
 - **Bug #0036-#0060**: Additional 25 edge case and UX regression tests for boundary values, rapid operations, and state transitions
 
-### Added
+### Added - UI Usability & Design Overhaul
+
+#### Navigation & Discovery
+- **Search bar** at top of audiobook list filters by title and author (case-insensitive)
+- **Sort options**: Recently Played (default), Title, Progress, Date Added with visual indicators
+- **Filter chips**: All, In Progress, Complete, Not Started for completion status filtering
+- **Continue Listening card** prominently displays last played audiobook with large play button for quick resume
+- **Empty state messages** with actionable buttons (Open Settings, Clear Filters) when no results found
+- **Clear Filters button** resets all search, sort, and filter settings to defaults
+- **Keyboard shortcut Ctrl+F / Cmd+F** to focus search bar for fast navigation
+
+#### Playback Controls
+- **Enhanced Now Playing section** with cover art (60x60px), audiobook title, and current chapter name
+- **Progress summary** showing "Chapter X of Y" with remaining chapters count
+- **Remaining time** clearly displayed with "-H:MM:SS" format and "Remaining:" label
+- **Consolidated speed controls** with 6 preset buttons (0.5x - 2.0x) for space efficiency
+- **Compact volume slider** (100px width) with color-coded percentage indicator
+- **Compact sleep timer** with single-row preset buttons (15m, 30m, 45m, 60m, EOC)
+
+#### Layout & Space Usage
+- **Adjustable panel ratio** (40/60 default) with keyboard shortcuts Ctrl+[ / Cmd+[ and Ctrl+] / Cmd+]
+- **Panel ratio persistence** across sessions via database preferences
+- **Focus mode** (Ctrl+L / Cmd+L) hides library panel during playback for distraction-free listening
+- **Focus mode persistence** across sessions with automatic library reveal when paused
+- **Responsive modals** that scale with window size (no fixed dimensions)
+
+#### Visual Design
+- **Dark mode support** with theme toggle in Settings (Appearance section)
+- **Theme persistence** across sessions via database preferences
+- **Keyboard shortcut Ctrl+T / Cmd+T** for quick theme switching
+- **Larger cover art thumbnails** (120x120px in Continue Listening, 80x80px in audiobook list)
+- **Improved visual hierarchy** with proper spacing and typography scales
+- **Enhanced focus indicators** for keyboard navigation (WCAG 2.1 AA 2.4.7 compliance)
+
+#### Progress Tracking
+- **Last Listened timestamp** shown for each audiobook with relative time format ("2 hours ago")
+- **Remaining time display** instead of just percentage ("3h 45m remaining")
+- **Progress bar visualization** for each audiobook (4px thin bar) showing completion percentage
+- **Progress summary in player** showing chapter position and remaining chapters
+- **File list markers** clearly distinguish current file vs completed vs upcoming
+
+#### Settings & Configuration
+- **Settings expanded** with three sections: Playback, Appearance, Keyboard Shortcuts
+- **Appearance section** with Light/Dark theme switcher buttons
+- **Playback section** showing current speed and volume with visual indicators
+- **Comprehensive keyboard shortcuts reference** in Settings displaying all available shortcuts
+- **Responsive settings modal** that adapts to window size
+- **Preference persistence** for all user settings (theme, panel ratio, focus mode)
+
+#### Quick Resume Feature
+- **PlayLastListened command** (Ctrl+R / Cmd+R) instantly plays most recently listened audiobook
+- **Continue Listening card** with prominent Play button for one-click resume
+- **Intelligent timestamp tracking** selects most recent audiobook even with close timestamps
+- **Graceful handling** of empty library or no-played audiobooks scenarios
+- **10 acceptance tests** validating quick resume functionality (tests/acceptance_quick_resume.rs)
+
+### Added - Testing & Quality
 - **69 regression tests** for UI bugs and edge cases in `tests/ui_bug_regression_tests.rs`:
   - 9 new tests for Feb 2026 bug fixes (#001-#005 variants):
   - 35 tests for critical bugs found during systematic review (bugs #0001-#0035)
@@ -74,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All documentation now in rustdoc (compliance with AGENTS.md)
 - README.md reduced to minimal entry point (~97 lines)
 - Function-level `#[allow]` attributes now require inline justification
-- Test coverage increased to **784 total tests** (257 unit + 510 integration + 69 regression + 10+ performance + 15+ accessibility)
+- Test coverage increased to **794+ total tests** (257 unit + 510 integration + 69 regression + 10 quick resume + 10+ performance + 15+ accessibility)
 - All tests passing with zero clippy warnings
 - Test-driven development compliance achieved
 - Systematic bug analysis completed across 3 iterations with ui-ux-pro-max UX validation
