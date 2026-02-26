@@ -24,6 +24,11 @@ pub struct Audiobook {
     pub selected_file: Option<String>,
     /// Total duration of all files in milliseconds.
     pub total_duration_ms: Option<i64>,
+    /// Remaining duration in milliseconds computed from per-file progress when available.
+    ///
+    /// This value is `None` when the database cannot compute it reliably (for example,
+    /// when any file is missing a duration).
+    pub remaining_duration_ms: Option<i64>,
     /// When this audiobook entry was created.
     pub created_at: DateTime<Utc>,
     /// Last time this audiobook was played (for "recently played" sorting)
@@ -50,6 +55,7 @@ impl Audiobook {
             default_order,
             selected_file: None,
             total_duration_ms: None,
+            remaining_duration_ms: None,
             created_at: Utc::now(),
             last_listened: None,
         }

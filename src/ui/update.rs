@@ -137,13 +137,60 @@ pub fn update(
         | Message::ToggleFocusMode
         | Message::ThemeChanged(_)) => handle_layout_message(state, &message, db),
 
+        message @ (Message::PanelDividerDragStart
+        | Message::PanelDividerCursorMoved(_)
+        | Message::PanelDividerDragEnd) => handle_panel_divider_message(state, &message, db),
+
         Message::PlayLastListened => handle_play_last_listened(state, player, db),
 
-        Message::FocusSearch => {
-            // TODO: Implement search bar focus when text input focus API is available
+        message @ (Message::FocusSearch
+        | Message::ToggleTheme
+        | Message::ToggleVolumeExpanded
+        | Message::DecreasePanelRatio
+        | Message::IncreasePanelRatio) => handle_shortcut_message(state, &message, db),
+    }
+}
+
+fn handle_panel_divider_message(state: &mut State, message: &Message, db: &Database) -> Task<Message> {
+    match message {
+        Message::PanelDividerDragStart => {
+            state.panel_divider_dragging = true;
+            state.panel_divider_last_cursor_x = None;
             Task::none()
         }
+        Message::PanelDividerCursorMoved(x) => {
+            if !state.panel_divider_dragging {
+                return Task::none();
+            }
 
+            let Some(last_x) = state.panel_divider_last_cursor_x else {
+                state.panel_divider_last_cursor_x = Some(*x);
+                return Task::none();
+            };
+
+            state.panel_divider_last_cursor_x = Some(*x);
+
+            let delta_x = *x - last_x;
+            let width_px = state.window_width.max(1);
+            let width_u16 = u16::try_from(width_px.min(u32::from(u16::MAX))).unwrap_or(u16::MAX);
+            let width = f32::from(width_u16.max(1));
+            let new_ratio = (state.panel_ratio + (delta_x / width)).clamp(0.2, 0.8);
+            handle_layout_message(state, &Message::PanelRatioChanged(new_ratio), db)
+        }
+        Message::PanelDividerDragEnd => {
+            state.panel_divider_dragging = false;
+            state.panel_divider_last_cursor_x = None;
+            Task::none()
+        }
+        _ => Task::none(),
+    }
+}
+
+fn handle_shortcut_message(state: &mut State, message: &Message, db: &Database) -> Task<Message> {
+    match message {
+        Message::FocusSearch => {
+            iced::widget::operation::focus(crate::ui::components::library_toolbar::search_input_id())
+        }
         Message::ToggleTheme => {
             use crate::ui::state::ThemeMode;
             let new_theme = match state.theme {
@@ -152,16 +199,19 @@ pub fn update(
             };
             handle_layout_message(state, &Message::ThemeChanged(new_theme), db)
         }
-
+        Message::ToggleVolumeExpanded => {
+            state.volume_expanded = !state.volume_expanded;
+            Task::none()
+        }
         Message::DecreasePanelRatio => {
             let new_ratio = (state.panel_ratio - 0.1).clamp(0.2, 0.8);
             handle_layout_message(state, &Message::PanelRatioChanged(new_ratio), db)
         }
-
         Message::IncreasePanelRatio => {
             let new_ratio = (state.panel_ratio + 0.1).clamp(0.2, 0.8);
             handle_layout_message(state, &Message::PanelRatioChanged(new_ratio), db)
         }
+        _ => Task::none(),
     }
 }
 
@@ -397,8 +447,8 @@ fn handle_layout_message(state: &mut State, message: &Message, db: &Database) ->
             state.theme = *theme;
             // Persist to database
             let theme_str = match theme {
-                crate::ui::state::ThemeMode::Light => "light",
-                crate::ui::state::ThemeMode::Dark => "dark",
+                crate::ui::state::ThemeMode::Light => "Light",
+                crate::ui::state::ThemeMode::Dark => "Dark",
             };
             if let Err(e) = crate::settings::Settings::new(db.connection()).set_theme(theme_str) {
                 tracing::error!("Failed to save theme: {e}");

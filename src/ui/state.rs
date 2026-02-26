@@ -599,6 +599,10 @@ pub struct State {
     pub filter_status: AudiobookFilterStatus,
     /// Panel ratio for library (left) vs detail (right) panels (0.0 to 1.0)
     pub panel_ratio: f32,
+    /// Whether the panel divider is currently being dragged.
+    pub panel_divider_dragging: bool,
+    /// Last known cursor X position while dragging the panel divider.
+    pub panel_divider_last_cursor_x: Option<f32>,
     /// Whether focus mode is active (hides library panel during playback)
     pub focus_mode: bool,
     /// Current theme (light or dark mode)
@@ -621,6 +625,8 @@ pub struct State {
     pub total_duration: f64,
     /// Current volume level in the range [0, 200] (100 = unity gain).
     pub volume: i32,
+    /// Whether the volume slider is expanded in the player controls.
+    pub volume_expanded: bool,
     /// Current playback speed (1.0 = normal speed).
     pub speed: f32,
 
@@ -694,6 +700,8 @@ impl Default for State {
             sort_order: AudiobookSortOrder::default(),
             filter_status: AudiobookFilterStatus::default(),
             panel_ratio: 0.4, // 40% left panel, 60% right panel (2:3 ratio)
+            panel_divider_dragging: false,
+            panel_divider_last_cursor_x: None,
             focus_mode: false,
             theme: ThemeMode::default(),
             window_width: 1280, // Default window width
@@ -704,6 +712,7 @@ impl Default for State {
             current_time: 0.0,
             total_duration: 0.0,
             volume: 100,
+            volume_expanded: false,
             speed: 1.0,
             sleep_timer: None,
             sleep_timer_base_volume: None,

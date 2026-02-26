@@ -6,6 +6,12 @@ use crate::ui::Message;
 use iced::widget::{button, column, row, text, text_input, Space};
 use iced::{Border, Element, Length};
 
+/// Stable widget ID for the library search input.
+#[must_use]
+pub const fn search_input_id() -> iced::widget::Id {
+    iced::widget::Id::new("library_search")
+}
+
 /// Renders the library toolbar with search bar and filter chips
 #[must_use]
 pub fn view(
@@ -50,6 +56,7 @@ pub fn view(
 
 fn build_search_bar(search_query: &str) -> Element<'_, Message> {
     text_input("Search audiobooks...", search_query)
+        .id(search_input_id())
         .on_input(Message::SearchQueryChanged)
         .padding(spacing::MD)
         .width(Length::Fill)

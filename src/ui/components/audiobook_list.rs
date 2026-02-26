@@ -283,8 +283,12 @@ fn build_content_row<'a>(
     let completeness_u8 = u8::try_from(ab.completeness.clamp(0, 100)).unwrap_or(0);
     let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
 
-    // Calculate remaining time if total duration is available
-    let remaining_text = format_remaining_time(ab.total_duration_ms, ab.completeness);
+    // Calculate remaining time, preferring per-file progress when available.
+    let remaining_text = format_remaining_time(
+        ab.remaining_duration_ms,
+        ab.total_duration_ms,
+        ab.completeness,
+    );
 
     // Format last listened timestamp as relative time
     let last_listened_text = format_relative_time(ab.last_listened);
@@ -373,17 +377,25 @@ fn build_content_row<'a>(
 }
 
 /// Formats remaining time for display
-fn format_remaining_time(total_duration_ms: Option<i64>, completeness: i32) -> String {
-    let Some(total) = total_duration_ms else {
+fn format_remaining_time(
+    remaining_duration_ms: Option<i64>,
+    total_duration_ms: Option<i64>,
+    completeness: i32,
+) -> String {
+    let remaining = remaining_duration_ms.filter(|ms| *ms > 0).or_else(|| {
+        total_duration_ms.and_then(|total| {
+            if total <= 0 {
+                return None;
+            }
+            let remaining = total * (100 - i64::from(completeness.clamp(0, 100))) / 100;
+            (remaining > 0).then_some(remaining)
+        })
+    });
+
+    let Some(remaining) = remaining else {
         return String::new();
     };
-    if total <= 0 {
-        return String::new();
-    }
-    let remaining = total * (100 - i64::from(completeness.clamp(0, 100))) / 100;
-    if remaining <= 0 {
-        return String::new();
-    }
+
     let hours = remaining / (1000 * 60 * 60);
     let minutes = (remaining / (1000 * 60)) % 60;
     if hours > 0 {
@@ -582,6 +594,7 @@ mod tests {
             default_order: 0,
             selected_file: None,
             total_duration_ms: None,
+            remaining_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         }
@@ -810,6 +823,7 @@ mod tests {
             default_order: 0,
             selected_file: None,
             total_duration_ms: None,
+            remaining_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         };

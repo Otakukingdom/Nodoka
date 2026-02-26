@@ -71,7 +71,7 @@ fn build_file_item(
 
     let is_missing = !file.file_exists;
     let duration = format_duration(file.length_of_file);
-    let time_remaining = format_time_remaining(file);
+    let time_secondary = format_time_secondary(file, selected);
     let completeness = file.completeness;
     let has_progress = file.seek_position.is_some();
     let is_complete = completeness >= 100;
@@ -100,7 +100,7 @@ fn build_file_item(
     let content_column = build_content_column(
         file.name.clone(),
         duration,
-        time_remaining,
+        time_secondary,
         continue_marker,
         file_number_badge,
         progress_element,
@@ -398,24 +398,34 @@ fn format_duration(duration_ms: Option<i64>) -> String {
     }
 }
 
-/// Calculates time remaining for a file based on completeness and total duration
-///
-/// Returns a human-readable string like "3h 45m remaining" or "Complete"
-fn format_time_remaining(file: &AudiobookFile) -> String {
+fn format_time_secondary(file: &AudiobookFile, is_selected: bool) -> String {
     if file.completeness >= 100 {
         return String::from("Complete");
+    }
+
+    if !is_selected {
+        return String::new();
     }
 
     let Some(total_ms) = file.length_of_file else {
         return String::new();
     };
 
-    if total_ms == 0 {
+    if total_ms <= 0 {
         return String::new();
     }
 
-    let remaining_ms = total_ms * i64::from(100 - file.completeness) / 100;
-    format_duration_remaining(remaining_ms)
+    let Some(seek_ms) = file.seek_position else {
+        return String::new();
+    };
+
+    if seek_ms <= 0 {
+        return String::new();
+    }
+
+    let pos = crate::ui::styles::format_time_ms(seek_ms);
+    let total = crate::ui::styles::format_time_ms(total_ms);
+    format!("{pos} / {total}")
 }
 
 /// Formats the continue position for display
@@ -443,25 +453,6 @@ fn format_continue_position(seek_position: Option<&i64>) -> String {
         )
     } else {
         format!("Continue from {}:{:02}", minutes, seconds % 60)
-    }
-}
-
-/// Formats a duration in milliseconds as a human-readable "remaining" string
-///
-/// Examples:
-/// - `3_600_000ms` (1 hour) -> "1h remaining"
-/// - `225_000ms` (3h 45m) -> "3h 45m remaining"
-/// - `45_000ms` (45 seconds) -> "0m remaining"
-fn format_duration_remaining(ms: i64) -> String {
-    let hours = ms / 3_600_000;
-    let minutes = (ms % 3_600_000) / 60_000;
-
-    if hours > 0 {
-        format!("{hours}h {minutes}m remaining")
-    } else if minutes > 0 {
-        format!("{minutes}m remaining")
-    } else {
-        String::from("0m remaining")
     }
 }
 

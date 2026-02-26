@@ -259,10 +259,26 @@ impl iced::Program for App {
         if let Ok(prefs) = crate::db::queries::get_all_preferences(flags.connection()) {
             // Load theme preference
             if let Some(theme_str) = prefs.get("theme_mode") {
-                match theme_str.as_str() {
-                    "Dark" => state.theme = crate::ui::state::ThemeMode::Dark,
-                    "Light" => state.theme = crate::ui::state::ThemeMode::Light,
-                    _ => tracing::warn!("Unknown theme mode: {theme_str}"),
+                let canonical = match theme_str.trim().to_ascii_lowercase().as_str() {
+                    "dark" => Some((crate::ui::state::ThemeMode::Dark, "Dark")),
+                    "light" => Some((crate::ui::state::ThemeMode::Light, "Light")),
+                    _ => None,
+                };
+
+                if let Some((mode, canonical_str)) = canonical {
+                    state.theme = mode;
+
+                    if theme_str != canonical_str {
+                        if let Err(e) = crate::db::queries::set_preference(
+                            flags.connection(),
+                            "theme_mode",
+                            canonical_str,
+                        ) {
+                            tracing::warn!("Failed to normalize theme preference: {e}");
+                        }
+                    }
+                } else {
+                    tracing::warn!("Unknown theme mode: {theme_str}");
                 }
             }
 
@@ -366,6 +382,12 @@ impl iced::Program for App {
                     let height = f32_to_u32(size.height)?;
                     Some(Message::WindowResized(width, height))
                 }
+                iced::Event::Mouse(iced::mouse::Event::CursorMoved { position }) => {
+                    Some(Message::PanelDividerCursorMoved(position.x))
+                }
+                iced::Event::Mouse(iced::mouse::Event::ButtonReleased(_)) => {
+                    Some(Message::PanelDividerDragEnd)
+                }
                 _ => None,
             },
         ));
@@ -373,8 +395,8 @@ impl iced::Program for App {
         Subscription::batch(subs)
     }
 
-    fn theme(&self, _state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
-        Some(crate::ui::nodoka_theme())
+    fn theme(&self, state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
+        Some(crate::ui::styles::nodoka_theme_for_mode(state.theme))
     }
 }
 

@@ -8,9 +8,95 @@ use crate::ui::styles::{
 };
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{
-    button, column, container, image, mouse_area, row, slider, stack, text, text_input, Space,
+    button, column, container, image, mouse_area, pick_list, row, slider, stack, text, text_input,
+    Space,
 };
 use iced::{Border, Color, Element, Length, Point};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SpeedPreset {
+    X075,
+    X10,
+    X125,
+    X15,
+    X20,
+}
+
+impl SpeedPreset {
+    const ALL: [Self; 5] = [Self::X075, Self::X10, Self::X125, Self::X15, Self::X20];
+
+    const fn as_f32(self) -> f32 {
+        match self {
+            Self::X075 => 0.75,
+            Self::X10 => 1.0,
+            Self::X125 => 1.25,
+            Self::X15 => 1.5,
+            Self::X20 => 2.0,
+        }
+    }
+
+    fn from_speed(speed: f32) -> Option<Self> {
+        Self::ALL
+            .iter()
+            .copied()
+            .find(|preset| (speed - preset.as_f32()).abs() < 0.01)
+    }
+}
+
+impl std::fmt::Display for SpeedPreset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = self.as_f32();
+        let fixed = format!("{value:.2}");
+        let trimmed = fixed.trim_end_matches('0').trim_end_matches('.');
+        write!(f, "{trimmed}x")
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SleepTimerPreset {
+    Off,
+    Minutes15,
+    Minutes30,
+    Minutes45,
+    Minutes60,
+    EndOfChapter,
+}
+
+impl SleepTimerPreset {
+    const ALL: [Self; 6] = [
+        Self::Off,
+        Self::Minutes15,
+        Self::Minutes30,
+        Self::Minutes45,
+        Self::Minutes60,
+        Self::EndOfChapter,
+    ];
+
+    const fn to_message(self) -> Message {
+        match self {
+            Self::Off => Message::SleepTimerCancel,
+            Self::Minutes15 => Message::SleepTimerSetDurationSeconds(15 * 60),
+            Self::Minutes30 => Message::SleepTimerSetDurationSeconds(30 * 60),
+            Self::Minutes45 => Message::SleepTimerSetDurationSeconds(45 * 60),
+            Self::Minutes60 => Message::SleepTimerSetDurationSeconds(60 * 60),
+            Self::EndOfChapter => Message::SleepTimerSetEndOfChapter,
+        }
+    }
+}
+
+impl std::fmt::Display for SleepTimerPreset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let label = match self {
+            Self::Off => "Off",
+            Self::Minutes15 => "15 min",
+            Self::Minutes30 => "30 min",
+            Self::Minutes45 => "45 min",
+            Self::Minutes60 => "60 min",
+            Self::EndOfChapter => "End of chapter",
+        };
+        write!(f, "{label}")
+    }
+}
 
 /// Renders the player controls component with improved UX
 ///
@@ -287,73 +373,25 @@ fn ripple_stack(
 }
 
 fn speed_controls(state: &State, _speed_step: i32, is_focused: bool) -> Element<'_, Message> {
-    // Consolidated speed controls: dropdown-style preset buttons without slider
-    // Reduces vertical space consumption by ~40px while maintaining all functionality
+    let selected = SpeedPreset::from_speed(state.speed);
+    let picker = pick_list(SpeedPreset::ALL, selected, |preset| {
+        Message::SpeedChanged(preset.as_f32())
+    })
+    .placeholder("Speed")
+    .width(Length::Fixed(140.0));
 
     let content = container(
-        column![
-            row![
-                text("Speed:").size(typography::SIZE_SM),
-                text(format_speed_label(state.speed))
-                    .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::PRIMARY),
-                    }),
-            ]
-            .spacing(spacing::SM),
-            row![
-                button(text("0.5x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(0.5))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 0.5).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-                button(text("0.75x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(0.75))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 0.75).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-                button(text("1.0x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(1.0))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 1.0).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-                button(text("1.25x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(1.25))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 1.25).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-                button(text("1.5x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(1.5))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 1.5).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-                button(text("2.0x").size(typography::SIZE_XS))
-                    .on_press(Message::SpeedChanged(2.0))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(if (state.speed - 2.0).abs() < 0.01 {
-                        button_styles::primary
-                    } else {
-                        button_styles::secondary
-                    }),
-            ]
-            .spacing(spacing::XS)
+        row![
+            text("Speed:").size(typography::SIZE_SM),
+            picker,
+            text(format_speed_label(state.speed))
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::PRIMARY),
+                }),
         ]
-        .spacing(spacing::XS),
+        .spacing(spacing::SM)
+        .align_y(iced::Alignment::Center),
     )
     .style(focus_indicator(is_focused));
 
@@ -366,25 +404,41 @@ fn speed_controls(state: &State, _speed_step: i32, is_focused: bool) -> Element<
 }
 
 fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
-    // Compact volume control with reduced slider width and tighter spacing
-    // Volume level as 0.0 to 1.0 (state.volume is 0-200)
     let volume_level = volume_to_level(state.volume);
     let volume_color = volume_level_color(volume_level);
 
-    let content = container(
+    let toggle = button(text("Vol").size(typography::SIZE_SM))
+        .on_press(Message::ToggleVolumeExpanded)
+        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+        .style(button_styles::secondary);
+
+    let slider_row: Element<'_, Message> = if state.volume_expanded {
         row![
-            text("Vol:").size(typography::SIZE_SM), // Abbreviated label to save space
             slider(0..=200, state.volume, Message::VolumeChanged)
-                .width(Length::Fixed(100.0)) // Reduced from 150px to 100px
+                .width(Length::Fixed(120.0))
                 .height(20.0),
-            // Volume percentage with color-coded indicator
             text(format!("{}%", state.volume))
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(volume_color),
                 }),
         ]
-        .spacing(spacing::XS), // Reduced spacing from SM to XS
+        .spacing(spacing::XS)
+        .align_y(iced::Alignment::Center)
+        .into()
+    } else {
+        text(format!("{}%", state.volume))
+            .size(typography::SIZE_SM)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(volume_color),
+            })
+            .into()
+    };
+
+    let content = container(
+        row![toggle, slider_row]
+            .spacing(spacing::SM)
+            .align_y(iced::Alignment::Center),
     )
     .style(focus_indicator(is_focused));
 
@@ -435,40 +489,28 @@ fn format_speed_label(speed: f32) -> String {
 fn sleep_timer_controls(state: &State) -> Element<'_, Message> {
     match state.sleep_timer.as_ref().map(|t| t.mode) {
         None => {
-            // Consolidated single-row layout for inactive state
+            let picker = pick_list(SleepTimerPreset::ALL, None::<SleepTimerPreset>, |preset| {
+                preset.to_message()
+            })
+            .placeholder("Sleep timer")
+            .width(Length::Fixed(180.0));
+
             let main_row = row![
                 text("Sleep Timer:").size(typography::SIZE_SM),
-                button(text("15m").size(typography::SIZE_XS))
-                    .on_press(Message::SleepTimerSetDurationSeconds(15 * 60))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(button_styles::secondary),
-                button(text("30m").size(typography::SIZE_XS))
-                    .on_press(Message::SleepTimerSetDurationSeconds(30 * 60))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(button_styles::secondary),
-                button(text("45m").size(typography::SIZE_XS))
-                    .on_press(Message::SleepTimerSetDurationSeconds(45 * 60))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(button_styles::secondary),
-                button(text("60m").size(typography::SIZE_XS))
-                    .on_press(Message::SleepTimerSetDurationSeconds(60 * 60))
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(button_styles::secondary),
-                button(text("EOC").size(typography::SIZE_XS)) // "End of Chapter" abbreviated as "EOC"
-                    .on_press(Message::SleepTimerSetEndOfChapter)
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-                    .style(button_styles::secondary),
+                picker,
+                Space::new().width(Length::Fill),
                 text_input("Custom min", &state.sleep_timer_custom_minutes)
                     .on_input(Message::SleepTimerCustomMinutesChanged)
                     .on_submit(Message::SleepTimerCustomSubmit)
-                    .width(Length::Fixed(80.0))
+                    .width(Length::Fixed(90.0))
                     .size(typography::SIZE_SM),
-                button(text("Set").size(typography::SIZE_XS))
+                button(text("Set").size(typography::SIZE_SM))
                     .on_press(Message::SleepTimerCustomSubmit)
-                    .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+                    .padding(spacing::SM)
                     .style(button_styles::primary),
             ]
-            .spacing(spacing::XS);
+            .spacing(spacing::SM)
+            .align_y(iced::Alignment::Center);
 
             // Show error message inline if present
             if let Some(err) = state.sleep_timer_custom_error.as_deref() {

@@ -91,6 +91,12 @@ pub enum Message {
     // Layout & Panels
     /// Adjust the panel ratio (0.0 = all right, 1.0 = all left)
     PanelRatioChanged(f32),
+    /// Begin dragging the panel divider.
+    PanelDividerDragStart,
+    /// Pointer moved while dragging the panel divider (cursor x in window coordinates).
+    PanelDividerCursorMoved(f32),
+    /// End dragging the panel divider.
+    PanelDividerDragEnd,
     /// Toggle focus mode (hide library panel during playback)
     ToggleFocusMode,
 
@@ -107,6 +113,8 @@ pub enum Message {
     FocusSearch,
     /// Toggle between light and dark theme (Ctrl+T / Cmd+T)
     ToggleTheme,
+    /// Toggle volume slider expansion in the player controls.
+    ToggleVolumeExpanded,
     /// Decrease panel ratio (Ctrl+[ / Cmd+[)
     DecreasePanelRatio,
     /// Increase panel ratio (Ctrl+] / Cmd+])

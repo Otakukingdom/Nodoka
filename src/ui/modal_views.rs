@@ -45,6 +45,11 @@ pub(super) fn keyboard_help_view(
     #[cfg(not(target_os = "macos"))]
     let bookmark_shortcut = "Ctrl+B";
 
+    #[cfg(target_os = "macos")]
+    let command = "Cmd";
+    #[cfg(not(target_os = "macos"))]
+    let command = "Ctrl";
+
     let shortcuts = column![
         text("Keyboard Shortcuts")
             .size(typography::SIZE_XXL)
@@ -55,23 +60,30 @@ pub(super) fn keyboard_help_view(
         shortcut_group(
             "Playback",
             vec![
-                ("Space", "Play / Pause"),
-                ("← →", "Seek backward / forward 5s")
+                ("Space".to_string(), "Play / Pause".to_string()),
+                ("← →".to_string(), "Seek backward / forward 5s".to_string()),
+                ("↑ ↓".to_string(), "Previous / Next file".to_string()),
             ],
         ),
         shortcut_group(
             "Navigation",
             vec![
-                ("↑ ↓", "Previous / Next file"),
-                ("Tab", "Cycle through UI elements")
+                ("Tab".to_string(), "Cycle focus forward".to_string()),
+                ("Shift+Tab".to_string(), "Cycle focus backward".to_string()),
+                (format!("{command}+["), "Decrease panel ratio".to_string()),
+                (format!("{command}+]"), "Increase panel ratio".to_string()),
             ],
         ),
         shortcut_group(
             "Library",
             vec![
-                (bookmark_shortcut, "Create bookmark"),
-                ("Escape", "Close modal"),
-                ("F1", "Show this help"),
+                (bookmark_shortcut.to_string(), "Create bookmark".to_string()),
+                (format!("{command}+F"), "Focus search".to_string()),
+                (format!("{command}+R"), "Quick resume".to_string()),
+                (format!("{command}+T"), "Toggle theme".to_string()),
+                (format!("{command}+L"), "Toggle focus mode".to_string()),
+                ("Escape".to_string(), "Close modal".to_string()),
+                ("F1".to_string(), "Show this help".to_string()),
             ],
         ),
         container(text("")).height(Length::Fixed(spacing::LG)),
@@ -96,7 +108,7 @@ pub(super) fn keyboard_help_view(
 /// Renders a grouped section of keyboard shortcuts with styled keys.
 fn shortcut_group(
     title: &'static str,
-    shortcuts: Vec<(&'static str, &'static str)>,
+    shortcuts: Vec<(String, String)>,
 ) -> Element<'static, Message> {
     let mut group = column![text(title)
         .size(typography::SIZE_LG)

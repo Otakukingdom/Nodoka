@@ -80,7 +80,7 @@ fn row_rfc3339_utc_optional(
 /// Maps a rusqlite [`rusqlite::Row`] to an [`Audiobook`].
 ///
 /// Column order must match the
-/// `SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened`
+/// `SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened, remaining_duration_ms`
 /// projection used in all audiobook queries.
 fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
     let created_at = row_rfc3339_utc(row, 9, "audiobooks.created_at")?;
@@ -95,6 +95,7 @@ fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
         default_order: row.get(6)?,
         selected_file: row.get(7)?,
         total_duration_ms: row.get(8)?,
+        remaining_duration_ms: row.get(11)?,
         created_at,
         last_listened,
     })
@@ -176,7 +177,24 @@ fn validate_no_nul(field: &'static str, value: &str) -> Result<()> {
 /// Returns an error if the database query fails
 pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened,
+                CASE
+                    WHEN EXISTS(
+                        SELECT 1 FROM audiobook_file af_missing
+                        WHERE af_missing.audiobook_id = audiobooks.id
+                          AND af_missing.length_of_file IS NULL
+                    ) THEN NULL
+                    ELSE (
+                        SELECT SUM(
+                            MAX(
+                                CAST(af.length_of_file AS INTEGER) - CAST(COALESCE(af.seek_position, '0') AS INTEGER),
+                                0
+                            )
+                        )
+                        FROM audiobook_file af
+                        WHERE af.audiobook_id = audiobooks.id
+                    )
+                END AS remaining_duration_ms
          FROM audiobooks WHERE directory = ?1 ORDER BY default_order"
     )?;
 
@@ -193,7 +211,24 @@ pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result
 /// Returns an error if the database query fails
 pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened,
+                CASE
+                    WHEN EXISTS(
+                        SELECT 1 FROM audiobook_file af_missing
+                        WHERE af_missing.audiobook_id = audiobooks.id
+                          AND af_missing.length_of_file IS NULL
+                    ) THEN NULL
+                    ELSE (
+                        SELECT SUM(
+                            MAX(
+                                CAST(af.length_of_file AS INTEGER) - CAST(COALESCE(af.seek_position, '0') AS INTEGER),
+                                0
+                            )
+                        )
+                        FROM audiobook_file af
+                        WHERE af.audiobook_id = audiobooks.id
+                    )
+                END AS remaining_duration_ms
          FROM audiobooks ORDER BY default_order"
     )?;
 
@@ -210,7 +245,24 @@ pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened,
+                CASE
+                    WHEN EXISTS(
+                        SELECT 1 FROM audiobook_file af_missing
+                        WHERE af_missing.audiobook_id = audiobooks.id
+                          AND af_missing.length_of_file IS NULL
+                    ) THEN NULL
+                    ELSE (
+                        SELECT SUM(
+                            MAX(
+                                CAST(af.length_of_file AS INTEGER) - CAST(COALESCE(af.seek_position, '0') AS INTEGER),
+                                0
+                            )
+                        )
+                        FROM audiobook_file af
+                        WHERE af.audiobook_id = audiobooks.id
+                    )
+                END AS remaining_duration_ms
          FROM audiobooks WHERE id = ?1",
         [id],
         row_to_audiobook,
@@ -611,7 +663,24 @@ pub fn update_directory_last_scanned(conn: &Connection, path: &str) -> Result<()
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened,
+                CASE
+                    WHEN EXISTS(
+                        SELECT 1 FROM audiobook_file af_missing
+                        WHERE af_missing.audiobook_id = audiobooks.id
+                          AND af_missing.length_of_file IS NULL
+                    ) THEN NULL
+                    ELSE (
+                        SELECT SUM(
+                            MAX(
+                                CAST(af.length_of_file AS INTEGER) - CAST(COALESCE(af.seek_position, '0') AS INTEGER),
+                                0
+                            )
+                        )
+                        FROM audiobook_file af
+                        WHERE af.audiobook_id = audiobooks.id
+                    )
+                END AS remaining_duration_ms
          FROM audiobooks WHERE full_path = ?1",
         [path],
         row_to_audiobook,

@@ -414,6 +414,7 @@ fn test_audiobook_list_rendering_with_hover_states() {
             default_order: 0,
             selected_file: None,
             total_duration_ms: None,
+            remaining_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         })

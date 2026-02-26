@@ -143,16 +143,29 @@ pub const TEXT_COLOR: Color = colors::TEXT_PRIMARY;
 /// Creates the custom Nodoka theme based on the design system
 #[must_use]
 pub fn nodoka_theme() -> Theme {
+    nodoka_theme_for_mode(crate::ui::state::ThemeMode::Light)
+}
+
+/// Creates the custom Nodoka theme for the given theme mode.
+#[must_use]
+pub fn nodoka_theme_for_mode(mode: crate::ui::state::ThemeMode) -> Theme {
+    use crate::ui::styles::colors::ColorType;
+
     let palette = Palette {
-        background: colors::BG_PRIMARY,
-        text: colors::TEXT_PRIMARY,
-        primary: colors::PRIMARY,
-        success: colors::SUCCESS,
-        danger: colors::ERROR,
-        warning: colors::WARNING,
+        background: colors::get_color(mode, ColorType::BgPrimary),
+        text: colors::get_color(mode, ColorType::TextPrimary),
+        primary: colors::get_color(mode, ColorType::Primary),
+        success: colors::get_color(mode, ColorType::Success),
+        danger: colors::get_color(mode, ColorType::Error),
+        warning: colors::get_color(mode, ColorType::Warning),
     };
 
-    Theme::custom("Nodoka".to_string(), palette)
+    let name = match mode {
+        crate::ui::state::ThemeMode::Light => "Nodoka Light",
+        crate::ui::state::ThemeMode::Dark => "Nodoka Dark",
+    };
+
+    Theme::custom(name.to_string(), palette)
 }
 
 /// Formats duration in milliseconds to human-readable time string (H:MM:SS or M:SS)

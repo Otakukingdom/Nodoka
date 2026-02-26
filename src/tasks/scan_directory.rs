@@ -295,6 +295,7 @@ pub fn convert_to_audiobooks(
             default_order: i32::try_from(idx).unwrap_or(i32::MAX),
             selected_file: None,
             total_duration_ms: None,
+            remaining_duration_ms: None,
             created_at: Utc::now(),
             last_listened: None,
         })

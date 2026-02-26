@@ -29,22 +29,20 @@ pub fn view<'a, S: BuildHasher>(
     let id = audiobook.id;
     let cover = build_large_cover(id, cover_thumbnails);
 
-    // Show remaining time if available, otherwise show percentage
-    let progress_text = audiobook.total_duration_ms.map_or_else(
-        || format!("{}% complete", audiobook.completeness),
-        |total_ms| {
-            let remaining_ms = total_ms * (100 - i64::from(audiobook.completeness)) / 100;
-            let hours = remaining_ms / (1000 * 60 * 60);
-            let minutes = (remaining_ms / (1000 * 60)) % 60;
-            if hours > 0 {
-                format!("{hours} hours {minutes} minutes remaining")
-            } else if minutes > 0 {
-                format!("{minutes} minutes remaining")
-            } else {
-                format!("{}% complete", audiobook.completeness)
-            }
-        },
-    );
+    let progress_text = audiobook
+        .remaining_duration_ms
+        .filter(|ms| *ms > 0)
+        .map(format_remaining_ms)
+        .or_else(|| {
+            audiobook.total_duration_ms.and_then(|total_ms| {
+                if total_ms <= 0 {
+                    return None;
+                }
+                let remaining_ms = total_ms * (100 - i64::from(audiobook.completeness)) / 100;
+                (remaining_ms > 0).then_some(format_remaining_ms(remaining_ms))
+            })
+        })
+        .unwrap_or_else(|| format!("{}% complete", audiobook.completeness));
 
     let content = row![
         cover,
@@ -109,7 +107,7 @@ fn build_large_cover<S: BuildHasher>(
     cover_thumbnails.get(&ab_id).map_or_else(
         || build_placeholder_cover(COVER_SIZE),
         |path| {
-            let handle = image::Handle::from_path(path);
+            let handle = image::Handle::from_path(path.clone());
             container(
                 image(handle)
                     .width(Length::Fixed(COVER_SIZE))
@@ -130,6 +128,17 @@ fn build_large_cover<S: BuildHasher>(
             .into()
         },
     )
+}
+
+fn format_remaining_ms(remaining_ms: i64) -> String {
+    let remaining_ms = remaining_ms.max(0);
+    let hours = remaining_ms / (1000 * 60 * 60);
+    let minutes = (remaining_ms / (1000 * 60)) % 60;
+    if hours > 0 {
+        format!("{hours} hours {minutes} minutes remaining")
+    } else {
+        format!("{minutes} minutes remaining")
+    }
 }
 
 fn build_placeholder_cover(size: f32) -> Element<'static, Message> {

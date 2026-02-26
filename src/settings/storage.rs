@@ -301,9 +301,25 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_panel_ratio(&self) -> Result<f32> {
-        Ok(get_metadata(self.conn, "panel_ratio")?
-            .and_then(|v| v.parse::<f32>().ok())
-            .unwrap_or(0.4))
+        if let Ok(Some(pref)) = crate::db::queries::get_preference(self.conn, "panel_ratio") {
+            if let Ok(ratio) = pref.parse::<f32>() {
+                return Ok(ratio.clamp(0.2, 0.8));
+            }
+        }
+
+        if let Ok(Some(meta)) = get_metadata(self.conn, "panel_ratio") {
+            if let Ok(ratio) = meta.parse::<f32>() {
+                let ratio = ratio.clamp(0.2, 0.8);
+                let _ = crate::db::queries::set_preference(
+                    self.conn,
+                    "panel_ratio",
+                    &ratio.to_string(),
+                );
+                return Ok(ratio);
+            }
+        }
+
+        Ok(0.4)
     }
 
     /// Sets the panel ratio setting
@@ -321,9 +337,24 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_focus_mode(&self) -> Result<bool> {
-        Ok(get_metadata(self.conn, "focus_mode")?
-            .and_then(|v| v.parse::<bool>().ok())
-            .unwrap_or(false))
+        if let Ok(Some(pref)) = crate::db::queries::get_preference(self.conn, "focus_mode") {
+            if let Ok(enabled) = pref.parse::<bool>() {
+                return Ok(enabled);
+            }
+        }
+
+        if let Ok(Some(meta)) = get_metadata(self.conn, "focus_mode") {
+            if let Ok(enabled) = meta.parse::<bool>() {
+                let _ = crate::db::queries::set_preference(
+                    self.conn,
+                    "focus_mode",
+                    &enabled.to_string(),
+                );
+                return Ok(enabled);
+            }
+        }
+
+        Ok(false)
     }
 
     /// Sets the focus mode setting
@@ -341,7 +372,23 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database query fails
     pub fn get_theme(&self) -> Result<String> {
-        Ok(get_metadata(self.conn, "theme")?.unwrap_or_else(|| "light".to_string()))
+        if let Ok(Some(pref)) = crate::db::queries::get_preference(self.conn, "theme_mode") {
+            return Ok(Self::normalize_theme_mode_string(&pref));
+        }
+
+        if let Ok(Some(meta)) = get_metadata(self.conn, "theme_mode") {
+            let normalized = Self::normalize_theme_mode_string(&meta);
+            let _ = crate::db::queries::set_preference(self.conn, "theme_mode", &normalized);
+            return Ok(normalized);
+        }
+
+        if let Ok(Some(meta)) = get_metadata(self.conn, "theme") {
+            let normalized = Self::normalize_theme_mode_string(&meta);
+            let _ = crate::db::queries::set_preference(self.conn, "theme_mode", &normalized);
+            return Ok(normalized);
+        }
+
+        Ok("Light".to_string())
     }
 
     /// Sets the theme setting
@@ -350,7 +397,15 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database update fails
     pub fn set_theme(&self, theme: &str) -> Result<()> {
-        crate::db::queries::set_preference(self.conn, "theme_mode", theme)
+        let normalized = Self::normalize_theme_mode_string(theme);
+        crate::db::queries::set_preference(self.conn, "theme_mode", &normalized)
+    }
+
+    fn normalize_theme_mode_string(value: &str) -> String {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "dark" => "Dark".to_string(),
+            _ => "Light".to_string(),
+        }
     }
 
     /// Resets all settings to defaults

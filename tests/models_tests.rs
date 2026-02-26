@@ -15,6 +15,7 @@ fn test_audiobook_is_complete() {
         default_order: 0,
         selected_file: None,
         total_duration_ms: None,
+        remaining_duration_ms: None,
         created_at: Utc::now(),
         last_listened: None,
     };
@@ -101,6 +102,7 @@ fn test_audiobook_serialization() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: Some("/test/audiobook/file.mp3".to_string()),
         total_duration_ms: None,
+        remaining_duration_ms: None,
         created_at: Utc::now(),
         last_listened: None,
     };

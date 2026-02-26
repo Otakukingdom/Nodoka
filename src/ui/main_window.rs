@@ -236,15 +236,20 @@ fn build_detail_panel(state: &State) -> Element<'_, Message> {
     column![file_list, bookmarks].spacing(spacing::SM).into()
 }
 
-/// Creates a horizontal divider between panels
-fn panel_divider(width: f32, height: f32) -> Element<'static, Message> {
-    container(Space::new())
+/// Creates a draggable divider between panels.
+fn panel_divider(width: f32) -> Element<'static, Message> {
+    use iced::widget::mouse_area;
+
+    let divider = container(Space::new())
         .width(Length::Fixed(width))
-        .height(Length::Fixed(height))
+        .height(Length::Fill)
         .style(|_theme: &iced::Theme| container::Style {
             background: Some(colors::BORDER_DEFAULT.into()),
             ..Default::default()
-        })
+        });
+
+    mouse_area(divider)
+        .on_press(Message::PanelDividerDragStart)
         .into()
 }
 
@@ -305,7 +310,7 @@ fn build_wide_layout(state: &State) -> Element<'_, Message> {
     if show_left_panel {
         let left_panel = build_library_column(state);
         let right_panel = build_detail_panel(state);
-        let divider = panel_divider(4.0, 0.0);
+        let divider = panel_divider(4.0);
 
         row![
             container(left_panel)
@@ -461,6 +466,7 @@ mod tests {
                 default_order: 0,
                 selected_file: None,
                 total_duration_ms: None,
+                remaining_duration_ms: None,
                 created_at: Utc::now(),
                 last_listened: None,
             }],
@@ -563,6 +569,7 @@ mod tests {
                     default_order: 0,
                     selected_file: None,
                     total_duration_ms: None,
+                    remaining_duration_ms: None,
                     created_at: Utc::now(),
                     last_listened: None,
                 },
@@ -576,6 +583,7 @@ mod tests {
                     default_order: 1,
                     selected_file: None,
                     total_duration_ms: None,
+                    remaining_duration_ms: None,
                     created_at: Utc::now(),
                     last_listened: None,
                 },
@@ -589,6 +597,7 @@ mod tests {
                     default_order: 1,
                     selected_file: None,
                     total_duration_ms: None,
+                    remaining_duration_ms: None,
                     created_at: Utc::now(),
                     last_listened: None,
                 },
@@ -602,6 +611,7 @@ mod tests {
                     default_order: 0,
                     selected_file: None,
                     total_duration_ms: None,
+                    remaining_duration_ms: None,
                     created_at: chrono::Utc::now(),
                     last_listened: None,
                 },
