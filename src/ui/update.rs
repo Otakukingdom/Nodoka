@@ -414,21 +414,34 @@ fn handle_play_last_listened(
     player: &mut Option<Vlc>,
     db: &Database,
 ) -> Task<Message> {
-    // Find most recently played audiobook
-    if let Some(audiobook) = state
-        .audiobooks
-        .iter()
-        .filter(|ab| ab.last_listened.is_some())
-        .max_by_key(|ab| ab.last_listened)
-    {
-        if let Some(id) = audiobook.id {
-            // Select the audiobook and start playing
-            state.selected_audiobook = Some(id);
-            return Task::batch(vec![
-                library::handle_audiobook_selected(state, player, db, id),
-                Task::done(Message::PlayPause),
-            ]);
+    // Find most recently played audiobook and extract needed data
+    let (audiobook_id, selected_file) = {
+        let audiobook = state
+            .audiobooks
+            .iter()
+            .filter(|ab| ab.last_listened.is_some())
+            .max_by_key(|ab| ab.last_listened);
+
+        match audiobook {
+            Some(ab) => match ab.id {
+                Some(id) => (id, ab.selected_file.clone()),
+                None => return Task::none(),
+            },
+            None => return Task::none(),
         }
+    };
+
+    // Select the audiobook first
+    let load_task = library::handle_audiobook_selected(state, player, db, audiobook_id);
+
+    // If there's a selected file, load it and start playback
+    if let Some(file_path) = selected_file {
+        return Task::batch(vec![
+            load_task,
+            Task::done(Message::FileSelected(file_path)),
+        ]);
     }
-    Task::none()
+
+    // Otherwise, just load the audiobook and let the user manually select a file
+    load_task
 }
