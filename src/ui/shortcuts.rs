@@ -13,6 +13,18 @@ pub enum ShortcutKey {
     Space,
     /// The `B` key.
     B,
+    /// The `F` key.
+    F,
+    /// The `L` key.
+    L,
+    /// The `T` key.
+    T,
+    /// The `R` key.
+    R,
+    /// Left bracket `[` key.
+    LeftBracket,
+    /// Right bracket `]` key.
+    RightBracket,
     /// Left arrow key.
     ArrowLeft,
     /// Right arrow key.
@@ -36,6 +48,12 @@ pub enum ShortcutKey {
 /// # Supported shortcuts
 /// - Space: Play/Pause
 /// - Ctrl+B (Cmd+B on macOS): Create bookmark
+/// - Ctrl+F (Cmd+F on macOS): Focus search bar
+/// - Ctrl+L (Cmd+L on macOS): Toggle focus mode
+/// - Ctrl+T (Cmd+T on macOS): Toggle theme
+/// - Ctrl+R (Cmd+R on macOS): Play last listened
+/// - Ctrl+[ (Cmd+[ on macOS): Decrease panel ratio
+/// - Ctrl+] (Cmd+] on macOS): Increase panel ratio
 /// - Left arrow: Seek backward 5 seconds
 /// - Right arrow: Seek forward 5 seconds
 /// - Up arrow: Previous file
@@ -45,6 +63,7 @@ pub enum ShortcutKey {
 /// - Tab: Cycle focus forward
 /// - Shift+Tab: Cycle focus backward
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<Message> {
     match key {
         ShortcutKey::Space => {
@@ -57,6 +76,49 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
         ShortcutKey::B => {
             if is_bookmark_modifier(modifiers) {
                 Some(Message::CreateBookmark)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::F => {
+            if is_command_modifier(modifiers) {
+                Some(Message::FocusSearch)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::L => {
+            if is_command_modifier(modifiers) {
+                Some(Message::ToggleFocusMode)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::T => {
+            if is_command_modifier(modifiers) {
+                // Toggle theme - we need to know current theme, so this will be handled in update
+                Some(Message::ToggleTheme)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::R => {
+            if is_command_modifier(modifiers) {
+                Some(Message::PlayLastListened)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::LeftBracket => {
+            if is_command_modifier(modifiers) {
+                Some(Message::DecreasePanelRatio)
+            } else {
+                None
+            }
+        }
+        ShortcutKey::RightBracket => {
+            if is_command_modifier(modifiers) {
+                Some(Message::IncreasePanelRatio)
             } else {
                 None
             }
@@ -116,6 +178,7 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
 }
 
 fn is_bookmark_modifier(modifiers: Modifiers) -> bool {
+    // Accept Ctrl+B or Cmd+B, but not Ctrl+Shift+B, etc.
     let no_extra = !modifiers.shift() && !modifiers.alt();
 
     #[cfg(target_os = "macos")]
@@ -129,6 +192,11 @@ fn is_bookmark_modifier(modifiers: Modifiers) -> bool {
     {
         no_extra && modifiers.control() && !modifiers.logo()
     }
+}
+
+fn is_command_modifier(modifiers: Modifiers) -> bool {
+    // Same as bookmark modifier - accept Ctrl or Cmd without extra modifiers
+    is_bookmark_modifier(modifiers)
 }
 
 #[cfg(test)]

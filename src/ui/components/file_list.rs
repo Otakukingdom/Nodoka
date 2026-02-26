@@ -70,6 +70,7 @@ fn build_file_item(
 
     let is_missing = !file.file_exists;
     let duration = format_duration(file.length_of_file);
+    let time_remaining = format_time_remaining(file);
     let completeness = file.completeness;
     let has_progress = file.seek_position.is_some();
     let is_complete = completeness >= 100;
@@ -84,6 +85,7 @@ fn build_file_item(
     let content_column = build_content_column(
         file.name.clone(),
         duration,
+        time_remaining,
         file_number_badge,
         progress_element,
         status_indicator,
@@ -250,9 +252,11 @@ fn build_file_number_badge(
     })
 }
 
+#[allow(clippy::too_many_arguments, clippy::needless_pass_by_value)]
 fn build_content_column(
     name: String,
     duration: String,
+    time_remaining: String,
     file_number_badge: iced::widget::Container<'static, Message>,
     progress_element: iced::widget::Container<'static, Message>,
     status_indicator: iced::widget::Container<'static, Message>,
@@ -264,6 +268,16 @@ fn build_content_column(
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = offset_y.clamp(0.0, max_offset);
 
+    // Build duration/time remaining display
+    // Show "duration • time remaining" if there's remaining time, otherwise just duration
+    let duration_text = if !time_remaining.is_empty() && time_remaining != "Complete" {
+        format!("{duration} • {time_remaining}")
+    } else if time_remaining == "Complete" {
+        format!("{duration} • Complete")
+    } else {
+        duration
+    };
+
     column![
         row![
             file_number_badge,
@@ -273,8 +287,8 @@ fn build_content_column(
                     color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
                 }),
             Space::new().width(Length::Fill),
-            // Duration display prominently next to file name
-            text(duration)
+            // Duration and time remaining display
+            text(duration_text)
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
@@ -341,6 +355,45 @@ fn format_duration(duration_ms: Option<i64>) -> String {
             }
         }
         _ => "Unknown".to_string(),
+    }
+}
+
+/// Calculates time remaining for a file based on completeness and total duration
+///
+/// Returns a human-readable string like "3h 45m remaining" or "Complete"
+fn format_time_remaining(file: &AudiobookFile) -> String {
+    if file.completeness >= 100 {
+        return String::from("Complete");
+    }
+
+    let Some(total_ms) = file.length_of_file else {
+        return String::new();
+    };
+
+    if total_ms == 0 {
+        return String::new();
+    }
+
+    let remaining_ms = total_ms * i64::from(100 - file.completeness) / 100;
+    format_duration_remaining(remaining_ms)
+}
+
+/// Formats a duration in milliseconds as a human-readable "remaining" string
+///
+/// Examples:
+/// - `3_600_000ms` (1 hour) -> "1h remaining"
+/// - `225_000ms` (3h 45m) -> "3h 45m remaining"
+/// - `45_000ms` (45 seconds) -> "0m remaining"
+fn format_duration_remaining(ms: i64) -> String {
+    let hours = ms / 3_600_000;
+    let minutes = (ms % 3_600_000) / 60_000;
+
+    if hours > 0 {
+        format!("{hours}h {minutes}m remaining")
+    } else if minutes > 0 {
+        format!("{minutes}m remaining")
+    } else {
+        String::from("0m remaining")
     }
 }
 

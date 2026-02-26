@@ -14,6 +14,7 @@ fn test_audiobook_is_complete() {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
 
     assert!(!audiobook.is_complete());
@@ -97,6 +98,7 @@ fn test_audiobook_serialization() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: Some("/test/audiobook/file.mp3".to_string()),
         created_at: Utc::now(),
+        last_listened: None,
     };
 
     // Test JSON serialization

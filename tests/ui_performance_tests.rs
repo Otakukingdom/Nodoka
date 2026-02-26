@@ -413,6 +413,7 @@ fn test_audiobook_list_rendering_with_hover_states() {
             default_order: 0,
             selected_file: None,
             created_at: chrono::Utc::now(),
+            last_listened: None,
         })
         .collect();
 
@@ -428,6 +429,9 @@ fn test_audiobook_list_rendering_with_hover_states() {
         &scan_state,
         0,
         false,
+        "",
+        nodoka::ui::state::AudiobookSortOrder::default(),
+        nodoka::ui::state::AudiobookFilterStatus::default(),
     );
     drop(element);
     let render_duration = start.elapsed();

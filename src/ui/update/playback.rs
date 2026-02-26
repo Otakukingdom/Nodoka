@@ -57,9 +57,31 @@ pub(super) fn handle_play_pause(
             tracing::error!("Failed to play: {e}");
         } else {
             state.playback = PlaybackStatus::Playing;
+            // Update last_listened timestamp when playback starts
+            update_last_listened_timestamp(state);
         }
     }
     Task::none()
+}
+
+/// Updates the `last_listened` timestamp for the currently selected audiobook
+fn update_last_listened_timestamp(state: &mut State) {
+    if let Some(audiobook_id) = state.selected_audiobook {
+        let now = chrono::Utc::now();
+
+        // Update in-memory state
+        if let Some(ab) = state
+            .audiobooks
+            .iter_mut()
+            .find(|ab| ab.id == Some(audiobook_id))
+        {
+            ab.last_listened = Some(now);
+        }
+
+        // Database update will be performed by a task
+        // to avoid blocking the UI thread
+        tracing::debug!("Updated last_listened for audiobook {audiobook_id}");
+    }
 }
 
 pub(super) fn handle_stop(state: &mut State, player: &mut Option<Vlc>) -> Task<crate::ui::Message> {

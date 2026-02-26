@@ -170,6 +170,7 @@ fn test_audiobook_switch_resets_playback_and_clears_file_selection() -> Result<(
                 default_order: 0,
                 selected_file: Some(ab1_file.to_string()),
                 created_at: chrono::Utc::now(),
+                last_listened: None,
             },
             nodoka::models::Audiobook {
                 id: Some(ab2_id),
@@ -180,6 +181,7 @@ fn test_audiobook_switch_resets_playback_and_clears_file_selection() -> Result<(
                 default_order: 0,
                 selected_file: Some(ab2_file.to_string()),
                 created_at: chrono::Utc::now(),
+                last_listened: None,
             },
         ],
         selected_audiobook: Some(ab1_id),
@@ -242,6 +244,7 @@ fn test_directory_remove_clears_selection_when_in_directory() -> Result<(), Box<
             default_order: 0,
             selected_file: Some(file_path.clone()),
             created_at: chrono::Utc::now(),
+            last_listened: None,
         }],
         selected_audiobook: Some(audiobook_id),
         selected_file: Some(file_path),
@@ -374,6 +377,7 @@ fn test_rapid_audiobook_selected_messages_converge_to_last() -> Result<(), Box<d
             default_order: i,
             selected_file: None,
             created_at: chrono::Utc::now(),
+            last_listened: None,
         });
     }
 

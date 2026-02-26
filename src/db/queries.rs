@@ -80,10 +80,11 @@ fn row_rfc3339_utc_optional(
 /// Maps a rusqlite [`rusqlite::Row`] to an [`Audiobook`].
 ///
 /// Column order must match the
-/// `SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at`
+/// `SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened`
 /// projection used in all audiobook queries.
 fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
     let created_at = row_rfc3339_utc(row, 7, "audiobooks.created_at")?;
+    let last_listened = row_rfc3339_utc_optional(row, 8, "audiobooks.last_listened")?;
     Ok(Audiobook {
         id: Some(row.get(0)?),
         directory: row.get(1)?,
@@ -93,6 +94,7 @@ fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
         default_order: row.get(5)?,
         selected_file: row.get(6)?,
         created_at,
+        last_listened,
     })
 }
 
@@ -135,8 +137,8 @@ pub fn insert_audiobook(conn: &Connection, audiobook: &Audiobook) -> Result<i64>
     }
 
     conn.execute(
-        "INSERT INTO audiobooks (directory, name, full_path, completeness, default_order, selected_file, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO audiobooks (directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         params![
             audiobook.directory,
             audiobook.name,
@@ -145,6 +147,7 @@ pub fn insert_audiobook(conn: &Connection, audiobook: &Audiobook) -> Result<i64>
             audiobook.default_order,
             audiobook.selected_file,
             audiobook.created_at.to_rfc3339(),
+            audiobook.last_listened.as_ref().map(chrono::DateTime::to_rfc3339),
         ],
     )?;
     Ok(conn.last_insert_rowid())
@@ -166,7 +169,7 @@ fn validate_no_nul(field: &'static str, value: &str) -> Result<()> {
 /// Returns an error if the database query fails
 pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
+        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
          FROM audiobooks WHERE directory = ?1 ORDER BY default_order"
     )?;
 
@@ -183,7 +186,7 @@ pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result
 /// Returns an error if the database query fails
 pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
+        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
          FROM audiobooks ORDER BY default_order"
     )?;
 
@@ -200,7 +203,7 @@ pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
+        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
          FROM audiobooks WHERE id = ?1",
         [id],
         row_to_audiobook,
@@ -236,6 +239,23 @@ pub fn update_audiobook_selected_file(
     conn.execute(
         "UPDATE audiobooks SET selected_file = ?1 WHERE id = ?2",
         params![file_path, id],
+    )?;
+    Ok(())
+}
+
+/// Updates the last listened timestamp for an audiobook
+///
+/// # Errors
+///
+/// Returns an error if the database update fails
+pub fn update_audiobook_last_listened(
+    conn: &Connection,
+    id: i64,
+    timestamp: DateTime<Utc>,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE audiobooks SET last_listened = ?1 WHERE id = ?2",
+        params![timestamp.to_rfc3339(), id],
     )?;
     Ok(())
 }
@@ -584,7 +604,7 @@ pub fn update_directory_last_scanned(conn: &Connection, path: &str) -> Result<()
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at
+        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
          FROM audiobooks WHERE full_path = ?1",
         [path],
         row_to_audiobook,

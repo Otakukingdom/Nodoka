@@ -80,6 +80,133 @@ fn build_action_buttons(state: &State) -> Element<'static, Message> {
     .into()
 }
 
+fn build_appearance_section(state: &State) -> Element<'static, Message> {
+    use crate::ui::state::ThemeMode;
+    use crate::ui::styles::colors;
+
+    column![
+        container(text("Appearance").size(typography::SIZE_LG))
+            .padding(iced::Padding {
+                top: spacing::LG,
+                right: 0.0,
+                bottom: spacing::SM,
+                left: 0.0,
+            })
+            .style(|_theme: &iced::Theme| container::Style {
+                text_color: Some(colors::PRIMARY),
+                ..Default::default()
+            }),
+        container(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(2.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BORDER_DEFAULT.into()),
+                ..Default::default()
+            }),
+        container(
+            row![
+                text("Theme:").size(typography::SIZE_SM),
+                button(text("Light").size(typography::SIZE_SM))
+                    .on_press(Message::ThemeChanged(ThemeMode::Light))
+                    .padding(spacing::SM)
+                    .style(if state.theme == ThemeMode::Light {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
+                button(text("Dark").size(typography::SIZE_SM))
+                    .on_press(Message::ThemeChanged(ThemeMode::Dark))
+                    .padding(spacing::SM)
+                    .style(if state.theme == ThemeMode::Dark {
+                        button_styles::primary
+                    } else {
+                        button_styles::secondary
+                    }),
+            ]
+            .spacing(spacing::MD)
+        )
+        .padding(iced::Padding {
+            top: spacing::SM,
+            right: 0.0,
+            bottom: spacing::SM,
+            left: 0.0,
+        }),
+    ]
+    .into()
+}
+
+fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+
+    column![
+        container(text("Keyboard Shortcuts").size(typography::SIZE_LG))
+            .padding(iced::Padding {
+                top: spacing::LG,
+                right: 0.0,
+                bottom: spacing::SM,
+                left: 0.0,
+            })
+            .style(|_theme: &iced::Theme| container::Style {
+                text_color: Some(colors::PRIMARY),
+                ..Default::default()
+            }),
+        container(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(2.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BORDER_DEFAULT.into()),
+                ..Default::default()
+            }),
+        container(
+            column![
+                shortcut_row("Space", "Play/Pause"),
+                shortcut_row("← →", "Seek backward/forward 5 seconds"),
+                shortcut_row("↑ ↓", "Previous/Next file"),
+                shortcut_row("Ctrl+F", "Focus search bar"),
+                shortcut_row("Ctrl+L", "Toggle focus mode"),
+                shortcut_row("Ctrl+T", "Toggle theme"),
+                shortcut_row("Ctrl+R", "Play last listened audiobook"),
+                shortcut_row("Ctrl+[ ]", "Decrease/Increase panel ratio"),
+                shortcut_row("Ctrl+B", "Create bookmark"),
+                shortcut_row("F1", "Show keyboard help"),
+                shortcut_row("Esc", "Close modal"),
+                shortcut_row("Tab", "Cycle focus forward"),
+                shortcut_row("Shift+Tab", "Cycle focus backward"),
+            ]
+            .spacing(spacing::XS)
+        )
+        .padding(iced::Padding {
+            top: spacing::SM,
+            right: 0.0,
+            bottom: spacing::SM,
+            left: 0.0,
+        }),
+    ]
+    .into()
+}
+
+fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+
+    row![
+        container(text(keys).size(typography::SIZE_SM))
+            .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BG_ELEVATED.into()),
+                border: iced::Border {
+                    radius: iced::border::Radius::from(4.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .width(Length::Fixed(120.0)),
+        Space::new().width(Length::Fixed(spacing::MD)),
+        text(description).size(typography::SIZE_SM),
+    ]
+    .align_y(iced::Alignment::Center)
+    .into()
+}
+
 /// Builds the settings dialog modal with improved layout and visual hierarchy
 ///
 /// Features:
@@ -95,7 +222,7 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
     let action_buttons = build_action_buttons(state);
 
     container(
-        column![
+        scrollable(column![
             text("Settings").size(typography::SIZE_XXL),
             container(text("Audiobook Directories").size(typography::SIZE_LG))
                 .padding(iced::Padding {
@@ -130,13 +257,15 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                 ..Default::default()
             }),
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
+            build_appearance_section(state),
+            build_keyboard_shortcuts_section(),
             action_buttons,
         ]
         .padding(spacing::XL)
-        .spacing(spacing::SM),
+        .spacing(spacing::SM))
     )
     .width(Length::Fixed(600.0 * scale))
-    .height(Length::Fixed(500.0 * scale))
+    .height(Length::Fixed(600.0 * scale))
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()

@@ -298,6 +298,7 @@ fn test_state_with_multiple_audiobooks() {
                 default_order: 0,
                 selected_file: None,
                 created_at: chrono::Utc::now(),
+                last_listened: None,
             },
             Audiobook {
                 id: Some(2),
@@ -308,6 +309,7 @@ fn test_state_with_multiple_audiobooks() {
                 default_order: 0,
                 selected_file: None,
                 created_at: chrono::Utc::now(),
+                last_listened: None,
             },
         ],
         ..Default::default()

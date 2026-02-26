@@ -295,6 +295,64 @@ impl<'a> Settings<'a> {
         Ok(get_metadata(self.conn, "auto_save_interval")?.and_then(|s| s.parse().ok()))
     }
 
+    /// Gets the panel ratio setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails
+    pub fn get_panel_ratio(&self) -> Result<f32> {
+        Ok(get_metadata(self.conn, "panel_ratio")?
+            .and_then(|v| v.parse::<f32>().ok())
+            .unwrap_or(0.4))
+    }
+
+    /// Sets the panel ratio setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database update fails
+    pub fn set_panel_ratio(&self, ratio: f32) -> Result<()> {
+        set_metadata(self.conn, "panel_ratio", &ratio.to_string())
+    }
+
+    /// Gets the focus mode setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails
+    pub fn get_focus_mode(&self) -> Result<bool> {
+        Ok(get_metadata(self.conn, "focus_mode")?
+            .and_then(|v| v.parse::<bool>().ok())
+            .unwrap_or(false))
+    }
+
+    /// Sets the focus mode setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database update fails
+    pub fn set_focus_mode(&self, enabled: bool) -> Result<()> {
+        set_metadata(self.conn, "focus_mode", &enabled.to_string())
+    }
+
+    /// Gets the theme setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails
+    pub fn get_theme(&self) -> Result<String> {
+        Ok(get_metadata(self.conn, "theme")?.unwrap_or_else(|| "light".to_string()))
+    }
+
+    /// Sets the theme setting
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database update fails
+    pub fn set_theme(&self, theme: &str) -> Result<()> {
+        set_metadata(self.conn, "theme", theme)
+    }
+
     /// Resets all settings to defaults
     ///
     /// # Errors

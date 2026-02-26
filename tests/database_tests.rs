@@ -93,6 +93,7 @@ fn test_invalid_bookmark_created_at_is_error() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -173,6 +174,7 @@ fn test_audiobook_crud_operations() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -252,6 +254,7 @@ fn test_insert_audiobook_file_rejects_nul_bytes() -> Result<(), Box<dyn Error>> 
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -347,6 +350,7 @@ fn test_audiobook_file_crud_operations() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -429,6 +433,7 @@ fn test_audiobook_progress_operations() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -530,6 +535,7 @@ fn test_count_operations() -> Result<(), Box<dyn Error>> {
             default_order: i,
             selected_file: None,
             created_at: Utc::now(),
+        last_listened: None,
         };
         queries::insert_audiobook(conn, &audiobook)?;
     }
@@ -621,6 +627,7 @@ fn test_cascade_delete_directory() -> Result<(), Box<dyn Error>> {
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 
@@ -695,6 +702,7 @@ fn test_delete_audiobooks_by_directory_cascades_to_files_and_bookmarks(
         default_order: 0,
         selected_file: None,
         created_at: Utc::now(),
+        last_listened: None,
     };
     let audiobook_id = queries::insert_audiobook(conn, &audiobook)?;
 

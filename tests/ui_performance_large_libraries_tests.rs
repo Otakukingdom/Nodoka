@@ -22,6 +22,7 @@ fn create_test_audiobook(id: i64) -> Audiobook {
         default_order: i32::try_from(id).unwrap_or(0),
         selected_file: None,
         created_at: chrono::Utc::now(),
+        last_listened: None,
     }
 }
 

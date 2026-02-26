@@ -123,6 +123,41 @@ pub fn update(
         | Message::TooltipHoverStart(_)
         | Message::TooltipHoverEnd
         | Message::RipplePointerMoved(_, _)) => handle_feedback_message(state, &message),
+
+        message @ (Message::SearchQueryChanged(_)
+        | Message::SortOrderChanged(_)
+        | Message::FilterStatusChanged(_)
+        | Message::ClearFilters) => handle_library_filter_message(state, &message),
+
+        message @ (Message::PanelRatioChanged(_)
+        | Message::ToggleFocusMode
+        | Message::ThemeChanged(_)) => handle_layout_message(state, &message, db),
+
+        Message::PlayLastListened => handle_play_last_listened(state, player, db),
+
+        Message::FocusSearch => {
+            // TODO: Implement search bar focus when text input focus API is available
+            Task::none()
+        }
+
+        Message::ToggleTheme => {
+            use crate::ui::state::ThemeMode;
+            let new_theme = match state.theme {
+                ThemeMode::Light => ThemeMode::Dark,
+                ThemeMode::Dark => ThemeMode::Light,
+            };
+            handle_layout_message(state, &Message::ThemeChanged(new_theme), db)
+        }
+
+        Message::DecreasePanelRatio => {
+            let new_ratio = (state.panel_ratio - 0.1).clamp(0.2, 0.8);
+            handle_layout_message(state, &Message::PanelRatioChanged(new_ratio), db)
+        }
+
+        Message::IncreasePanelRatio => {
+            let new_ratio = (state.panel_ratio + 0.1).clamp(0.2, 0.8);
+            handle_layout_message(state, &Message::PanelRatioChanged(new_ratio), db)
+        }
     }
 }
 
@@ -309,5 +344,87 @@ fn handle_ui_tick(state: &mut State) -> Task<Message> {
         .tooltip_state
         .update(now, state.prefers_reduced_motion);
     feedback::prune_notifications(state);
+    Task::none()
+}
+
+fn handle_library_filter_message(state: &mut State, message: &Message) -> Task<Message> {
+    match message {
+        Message::SearchQueryChanged(query) => {
+            state.search_query.clone_from(query);
+            Task::none()
+        }
+        Message::SortOrderChanged(order) => {
+            state.sort_order = *order;
+            Task::none()
+        }
+        Message::FilterStatusChanged(status) => {
+            state.filter_status = *status;
+            Task::none()
+        }
+        Message::ClearFilters => {
+            state.search_query = String::new();
+            state.sort_order = crate::ui::state::AudiobookSortOrder::default();
+            state.filter_status = crate::ui::state::AudiobookFilterStatus::default();
+            Task::none()
+        }
+        _ => Task::none(),
+    }
+}
+
+fn handle_layout_message(state: &mut State, message: &Message, db: &Database) -> Task<Message> {
+    match message {
+        Message::PanelRatioChanged(ratio) => {
+            state.panel_ratio = ratio.clamp(0.2, 0.8);
+            // Persist to database
+            if let Err(e) = crate::settings::Settings::new(db.connection()).set_panel_ratio(state.panel_ratio) {
+                tracing::error!("Failed to save panel ratio: {e}");
+            }
+            Task::none()
+        }
+        Message::ToggleFocusMode => {
+            state.focus_mode = !state.focus_mode;
+            // Persist to database
+            if let Err(e) = crate::settings::Settings::new(db.connection()).set_focus_mode(state.focus_mode) {
+                tracing::error!("Failed to save focus mode: {e}");
+            }
+            Task::none()
+        }
+        Message::ThemeChanged(theme) => {
+            state.theme = *theme;
+            // Persist to database
+            let theme_str = match theme {
+                crate::ui::state::ThemeMode::Light => "light",
+                crate::ui::state::ThemeMode::Dark => "dark",
+            };
+            if let Err(e) = crate::settings::Settings::new(db.connection()).set_theme(theme_str) {
+                tracing::error!("Failed to save theme: {e}");
+            }
+            Task::none()
+        }
+        _ => Task::none(),
+    }
+}
+
+fn handle_play_last_listened(
+    state: &mut State,
+    player: &mut Option<Vlc>,
+    db: &Database,
+) -> Task<Message> {
+    // Find most recently played audiobook
+    if let Some(audiobook) = state
+        .audiobooks
+        .iter()
+        .filter(|ab| ab.last_listened.is_some())
+        .max_by_key(|ab| ab.last_listened)
+    {
+        if let Some(id) = audiobook.id {
+            // Select the audiobook and start playing
+            state.selected_audiobook = Some(id);
+            return Task::batch(vec![
+                library::handle_audiobook_selected(state, player, db, id),
+                Task::done(Message::PlayPause),
+            ]);
+        }
+    }
     Task::none()
 }

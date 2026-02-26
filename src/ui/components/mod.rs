@@ -44,7 +44,9 @@
 
 pub mod audiobook_list;
 pub mod bookmarks;
+pub mod continue_listening;
 pub mod file_list;
+pub mod library_toolbar;
 pub mod player_controls;
 
 /// Empty state component for when lists have no items

@@ -61,11 +61,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
         // Progress slider with larger touch target for accessibility
         // BUG FIX #001: Ensure slider range and value are consistent to prevent invalid seeks
         progress_slider, // Increased vertical padding
-        // Time markers with better spacing
+        // Time markers with better spacing - show elapsed and remaining time
         row![
             text(format_time(state.current_time)).size(typography::SIZE_SM),
             Space::new().width(Length::Fill),
-            text(format_time(state.total_duration)).size(typography::SIZE_SM),
+            text(format_time_remaining(
+                state.total_duration - state.current_time
+            ))
+            .size(typography::SIZE_SM),
         ]
         .padding(spacing::XS),
         // Control buttons and volume with improved visual grouping
@@ -457,6 +460,20 @@ fn format_time(ms: f64) -> String {
         format!("{}:{:02}:{:02}", hours, minutes % 60, seconds % 60)
     } else {
         format!("{}:{:02}", minutes, seconds % 60)
+    }
+}
+
+/// Formats remaining time with a "-" prefix to indicate time left
+fn format_time_remaining(ms: f64) -> String {
+    let ms_i64 = f64_to_ms(ms).unwrap_or(0).max(0);
+    let seconds = ms_i64 / 1000;
+    let minutes = seconds / 60;
+    let hours = minutes / 60;
+
+    if hours > 0 {
+        format!("-{}:{:02}:{:02}", hours, minutes % 60, seconds % 60)
+    } else {
+        format!("-{}:{:02}", minutes, seconds % 60)
     }
 }
 

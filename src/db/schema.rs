@@ -70,10 +70,14 @@ pub fn initialize(conn: &Connection) -> Result<()> {
             completeness INTEGER,
             default_order INTEGER,
             selected_file TEXT,
-            created_at TEXT
+            created_at TEXT,
+            last_listened TEXT
         )",
         [],
     )?;
+
+    // Add last_listened column if it doesn't exist (for existing databases)
+    ensure_column_exists(conn, "audiobooks", "last_listened", "TEXT")?;
 
     // Create audiobook_file table
     conn.execute(

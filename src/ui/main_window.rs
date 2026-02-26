@@ -4,7 +4,9 @@
 //! for every render cycle.  It composes the library panels, player controls,
 //! modal overlays, and notification toasts into one coherent layout.
 
-use crate::ui::components::{audiobook_list, bookmarks, file_list, player_controls};
+use crate::ui::components::{
+    audiobook_list, bookmarks, continue_listening, file_list, library_toolbar, player_controls,
+};
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
 };
@@ -189,6 +191,20 @@ fn library_panels(state: &State) -> Element<'_, Message> {
     let bookmark_elapsed =
         list_animation_elapsed_ms(state.bookmark_list_animation_start_ms, state.ui_time_ms);
 
+    // Get the most recently played audiobook for Continue Listening card
+    let last_audiobook = state
+        .audiobooks
+        .iter()
+        .filter(|ab| ab.last_listened.is_some())
+        .max_by_key(|ab| ab.last_listened);
+
+    // Build library toolbar with search and filters
+    let toolbar = library_toolbar::view(&state.search_query, state.sort_order, state.filter_status);
+
+    // Build Continue Listening card (only if there's a recently played audiobook)
+    let continue_listening_widget =
+        continue_listening::view(last_audiobook, &state.cover_thumbnails);
+
     let audiobook_list_widget = audiobook_list::view(
         &state.audiobooks,
         state.selected_audiobook,
@@ -196,7 +212,11 @@ fn library_panels(state: &State) -> Element<'_, Message> {
         &state.scan_state,
         audiobook_elapsed,
         state.prefers_reduced_motion,
+        &state.search_query,
+        state.sort_order,
+        state.filter_status,
     );
+
     let file_list_widget = file_list::view(
         &state.current_files,
         state.selected_file.as_ref(),
@@ -216,21 +236,53 @@ fn library_panels(state: &State) -> Element<'_, Message> {
         FocusedElement::FileList | FocusedElement::BookmarkList
     );
 
-    row![
-        container(audiobook_list_widget)
-            .width(Length::FillPortion(2))
-            .height(Length::Fill)
-            .padding(spacing::SM)
-            .style(focus_indicator(audiobook_panel_focused)),
-        container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
-            .width(Length::FillPortion(3))
-            .height(Length::Fill)
-            .padding(spacing::SM)
-            .style(focus_indicator(right_panel_focused)),
-    ]
-    .height(Length::Fill)
-    .spacing(spacing::SM)
-    .into()
+    // Build left panel with toolbar, Continue Listening, and audiobook list
+    let left_panel_content =
+        column![toolbar, continue_listening_widget, audiobook_list_widget,].spacing(spacing::MD);
+
+    // Calculate panel portions based on panel_ratio (0.0 to 1.0)
+    // panel_ratio = 0.4 means 40% left panel, 60% right panel
+    // If focus mode is active and something is playing, hide left panel
+    let (left_portion, right_portion, show_left_panel) =
+        if state.focus_mode && state.playback == crate::ui::PlaybackStatus::Playing {
+            (0_u16, 10_u16, false)
+        } else {
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let left_portion = (state.panel_ratio * 10.0) as u16;
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let right_portion = ((1.0 - state.panel_ratio) * 10.0) as u16;
+            (left_portion.max(1), right_portion.max(1), true)
+        };
+
+    if show_left_panel {
+        row![
+            container(left_panel_content)
+                .width(Length::FillPortion(left_portion))
+                .height(Length::Fill)
+                .padding(spacing::SM)
+                .style(focus_indicator(audiobook_panel_focused)),
+            container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
+                .width(Length::FillPortion(right_portion))
+                .height(Length::Fill)
+                .padding(spacing::SM)
+                .style(focus_indicator(right_panel_focused)),
+        ]
+        .height(Length::Fill)
+        .spacing(spacing::SM)
+        .into()
+    } else {
+        // Focus mode: only show detail panel
+        row![
+            container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .padding(spacing::SM)
+                .style(focus_indicator(right_panel_focused)),
+        ]
+        .height(Length::Fill)
+        .spacing(spacing::SM)
+        .into()
+    }
 }
 
 fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
@@ -346,6 +398,7 @@ mod tests {
                 default_order: 0,
                 selected_file: None,
                 created_at: chrono::Utc::now(),
+                last_listened: None,
             }],
             ..Default::default()
         };
@@ -444,6 +497,7 @@ mod tests {
                     default_order: 0,
                     selected_file: None,
                     created_at: chrono::Utc::now(),
+                    last_listened: None,
                 },
                 Audiobook {
                     id: Some(2),
@@ -454,6 +508,7 @@ mod tests {
                     default_order: 0,
                     selected_file: None,
                     created_at: chrono::Utc::now(),
+                    last_listened: None,
                 },
             ],
             current_files: vec![AudiobookFile {

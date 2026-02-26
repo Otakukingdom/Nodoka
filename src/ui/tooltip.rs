@@ -54,6 +54,28 @@ pub enum TooltipTarget {
     Settings,
     /// An audiobook item in the library list.
     AudiobookItem,
+    /// The search bar for filtering audiobooks.
+    SearchBar,
+    /// Sort order button.
+    SortButton,
+    /// Filter chip for "All" status.
+    FilterChipAll,
+    /// Filter chip for "In Progress" status.
+    FilterChipInProgress,
+    /// Filter chip for "Complete" status.
+    FilterChipComplete,
+    /// Filter chip for "Not Started" status.
+    FilterChipNotStarted,
+    /// Clear filters button.
+    ClearFilters,
+    /// Continue Listening play button.
+    ContinueListeningPlay,
+    /// Focus mode toggle button.
+    FocusModeToggle,
+    /// Panel resize divider.
+    PanelResizeDivider,
+    /// Theme toggle button.
+    ThemeToggle,
 }
 
 impl TooltipTarget {
@@ -95,6 +117,61 @@ impl TooltipTarget {
                 text: "Select Audiobook".to_string(),
                 position: TooltipPosition::Right,
                 anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::SearchBar => Tooltip {
+                text: "Search audiobooks by title or author (Ctrl+F)".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::SortButton => Tooltip {
+                text: "Change sort order for library".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::FilterChipAll => Tooltip {
+                text: "Show all audiobooks".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::FilterChipInProgress => Tooltip {
+                text: "Show only partially listened audiobooks".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::FilterChipComplete => Tooltip {
+                text: "Show only completed audiobooks".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::FilterChipNotStarted => Tooltip {
+                text: "Show only not-started audiobooks".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::ClearFilters => Tooltip {
+                text: "Reset search, sort, and filters to defaults".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::ContinueListeningPlay => Tooltip {
+                text: "Resume playback where you left off (Ctrl+R)".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::FocusModeToggle => Tooltip {
+                text: "Hide library panel for distraction-free listening (Ctrl+L)".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::TopBar,
+            },
+            Self::PanelResizeDivider => Tooltip {
+                text: "Adjust panel sizes with Ctrl+[ and Ctrl+]".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::LibraryLeft,
+            },
+            Self::ThemeToggle => Tooltip {
+                text: "Switch between light and dark themes (Ctrl+T)".to_string(),
+                position: TooltipPosition::Bottom,
+                anchor: TooltipAnchor::TopBar,
             },
         }
     }

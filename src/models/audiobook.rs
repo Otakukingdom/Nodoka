@@ -22,6 +22,8 @@ pub struct Audiobook {
     pub selected_file: Option<String>,
     /// When this audiobook entry was created.
     pub created_at: DateTime<Utc>,
+    /// Last time this audiobook was played (for "recently played" sorting)
+    pub last_listened: Option<DateTime<Utc>>,
 }
 
 impl Audiobook {
@@ -43,6 +45,7 @@ impl Audiobook {
             default_order,
             selected_file: None,
             created_at: Utc::now(),
+            last_listened: None,
         }
     }
 }

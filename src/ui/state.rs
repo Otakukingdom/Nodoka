@@ -446,6 +446,44 @@ pub enum RippleTarget {
     StopButton,
 }
 
+/// Sort order options for audiobook library
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AudiobookSortOrder {
+    /// Recently played (last listened timestamp)
+    #[default]
+    RecentlyPlayed,
+    /// Alphabetical by title
+    Title,
+    /// By progress percentage
+    Progress,
+    /// By date added
+    DateAdded,
+}
+
+/// Filter status for audiobook library
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AudiobookFilterStatus {
+    /// Show all audiobooks
+    #[default]
+    All,
+    /// Show only in-progress audiobooks
+    InProgress,
+    /// Show only completed audiobooks
+    Complete,
+    /// Show only not-started audiobooks
+    NotStarted,
+}
+
+/// Application theme mode
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ThemeMode {
+    /// Light theme with rose/white palette
+    #[default]
+    Light,
+    /// Dark theme with dark backgrounds
+    Dark,
+}
+
 /// Active modal overlay state
 ///
 /// Tracks which modal (if any) is currently displayed. Only one modal
@@ -537,6 +575,7 @@ pub enum ScanState {
 /// audiobook list is fetched asynchronously at startup; all view functions must
 /// handle this case gracefully.
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct State {
     /// Full list of audiobooks loaded from the database.
     pub audiobooks: Vec<Audiobook>,
@@ -551,6 +590,19 @@ pub struct State {
 
     /// Cached cover thumbnail paths keyed by audiobook ID.
     pub cover_thumbnails: HashMap<i64, PathBuf>,
+
+    /// Search query for filtering audiobook list
+    pub search_query: String,
+    /// Current sort order for audiobooks
+    pub sort_order: AudiobookSortOrder,
+    /// Filter applied to audiobook list (completion status)
+    pub filter_status: AudiobookFilterStatus,
+    /// Panel ratio for library (left) vs detail (right) panels (0.0 to 1.0)
+    pub panel_ratio: f32,
+    /// Whether focus mode is active (hides library panel during playback)
+    pub focus_mode: bool,
+    /// Current theme (light or dark mode)
+    pub theme: ThemeMode,
 
     /// Bookmarks for the selected audiobook.
     pub bookmarks: Vec<Bookmark>,
@@ -634,6 +686,12 @@ impl Default for State {
             selected_file: None,
             directories: Vec::new(),
             cover_thumbnails: HashMap::new(),
+            search_query: String::new(),
+            sort_order: AudiobookSortOrder::default(),
+            filter_status: AudiobookFilterStatus::default(),
+            panel_ratio: 0.4, // 40% left panel, 60% right panel (2:3 ratio)
+            focus_mode: false,
+            theme: ThemeMode::default(),
             bookmarks: Vec::new(),
             bookmark_editor: None,
             playback: PlaybackStatus::Paused,

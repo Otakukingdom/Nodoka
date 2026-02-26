@@ -78,6 +78,40 @@ pub enum Message {
     /// Select the audio file at the given path for playback.
     FileSelected(String),
 
+    // Navigation & Discovery
+    /// Update the search query for filtering audiobooks
+    SearchQueryChanged(String),
+    /// Change the sort order for the audiobook library
+    SortOrderChanged(crate::ui::state::AudiobookSortOrder),
+    /// Change the filter status for the audiobook library
+    FilterStatusChanged(crate::ui::state::AudiobookFilterStatus),
+    /// Clear all filters and search (reset to default view)
+    ClearFilters,
+
+    // Layout & Panels
+    /// Adjust the panel ratio (0.0 = all right, 1.0 = all left)
+    PanelRatioChanged(f32),
+    /// Toggle focus mode (hide library panel during playback)
+    ToggleFocusMode,
+
+    // Theme & Appearance
+    /// Switch between light and dark themes
+    ThemeChanged(crate::ui::state::ThemeMode),
+
+    // Quick Actions
+    /// Play the most recently played audiobook (quick resume)
+    PlayLastListened,
+
+    // Keyboard shortcuts for UI features
+    /// Focus the search bar (Ctrl+F / Cmd+F)
+    FocusSearch,
+    /// Toggle between light and dark theme (Ctrl+T / Cmd+T)
+    ToggleTheme,
+    /// Decrease panel ratio (Ctrl+[ / Cmd+[)
+    DecreasePanelRatio,
+    /// Increase panel ratio (Ctrl+] / Cmd+])
+    IncreasePanelRatio,
+
     // Directory management
     /// Open the OS directory picker to add a new library directory.
     DirectoryAdd,

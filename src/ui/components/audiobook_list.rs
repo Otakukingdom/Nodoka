@@ -22,7 +22,16 @@ use std::path::PathBuf;
 /// - Progress bar visualization for each audiobook
 /// - Improved spacing (8px between items) for better touch targets
 /// - Success indicator for completed audiobooks
+/// - Search/filter/sort support with efficient filtering
+///
+/// # Clippy allowance
+///
+/// This function has 9 parameters which exceeds clippy's default limit.
+/// The parameters represent distinct UI concerns (data, selection, thumbnails,
+/// state, animation, accessibility, and filtering) and grouping them into a
+/// struct would not improve clarity or reduce coupling to State.
 #[must_use]
+#[allow(clippy::too_many_arguments)]
 pub fn view<'a, S: BuildHasher>(
     audiobooks: &'a [Audiobook],
     selected_id: Option<i64>,
@@ -30,22 +39,82 @@ pub fn view<'a, S: BuildHasher>(
     scan_state: &'a ScanState,
     animation_elapsed_ms: u64,
     prefers_reduced_motion: bool,
+    search_query: &str,
+    sort_order: crate::ui::state::AudiobookSortOrder,
+    filter_status: crate::ui::state::AudiobookFilterStatus,
 ) -> Element<'a, Message> {
-    // Show skeleton UI during scanning if list is empty
-    if audiobooks.is_empty() {
+    use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
+
+    // Apply filters to get a filtered list
+    let filtered: Vec<&Audiobook> = audiobooks
+        .iter()
+        .filter(|ab| {
+            // Apply search filter (case-insensitive on title)
+            if !search_query.is_empty() {
+                let query_lower = search_query.to_lowercase();
+                if !ab.name.to_lowercase().contains(&query_lower) {
+                    return false;
+                }
+            }
+
+            // Apply status filter
+            match filter_status {
+                AudiobookFilterStatus::All => true,
+                AudiobookFilterStatus::InProgress => ab.completeness > 0 && ab.completeness < 100,
+                AudiobookFilterStatus::Complete => ab.completeness >= 100,
+                AudiobookFilterStatus::NotStarted => ab.completeness == 0,
+            }
+        })
+        .collect();
+
+    // Check if we should show empty state
+    let has_active_filters = !search_query.is_empty()
+        || sort_order != AudiobookSortOrder::default()
+        || filter_status != AudiobookFilterStatus::default();
+
+    if filtered.is_empty() {
         return match scan_state {
             ScanState::Scanning { .. } => skeleton_audiobook_list(),
-            ScanState::Idle => super::empty_state(
-                None,
-                "No Audiobooks Found",
-                "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
-                Some("Open Settings"),
-                Some(Message::OpenSettings),
-            ),
+            ScanState::Idle => {
+                if has_active_filters {
+                    super::empty_state(
+                        None,
+                        "No Results Found",
+                        "No audiobooks match your current search or filters. Try adjusting your search query or clearing filters.",
+                        Some("Clear Filters"),
+                        Some(Message::ClearFilters),
+                    )
+                } else {
+                    super::empty_state(
+                        None,
+                        "No Audiobooks Found",
+                        "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
+                        Some("Open Settings"),
+                        Some(Message::OpenSettings),
+                    )
+                }
+            }
         };
     }
 
-    let items: Element<_> = audiobooks
+    // Apply sort order (we need to collect into a Vec to sort)
+    let mut sorted_filtered = filtered;
+    match sort_order {
+        AudiobookSortOrder::RecentlyPlayed => {
+            sorted_filtered.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
+        }
+        AudiobookSortOrder::Title => {
+            sorted_filtered.sort_by(|a, b| a.name.cmp(&b.name));
+        }
+        AudiobookSortOrder::Progress => {
+            sorted_filtered.sort_by(|a, b| b.completeness.cmp(&a.completeness));
+        }
+        AudiobookSortOrder::DateAdded => {
+            sorted_filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        }
+    }
+
+    let items: Element<_> = sorted_filtered
         .iter()
         .enumerate()
         .fold(column![].spacing(spacing::SM), |col, (index, ab)| {
@@ -426,6 +495,15 @@ mod tests {
 
     const TEST_ANIMATION_ELAPSED_MS: u64 = 1000;
     const TEST_PREFERS_REDUCED_MOTION: bool = false;
+    const TEST_SEARCH_QUERY: &str = "";
+
+    fn test_sort_order() -> crate::ui::state::AudiobookSortOrder {
+        crate::ui::state::AudiobookSortOrder::default()
+    }
+
+    fn test_filter_status() -> crate::ui::state::AudiobookFilterStatus {
+        crate::ui::state::AudiobookFilterStatus::default()
+    }
 
     fn create_test_audiobook(id: i64, name: &str, completeness: i32) -> Audiobook {
         Audiobook {
@@ -437,6 +515,7 @@ mod tests {
             default_order: 0,
             selected_file: None,
             created_at: chrono::Utc::now(),
+            last_listened: None,
         }
     }
 
@@ -460,6 +539,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -477,6 +559,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -498,6 +583,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -518,6 +606,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -536,6 +627,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -629,6 +723,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -644,6 +741,7 @@ mod tests {
             default_order: 0,
             selected_file: None,
             created_at: chrono::Utc::now(),
+            last_listened: None,
         };
         let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
 
@@ -687,6 +785,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
 
@@ -698,6 +799,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -717,6 +821,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }
@@ -734,6 +841,9 @@ mod tests {
             &scan_state,
             TEST_ANIMATION_ELAPSED_MS,
             TEST_PREFERS_REDUCED_MOTION,
+            TEST_SEARCH_QUERY,
+            test_sort_order(),
+            test_filter_status(),
         );
         drop(element);
     }

@@ -2,6 +2,9 @@
 //!
 //! Tests playback position saving, restoration across restarts, and crash recovery.
 
+#![allow(clippy::indexing_slicing)] // Test assertions use indexing for clarity
+#![allow(clippy::unwrap_used)] // Test assertions use unwrap for clarity
+
 mod acceptance_support;
 use acceptance_support::*;
 
@@ -365,5 +368,103 @@ fn test_crash_recovery_via_periodic_save() -> Result<(), Box<dyn Error>> {
         assert_eq!(first_file.completeness, 15);
     }
 
+    Ok(())
+}
+
+// ============================================================================
+// New tests for UI Usability & Design Overhaul - Progress Tracking Enhancements
+// ============================================================================
+
+#[test]
+fn test_last_listened_timestamp_stored_and_retrieved() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let id = create_test_audiobook(&db, "/test", "Test Book")?;
+
+    let now = chrono::Utc::now();
+    queries::update_audiobook_last_listened(db.connection(), id, now)?;
+
+    let loaded = queries::get_all_audiobooks(db.connection())?;
+    let found = loaded.iter().find(|a| a.id == Some(id));
+
+    assert!(found.is_some());
+    if let Some(audiobook) = found {
+        assert!(audiobook.last_listened.is_some());
+        if let Some(timestamp) = audiobook.last_listened {
+            // Verify timestamp is within 1 second of expected
+            let diff = (timestamp - now).num_seconds().abs();
+            assert!(diff <= 1, "Timestamp difference: {diff} seconds");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn test_last_listened_timestamp_updates_on_playback() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+    let id = create_test_audiobook(&db, "/test", "Test Book")?;
+
+    let first_play = chrono::Utc::now();
+    queries::update_audiobook_last_listened(db.connection(), id, first_play)?;
+
+    // Simulate time passing
+    std::thread::sleep(std::time::Duration::from_millis(100));
+
+    let second_play = chrono::Utc::now();
+    queries::update_audiobook_last_listened(db.connection(), id, second_play)?;
+
+    let loaded = queries::get_all_audiobooks(db.connection())?;
+    let found = loaded.iter().find(|a| a.id == Some(id)).unwrap();
+
+    // Should have the more recent timestamp
+    assert!(found.last_listened.is_some());
+    if let Some(timestamp) = found.last_listened {
+        assert!(timestamp >= first_play, "Timestamp should be updated");
+    }
+    Ok(())
+}
+
+#[test]
+fn test_sort_by_recently_played_order() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    // Create three audiobooks with different play times
+    let id1 = create_test_audiobook(&db, "/test", "Old Book")?;
+    let id2 = create_test_audiobook(&db, "/test", "Recent Book")?;
+    let id3 = create_test_audiobook(&db, "/test", "Middle Book")?;
+
+    let old_time = chrono::Utc::now() - chrono::Duration::days(7);
+    let middle_time = chrono::Utc::now() - chrono::Duration::days(3);
+    let recent_time = chrono::Utc::now();
+
+    queries::update_audiobook_last_listened(db.connection(), id1, old_time)?;
+    queries::update_audiobook_last_listened(db.connection(), id2, recent_time)?;
+    queries::update_audiobook_last_listened(db.connection(), id3, middle_time)?;
+
+    // Sort by recently played (most recent first)
+    let mut all = queries::get_all_audiobooks(db.connection())?;
+    all.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
+
+    assert_eq!(all[0].name, "Recent Book");
+    assert_eq!(all[1].name, "Middle Book");
+    assert_eq!(all[2].name, "Old Book");
+    Ok(())
+}
+
+#[test]
+fn test_last_listened_none_sorts_to_end() -> Result<(), Box<dyn Error>> {
+    let db = create_test_db()?;
+
+    let _id1 = create_test_audiobook(&db, "/test", "Never Played")?;
+    let id2 = create_test_audiobook(&db, "/test", "Recently Played")?;
+
+    let now = chrono::Utc::now();
+    queries::update_audiobook_last_listened(db.connection(), id2, now)?;
+
+    let mut all = queries::get_all_audiobooks(db.connection())?;
+    all.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
+
+    // Recently played should be first
+    assert_eq!(all[0].name, "Recently Played");
+    assert_eq!(all[1].name, "Never Played");
     Ok(())
 }

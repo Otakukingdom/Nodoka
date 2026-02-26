@@ -1,6 +1,8 @@
 use crate::conversions::ms_to_f64;
 use crate::db::Database;
+use crate::models::Audiobook;
 use crate::tasks::{materialize_zip_virtual_path, parse_zip_virtual_path};
+use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
 use crate::ui::{FocusedElement, PlaybackStatus, State};
 use iced::Task;
 use std::path::PathBuf;
@@ -164,6 +166,9 @@ pub(super) fn handle_file_selected<P: MediaControl>(
     path: &str,
 ) -> FileSelectionOutcome {
     state.focused_element = FocusedElement::FileList;
+    
+    // Update last_listened timestamp when a file is selected for playback
+    update_last_listened_on_playback(state, db);
 
     if let Some(p) = player.as_mut() {
         let playback_path = if path.starts_with("zip://") {
@@ -299,4 +304,73 @@ pub(super) fn generate_cover_thumbnail_command(
         },
         |(id, path)| crate::ui::Message::CoverThumbnailGenerated(id, path),
     )
+}
+
+/// Updates the `last_listened` timestamp when a file begins playback
+fn update_last_listened_on_playback(state: &mut State, db: &Database) {
+    if let Some(audiobook_id) = state.selected_audiobook {
+        let now = chrono::Utc::now();
+        
+        // Update in-memory state
+        if let Some(ab) = state
+            .audiobooks
+            .iter_mut()
+            .find(|ab| ab.id == Some(audiobook_id))
+        {
+            ab.last_listened = Some(now);
+        }
+        
+        // Persist to database
+        if let Err(e) = crate::db::queries::update_audiobook_last_listened(
+            db.connection(),
+            audiobook_id,
+            now,
+        ) {
+            tracing::error!("Failed to update last_listened timestamp: {e}");
+        }
+    }
+}
+
+/// Filters and sorts audiobooks based on search query, filter status, and sort order
+///
+/// This function modifies the audiobooks vec in-place by:
+/// 1. Filtering by search query (case-insensitive title match)
+/// 2. Filtering by completion status (all, in-progress, complete, not-started)
+/// 3. Sorting by the specified order (recently played, title, progress, date added)
+#[allow(dead_code)]
+pub fn filter_and_sort_audiobooks(
+    audiobooks: &mut Vec<Audiobook>,
+    search_query: &str,
+    sort_order: AudiobookSortOrder,
+    filter_status: AudiobookFilterStatus,
+) {
+    // Apply search filter (case-insensitive on title)
+    if !search_query.is_empty() {
+        let query_lower = search_query.to_lowercase();
+        audiobooks.retain(|ab| ab.name.to_lowercase().contains(&query_lower));
+    }
+
+    // Apply status filter
+    audiobooks.retain(|ab| match filter_status {
+        AudiobookFilterStatus::All => true,
+        AudiobookFilterStatus::InProgress => ab.completeness > 0 && ab.completeness < 100,
+        AudiobookFilterStatus::Complete => ab.completeness >= 100,
+        AudiobookFilterStatus::NotStarted => ab.completeness == 0,
+    });
+
+    // Apply sort order
+    match sort_order {
+        AudiobookSortOrder::RecentlyPlayed => {
+            audiobooks.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
+        }
+        AudiobookSortOrder::Title => {
+            audiobooks.sort_by(|a, b| a.name.cmp(&b.name));
+        }
+        AudiobookSortOrder::Progress => {
+            audiobooks.sort_by(|a, b| b.completeness.cmp(&a.completeness));
+        }
+        AudiobookSortOrder::DateAdded => {
+            audiobooks.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        }
+    }
 }
