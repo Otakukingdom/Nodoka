@@ -609,21 +609,61 @@ fn calculate_progress_summary(
         parts.push(format!("Chapter {current} of {total_files}"));
     }
 
-    // Add remaining time if available
-    if let Some(total_ms) = total_duration_ms {
-        if total_ms > 0 {
-            // Calculate approximate remaining based on file count
-            // This is a rough estimate - ideally we'd sum actual durations
-            if let Some(current) = current_index {
-                let files_remaining = total_files.saturating_sub(current);
-                if files_remaining > 0 {
-                    parts.push(format!("{files_remaining} chapters remaining"));
-                }
-            }
+    if let Some(remaining_ms) = compute_remaining_duration_ms(files, total_duration_ms) {
+        if remaining_ms > 0 {
+            parts.push(format_compact_remaining_hm(remaining_ms));
         }
     }
 
     parts.join(" · ")
+}
+
+fn compute_remaining_duration_ms(
+    files: &[crate::models::AudiobookFile],
+    total_duration_ms: Option<i64>,
+) -> Option<i64> {
+    if files.is_empty() {
+        return None;
+    }
+
+    let mut sum_remaining: i64 = 0;
+    let mut all_have_lengths = true;
+
+    for file in files {
+        match file.length_of_file {
+            Some(length_ms) if length_ms > 0 => {
+                let seek_ms = file.seek_position.unwrap_or(0);
+                sum_remaining = sum_remaining.saturating_add((length_ms - seek_ms).max(0));
+            }
+            _ => {
+                all_have_lengths = false;
+            }
+        }
+    }
+
+    if all_have_lengths {
+        return Some(sum_remaining);
+    }
+
+    let total_ms = total_duration_ms.filter(|v| *v > 0)?;
+
+    let played_ms: i64 = files.iter().map(|f| f.seek_position.unwrap_or(0)).sum();
+
+    Some((total_ms - played_ms).max(0))
+}
+
+fn format_compact_remaining_hm(remaining_ms: i64) -> String {
+    let remaining_ms = remaining_ms.max(0);
+
+    let minutes_total = (remaining_ms.saturating_add(59_999) / 60_000).max(0);
+    let hours = minutes_total / 60;
+    let minutes = minutes_total % 60;
+
+    if hours > 0 {
+        format!("{hours}h {minutes}m remaining")
+    } else {
+        format!("{minutes}m remaining")
+    }
 }
 
 /// Formats time in milliseconds for display (H:MM:SS or M:SS format)
@@ -658,6 +698,7 @@ fn format_time_remaining(ms: f64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::AudiobookFile;
     use crate::models::SleepTimer;
 
     #[test]
@@ -850,5 +891,55 @@ mod tests {
         };
         let element = view(&state_max);
         drop(element);
+    }
+
+    #[test]
+    fn test_calculate_progress_summary_includes_remaining_time_across_files() {
+        let audiobook_id = 1;
+
+        let mut f1 = AudiobookFile::new(
+            audiobook_id,
+            "ch1.mp3".to_string(),
+            "/dir/book/ch1.mp3".to_string(),
+            0,
+        );
+        f1.length_of_file = Some(60 * 60 * 1000);
+        f1.seek_position = Some(60 * 60 * 1000);
+        f1.completeness = 100;
+
+        let mut f2 = AudiobookFile::new(
+            audiobook_id,
+            "ch2.mp3".to_string(),
+            "/dir/book/ch2.mp3".to_string(),
+            1,
+        );
+        f2.length_of_file = Some(2 * 60 * 60 * 1000);
+        f2.seek_position = Some(15 * 60 * 1000);
+        f2.completeness = 12;
+
+        let mut f3 = AudiobookFile::new(
+            audiobook_id,
+            "ch3.mp3".to_string(),
+            "/dir/book/ch3.mp3".to_string(),
+            2,
+        );
+        f3.length_of_file = Some(60 * 60 * 1000);
+        f3.seek_position = None;
+        f3.completeness = 0;
+
+        let files = vec![f1, f2, f3];
+        let total_ms = Some(4 * 60 * 60 * 1000);
+
+        let summary =
+            calculate_progress_summary(&files, Some(&"/dir/book/ch2.mp3".to_string()), total_ms);
+
+        assert!(
+            summary.contains("Chapter 2 of 3"),
+            "summary should include chapter position"
+        );
+        assert!(
+            summary.contains("2h 45m remaining"),
+            "summary should include remaining time across files; got: {summary}"
+        );
     }
 }

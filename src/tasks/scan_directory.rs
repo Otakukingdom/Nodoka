@@ -237,14 +237,14 @@ fn fs_fingerprint(path: &Path) -> std::io::Result<String> {
 /// Returns `None` if no author pattern is detected.
 fn extract_author_from_path(path: &Path) -> Option<String> {
     // Try to get the parent directory name (often the author in audiobook collections)
-    let parent_name = path.parent()
+    let parent_name = path
+        .parent()
         .and_then(|p| p.file_name())
         .and_then(|n| n.to_str())
         .map(str::to_string);
 
     // Also try to extract from the directory name itself
-    let dir_name = path.file_name()
-        .and_then(|n| n.to_str())?;
+    let dir_name = path.file_name().and_then(|n| n.to_str())?;
 
     // Pattern: "BookTitle by Author"
     if let Some(by_pos) = dir_name.find(" by ") {
@@ -254,7 +254,7 @@ fn extract_author_from_path(path: &Path) -> Option<String> {
         }
     }
 
-    // Pattern: "Author - BookTitle"  
+    // Pattern: "Author - BookTitle"
     if let Some(dash_pos) = dir_name.find(" - ") {
         let possible_author = &dir_name[..dash_pos];
         // Only use if it looks like an author name (not too long, doesn't start with numbers)
@@ -266,7 +266,14 @@ fn extract_author_from_path(path: &Path) -> Option<String> {
     // Use parent directory name if it looks reasonable
     if let Some(parent) = parent_name {
         // Avoid using generic folder names as authors
-        let generic_names = ["audiobooks", "books", "audio", "media", "downloads", "library"];
+        let generic_names = [
+            "audiobooks",
+            "books",
+            "audio",
+            "media",
+            "downloads",
+            "library",
+        ];
         if !generic_names.contains(&parent.to_lowercase().as_str()) && parent.len() < 50 {
             return Some(parent);
         }

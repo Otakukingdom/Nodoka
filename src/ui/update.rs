@@ -151,7 +151,11 @@ pub fn update(
     }
 }
 
-fn handle_panel_divider_message(state: &mut State, message: &Message, db: &Database) -> Task<Message> {
+fn handle_panel_divider_message(
+    state: &mut State,
+    message: &Message,
+    db: &Database,
+) -> Task<Message> {
     match message {
         Message::PanelDividerDragStart => {
             state.panel_divider_dragging = true;
@@ -430,7 +434,9 @@ fn handle_layout_message(state: &mut State, message: &Message, db: &Database) ->
         Message::PanelRatioChanged(ratio) => {
             state.panel_ratio = ratio.clamp(0.2, 0.8);
             // Persist to database
-            if let Err(e) = crate::settings::Settings::new(db.connection()).set_panel_ratio(state.panel_ratio) {
+            if let Err(e) =
+                crate::settings::Settings::new(db.connection()).set_panel_ratio(state.panel_ratio)
+            {
                 tracing::error!("Failed to save panel ratio: {e}");
             }
             Task::none()
@@ -438,7 +444,9 @@ fn handle_layout_message(state: &mut State, message: &Message, db: &Database) ->
         Message::ToggleFocusMode => {
             state.focus_mode = !state.focus_mode;
             // Persist to database
-            if let Err(e) = crate::settings::Settings::new(db.connection()).set_focus_mode(state.focus_mode) {
+            if let Err(e) =
+                crate::settings::Settings::new(db.connection()).set_focus_mode(state.focus_mode)
+            {
                 tracing::error!("Failed to save focus mode: {e}");
             }
             Task::none()
@@ -481,17 +489,41 @@ fn handle_play_last_listened(
         }
     };
 
-    // Select the audiobook first
+    // Select the audiobook first (synchronously loads `current_files`)
     let load_task = library::handle_audiobook_selected(state, player, db, audiobook_id);
 
-    // If there's a selected file, load it and start playback
-    if let Some(file_path) = selected_file {
-        return Task::batch(vec![
-            load_task,
-            Task::done(Message::FileSelected(file_path)),
-        ]);
+    let resume_path = selected_file.or_else(|| derive_resume_file_path(&state.current_files));
+
+    let Some(resume_path) = resume_path else {
+        return load_task;
+    };
+
+    let file_task = library::handle_file_selected(state, player, db, &resume_path).task;
+    Task::batch(vec![load_task, file_task])
+}
+
+fn derive_resume_file_path(files: &[crate::models::AudiobookFile]) -> Option<String> {
+    if files.is_empty() {
+        return None;
     }
 
-    // Otherwise, just load the audiobook and let the user manually select a file
-    load_task
+    let in_progress_with_seek = files
+        .iter()
+        .filter(|f| f.completeness < 100 && f.seek_position.unwrap_or(0) > 0)
+        .max_by_key(|f| (f.position, f.seek_position.unwrap_or(0)));
+
+    if let Some(file) = in_progress_with_seek {
+        return Some(file.full_path.clone());
+    }
+
+    let first_incomplete = files
+        .iter()
+        .filter(|f| f.completeness < 100)
+        .min_by_key(|f| f.position);
+
+    if let Some(file) = first_incomplete {
+        return Some(file.full_path.clone());
+    }
+
+    files.first().map(|f| f.full_path.clone())
 }

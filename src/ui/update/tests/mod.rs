@@ -9,6 +9,7 @@ pub(super) mod directory_ops;
 pub(super) mod file_selection;
 pub(super) mod focus;
 pub(super) mod player_settings;
+pub(super) mod quick_resume;
 pub(super) mod sleep_timer;
 pub(super) mod smoke;
 pub(super) mod time_updates;

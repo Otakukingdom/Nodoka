@@ -255,45 +255,36 @@ impl iced::Program for App {
             }
         }
 
-        // Load user preferences from user_preferences table
-        if let Ok(prefs) = crate::db::queries::get_all_preferences(flags.connection()) {
-            // Load theme preference
-            if let Some(theme_str) = prefs.get("theme_mode") {
-                let canonical = match theme_str.trim().to_ascii_lowercase().as_str() {
-                    "dark" => Some((crate::ui::state::ThemeMode::Dark, "Dark")),
-                    "light" => Some((crate::ui::state::ThemeMode::Light, "Light")),
-                    _ => None,
+        // Load user preferences using migration-aware settings getters.
+        let settings = crate::settings::Settings::new(flags.connection());
+
+        match settings.get_theme() {
+            Ok(theme) => {
+                state.theme = match theme.as_str() {
+                    "Dark" => crate::ui::state::ThemeMode::Dark,
+                    _ => crate::ui::state::ThemeMode::Light,
                 };
-
-                if let Some((mode, canonical_str)) = canonical {
-                    state.theme = mode;
-
-                    if theme_str != canonical_str {
-                        if let Err(e) = crate::db::queries::set_preference(
-                            flags.connection(),
-                            "theme_mode",
-                            canonical_str,
-                        ) {
-                            tracing::warn!("Failed to normalize theme preference: {e}");
-                        }
-                    }
-                } else {
-                    tracing::warn!("Unknown theme mode: {theme_str}");
-                }
             }
-
-            // Load panel ratio preference
-            if let Some(ratio_str) = prefs.get("panel_ratio") {
-                if let Ok(ratio) = ratio_str.parse::<f32>() {
-                    state.panel_ratio = ratio.clamp(0.2, 0.8);
-                }
+            Err(e) => {
+                tracing::warn!("Failed to load theme preference: {e}");
             }
+        }
 
-            // Load focus mode preference
-            if let Some(focus_str) = prefs.get("focus_mode") {
-                if let Some(focus) = parse_bool_metadata(focus_str) {
-                    state.focus_mode = focus;
-                }
+        match settings.get_panel_ratio() {
+            Ok(ratio) => {
+                state.panel_ratio = ratio.clamp(0.2, 0.8);
+            }
+            Err(e) => {
+                tracing::warn!("Failed to load panel ratio preference: {e}");
+            }
+        }
+
+        match settings.get_focus_mode() {
+            Ok(enabled) => {
+                state.focus_mode = enabled;
+            }
+            Err(e) => {
+                tracing::warn!("Failed to load focus mode preference: {e}");
             }
         }
 
@@ -529,6 +520,32 @@ mod tests {
         assert!(!state.bookmarks.is_empty());
         assert!(state.file_list_animation_start_ms.is_some());
         assert!(state.bookmark_list_animation_start_ms.is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn test_boot_restores_preferences_via_migration_aware_settings_getters(
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        use iced::Program as _;
+
+        let db = Database::new_in_memory()?;
+        db::initialize(db.connection())?;
+
+        // Legacy metadata keys should still restore preferences.
+        crate::db::queries::set_metadata(db.connection(), "theme", "Dark")?;
+        crate::db::queries::set_metadata(db.connection(), "panel_ratio", "0.7")?;
+        crate::db::queries::set_metadata(db.connection(), "focus_mode", "true")?;
+
+        let app = App {
+            player: RefCell::new(None),
+            db,
+        };
+
+        let (state, _cmd) = app.boot();
+
+        assert_eq!(state.theme, crate::ui::state::ThemeMode::Dark);
+        assert!((state.panel_ratio - 0.7).abs() < 0.0001);
+        assert!(state.focus_mode);
         Ok(())
     }
 }

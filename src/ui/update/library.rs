@@ -164,9 +164,6 @@ pub(super) fn handle_file_selected<P: MediaControl>(
     path: &str,
 ) -> FileSelectionOutcome {
     state.focused_element = FocusedElement::FileList;
-    
-    // Update last_listened timestamp when a file is selected for playback
-    update_last_listened_on_playback(state, db);
 
     if let Some(p) = player.as_mut() {
         let playback_path = if path.starts_with("zip://") {
@@ -228,6 +225,7 @@ pub(super) fn handle_file_selected<P: MediaControl>(
             state.playback = PlaybackStatus::Paused;
         } else {
             state.playback = PlaybackStatus::Playing;
+            update_last_listened_on_playback(state, db);
         }
         return FileSelectionOutcome {
             task: Task::none(),
@@ -308,7 +306,7 @@ pub(super) fn generate_cover_thumbnail_command(
 fn update_last_listened_on_playback(state: &mut State, db: &Database) {
     if let Some(audiobook_id) = state.selected_audiobook {
         let now = chrono::Utc::now();
-        
+
         // Update in-memory state
         if let Some(ab) = state
             .audiobooks
@@ -317,13 +315,11 @@ fn update_last_listened_on_playback(state: &mut State, db: &Database) {
         {
             ab.last_listened = Some(now);
         }
-        
+
         // Persist to database
-        if let Err(e) = crate::db::queries::update_audiobook_last_listened(
-            db.connection(),
-            audiobook_id,
-            now,
-        ) {
+        if let Err(e) =
+            crate::db::queries::update_audiobook_last_listened(db.connection(), audiobook_id, now)
+        {
             tracing::error!("Failed to update last_listened timestamp: {e}");
         }
     }

@@ -61,6 +61,55 @@ fn test_handle_file_selected_does_not_change_selection_or_db_on_load_failure(
 }
 
 #[test]
+fn test_handle_file_selected_does_not_update_last_listened_on_load_failure(
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    use super::super::library::handle_file_selected;
+
+    let db = Database::new_in_memory()?;
+    db::initialize(db.connection())?;
+
+    let mut audiobook = Audiobook::new(
+        "/dir".to_string(),
+        "Test".to_string(),
+        "/dir/book".to_string(),
+        0,
+    );
+    let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
+    audiobook.id = Some(audiobook_id);
+
+    let file_path = "/dir/book/ch1.mp3";
+    let file = AudiobookFile::new(audiobook_id, "ch1".to_string(), file_path.to_string(), 0);
+    crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
+
+    let mut state = State {
+        selected_audiobook: Some(audiobook_id),
+        audiobooks: vec![audiobook],
+        ..Default::default()
+    };
+
+    let mut player = Some(FailingLoadPlayer);
+    let _ = handle_file_selected(&mut state, &mut player, &db, file_path);
+
+    let saved = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+        .ok_or_else(|| Error::AudiobookNotFound(audiobook_id))?;
+    assert!(
+        saved.last_listened.is_none(),
+        "load failure should not mark audiobook as recently listened"
+    );
+
+    let in_memory = state
+        .audiobooks
+        .iter()
+        .find(|ab| ab.id == Some(audiobook_id))
+        .and_then(|ab| ab.last_listened);
+    assert!(
+        in_memory.is_none(),
+        "load failure should not update in-memory last_listened"
+    );
+    Ok(())
+}
+
+#[test]
 fn test_handle_file_selected_clears_error_on_successful_play(
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
     use super::super::library::handle_file_selected;

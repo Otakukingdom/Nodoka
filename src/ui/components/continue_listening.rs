@@ -143,7 +143,7 @@ fn format_remaining_ms(remaining_ms: i64) -> String {
 
 fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
     container(
-        text("🎧")
+        text("[AUDIO]")
             .size(size * 0.6)
             .width(Length::Fill)
             .height(Length::Fill)

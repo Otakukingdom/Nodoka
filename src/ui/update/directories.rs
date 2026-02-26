@@ -405,10 +405,7 @@ fn update_audiobook_total_duration(db: &Database, audiobook_id: i64) {
     };
 
     // Sum up all file durations (skip files without duration)
-    let total_duration_ms: i64 = files
-        .iter()
-        .filter_map(|f| f.length_of_file)
-        .sum();
+    let total_duration_ms: i64 = files.iter().filter_map(|f| f.length_of_file).sum();
 
     // Only store if we have at least one file with duration
     let duration_to_store = if total_duration_ms > 0 {
@@ -458,7 +455,8 @@ mod tests {
             "/test/book".to_string(),
             0,
         );
-        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+        let audiobook_id =
+            crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
 
         // Insert some files with durations
         let file1 = crate::models::AudiobookFile {
@@ -510,7 +508,8 @@ mod tests {
             "/test/book".to_string(),
             0,
         );
-        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+        let audiobook_id =
+            crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
 
         // Insert file without duration
         let file = crate::models::AudiobookFile {
