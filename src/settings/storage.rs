@@ -312,7 +312,7 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database update fails
     pub fn set_panel_ratio(&self, ratio: f32) -> Result<()> {
-        set_metadata(self.conn, "panel_ratio", &ratio.to_string())
+        crate::db::queries::set_preference(self.conn, "panel_ratio", &ratio.to_string())
     }
 
     /// Gets the focus mode setting
@@ -332,7 +332,7 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database update fails
     pub fn set_focus_mode(&self, enabled: bool) -> Result<()> {
-        set_metadata(self.conn, "focus_mode", &enabled.to_string())
+        crate::db::queries::set_preference(self.conn, "focus_mode", &enabled.to_string())
     }
 
     /// Gets the theme setting
@@ -350,7 +350,7 @@ impl<'a> Settings<'a> {
     ///
     /// Returns an error if the database update fails
     pub fn set_theme(&self, theme: &str) -> Result<()> {
-        set_metadata(self.conn, "theme", theme)
+        crate::db::queries::set_preference(self.conn, "theme_mode", theme)
     }
 
     /// Resets all settings to defaults

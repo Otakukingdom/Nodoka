@@ -182,6 +182,7 @@ impl iced::Program for App {
         None // Window settings are provided via Settings in run()
     }
 
+    #[allow(clippy::too_many_lines)]
     fn boot(&self) -> (Self::State, Task<Self::Message>) {
         let flags = &self.db; // Access db from self
         let mut state = State::default();
@@ -251,6 +252,32 @@ impl iced::Program for App {
                 state.prefers_reduced_motion = prefers_reduced_motion;
             } else {
                 tracing::warn!("Invalid prefers_reduced_motion metadata: {pref_str}");
+            }
+        }
+
+        // Load user preferences from user_preferences table
+        if let Ok(prefs) = crate::db::queries::get_all_preferences(flags.connection()) {
+            // Load theme preference
+            if let Some(theme_str) = prefs.get("theme_mode") {
+                match theme_str.as_str() {
+                    "Dark" => state.theme = crate::ui::state::ThemeMode::Dark,
+                    "Light" => state.theme = crate::ui::state::ThemeMode::Light,
+                    _ => tracing::warn!("Unknown theme mode: {theme_str}"),
+                }
+            }
+
+            // Load panel ratio preference
+            if let Some(ratio_str) = prefs.get("panel_ratio") {
+                if let Ok(ratio) = ratio_str.parse::<f32>() {
+                    state.panel_ratio = ratio.clamp(0.2, 0.8);
+                }
+            }
+
+            // Load focus mode preference
+            if let Some(focus_str) = prefs.get("focus_mode") {
+                if let Some(focus) = parse_bool_metadata(focus_str) {
+                    state.focus_mode = focus;
+                }
             }
         }
 

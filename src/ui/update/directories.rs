@@ -326,6 +326,9 @@ fn process_audiobook_files(db: &Database, audiobook_id: i64, files: Vec<Discover
     for (pos, file) in files.into_iter().enumerate() {
         process_single_file(db, audiobook_id, pos, file);
     }
+
+    // Calculate and update total duration after processing all files
+    update_audiobook_total_duration(db, audiobook_id);
 }
 
 fn process_single_file(db: &Database, audiobook_id: i64, pos: usize, discovered: DiscoveredFile) {
@@ -385,6 +388,45 @@ fn finalize_directory_scan(state: &mut State, db: &Database, directory: &str) {
     }
 }
 
+/// Calculates and updates the total duration for an audiobook
+///
+/// Sums all file durations and stores in the audiobook's total_duration_ms field.
+/// This enables accurate remaining time calculations in the UI.
+fn update_audiobook_total_duration(db: &Database, audiobook_id: i64) {
+    // Get all files for this audiobook
+    let files = match crate::db::queries::get_audiobook_files(db.connection(), audiobook_id) {
+        Ok(files) => files,
+        Err(e) => {
+            tracing::error!(
+                "Failed to get files for audiobook {audiobook_id} while calculating duration: {e}"
+            );
+            return;
+        }
+    };
+
+    // Sum up all file durations (skip files without duration)
+    let total_duration_ms: i64 = files
+        .iter()
+        .filter_map(|f| f.length_of_file)
+        .sum();
+
+    // Only store if we have at least one file with duration
+    let duration_to_store = if total_duration_ms > 0 {
+        Some(total_duration_ms)
+    } else {
+        None
+    };
+
+    // Update the audiobook's total duration
+    if let Err(e) = crate::db::queries::update_audiobook_total_duration(
+        db.connection(),
+        audiobook_id,
+        duration_to_store,
+    ) {
+        tracing::error!("Failed to update total duration for audiobook {audiobook_id}: {e}");
+    }
+}
+
 fn start_directory_scan(path: String) -> Task<Message> {
     Task::perform(
         async move {
@@ -397,4 +439,99 @@ fn start_directory_scan(path: String) -> Task<Message> {
             Err(error) => Message::ScanError(error.to_string()),
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_update_audiobook_total_duration_calculates_sum() {
+        let db = crate::db::Database::new_in_memory().unwrap();
+        crate::db::initialize(db.connection()).unwrap();
+
+        // Create an audiobook
+        let audiobook = crate::models::Audiobook::new(
+            "/test".to_string(),
+            "Test Book".to_string(),
+            "/test/book".to_string(),
+            0,
+        );
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+
+        // Insert some files with durations
+        let file1 = crate::models::AudiobookFile {
+            audiobook_id,
+            name: "Chapter 1".to_string(),
+            full_path: "/test/book/chapter1.mp3".to_string(),
+            length_of_file: Some(3_600_000), // 1 hour
+            seek_position: None,
+            checksum: None,
+            position: 0,
+            completeness: 0,
+            file_exists: true,
+            created_at: chrono::Utc::now(),
+        };
+        crate::db::queries::insert_audiobook_file(db.connection(), &file1).unwrap();
+
+        let file2 = crate::models::AudiobookFile {
+            audiobook_id,
+            name: "Chapter 2".to_string(),
+            full_path: "/test/book/chapter2.mp3".to_string(),
+            length_of_file: Some(7_200_000), // 2 hours
+            seek_position: None,
+            checksum: None,
+            position: 1,
+            completeness: 0,
+            file_exists: true,
+            created_at: chrono::Utc::now(),
+        };
+        crate::db::queries::insert_audiobook_file(db.connection(), &file2).unwrap();
+
+        // Calculate total duration
+        update_audiobook_total_duration(&db, audiobook_id);
+
+        // Verify total duration was stored correctly
+        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
+            .unwrap()
+            .unwrap();
+        assert_eq!(updated.total_duration_ms, Some(10_800_000)); // 3 hours total
+    }
+
+    #[test]
+    fn test_update_audiobook_total_duration_handles_missing_durations() {
+        let db = crate::db::Database::new_in_memory().unwrap();
+        crate::db::initialize(db.connection()).unwrap();
+
+        let audiobook = crate::models::Audiobook::new(
+            "/test".to_string(),
+            "Test Book".to_string(),
+            "/test/book".to_string(),
+            0,
+        );
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+
+        // Insert file without duration
+        let file = crate::models::AudiobookFile {
+            audiobook_id,
+            name: "Chapter 1".to_string(),
+            full_path: "/test/book/chapter1.mp3".to_string(),
+            length_of_file: None,
+            seek_position: None,
+            checksum: None,
+            position: 0,
+            completeness: 0,
+            file_exists: true,
+            created_at: chrono::Utc::now(),
+        };
+        crate::db::queries::insert_audiobook_file(db.connection(), &file).unwrap();
+
+        update_audiobook_total_duration(&db, audiobook_id);
+
+        // Should be None when no files have durations
+        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
+            .unwrap()
+            .unwrap();
+        assert_eq!(updated.total_duration_ms, None);
+    }
 }

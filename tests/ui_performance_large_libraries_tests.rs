@@ -17,10 +17,12 @@ fn create_test_audiobook(id: i64) -> Audiobook {
         id: Some(id),
         directory: format!("/test/dir{id}"),
         name: format!("Test Audiobook {id:04}"),
+        author: None,
         full_path: format!("/test/dir{id}/audiobook"),
         completeness: i32::try_from(id % 101).unwrap_or(0), // 0-100% range
         default_order: i32::try_from(id).unwrap_or(0),
         selected_file: None,
+        total_duration_ms: None,
         created_at: chrono::Utc::now(),
         last_listened: None,
     }

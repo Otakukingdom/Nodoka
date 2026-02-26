@@ -79,6 +79,12 @@ pub fn initialize(conn: &Connection) -> Result<()> {
     // Add last_listened column if it doesn't exist (for existing databases)
     ensure_column_exists(conn, "audiobooks", "last_listened", "TEXT")?;
 
+    // Add author column if it doesn't exist (for author metadata)
+    ensure_column_exists(conn, "audiobooks", "author", "TEXT")?;
+
+    // Add total_duration_ms column if it doesn't exist (for remaining time calculations)
+    ensure_column_exists(conn, "audiobooks", "total_duration_ms", "INTEGER")?;
+
     // Create audiobook_file table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS audiobook_file (
@@ -111,6 +117,16 @@ pub fn initialize(conn: &Connection) -> Result<()> {
             note TEXT,
             created_at TEXT NOT NULL,
             FOREIGN KEY (audiobook_id) REFERENCES audiobooks(id) ON DELETE CASCADE
+        )",
+        [],
+    )?;
+
+    // Create user_preferences table for persistent user settings
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS user_preferences (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
         )",
         [],
     )?;

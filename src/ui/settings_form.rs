@@ -135,6 +135,63 @@ fn build_appearance_section(state: &State) -> Element<'static, Message> {
     .into()
 }
 
+fn build_playback_section(state: &State) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+
+    column![
+        container(text("Playback").size(typography::SIZE_LG))
+            .padding(iced::Padding {
+                top: spacing::LG,
+                right: 0.0,
+                bottom: spacing::SM,
+                left: 0.0,
+            })
+            .style(|_theme: &iced::Theme| container::Style {
+                text_color: Some(colors::PRIMARY),
+                ..Default::default()
+            }),
+        container(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(2.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BORDER_DEFAULT.into()),
+                ..Default::default()
+            }),
+        container(
+            column![
+                row![
+                    text("Current Speed:").size(typography::SIZE_SM),
+                    Space::new().width(Length::Fill),
+                    text(format!("{:.2}x", state.speed))
+                        .size(typography::SIZE_SM)
+                        .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                            color: Some(colors::TEXT_SECONDARY),
+                        }),
+                ]
+                .spacing(spacing::MD),
+                row![
+                    text("Current Volume:").size(typography::SIZE_SM),
+                    Space::new().width(Length::Fill),
+                    text(format!("{}%", state.volume))
+                        .size(typography::SIZE_SM)
+                        .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                            color: Some(colors::TEXT_SECONDARY),
+                        }),
+                ]
+                .spacing(spacing::MD),
+            ]
+            .spacing(spacing::SM)
+        )
+        .padding(iced::Padding {
+            top: spacing::SM,
+            right: 0.0,
+            bottom: spacing::SM,
+            left: 0.0,
+        }),
+    ]
+    .into()
+}
+
 fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
     use crate::ui::styles::colors;
 
@@ -257,6 +314,7 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
                 ..Default::default()
             }),
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
+            build_playback_section(state),
             build_appearance_section(state),
             build_keyboard_shortcuts_section(),
             action_buttons,

@@ -12,6 +12,8 @@ pub struct Audiobook {
     pub directory: String,
     /// Display name derived from the folder name.
     pub name: String,
+    /// Author name extracted from metadata or directory structure.
+    pub author: Option<String>,
     /// Full path to the audiobook directory.
     pub full_path: String,
     /// Completion percentage in the range 0-100.
@@ -20,6 +22,8 @@ pub struct Audiobook {
     pub default_order: i32,
     /// Selected file path (if the user chose a specific chapter/file to start from).
     pub selected_file: Option<String>,
+    /// Total duration of all files in milliseconds.
+    pub total_duration_ms: Option<i64>,
     /// When this audiobook entry was created.
     pub created_at: DateTime<Utc>,
     /// Last time this audiobook was played (for "recently played" sorting)
@@ -40,10 +44,12 @@ impl Audiobook {
             id: None,
             directory,
             name,
+            author: None,
             full_path,
             completeness: 0,
             default_order,
             selected_file: None,
+            total_duration_ms: None,
             created_at: Utc::now(),
             last_listened: None,
         }

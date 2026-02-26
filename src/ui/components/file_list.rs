@@ -59,6 +59,7 @@ pub fn view<'a>(
 /// - Subtle background color change on hover with smooth transition
 /// - Disabled cursor for missing files
 /// - Consistent spacing following 4px grid system (8px between items)
+#[allow(clippy::too_many_lines)]
 fn build_file_item(
     file: &AudiobookFile,
     selected: bool,
@@ -77,15 +78,30 @@ fn build_file_item(
     let path = file.full_path.clone();
     let opacity = animation.opacity;
 
-    let status_indicator =
-        build_status_indicator(is_missing, is_complete, has_progress, completeness, opacity);
+    let status_indicator = build_status_indicator(
+        is_missing,
+        is_complete,
+        has_progress,
+        selected,
+        completeness,
+        opacity,
+    );
     let progress_element =
         build_progress_element(has_progress, is_complete, is_missing, completeness);
     let file_number_badge = build_file_number_badge(file_number, opacity);
+
+    // Show "Continue from" marker for selected file with progress
+    let continue_marker = if selected && has_progress && !is_complete {
+        format_continue_position(file.seek_position.as_ref())
+    } else {
+        String::new()
+    };
+
     let content_column = build_content_column(
         file.name.clone(),
         duration,
         time_remaining,
+        continue_marker,
         file_number_badge,
         progress_element,
         status_indicator,
@@ -174,30 +190,43 @@ fn build_file_item(
         .into()
 }
 
+#[allow(clippy::fn_params_excessive_bools)]
 fn build_status_indicator(
     is_missing: bool,
     is_complete: bool,
     has_progress: bool,
+    is_selected: bool,
     completeness: i32,
     opacity: f32,
 ) -> iced::widget::Container<'static, Message> {
     use crate::ui::styles::colors;
 
+    // Simplified status indicators: checkmark for complete, warning for missing,
+    // play icon for current file with progress, nothing for upcoming
     if is_missing {
-        container(text("[MISSING]").size(typography::SIZE_SM)).style(move |_theme: &iced::Theme| {
+        container(text("⚠").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
             container::Style {
                 text_color: Some(with_alpha(colors::WARNING, opacity)),
                 ..Default::default()
             }
         })
     } else if is_complete {
-        container(text("[COMPLETE]").size(typography::SIZE_SM)).style(
-            move |_theme: &iced::Theme| container::Style {
+        container(text("✓").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
+            container::Style {
                 text_color: Some(with_alpha(colors::SUCCESS, opacity)),
                 ..Default::default()
-            },
-        )
+            }
+        })
+    } else if is_selected && has_progress {
+        // Show play icon for current file with progress (more prominent than percentage)
+        container(text("▶").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
+            container::Style {
+                text_color: Some(with_alpha(colors::PRIMARY, opacity)),
+                ..Default::default()
+            }
+        })
     } else if has_progress {
+        // Show percentage only for in-progress files that aren't selected
         container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
             move |_theme: &iced::Theme| container::Style {
                 text_color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
@@ -257,6 +286,7 @@ fn build_content_column(
     name: String,
     duration: String,
     time_remaining: String,
+    continue_marker: String,
     file_number_badge: iced::widget::Container<'static, Message>,
     progress_element: iced::widget::Container<'static, Message>,
     status_indicator: iced::widget::Container<'static, Message>,
@@ -278,34 +308,44 @@ fn build_content_column(
         duration
     };
 
-    column![
-        row![
-            file_number_badge,
-            text(name)
-                .size(typography::SIZE_SM)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
-            Space::new().width(Length::Fill),
-            // Duration and time remaining display
-            text(duration_text)
-                .size(typography::SIZE_SM)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-                }),
-        ]
-        .spacing(spacing::SM)
-        .align_y(iced::Alignment::Center),
-        progress_element,
-        row![Space::new().width(Length::Fill), status_indicator,]
+    let mut content = column![row![
+        file_number_badge,
+        text(name)
+            .size(typography::SIZE_SM)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+            }),
+        Space::new().width(Length::Fill),
+        // Duration and time remaining display
+        text(duration_text)
+            .size(typography::SIZE_SM)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+            }),
     ]
-    .padding(iced::Padding {
-        top: spacing::SM + offset_y,
-        bottom: spacing::SM + (max_offset - offset_y),
-        left: spacing::SM,
-        right: spacing::SM,
-    })
-    .spacing(spacing::XS)
+    .spacing(spacing::SM)
+    .align_y(iced::Alignment::Center),];
+
+    // Add continue marker if present
+    if !continue_marker.is_empty() {
+        content = content.push(text(continue_marker).size(typography::SIZE_XS).style(
+            move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::PRIMARY, opacity)),
+            },
+        ));
+    }
+
+    content = content.push(progress_element);
+    content = content.push(row![Space::new().width(Length::Fill), status_indicator,]);
+
+    content
+        .padding(iced::Padding {
+            top: spacing::SM + offset_y,
+            bottom: spacing::SM + (max_offset - offset_y),
+            left: spacing::SM,
+            right: spacing::SM,
+        })
+        .spacing(spacing::XS)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -376,6 +416,34 @@ fn format_time_remaining(file: &AudiobookFile) -> String {
 
     let remaining_ms = total_ms * i64::from(100 - file.completeness) / 100;
     format_duration_remaining(remaining_ms)
+}
+
+/// Formats the continue position for display
+///
+/// Returns a string like "Continue from 12:34" for files with a seek position
+fn format_continue_position(seek_position: Option<&i64>) -> String {
+    let Some(&pos_ms) = seek_position else {
+        return String::new();
+    };
+
+    if pos_ms <= 0 {
+        return String::new();
+    }
+
+    let seconds = pos_ms / 1000;
+    let minutes = seconds / 60;
+    let hours = minutes / 60;
+
+    if hours > 0 {
+        format!(
+            "Continue from {}:{:02}:{:02}",
+            hours,
+            minutes % 60,
+            seconds % 60
+        )
+    } else {
+        format!("Continue from {}:{:02}", minutes, seconds % 60)
+    }
 }
 
 /// Formats a duration in milliseconds as a human-readable "remaining" string

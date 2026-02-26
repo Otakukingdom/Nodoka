@@ -287,28 +287,34 @@ fn test_state_with_multiple_directories() {
 
 #[test]
 fn test_state_with_multiple_audiobooks() {
+    use chrono::Utc;
+
     let state = State {
         audiobooks: vec![
             Audiobook {
                 id: Some(1),
                 directory: "/test".to_string(),
                 name: "Book 1".to_string(),
+                author: None,
                 full_path: "/test/book1".to_string(),
                 completeness: 50,
                 default_order: 0,
                 selected_file: None,
-                created_at: chrono::Utc::now(),
+                total_duration_ms: None,
+                created_at: Utc::now(),
                 last_listened: None,
             },
             Audiobook {
                 id: Some(2),
                 directory: "/test".to_string(),
                 name: "Book 2".to_string(),
+                author: None,
                 full_path: "/test/book2".to_string(),
                 completeness: 75,
                 default_order: 0,
                 selected_file: None,
-                created_at: chrono::Utc::now(),
+                total_duration_ms: None,
+                created_at: Utc::now(),
                 last_listened: None,
             },
         ],

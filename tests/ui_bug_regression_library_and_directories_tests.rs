@@ -327,6 +327,7 @@ fn test_scan_complete_does_not_keep_audiobook_without_db_row() -> Result<(), Box
     let discovered = vec![DiscoveredAudiobook {
         path: PathBuf::from(format!("{dir_str}/Book")),
         name: "Bad\0Name".to_string(),
+        author: None,
         files: Vec::<DiscoveredFile>::new(),
     }];
 

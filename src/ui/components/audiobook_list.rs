@@ -49,10 +49,15 @@ pub fn view<'a, S: BuildHasher>(
     let filtered: Vec<&Audiobook> = audiobooks
         .iter()
         .filter(|ab| {
-            // Apply search filter (case-insensitive on title)
+            // Apply search filter (case-insensitive on title and author)
             if !search_query.is_empty() {
                 let query_lower = search_query.to_lowercase();
-                if !ab.name.to_lowercase().contains(&query_lower) {
+                let title_match = ab.name.to_lowercase().contains(&query_lower);
+                let author_match = ab
+                    .author
+                    .as_ref()
+                    .is_some_and(|a| a.to_lowercase().contains(&query_lower));
+                if !title_match && !author_match {
                     return false;
                 }
             }
@@ -144,21 +149,11 @@ fn build_audiobook_item<'a, S: BuildHasher>(
 ) -> Element<'a, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    let completeness = ab.completeness;
-    let id = ab.id;
-    let is_complete = ab.is_complete();
     let opacity = animation.opacity;
+    let id = ab.id;
 
-    let cover = build_cover(id, cover_thumbnails, opacity);
-    let completion_badge = build_completion_badge(is_complete, opacity);
-    let content_row = build_content_row(
-        &ab.name,
-        completeness,
-        cover,
-        completion_badge,
-        opacity,
-        animation.offset_y,
-    );
+    let cover = build_cover(ab.id, cover_thumbnails, opacity);
+    let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
     // Apply selection styling with left border accent
     // Left border (4px PRIMARY color) provides clear visual indicator for selected item
@@ -234,7 +229,7 @@ fn build_cover<S: BuildHasher>(
 ) -> Element<'_, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    // Larger cover thumbnail (80x80px) for better visibility
+    // Larger cover thumbnail (120x120px) for better visibility
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
             container(text("No cover").size(typography::SIZE_XS).style(
@@ -242,8 +237,8 @@ fn build_cover<S: BuildHasher>(
                     color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
                 },
             ))
-            .width(Length::Fixed(80.0))
-            .height(Length::Fixed(80.0))
+            .width(Length::Fixed(120.0))
+            .height(Length::Fixed(120.0))
             .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
                     radius: border_radius::MD.into(),
@@ -257,8 +252,8 @@ fn build_cover<S: BuildHasher>(
         move |path| {
             container(
                 image(iced::widget::image::Handle::from_path(path.clone()))
-                    .width(Length::Fixed(80.0))
-                    .height(Length::Fixed(80.0)),
+                    .width(Length::Fixed(120.0))
+                    .height(Length::Fixed(120.0)),
             )
             .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
@@ -273,38 +268,9 @@ fn build_cover<S: BuildHasher>(
     )
 }
 
-fn build_completion_badge(is_complete: bool, opacity: f32) -> Element<'static, Message> {
-    use crate::ui::styles::{border_radius, colors};
-
-    if is_complete {
-        container(
-            text("COMPLETE")
-                .size(typography::SIZE_SM)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
-                }),
-        )
-        .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(with_alpha(colors::SUCCESS, opacity).into()),
-            text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
-            border: Border {
-                radius: border_radius::SM.into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .into()
-    } else {
-        container(text("").size(typography::SIZE_SM)).into()
-    }
-}
-
 fn build_content_row<'a>(
-    name: &'a str,
-    completeness: i32,
+    ab: &'a Audiobook,
     cover: Element<'a, Message>,
-    completion_badge: Element<'a, Message>,
     opacity: f32,
     offset_y: f32,
 ) -> iced::widget::Row<'a, Message> {
@@ -313,43 +279,136 @@ fn build_content_row<'a>(
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = offset_y.clamp(0.0, max_offset);
 
-    // Progress bar for visual representation of completeness.
-    // Keep progress bars at least 6px tall for visibility.
-    let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
+    // Progress bar for visual representation of completeness (simplified, thin 4px bar)
+    let completeness_u8 = u8::try_from(ab.completeness.clamp(0, 100)).unwrap_or(0);
     let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
+
+    // Calculate remaining time if total duration is available
+    let remaining_text = format_remaining_time(ab.total_duration_ms, ab.completeness);
+
+    // Format last listened timestamp as relative time
+    let last_listened_text = format_relative_time(ab.last_listened);
+
+    // Build metadata row: percentage + remaining time + last listened
+    let mut metadata_items = vec![text(format!("{}%", ab.completeness))
+        .size(typography::SIZE_SM)
+        .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+        })
+        .into()];
+
+    if !remaining_text.is_empty() {
+        metadata_items.push(
+            text(format!(" · {remaining_text}"))
+                .size(typography::SIZE_SM)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                })
+                .into(),
+        );
+    }
+
+    if !last_listened_text.is_empty() {
+        metadata_items.push(Space::new().width(Length::Fill).into());
+        metadata_items.push(
+            text(last_listened_text)
+                .size(typography::SIZE_XS)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                })
+                .into(),
+        );
+    }
+
+    let metadata_row = iced::widget::Row::with_children(metadata_items);
+
+    // Build content column with title, author (if available), progress bar, and metadata
+    let mut content_column = vec![text(&ab.name)
+        .size(typography::SIZE_LG)
+        .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+            color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+        })
+        .into()];
+
+    if let Some(author) = &ab.author {
+        content_column.push(
+            text(author)
+                .size(typography::SIZE_SM)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                })
+                .into(),
+        );
+    }
+
+    content_column.push(
+        container(progress)
+            .width(Length::Fill)
+            .height(Length::Fixed(4.0))
+            .into(),
+    );
+
+    content_column.push(metadata_row.into());
 
     row![
         cover,
-        column![
-            text(name)
-                .size(typography::SIZE_BASE)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
-            // Progress bar visualization with minimum 6px height
-            container(progress)
-                .width(Length::Fill)
-                .height(Length::Fixed(6.0)), // Reserve 6px height for consistency
-            row![
-                text(format!("{completeness}%"))
-                    .size(typography::SIZE_SM)
-                    .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-                    }),
-                Space::new().width(Length::Fill),
-                completion_badge
-            ]
-        ]
-        .spacing(spacing::XS)
-        .width(Length::Fill)
+        iced::widget::Column::with_children(content_column)
+            .spacing(spacing::XS)
+            .width(Length::Fill)
     ]
     .spacing(spacing::MD)
     .padding(iced::Padding {
-        top: spacing::MD + offset_y,
-        bottom: spacing::MD + (max_offset - offset_y),
+        top: spacing::SM + offset_y,
+        bottom: spacing::SM + (max_offset - offset_y),
         left: spacing::MD,
         right: spacing::MD,
     })
+}
+
+/// Formats remaining time for display
+fn format_remaining_time(total_duration_ms: Option<i64>, completeness: i32) -> String {
+    let Some(total) = total_duration_ms else {
+        return String::new();
+    };
+    if total <= 0 {
+        return String::new();
+    }
+    let remaining = total * (100 - i64::from(completeness.clamp(0, 100))) / 100;
+    if remaining <= 0 {
+        return String::new();
+    }
+    let hours = remaining / (1000 * 60 * 60);
+    let minutes = (remaining / (1000 * 60)) % 60;
+    if hours > 0 {
+        format!("{hours}h {minutes}m remaining")
+    } else {
+        format!("{minutes}m remaining")
+    }
+}
+
+/// Formats relative time from optional timestamp
+fn format_relative_time(timestamp: Option<chrono::DateTime<chrono::Utc>>) -> String {
+    let Some(ts) = timestamp else {
+        return String::new();
+    };
+    let now = chrono::Utc::now();
+    let duration = now.signed_duration_since(ts);
+
+    if duration.num_minutes() < 1 {
+        "Just now".to_string()
+    } else if duration.num_hours() < 1 {
+        format!("{} min ago", duration.num_minutes())
+    } else if duration.num_days() < 1 {
+        format!("{} hours ago", duration.num_hours())
+    } else if duration.num_days() == 1 {
+        "Yesterday".to_string()
+    } else if duration.num_days() < 7 {
+        format!("{} days ago", duration.num_days())
+    } else if duration.num_days() < 30 {
+        format!("{} weeks ago", duration.num_days() / 7)
+    } else {
+        ts.format("%b %d, %Y").to_string()
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -407,7 +466,7 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 /// Single skeleton audiobook item
 ///
 /// Creates a placeholder with complete structure matching real audiobook items:
-/// - 80x80px skeleton cover (matches real cover size)
+/// - 120x120px skeleton cover (matches real cover size)
 /// - Title placeholder (60% width, 20px height for realistic match)
 /// - Progress bar placeholder (100% width, 4px height)
 /// - Status text placeholder (50x12px for percentage display)
@@ -416,10 +475,10 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 /// Uses `SKELETON_BG` color (#E5E5E5) from loading module per design system.
 /// Skeleton dimensions should match real content exactly.
 fn skeleton_audiobook_item() -> Element<'static, Message> {
-    // Skeleton cover placeholder (80x80px) - matches real thumbnail size
+    // Skeleton cover placeholder (120x120px) - matches real thumbnail size
     let skeleton_cover = container(Space::new())
-        .width(Length::Fixed(80.0))
-        .height(Length::Fixed(80.0))
+        .width(Length::Fixed(120.0))
+        .height(Length::Fixed(120.0))
         .style(|_: &iced::Theme| container::Style {
             background: Some(loading::SKELETON_BG.into()),
             border: Border {
@@ -510,10 +569,12 @@ mod tests {
             id: Some(id),
             directory: "/test".to_string(),
             name: name.to_string(),
+            author: None,
             full_path: format!("/test/{name}"),
             completeness,
             default_order: 0,
             selected_file: None,
+            total_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         }
@@ -736,10 +797,12 @@ mod tests {
             id: None,
             directory: "/test".to_string(),
             name: "Book Without ID".to_string(),
+            author: None,
             full_path: "/test/book".to_string(),
             completeness: 50,
             default_order: 0,
             selected_file: None,
+            total_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         };

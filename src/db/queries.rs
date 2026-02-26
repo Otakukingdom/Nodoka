@@ -80,19 +80,21 @@ fn row_rfc3339_utc_optional(
 /// Maps a rusqlite [`rusqlite::Row`] to an [`Audiobook`].
 ///
 /// Column order must match the
-/// `SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened`
+/// `SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened`
 /// projection used in all audiobook queries.
 fn row_to_audiobook(row: &rusqlite::Row<'_>) -> rusqlite::Result<Audiobook> {
-    let created_at = row_rfc3339_utc(row, 7, "audiobooks.created_at")?;
-    let last_listened = row_rfc3339_utc_optional(row, 8, "audiobooks.last_listened")?;
+    let created_at = row_rfc3339_utc(row, 9, "audiobooks.created_at")?;
+    let last_listened = row_rfc3339_utc_optional(row, 10, "audiobooks.last_listened")?;
     Ok(Audiobook {
         id: Some(row.get(0)?),
         directory: row.get(1)?,
         name: row.get(2)?,
-        full_path: row.get(3)?,
-        completeness: row.get(4)?,
-        default_order: row.get(5)?,
-        selected_file: row.get(6)?,
+        author: row.get(3)?,
+        full_path: row.get(4)?,
+        completeness: row.get(5)?,
+        default_order: row.get(6)?,
+        selected_file: row.get(7)?,
+        total_duration_ms: row.get(8)?,
         created_at,
         last_listened,
     })
@@ -135,17 +137,22 @@ pub fn insert_audiobook(conn: &Connection, audiobook: &Audiobook) -> Result<i64>
     if let Some(selected) = audiobook.selected_file.as_deref() {
         validate_no_nul("audiobook.selected_file", selected)?;
     }
+    if let Some(author) = audiobook.author.as_deref() {
+        validate_no_nul("audiobook.author", author)?;
+    }
 
     conn.execute(
-        "INSERT INTO audiobooks (directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        "INSERT INTO audiobooks (directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         params![
             audiobook.directory,
             audiobook.name,
+            audiobook.author,
             audiobook.full_path,
             audiobook.completeness,
             audiobook.default_order,
             audiobook.selected_file,
+            audiobook.total_duration_ms,
             audiobook.created_at.to_rfc3339(),
             audiobook.last_listened.as_ref().map(chrono::DateTime::to_rfc3339),
         ],
@@ -169,7 +176,7 @@ fn validate_no_nul(field: &'static str, value: &str) -> Result<()> {
 /// Returns an error if the database query fails
 pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
          FROM audiobooks WHERE directory = ?1 ORDER BY default_order"
     )?;
 
@@ -186,7 +193,7 @@ pub fn get_audiobooks_by_directory(conn: &Connection, directory: &str) -> Result
 /// Returns an error if the database query fails
 pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
     let mut stmt = conn.prepare(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
          FROM audiobooks ORDER BY default_order"
     )?;
 
@@ -203,7 +210,7 @@ pub fn get_all_audiobooks(conn: &Connection) -> Result<Vec<Audiobook>> {
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_id(conn: &Connection, id: i64) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
          FROM audiobooks WHERE id = ?1",
         [id],
         row_to_audiobook,
@@ -604,7 +611,7 @@ pub fn update_directory_last_scanned(conn: &Connection, path: &str) -> Result<()
 /// Returns an error if the database query fails
 pub fn get_audiobook_by_path(conn: &Connection, path: &str) -> Result<Option<Audiobook>> {
     let result = conn.query_row(
-        "SELECT id, directory, name, full_path, completeness, default_order, selected_file, created_at, last_listened
+        "SELECT id, directory, name, author, full_path, completeness, default_order, selected_file, total_duration_ms, created_at, last_listened
          FROM audiobooks WHERE full_path = ?1",
         [path],
         row_to_audiobook,
@@ -724,4 +731,95 @@ pub fn count_audiobook_files(conn: &Connection, audiobook_id: i64) -> Result<i64
         |row| row.get(0),
     )?;
     Ok(count)
+}
+
+/// Gets a user preference value
+///
+/// # Errors
+///
+/// Returns an error if the database query fails
+pub fn get_preference(conn: &Connection, key: &str) -> Result<Option<String>> {
+    let result = conn
+        .query_row(
+            "SELECT value FROM user_preferences WHERE key = ?1",
+            [key],
+            |row| row.get(0),
+        )
+        .optional()?;
+
+    Ok(result)
+}
+
+/// Sets a user preference value
+///
+/// # Errors
+///
+/// Returns an error if the database insert/update fails
+pub fn set_preference(conn: &Connection, key: &str, value: &str) -> Result<()> {
+    validate_no_nul("preference.key", key)?;
+    validate_no_nul("preference.value", value)?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO user_preferences (key, value, updated_at) VALUES (?1, ?2, ?3)",
+        params![key, value, chrono::Utc::now().to_rfc3339()],
+    )?;
+    Ok(())
+}
+
+/// Gets all user preferences as a `HashMap`
+///
+/// # Errors
+///
+/// Returns an error if the database query fails
+pub fn get_all_preferences(conn: &Connection) -> Result<std::collections::HashMap<String, String>> {
+    let mut stmt = conn.prepare("SELECT key, value FROM user_preferences")?;
+    let rows = stmt.query_map([], |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    })?;
+
+    rows.collect::<rusqlite::Result<std::collections::HashMap<_, _>>>()
+        .map_err(Into::into)
+}
+
+/// Deletes a user preference
+///
+/// # Errors
+///
+/// Returns an error if the database delete fails
+pub fn delete_preference(conn: &Connection, key: &str) -> Result<()> {
+    conn.execute("DELETE FROM user_preferences WHERE key = ?1", [key])?;
+    Ok(())
+}
+
+/// Updates the author for an audiobook
+///
+/// # Errors
+///
+/// Returns an error if the database update fails
+pub fn update_audiobook_author(conn: &Connection, id: i64, author: Option<&str>) -> Result<()> {
+    if let Some(author_str) = author {
+        validate_no_nul("audiobook.author", author_str)?;
+    }
+    conn.execute(
+        "UPDATE audiobooks SET author = ?1 WHERE id = ?2",
+        params![author, id],
+    )?;
+    Ok(())
+}
+
+/// Updates the total duration for an audiobook
+///
+/// # Errors
+///
+/// Returns an error if the database update fails
+pub fn update_audiobook_total_duration(
+    conn: &Connection,
+    id: i64,
+    total_duration_ms: Option<i64>,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE audiobooks SET total_duration_ms = ?1 WHERE id = ?2",
+        params![total_duration_ms, id],
+    )?;
+    Ok(())
 }

@@ -28,7 +28,23 @@ pub fn view<'a, S: BuildHasher>(
 
     let id = audiobook.id;
     let cover = build_large_cover(id, cover_thumbnails);
-    let progress_text = format!("{}% complete", audiobook.completeness);
+
+    // Show remaining time if available, otherwise show percentage
+    let progress_text = audiobook.total_duration_ms.map_or_else(
+        || format!("{}% complete", audiobook.completeness),
+        |total_ms| {
+            let remaining_ms = total_ms * (100 - i64::from(audiobook.completeness)) / 100;
+            let hours = remaining_ms / (1000 * 60 * 60);
+            let minutes = (remaining_ms / (1000 * 60)) % 60;
+            if hours > 0 {
+                format!("{hours} hours {minutes} minutes remaining")
+            } else if minutes > 0 {
+                format!("{minutes} minutes remaining")
+            } else {
+                format!("{}% complete", audiobook.completeness)
+            }
+        },
+    );
 
     let content = row![
         cover,

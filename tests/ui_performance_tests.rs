@@ -408,10 +408,12 @@ fn test_audiobook_list_rendering_with_hover_states() {
             id: Some(i),
             directory: "/test".to_string(),
             name: format!("Audiobook {i:04}"),
+            author: None,
             full_path: format!("/test/audiobook{i:04}"),
             completeness: i32::try_from(i % 101).unwrap_or(0),
             default_order: 0,
             selected_file: None,
+            total_duration_ms: None,
             created_at: chrono::Utc::now(),
             last_listened: None,
         })

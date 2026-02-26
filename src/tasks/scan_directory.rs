@@ -13,6 +13,8 @@ pub struct DiscoveredAudiobook {
     pub path: PathBuf,
     /// Display name derived from the directory name.
     pub name: String,
+    /// Author name extracted from directory structure or metadata.
+    pub author: Option<String>,
     /// Audio files found within the audiobook directory, in natural sort order.
     pub files: Vec<DiscoveredFile>,
 }
@@ -144,9 +146,12 @@ fn discover_zip_audiobook(zip_path: &Path) -> Option<DiscoveredAudiobook> {
         .to_string_lossy()
         .to_string();
 
+    let author = extract_author_from_path(zip_path);
+
     Some(DiscoveredAudiobook {
         path: zip_path.to_path_buf(),
         name,
+        author,
         files,
     })
 }
@@ -198,9 +203,12 @@ fn discover_audiobook(path: &Path) -> Option<DiscoveredAudiobook> {
         })
         .collect();
 
+    let author = extract_author_from_path(path);
+
     Some(DiscoveredAudiobook {
         path: path.to_path_buf(),
         name: path.file_name()?.to_string_lossy().to_string(),
+        author,
         files,
     })
 }
@@ -219,6 +227,119 @@ fn fs_fingerprint(path: &Path) -> std::io::Result<String> {
     Ok(format!("fs:v1:{size}:{modified_ns}"))
 }
 
+/// Extracts author name from directory path structure
+///
+/// Attempts to extract author from common audiobook directory patterns:
+/// - `/path/Author/BookTitle` → "Author"
+/// - `/path/Author - BookTitle` → "Author"  
+/// - `/path/BookTitle by Author` → "Author"
+///
+/// Returns `None` if no author pattern is detected.
+fn extract_author_from_path(path: &Path) -> Option<String> {
+    // Try to get the parent directory name (often the author in audiobook collections)
+    let parent_name = path.parent()
+        .and_then(|p| p.file_name())
+        .and_then(|n| n.to_str())
+        .map(str::to_string);
+
+    // Also try to extract from the directory name itself
+    let dir_name = path.file_name()
+        .and_then(|n| n.to_str())?;
+
+    // Pattern: "BookTitle by Author"
+    if let Some(by_pos) = dir_name.find(" by ") {
+        let author = &dir_name[by_pos + 4..];
+        if !author.trim().is_empty() {
+            return Some(author.trim().to_string());
+        }
+    }
+
+    // Pattern: "Author - BookTitle"  
+    if let Some(dash_pos) = dir_name.find(" - ") {
+        let possible_author = &dir_name[..dash_pos];
+        // Only use if it looks like an author name (not too long, doesn't start with numbers)
+        if possible_author.len() < 50 && !possible_author.chars().next()?.is_numeric() {
+            return Some(possible_author.trim().to_string());
+        }
+    }
+
+    // Use parent directory name if it looks reasonable
+    if let Some(parent) = parent_name {
+        // Avoid using generic folder names as authors
+        let generic_names = ["audiobooks", "books", "audio", "media", "downloads", "library"];
+        if !generic_names.contains(&parent.to_lowercase().as_str()) && parent.len() < 50 {
+            return Some(parent);
+        }
+    }
+
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_author_from_by_pattern() {
+        let path = Path::new("/audiobooks/The Hobbit by J.R.R. Tolkien");
+        assert_eq!(
+            extract_author_from_path(path),
+            Some("J.R.R. Tolkien".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_author_from_dash_pattern() {
+        let path = Path::new("/audiobooks/J.K. Rowling - Harry Potter");
+        assert_eq!(
+            extract_author_from_path(path),
+            Some("J.K. Rowling".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_author_from_parent_directory() {
+        let path = Path::new("/audiobooks/Stephen King/The Shining");
+        assert_eq!(
+            extract_author_from_path(path),
+            Some("Stephen King".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_author_ignores_generic_parent_names() {
+        let path = Path::new("/audiobooks/BookTitle");
+        // Should return None because "audiobooks" is a generic folder name
+        assert_eq!(extract_author_from_path(path), None);
+    }
+
+    #[test]
+    fn test_extract_author_prefers_by_pattern() {
+        // When both patterns exist, "by" pattern should take precedence
+        let path = Path::new("/Author Name/Book Title by Different Author");
+        assert_eq!(
+            extract_author_from_path(path),
+            Some("Different Author".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_author_rejects_numeric_prefix() {
+        let path = Path::new("/audiobooks/123 - Book Title");
+        // Should return None because author candidate starts with number
+        assert_eq!(extract_author_from_path(path), None);
+    }
+
+    #[test]
+    fn test_extract_author_rejects_very_long_names() {
+        let very_long = "A".repeat(60);
+        let path_str = format!("/audiobooks/{very_long} - Book");
+        let path = Path::new(&path_str);
+        // Should return None because author is too long (>50 chars)
+        assert_eq!(extract_author_from_path(path), None);
+    }
+}
+
 /// Converts discovered audiobooks to domain models
 #[must_use]
 pub fn convert_to_audiobooks(
@@ -232,11 +353,13 @@ pub fn convert_to_audiobooks(
             id: None,
             directory: directory.to_string(),
             name: disc.name,
+            author: disc.author,
             full_path: disc.path.display().to_string(),
             completeness: 0,
             // Safe cast: we cap at i32::MAX for extremely large collections
             default_order: i32::try_from(idx).unwrap_or(i32::MAX),
             selected_file: None,
+            total_duration_ms: None,
             created_at: Utc::now(),
             last_listened: None,
         })
