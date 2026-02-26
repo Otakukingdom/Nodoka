@@ -183,29 +183,20 @@ fn top_bar(state: &State) -> Element<'static, Message> {
     .into()
 }
 
-fn library_panels(state: &State) -> Element<'_, Message> {
+/// Builds the library column with toolbar, Continue Listening, and audiobook list
+fn build_library_column(state: &State) -> Element<'_, Message> {
     let audiobook_elapsed =
         list_animation_elapsed_ms(state.audiobook_list_animation_start_ms, state.ui_time_ms);
-    let file_elapsed =
-        list_animation_elapsed_ms(state.file_list_animation_start_ms, state.ui_time_ms);
-    let bookmark_elapsed =
-        list_animation_elapsed_ms(state.bookmark_list_animation_start_ms, state.ui_time_ms);
 
-    // Get the most recently played audiobook for Continue Listening card
     let last_audiobook = state
         .audiobooks
         .iter()
         .filter(|ab| ab.last_listened.is_some())
         .max_by_key(|ab| ab.last_listened);
 
-    // Build library toolbar with search and filters
     let toolbar = library_toolbar::view(&state.search_query, state.sort_order, state.filter_status);
-
-    // Build Continue Listening card (only if there's a recently played audiobook)
-    let continue_listening_widget =
-        continue_listening::view(last_audiobook, &state.cover_thumbnails);
-
-    let audiobook_list_widget = audiobook_list::view(
+    let continue_listening = continue_listening::view(last_audiobook, &state.cover_thumbnails);
+    let audiobook_list = audiobook_list::view(
         &state.audiobooks,
         state.selected_audiobook,
         &state.cover_thumbnails,
@@ -217,32 +208,89 @@ fn library_panels(state: &State) -> Element<'_, Message> {
         state.filter_status,
     );
 
-    let file_list_widget = file_list::view(
+    column![toolbar, continue_listening, audiobook_list]
+        .spacing(spacing::MD)
+        .into()
+}
+
+/// Builds the detail panel with file list and bookmarks
+fn build_detail_panel(state: &State) -> Element<'_, Message> {
+    let file_elapsed =
+        list_animation_elapsed_ms(state.file_list_animation_start_ms, state.ui_time_ms);
+    let bookmark_elapsed =
+        list_animation_elapsed_ms(state.bookmark_list_animation_start_ms, state.ui_time_ms);
+
+    let file_list = file_list::view(
         &state.current_files,
         state.selected_file.as_ref(),
         file_elapsed,
         state.prefers_reduced_motion,
     );
-    let bookmarks_widget = bookmarks::view(
+    let bookmarks = bookmarks::view(
         &state.bookmarks,
         &state.current_files,
         bookmark_elapsed,
         state.prefers_reduced_motion,
     );
 
-    let audiobook_panel_focused = state.focused_element == FocusedElement::AudiobookList;
-    let right_panel_focused = matches!(
+    column![file_list, bookmarks].spacing(spacing::SM).into()
+}
+
+/// Creates a horizontal divider between panels
+fn panel_divider(width: f32, height: f32) -> Element<'static, Message> {
+    container(Space::new())
+        .width(Length::Fixed(width))
+        .height(Length::Fixed(height))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::BORDER_DEFAULT.into()),
+            ..Default::default()
+        })
+        .into()
+}
+
+/// Builds the narrow window layout with vertically stacked panels
+fn build_narrow_layout(state: &State) -> Element<'_, Message> {
+    let left_panel = build_library_column(state);
+    let right_panel = build_detail_panel(state);
+
+    let audiobook_focused = state.focused_element == FocusedElement::AudiobookList;
+    let right_focused = matches!(
         state.focused_element,
         FocusedElement::FileList | FocusedElement::BookmarkList
     );
 
-    // Build left panel with toolbar, Continue Listening, and audiobook list
-    let left_panel_content =
-        column![toolbar, continue_listening_widget, audiobook_list_widget,].spacing(spacing::MD);
+    column![
+        container(left_panel)
+            .width(Length::Fill)
+            .height(Length::FillPortion(1))
+            .padding(spacing::SM)
+            .style(focus_indicator(audiobook_focused)),
+        container(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(4.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BORDER_DEFAULT.into()),
+                ..Default::default()
+            }),
+        container(right_panel)
+            .width(Length::Fill)
+            .height(Length::FillPortion(1))
+            .padding(spacing::SM)
+            .style(focus_indicator(right_focused)),
+    ]
+    .height(Length::Fill)
+    .spacing(0)
+    .into()
+}
 
-    // Calculate panel portions based on panel_ratio (0.0 to 1.0)
-    // panel_ratio = 0.4 means 40% left panel, 60% right panel
-    // If focus mode is active and something is playing, hide left panel
+/// Builds the wide window layout with side-by-side panels or focus mode
+fn build_wide_layout(state: &State) -> Element<'_, Message> {
+    let audiobook_focused = state.focused_element == FocusedElement::AudiobookList;
+    let right_focused = matches!(
+        state.focused_element,
+        FocusedElement::FileList | FocusedElement::BookmarkList
+    );
+
     let (left_portion, right_portion, show_left_panel) =
         if state.focus_mode && state.playback == crate::ui::PlaybackStatus::Playing {
             (0_u16, 10_u16, false)
@@ -255,33 +303,46 @@ fn library_panels(state: &State) -> Element<'_, Message> {
         };
 
     if show_left_panel {
+        let left_panel = build_library_column(state);
+        let right_panel = build_detail_panel(state);
+        let divider = panel_divider(4.0, 0.0);
+
         row![
-            container(left_panel_content)
+            container(left_panel)
                 .width(Length::FillPortion(left_portion))
                 .height(Length::Fill)
                 .padding(spacing::SM)
-                .style(focus_indicator(audiobook_panel_focused)),
-            container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
+                .style(focus_indicator(audiobook_focused)),
+            divider,
+            container(right_panel)
                 .width(Length::FillPortion(right_portion))
                 .height(Length::Fill)
                 .padding(spacing::SM)
-                .style(focus_indicator(right_panel_focused)),
+                .style(focus_indicator(right_focused)),
         ]
         .height(Length::Fill)
-        .spacing(spacing::SM)
+        .spacing(0)
         .into()
     } else {
-        // Focus mode: only show detail panel
-        row![
-            container(column![file_list_widget, bookmarks_widget].spacing(spacing::SM))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .padding(spacing::SM)
-                .style(focus_indicator(right_panel_focused)),
-        ]
+        let right_panel = build_detail_panel(state);
+        row![container(right_panel)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(spacing::SM)
+            .style(focus_indicator(right_focused)),]
         .height(Length::Fill)
         .spacing(spacing::SM)
         .into()
+    }
+}
+
+fn library_panels(state: &State) -> Element<'_, Message> {
+    const NARROW_THRESHOLD: u32 = 800;
+
+    if state.window_width < NARROW_THRESHOLD {
+        build_narrow_layout(state)
+    } else {
+        build_wide_layout(state)
     }
 }
 

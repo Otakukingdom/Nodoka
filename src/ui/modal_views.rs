@@ -167,6 +167,9 @@ where
             ..Default::default()
         })
         .padding(spacing::MD)
+        .max_width(600.0) // Maximum width for readability
+        .width(Length::Fill) // Fill available space on narrow screens
+        .max_height(800.0) // Maximum height
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .into()

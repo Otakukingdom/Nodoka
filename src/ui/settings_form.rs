@@ -274,7 +274,7 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
 /// - Improved spacing and padding for better scannability
 /// - Visual grouping of primary/secondary actions
 #[must_use]
-pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Message> {
+pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Message> {
     let directory_list = build_directory_list(state);
     let action_buttons = build_action_buttons(state);
 
@@ -322,10 +322,8 @@ pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Mess
         .padding(spacing::XL)
         .spacing(spacing::SM))
     )
-    .width(Length::Fixed(600.0 * scale))
-    .height(Length::Fixed(600.0 * scale))
-    .center_x(Length::Fill)
-    .center_y(Length::Fill)
+    .width(Length::Fill) // Responsive width, constrained by modal_card max_width
+    .height(Length::Shrink) // Shrink to content, constrained by modal_card max_height
     .into()
 }
 

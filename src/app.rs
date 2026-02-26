@@ -605,6 +605,24 @@ fn map_key_press(
         iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("b") => {
             crate::ui::shortcuts::ShortcutKey::B
         }
+        iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("f") => {
+            crate::ui::shortcuts::ShortcutKey::F
+        }
+        iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("l") => {
+            crate::ui::shortcuts::ShortcutKey::L
+        }
+        iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("t") => {
+            crate::ui::shortcuts::ShortcutKey::T
+        }
+        iced::keyboard::Key::Character(ch) if ch.eq_ignore_ascii_case("r") => {
+            crate::ui::shortcuts::ShortcutKey::R
+        }
+        iced::keyboard::Key::Character(ch) if ch.as_ref() == "[" => {
+            crate::ui::shortcuts::ShortcutKey::LeftBracket
+        }
+        iced::keyboard::Key::Character(ch) if ch.as_ref() == "]" => {
+            crate::ui::shortcuts::ShortcutKey::RightBracket
+        }
         iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowLeft) => {
             crate::ui::shortcuts::ShortcutKey::ArrowLeft
         }

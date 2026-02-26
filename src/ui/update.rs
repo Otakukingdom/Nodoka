@@ -64,7 +64,11 @@ pub fn update(
         Message::UiTick => handle_ui_tick(state),
         Message::None => Task::none(),
         Message::WindowMoved(x, y) => window::handle_window_moved(db, x, y),
-        Message::WindowResized(width, height) => window::handle_window_resized(db, width, height),
+        Message::WindowResized(width, height) => {
+            state.window_width = width;
+            state.window_height = height;
+            window::handle_window_resized(db, width, height)
+        }
         Message::InitialLoadComplete => library::handle_initial_load_complete(state),
         Message::CoverThumbnailGenerated(audiobook_id, path) => {
             library::handle_cover_thumbnail_generated(state, audiobook_id, path)

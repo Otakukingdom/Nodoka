@@ -163,12 +163,12 @@ pub const ERROR_ACTIVE: Color = Color::from_rgb(0.600, 0.106, 0.106);
 /// Semantic informational color – blue, same hue as accent.
 pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922);
 
-/// Primary page background – very light rose tint `#FFF1F2`.
-pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 0.945, 0.949);
-/// Secondary content background – pure white.
-pub const BG_SECONDARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
-/// Elevated surface background – slight gray lift.
-pub const BG_ELEVATED: Color = Color::from_rgb(0.98, 0.98, 0.98);
+/// Primary page background – pure white for neutral base.
+pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
+/// Secondary content background – very light neutral gray.
+pub const BG_SECONDARY: Color = Color::from_rgb(0.98, 0.98, 0.98);
+/// Elevated surface background – white with subtle shadow for depth.
+pub const BG_ELEVATED: Color = Color::from_rgb(1.0, 1.0, 1.0);
 /// Background color on hover.
 pub const BG_HOVER: Color = Color::from_rgb(0.97, 0.97, 0.97);
 

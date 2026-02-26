@@ -289,17 +289,24 @@ fn build_content_row<'a>(
     // Format last listened timestamp as relative time
     let last_listened_text = format_relative_time(ab.last_listened);
 
-    // Build metadata row: percentage + remaining time + last listened
-    let mut metadata_items = vec![text(format!("{}%", ab.completeness))
-        .size(typography::SIZE_SM)
-        .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-        })
-        .into()];
+    // Build metadata row: remaining time + last listened (no percentage - shown by progress bar)
+    // Show completion checkmark for 100% complete audiobooks
+    let mut metadata_items: Vec<Element<'_, Message>> = Vec::new();
 
-    if !remaining_text.is_empty() {
+    if ab.completeness >= 100 {
+        // Completion badge for finished audiobooks
         metadata_items.push(
-            text(format!(" · {remaining_text}"))
+            text("✓ Complete")
+                .size(typography::SIZE_SM)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(with_alpha(colors::SUCCESS, opacity)),
+                })
+                .into(),
+        );
+    } else if !remaining_text.is_empty() {
+        // Show remaining time for in-progress audiobooks
+        metadata_items.push(
+            text(remaining_text)
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),

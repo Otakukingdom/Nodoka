@@ -603,6 +603,10 @@ pub struct State {
     pub focus_mode: bool,
     /// Current theme (light or dark mode)
     pub theme: ThemeMode,
+    /// Window width in pixels for responsive layout
+    pub window_width: u32,
+    /// Window height in pixels for responsive layout
+    pub window_height: u32,
 
     /// Bookmarks for the selected audiobook.
     pub bookmarks: Vec<Bookmark>,
@@ -692,6 +696,8 @@ impl Default for State {
             panel_ratio: 0.4, // 40% left panel, 60% right panel (2:3 ratio)
             focus_mode: false,
             theme: ThemeMode::default(),
+            window_width: 1280, // Default window width
+            window_height: 800, // Default window height
             bookmarks: Vec::new(),
             bookmark_editor: None,
             playback: PlaybackStatus::Paused,

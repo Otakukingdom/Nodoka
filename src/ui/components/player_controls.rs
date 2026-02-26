@@ -75,25 +75,25 @@ pub fn view(state: &State) -> Element<'_, Message> {
             container(text(format!("Now Playing: {current_file_text}")).size(typography::SIZE_SM))
                 .padding(spacing::SM)
         } else {
-            // Build cover art thumbnail (60x60px)
+            // Build cover art thumbnail (100x100px for better visibility)
             let cover_element: Element<'_, Message> = audiobook_id
                 .and_then(|id| state.cover_thumbnails.get(&id))
                 .map_or_else(
                     || {
                         // No cover available - show placeholder
-                        container(text("♪").size(typography::SIZE_LG).style(
+                        container(text("♪").size(typography::SIZE_XXL).style(
                             |_theme: &iced::Theme| iced::widget::text::Style {
                                 color: Some(colors::TEXT_SECONDARY),
                             },
                         ))
-                        .width(Length::Fixed(60.0))
-                        .height(Length::Fixed(60.0))
+                        .width(Length::Fixed(100.0))
+                        .height(Length::Fixed(100.0))
                         .center_x(Length::Fill)
                         .center_y(Length::Fill)
                         .style(|_theme: &iced::Theme| container::Style {
                             background: Some(colors::BG_ELEVATED.into()),
                             border: Border {
-                                radius: border_radius::SM.into(),
+                                radius: border_radius::MD.into(),
                                 ..Default::default()
                             },
                             ..Default::default()
@@ -104,15 +104,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         // Show cover thumbnail
                         container(
                             image(iced::widget::image::Handle::from_path(path.clone()))
-                                .width(Length::Fixed(60.0))
-                                .height(Length::Fixed(60.0)),
+                                .width(Length::Fixed(100.0))
+                                .height(Length::Fixed(100.0)),
                         )
                         .style(|_theme: &iced::Theme| container::Style {
                             border: Border {
-                                radius: border_radius::SM.into(),
+                                radius: border_radius::MD.into(),
                                 ..Default::default()
                             },
-                            shadow: shadows::shadow_sm(),
+                            shadow: shadows::shadow_md(),
                             ..Default::default()
                         })
                         .into()
@@ -121,32 +121,32 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
             let mut text_col = column![
                 text(audiobook_name)
-                    .size(typography::SIZE_BASE)
+                    .size(typography::SIZE_XL)
                     .style(|_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(colors::TEXT_PRIMARY),
                     }),
-                text(current_file_text)
-                    .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                text(current_file_text).size(typography::SIZE_BASE).style(
+                    |_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(colors::TEXT_SECONDARY),
-                    }),
+                    }
+                ),
             ]
             .spacing(spacing::XS);
 
             if !progress_summary.is_empty() {
-                text_col = text_col.push(text(progress_summary).size(typography::SIZE_XS).style(
+                text_col = text_col.push(text(progress_summary).size(typography::SIZE_SM).style(
                     |_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::TEXT_SECONDARY),
+                        color: Some(colors::PRIMARY),
                     },
                 ));
             }
 
             container(
                 row![cover_element, text_col]
-                    .spacing(spacing::MD)
+                    .spacing(spacing::LG)
                     .align_y(iced::Alignment::Center),
             )
-            .padding(spacing::SM)
+            .padding(spacing::MD)
         },
         // Progress slider with larger touch target for accessibility
         // BUG FIX #001: Ensure slider range and value are consistent to prevent invalid seeks
