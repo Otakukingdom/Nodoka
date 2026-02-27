@@ -50,10 +50,12 @@ pub(super) fn handle_directory_added(
 
     if let Err(e) = crate::db::queries::insert_directory(db.connection(), &directory) {
         tracing::error!("Failed to insert directory: {e}");
-        state.notification_queue.push(Notification::error_with_title(
-            "Failed to Add Directory".to_string(),
-            format!("{stored_path}: {e}"),
-        ));
+        state
+            .notification_queue
+            .push(Notification::error_with_title(
+                "Failed to Add Directory".to_string(),
+                format!("{stored_path}: {e}"),
+            ));
         return Task::none();
     }
 
@@ -94,10 +96,12 @@ pub(super) fn handle_directory_remove(
 
     if let Err(e) = crate::db::queries::delete_directory(db.connection(), path) {
         tracing::error!("Failed to delete directory: {e}");
-        state.notification_queue.push(Notification::error_with_title(
-            "Failed to Remove Directory".to_string(),
-            format!("{path}: {e}"),
-        ));
+        state
+            .notification_queue
+            .push(Notification::error_with_title(
+                "Failed to Remove Directory".to_string(),
+                format!("{path}: {e}"),
+            ));
     } else {
         state.directories.retain(|d| d.full_path != path);
         let before_len = state.audiobooks.len();
