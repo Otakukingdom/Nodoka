@@ -12,10 +12,11 @@ use iced::{Border, Color, Element, Length};
 ///
 /// Shows up to three concurrent notifications with semantic colors.
 pub(super) fn notification_area(state: &State) -> Element<'_, Message> {
-    // Take up to 3 most recent notifications.
+    // Take up to 3 most recent notifications (newest first).
     let notifications_to_show = state
         .notification_queue
         .iter()
+        .rev()
         .take(3)
         .fold(column![].spacing(spacing::SM), |col, notification| {
             col.push(notification_toast(notification))
@@ -51,8 +52,8 @@ pub(super) fn notification_area(state: &State) -> Element<'_, Message> {
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
     use crate::ui::styles::component_styles::notification_styles;
 
-    // Use darker colors for better contrast with white text
-    let bg_color = notification_gradient_color(&notification.kind);
+    // Use semantic, design-system-driven colors for contrast with white text.
+    let bg_color = notification_styles::background_color(&notification.kind);
     let icon_text = notification.icon();
 
     let content_col = notification_content_column(notification);
@@ -99,53 +100,6 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             ..Default::default()
         })
         .into()
-}
-
-/// Helper function for premium gradient notification colors with increased saturation
-/// Enhanced gradient notification colors with increased saturation
-const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
-    match kind {
-        crate::ui::state::NotificationType::Success => {
-            // Enhanced emerald gradient for success
-            let emerald_start = crate::ui::styles::colors::EMERALD_GRADIENT_START;
-            let emerald_end = crate::ui::styles::colors::EMERALD_GRADIENT_END;
-            Color::from_rgb(
-                f32::midpoint(emerald_start.r, emerald_end.r),
-                f32::midpoint(emerald_start.g, emerald_end.g),
-                f32::midpoint(emerald_start.b, emerald_end.b),
-            )
-        }
-        crate::ui::state::NotificationType::Info => {
-            // Aurora Rose gradient for distinctive brand identity
-            let aurora_start = crate::ui::styles::colors::AURORA_ROSE_GRADIENT_START;
-            let aurora_end = crate::ui::styles::colors::AURORA_ROSE_GRADIENT_END;
-            Color::from_rgb(
-                f32::midpoint(aurora_start.r, aurora_end.r),
-                f32::midpoint(aurora_start.g, aurora_end.g),
-                f32::midpoint(aurora_start.b, aurora_end.b),
-            )
-        }
-        crate::ui::state::NotificationType::Warning => {
-            // Enhanced gold gradient for warnings
-            let gold_start = crate::ui::styles::colors::GOLD_GRADIENT_START;
-            let gold_end = crate::ui::styles::colors::GOLD_GRADIENT_END;
-            Color::from_rgb(
-                f32::midpoint(gold_start.r, gold_end.r),
-                f32::midpoint(gold_start.g, gold_end.g),
-                f32::midpoint(gold_start.b, gold_end.b),
-            )
-        }
-        crate::ui::state::NotificationType::Error => {
-            // Enhanced sunset gradient for errors
-            let sunset_start = crate::ui::styles::colors::SUNSET_GRADIENT_START;
-            let sunset_end = crate::ui::styles::colors::SUNSET_GRADIENT_END;
-            Color::from_rgb(
-                f32::midpoint(sunset_start.r, sunset_end.r),
-                f32::midpoint(sunset_start.g, sunset_end.g),
-                f32::midpoint(sunset_start.b, sunset_end.b),
-            )
-        }
-    }
 }
 
 /// Builds notification content column with optional title and message.

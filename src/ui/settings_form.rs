@@ -174,24 +174,59 @@ fn build_playback_section(state: &State) -> Element<'static, Message> {
     .into()
 }
 
-fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
+fn build_keyboard_shortcuts_section(scale: f32) -> Element<'static, Message> {
+    let badge_width = (120.0 * scale).max(80.0);
+
     column![
         section_header("Keyboard Shortcuts"),
         container(
             column![
-                shortcut_row("Space", "Play/Pause"),
-                shortcut_row("← →", "Seek backward/forward 5 seconds"),
-                shortcut_row("↑ ↓", "Previous/Next file"),
-                shortcut_row("Ctrl+F", "Focus search bar"),
-                shortcut_row("Ctrl+L", "Toggle focus mode"),
-                shortcut_row("Ctrl+T", "Toggle theme"),
-                shortcut_row("Ctrl+R", "Play last listened audiobook"),
-                shortcut_row("Ctrl+[ ]", "Decrease/Increase panel ratio"),
-                shortcut_row("Ctrl+B", "Create bookmark"),
-                shortcut_row("F1", "Show keyboard help"),
-                shortcut_row("Esc", "Close modal"),
-                shortcut_row("Tab", "Cycle focus forward"),
-                shortcut_row("Shift+Tab", "Cycle focus backward"),
+                shortcut_row("Space".to_string(), "Play/Pause", badge_width),
+                shortcut_row(
+                    "← →".to_string(),
+                    "Seek backward/forward 5 seconds",
+                    badge_width
+                ),
+                shortcut_row("↑ ↓".to_string(), "Previous/Next file", badge_width),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("F"),
+                    "Focus search bar",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("L"),
+                    "Toggle focus mode",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("T"),
+                    "Toggle theme",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("R"),
+                    "Play last listened audiobook",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("["),
+                    "Decrease panel ratio",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("]"),
+                    "Increase panel ratio",
+                    badge_width,
+                ),
+                shortcut_row(
+                    crate::ui::shortcuts::format_command_shortcut("B"),
+                    "Create bookmark",
+                    badge_width,
+                ),
+                shortcut_row("F1".to_string(), "Show keyboard help", badge_width),
+                shortcut_row("Esc".to_string(), "Close modal", badge_width),
+                shortcut_row("Tab".to_string(), "Cycle focus forward", badge_width),
+                shortcut_row("Shift+Tab".to_string(), "Cycle focus backward", badge_width),
             ]
             .spacing(spacing::SM)
         )
@@ -248,7 +283,11 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
     .into()
 }
 
-fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'static, Message> {
+fn shortcut_row(
+    keys: String,
+    description: &'static str,
+    badge_width: f32,
+) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
 
     // Simplified 2-color gradient for shortcut badge
@@ -276,7 +315,7 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
                 text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()
             })
-            .width(Length::Fixed(120.0)),
+            .width(Length::Fixed(badge_width)),
         Space::new().width(Length::Fixed(spacing::MD)),
         text(description).size(typography::SIZE_SM),
     ]
@@ -294,8 +333,12 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
 /// - Improved spacing and padding for better scannability
 /// - Visual grouping of primary/secondary actions
 #[must_use]
-pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Message> {
+pub fn build_settings_dialog(state: &State, scale: f32) -> Element<'static, Message> {
     use crate::ui::styles::colors;
+
+    let scale = scale.max(0.01);
+    let padding = spacing::XL * scale;
+    let directory_list_height = 200.0 * scale;
 
     let directory_list = build_directory_list(state);
     let action_buttons = build_action_buttons(state);
@@ -318,13 +361,13 @@ pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Mes
                 text_color: Some(colors::TEXT_SECONDARY),
                 ..Default::default()
             }),
-            container(scrollable(directory_list).height(Length::Fixed(200.0))),
+            container(scrollable(directory_list).height(Length::Fixed(directory_list_height))),
             build_playback_section(state),
             build_appearance_section(state),
-            build_keyboard_shortcuts_section(),
+            build_keyboard_shortcuts_section(scale),
             action_buttons,
         ]
-        .padding(spacing::XL)
+        .padding(padding)
         .spacing(spacing::SM))
     )
     .width(Length::Fill)

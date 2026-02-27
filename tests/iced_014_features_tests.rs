@@ -38,6 +38,7 @@ fn test_button_styles_have_distinct_appearances() {
     // Verify that different button styles produce different visual appearances
     let theme = iced::Theme::Light;
     let status = iced::widget::button::Status::Active;
+    let expected_primary_border = nodoka::ui::styles::components::border_width::REGULAR;
 
     let primary = button_styles::primary(&theme, status);
     let secondary = button_styles::secondary(&theme, status);
@@ -53,7 +54,7 @@ fn test_button_styles_have_distinct_appearances() {
     assert!(secondary.border.width > 0.0);
 
     // Primary has a subtle border (2.0px REGULAR) for definition
-    assert!((primary.border.width - 2.0).abs() < f32::EPSILON);
+    assert_eq!(primary.border.width, expected_primary_border);
 }
 
 #[test]

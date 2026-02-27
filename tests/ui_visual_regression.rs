@@ -31,6 +31,8 @@ fn wcag_contrast_ratio(foreground: iced::Color, background: iced::Color) -> f64 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nodoka::ui::state::NotificationType;
+    use nodoka::ui::styles::component_styles::notification_styles;
     use nodoka::ui::styles::{border_radius, colors, dark_theme, interactive, spacing, typography};
 
     // === Contrast Ratio Tests ===
@@ -335,22 +337,16 @@ mod tests {
 
     #[test]
     fn test_notification_colors_have_sufficient_contrast() {
-        // Use much darker notification colors that meet WCAG AA with white text
-        // These colors have been adjusted to ensure 4.5:1 contrast ratio
-        let success_dark = iced::Color::from_rgb(0.02, 0.35, 0.15); // Very dark green
-        let warning_dark = iced::Color::from_rgb(0.65, 0.35, 0.05); // Darker orange/amber
-        let error_dark = iced::Color::from_rgb(0.70, 0.05, 0.10); // Darker red
-        let info_dark = iced::Color::from_rgb(0.0, 0.35, 0.60); // Darker blue
-
         let notification_colors = [
-            (success_dark, "Success"),
-            (warning_dark, "Warning"),
-            (error_dark, "Error"),
-            (info_dark, "Info"),
+            (NotificationType::Success, "Success"),
+            (NotificationType::Warning, "Warning"),
+            (NotificationType::Error, "Error"),
+            (NotificationType::Info, "Info"),
         ];
 
-        for (color, name) in notification_colors {
-            let ratio = wcag_contrast_ratio(colors::TEXT_ON_PRIMARY, color);
+        for (kind, name) in notification_colors {
+            let bg = notification_styles::background_color(&kind);
+            let ratio = wcag_contrast_ratio(colors::TEXT_ON_PRIMARY, bg);
             assert!(
                 ratio >= 4.5,
                 "{name} notification contrast ratio {ratio:.2} does not meet WCAG AA (4.5:1)"

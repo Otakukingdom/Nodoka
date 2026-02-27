@@ -65,16 +65,7 @@ pub(super) fn keyboard_help_view(
     focused_element: FocusedElement,
     scale: f32,
 ) -> Element<'static, Message> {
-    // Platform-specific bookmark shortcut.
-    #[cfg(target_os = "macos")]
-    let bookmark_shortcut = "Cmd+B";
-    #[cfg(not(target_os = "macos"))]
-    let bookmark_shortcut = "Ctrl+B";
-
-    #[cfg(target_os = "macos")]
-    let command = "Cmd";
-    #[cfg(not(target_os = "macos"))]
-    let command = "Ctrl";
+    let bookmark_shortcut = crate::ui::shortcuts::format_command_shortcut("B");
 
     let shortcuts = column![
         text("Keyboard Shortcuts")
@@ -96,18 +87,36 @@ pub(super) fn keyboard_help_view(
             vec![
                 ("Tab".to_string(), "Cycle focus forward".to_string()),
                 ("Shift+Tab".to_string(), "Cycle focus backward".to_string()),
-                (format!("{command}+["), "Decrease panel ratio".to_string()),
-                (format!("{command}+]"), "Increase panel ratio".to_string()),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("["),
+                    "Decrease panel ratio".to_string(),
+                ),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("]"),
+                    "Increase panel ratio".to_string(),
+                ),
             ],
         ),
         shortcut_group(
             "Library",
             vec![
-                (bookmark_shortcut.to_string(), "Create bookmark".to_string()),
-                (format!("{command}+F"), "Focus search".to_string()),
-                (format!("{command}+R"), "Quick resume".to_string()),
-                (format!("{command}+T"), "Toggle theme".to_string()),
-                (format!("{command}+L"), "Toggle focus mode".to_string()),
+                (bookmark_shortcut, "Create bookmark".to_string()),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("F"),
+                    "Focus search".to_string(),
+                ),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("R"),
+                    "Quick resume".to_string(),
+                ),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("T"),
+                    "Toggle theme".to_string(),
+                ),
+                (
+                    crate::ui::shortcuts::format_command_shortcut("L"),
+                    "Toggle focus mode".to_string(),
+                ),
                 ("Escape".to_string(), "Close modal".to_string()),
                 ("F1".to_string(), "Show this help".to_string()),
             ],

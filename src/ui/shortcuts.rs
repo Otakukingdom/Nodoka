@@ -83,6 +83,34 @@ pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<M
     }
 }
 
+/// Returns the primary modifier label used in Nodoka shortcut displays.
+///
+/// On macOS, this is `Cmd`; on other platforms it is `Ctrl`.
+#[must_use]
+pub const fn command_modifier_label() -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        "Cmd"
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        "Ctrl"
+    }
+}
+
+/// Formats a display string for shortcuts that use the primary modifier.
+///
+/// # Examples
+///
+/// ```ignore
+/// assert_eq!(format_command_shortcut("F"), "Ctrl+F");
+/// ```
+#[must_use]
+pub fn format_command_shortcut(key: &str) -> String {
+    format!("{}+{key}", command_modifier_label())
+}
+
 fn plain_message(modifiers: Modifiers, message: Message) -> Option<Message> {
     if modifiers == Modifiers::default() {
         Some(message)
@@ -339,5 +367,25 @@ mod tests {
         assert!(message_for_key_chord(ShortcutKey::Tab, Modifiers::CTRL).is_none());
         let mods = Modifiers::SHIFT | Modifiers::CTRL;
         assert!(message_for_key_chord(ShortcutKey::Tab, mods).is_none());
+    }
+
+    #[test]
+    fn test_command_modifier_label_is_platform_correct() {
+        #[cfg(target_os = "macos")]
+        assert_eq!(command_modifier_label(), "Cmd");
+
+        #[cfg(not(target_os = "macos"))]
+        assert_eq!(command_modifier_label(), "Ctrl");
+    }
+
+    #[test]
+    fn test_format_command_shortcut_uses_platform_modifier_label() {
+        let s = format_command_shortcut("F");
+
+        #[cfg(target_os = "macos")]
+        assert_eq!(s, "Cmd+F");
+
+        #[cfg(not(target_os = "macos"))]
+        assert_eq!(s, "Ctrl+F");
     }
 }

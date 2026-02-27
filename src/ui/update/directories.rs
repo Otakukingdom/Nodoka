@@ -50,6 +50,10 @@ pub(super) fn handle_directory_added(
 
     if let Err(e) = crate::db::queries::insert_directory(db.connection(), &directory) {
         tracing::error!("Failed to insert directory: {e}");
+        state.notification_queue.push(Notification::error_with_title(
+            "Failed to Add Directory".to_string(),
+            format!("{stored_path}: {e}"),
+        ));
         return Task::none();
     }
 
@@ -90,6 +94,10 @@ pub(super) fn handle_directory_remove(
 
     if let Err(e) = crate::db::queries::delete_directory(db.connection(), path) {
         tracing::error!("Failed to delete directory: {e}");
+        state.notification_queue.push(Notification::error_with_title(
+            "Failed to Remove Directory".to_string(),
+            format!("{path}: {e}"),
+        ));
     } else {
         state.directories.retain(|d| d.full_path != path);
         let before_len = state.audiobooks.len();
@@ -441,6 +449,37 @@ fn start_directory_scan(path: String) -> Task<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_handle_directory_added_pushes_error_notification_on_insert_failure(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let db = crate::db::Database::new_in_memory()?;
+        crate::db::initialize(db.connection())?;
+
+        let temp = temp_dir::TempDir::new()?;
+        let missing = temp.path().join("does-not-exist");
+        let missing_str = missing.to_string_lossy().to_string();
+
+        let mut state = State::default();
+        assert!(state.directories.is_empty());
+        assert!(state.notification_queue.is_empty());
+
+        let _task = handle_directory_added(&mut state, &db, &missing_str);
+
+        assert!(state.directories.is_empty());
+
+        let notification = state
+            .notification_queue
+            .first()
+            .ok_or_else(|| std::io::Error::other("expected an error notification"))?;
+        assert_eq!(notification.kind, crate::ui::state::NotificationType::Error);
+        assert_eq!(
+            notification.title.as_deref(),
+            Some("Failed to Add Directory")
+        );
+
+        Ok(())
+    }
 
     #[test]
     fn test_update_audiobook_total_duration_calculates_sum(

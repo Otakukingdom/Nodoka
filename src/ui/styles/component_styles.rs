@@ -29,16 +29,33 @@ pub mod empty_state_styles {
 /// Notification toast styling utilities
 pub mod notification_styles {
     use crate::ui::state::NotificationType;
-    use crate::ui::styles::{border_radius, shadows, Border};
+    use crate::ui::styles::{border_radius, colors, shadows, Border};
     use iced::widget::container;
 
     #[must_use]
     pub const fn background_color(kind: &NotificationType) -> iced::Color {
+        const fn midpoint(a: iced::Color, b: iced::Color) -> iced::Color {
+            iced::Color::from_rgb(
+                f32::midpoint(a.r, b.r),
+                f32::midpoint(a.g, b.g),
+                f32::midpoint(a.b, b.b),
+            )
+        }
+
         match kind {
-            NotificationType::Success => iced::Color::from_rgb(0.02, 0.48, 0.26),
-            NotificationType::Info => iced::Color::from_rgb(0.0, 0.35, 0.62),
-            NotificationType::Warning => iced::Color::from_rgb(0.58, 0.28, 0.0),
-            NotificationType::Error => iced::Color::from_rgb(0.80, 0.10, 0.25),
+            NotificationType::Success => {
+                midpoint(colors::EMERALD_GRADIENT_START, colors::EMERALD_GRADIENT_END)
+            }
+            NotificationType::Info => midpoint(
+                colors::AURORA_ROSE_GRADIENT_START,
+                colors::AURORA_ROSE_GRADIENT_END,
+            ),
+            NotificationType::Warning => {
+                midpoint(colors::GOLD_GRADIENT_START, colors::GOLD_GRADIENT_END)
+            }
+            NotificationType::Error => {
+                midpoint(colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END)
+            }
         }
     }
 
