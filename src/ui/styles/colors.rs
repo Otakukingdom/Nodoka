@@ -292,6 +292,16 @@ pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.26);
 pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.98, 0.32, 0.45);
 pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.88, 0.15, 0.30);
 
+/// Aurora gradient for premium cool accents
+/// Provides calming blue-to-purple transition for visual variety
+pub const AURORA_GRADIENT_START: Color = Color::from_rgb(0.55, 0.75, 0.95);
+pub const AURORA_GRADIENT_END: Color = Color::from_rgb(0.65, 0.55, 0.95);
+
+/// Emerald gradient for success states
+/// Creates vibrant green-to-teal transition for positive feedback
+pub const EMERALD_GRADIENT_START: Color = Color::from_rgb(0.15, 0.75, 0.55);
+pub const EMERALD_GRADIENT_END: Color = Color::from_rgb(0.10, 0.65, 0.50);
+
 /// Cool accent gradient for secondary highlights
 /// Provides calming lavender-to-indigo transition for visual variety
 pub const COOL_GRADIENT_START: Color = Color::from_rgb(0.70, 0.65, 0.95);
@@ -562,15 +572,20 @@ pub mod dark_theme {
     pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.99, 0.35, 0.50);
     pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.90, 0.18, 0.35);
 
-    /// Cool accent gradient for dark theme with enhanced luminosity
-    /// Provides calming lavender-to-indigo transition with better contrast
-    pub const COOL_GRADIENT_START: Color = Color::from_rgb(0.75, 0.70, 0.98);
-    pub const COOL_GRADIENT_END: Color = Color::from_rgb(0.60, 0.50, 0.88);
+    /// Aurora gradient for dark theme with enhanced brightness
+    /// Provides calming blue-to-purple transition with better contrast on dark backgrounds
+    pub const AURORA_GRADIENT_START: Color = Color::from_rgb(0.60, 0.82, 1.0);
+    pub const AURORA_GRADIENT_END: Color = Color::from_rgb(0.72, 0.62, 0.98);
 
     /// Premium gold gradient for dark theme with maximum brightness
     /// Creates sophisticated amber-gold transition optimized for visibility on dark
     pub const GOLD_GRADIENT_START: Color = Color::from_rgb(1.0, 0.86, 0.48);
     pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.94, 0.72, 0.32);
+
+    /// Emerald gradient for dark theme success states
+    /// Creates vibrant green-to-teal transition for positive feedback
+    pub const EMERALD_GRADIENT_START: Color = Color::from_rgb(0.18, 0.82, 0.62);
+    pub const EMERALD_GRADIENT_END: Color = Color::from_rgb(0.12, 0.72, 0.55);
 
     /// Premium glow for active elements in dark theme
     pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.55);

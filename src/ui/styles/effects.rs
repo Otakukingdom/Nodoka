@@ -651,4 +651,75 @@ pub mod shadows {
             },
         ]
     }
+
+    /// ===== Premium Colored Shadow Functions =====
+    ///
+    /// These shadows use brand colors instead of pure black for distinctive character.
+    /// Creates a colored shadow with sunset gradient tint for premium elevation.
+    /// Uses sunset gradient colors for warm, sophisticated elevation.
+    #[must_use]
+    pub fn shadow_sunset_tinted(opacity: f32, offset: f32, blur: f32) -> Shadow {
+        let alpha = (opacity.clamp(0.0, 1.0) * 0.18).clamp(0.0, 0.30);
+        Shadow {
+            color: Color {
+                r: 0.98 * alpha,
+                g: 0.32 * alpha,
+                b: 0.45 * alpha,
+                a: alpha,
+            },
+            offset: Vector::new(0.0, offset),
+            blur_radius: blur,
+        }
+    }
+
+    /// Creates a colored shadow with aurora gradient tint
+    /// Provides cool blue-to-purple elevation for variety
+    #[must_use]
+    pub fn shadow_aurora_tinted(opacity: f32, offset: f32, blur: f32) -> Shadow {
+        let alpha = (opacity.clamp(0.0, 1.0) * 0.16).clamp(0.0, 0.28);
+        Shadow {
+            color: Color {
+                r: 0.60 * alpha,
+                g: 0.78 * alpha,
+                b: 0.95 * alpha,
+                a: alpha,
+            },
+            offset: Vector::new(0.0, offset),
+            blur_radius: blur,
+        }
+    }
+
+    /// Creates a colored shadow with emerald gradient tint
+    /// Provides fresh green elevation for success/accent contexts
+    #[must_use]
+    pub fn shadow_emerald_tinted(opacity: f32, offset: f32, blur: f32) -> Shadow {
+        let alpha = (opacity.clamp(0.0, 1.0) * 0.15).clamp(0.0, 0.25);
+        Shadow {
+            color: Color {
+                r: 0.15 * alpha,
+                g: 0.75 * alpha,
+                b: 0.55 * alpha,
+                a: alpha,
+            },
+            offset: Vector::new(0.0, offset),
+            blur_radius: blur,
+        }
+    }
+
+    /// Creates a colored shadow with gold gradient tint
+    /// Provides sophisticated amber elevation for premium elements
+    #[must_use]
+    pub fn shadow_gold_tinted(opacity: f32, offset: f32, blur: f32) -> Shadow {
+        let alpha = (opacity.clamp(0.0, 1.0) * 0.17).clamp(0.0, 0.28);
+        Shadow {
+            color: Color {
+                r: 1.0 * alpha,
+                g: 0.82 * alpha,
+                b: 0.40 * alpha,
+                a: alpha,
+            },
+            offset: Vector::new(0.0, offset),
+            blur_radius: blur,
+        }
+    }
 }
