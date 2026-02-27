@@ -4,7 +4,7 @@ use crate::models::AudiobookFile;
 use crate::ui::styles::components::border_width;
 use crate::ui::styles::{animations, colors, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{button, column, container, row, scrollable, text, Space};
+use iced::widget::{column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length, Shadow};
 
 /// Renders the file list with improved UX patterns
@@ -51,67 +51,81 @@ pub fn view<'a>(
     scrollable(items).height(Length::Fill).into()
 }
 
-/// Builds a single file list item with improved status indicators and visual hierarchy
-///
-/// Applies consistent interactive patterns:
-/// - File number prefix for better navigation context
-/// - Duration display for better scannability
-/// - Cursor-pointer on hover for available files
-/// - Subtle background color change on hover with smooth transition
-/// - Disabled cursor for missing files
-/// - Consistent spacing following 4px grid system (8px between items)
-#[allow(clippy::too_many_lines)]
+/// Builds a single file list item with improved status indicators and visual hierarchy.
 fn build_file_item(
     file: &AudiobookFile,
     selected: bool,
     file_number: usize,
     animation: ListItemAnimation,
 ) -> Element<'static, Message> {
-    use crate::ui::styles::{border_radius, colors};
-    use iced::Border;
-
     let is_missing = !file.file_exists;
-    let duration = format_duration(file.length_of_file);
-    let time_secondary = format_time_secondary(file, selected);
-    let completeness = file.completeness;
+    let is_complete = file.completeness >= 100;
     let has_progress = file.seek_position.is_some();
-    let is_complete = completeness >= 100;
-    let path = file.full_path.clone();
-    let opacity = animation.opacity;
-
-    let status_indicator = build_status_indicator(
-        is_missing,
-        is_complete,
-        has_progress,
-        selected,
-        completeness,
-        opacity,
-    );
-    let progress_element =
-        build_progress_element(has_progress, is_complete, is_missing, completeness);
-    let file_number_badge = build_file_number_badge(file_number, opacity);
-
-    // Show "Continue from" marker for selected file with progress
-    let continue_marker = if selected && has_progress && !is_complete {
-        format_continue_position(file.seek_position.as_ref())
+    let indicator = if is_missing {
+        FileIndicator::Missing
+    } else if is_complete {
+        FileIndicator::Complete
+    } else if selected && has_progress {
+        FileIndicator::SelectedWithProgress
+    } else if has_progress {
+        FileIndicator::Progress
     } else {
-        String::new()
+        FileIndicator::None
     };
+    let opacity = animation.opacity;
 
     let content_column = build_content_column(ContentColumnParams {
         name: file.name.clone(),
-        duration,
-        time_remaining: time_secondary,
-        continue_marker,
-        file_number_badge,
-        progress_element,
-        status_indicator,
+        duration: format_duration(file.length_of_file),
+        time_remaining: format_time_secondary(file, selected),
+        continue_marker: continue_marker(selected, has_progress, is_complete, file),
+        file_number_badge: build_file_number_badge(file_number, opacity),
+        progress_element: build_progress_element(
+            has_progress,
+            is_complete,
+            is_missing,
+            file.completeness,
+        ),
+        status_indicator: build_status_indicator(indicator, file.completeness, opacity),
         opacity,
         offset_y: animation.offset_y,
     });
 
-    // Apply selection styling with enhanced gradient background
-    let content_container = if selected {
+    let content_container = file_item_container(selected, content_column, opacity);
+    file_item_button(file, is_missing, selected, content_container, opacity)
+}
+
+#[derive(Debug, Clone, Copy)]
+enum FileIndicator {
+    Missing,
+    Complete,
+    SelectedWithProgress,
+    Progress,
+    None,
+}
+
+fn continue_marker(
+    is_selected: bool,
+    has_progress: bool,
+    is_complete: bool,
+    file: &AudiobookFile,
+) -> String {
+    if is_selected && has_progress && !is_complete {
+        format_continue_position(file.seek_position.as_ref())
+    } else {
+        String::new()
+    }
+}
+
+fn file_item_container(
+    selected: bool,
+    content_column: iced::widget::Column<'static, Message>,
+    opacity: f32,
+) -> iced::widget::Container<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
+    use iced::Border;
+
+    if selected {
         container(content_column)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
                 background: Some(selection_gradient_simplified(opacity).into()),
@@ -126,90 +140,115 @@ fn build_file_item(
             .width(Length::Fill)
     } else {
         container(content_column).width(Length::Fill)
-    };
+    }
+}
+
+fn file_item_button(
+    file: &AudiobookFile,
+    is_missing: bool,
+    selected: bool,
+    content_container: iced::widget::Container<'static, Message>,
+    opacity: f32,
+) -> Element<'static, Message> {
+    use iced::widget::button;
 
     let mut item_button = button(content_container).width(Length::Fill);
 
     if !is_missing {
-        item_button = item_button.on_press(Message::FileSelected(path));
+        item_button = item_button.on_press(Message::FileSelected(file.full_path.clone()));
     }
 
-    // Apply hover styling with enhanced surface colors
-    // Disabled files (missing) show no hover effect
-    // Includes pressed state for tactile feedback using interactive overlay
     item_button
         .style(move |_theme: &iced::Theme, status| {
-            use iced::widget::button;
-            if is_missing {
-                // Missing files: no hover effect, default cursor handled by lack of on_press
-                button::Style {
-                    background: Some(Color::TRANSPARENT.into()),
-                    text_color: with_alpha(colors::TEXT_DISABLED, opacity),
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.0,
-                        radius: border_radius::SM.into(),
-                    },
-                    ..button::Style::default()
-                }
-            } else {
-                match status {
-                    button::Status::Hovered if !selected => button::Style {
-                        background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
-                        border: Border {
-                            color: with_alpha(colors::BORDER_SUBTLE, opacity),
-                            width: border_width::XS,
-                            radius: border_radius::SM.into(),
-                        },
-                        ..button::Style::default()
-                    },
-                    button::Status::Pressed if !selected => button::Style {
-                        background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
-                        border: Border {
-                            color: with_alpha(colors::BORDER_PROMINENT, opacity),
-                            width: border_width::THIN,
-                            radius: border_radius::SM.into(),
-                        },
-                        ..button::Style::default()
-                    },
-                    // Default transparent style for all other states
-                    _ => button::Style {
-                        background: Some(Color::TRANSPARENT.into()),
-                        border: Border {
-                            color: Color::TRANSPARENT,
-                            width: 0.0,
-                            radius: border_radius::SM.into(),
-                        },
-                        ..button::Style::default()
-                    },
-                }
-            }
+            file_item_button_style(status, is_missing, selected, opacity)
         })
         .into()
 }
 
-#[allow(clippy::fn_params_excessive_bools)]
-fn build_status_indicator(
+fn file_item_button_style(
+    status: iced::widget::button::Status,
     is_missing: bool,
-    is_complete: bool,
-    has_progress: bool,
-    is_selected: bool,
+    selected: bool,
+    opacity: f32,
+) -> iced::widget::button::Style {
+    use crate::ui::styles::{border_radius, colors};
+    use iced::widget::button;
+    use iced::Border;
+
+    if is_missing {
+        return button::Style {
+            background: Some(Color::TRANSPARENT.into()),
+            text_color: with_alpha(colors::TEXT_DISABLED, opacity),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::SM.into(),
+            },
+            ..button::Style::default()
+        };
+    }
+
+    if selected {
+        return button::Style {
+            background: Some(Color::TRANSPARENT.into()),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::SM.into(),
+            },
+            ..button::Style::default()
+        };
+    }
+
+    match status {
+        button::Status::Hovered => button::Style {
+            background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
+            border: Border {
+                color: with_alpha(colors::BORDER_SUBTLE, opacity),
+                width: border_width::XS,
+                radius: border_radius::SM.into(),
+            },
+            ..button::Style::default()
+        },
+        button::Status::Pressed => button::Style {
+            background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
+            border: Border {
+                color: with_alpha(colors::BORDER_PROMINENT, opacity),
+                width: border_width::THIN,
+                radius: border_radius::SM.into(),
+            },
+            ..button::Style::default()
+        },
+        _ => button::Style {
+            background: Some(Color::TRANSPARENT.into()),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::SM.into(),
+            },
+            ..button::Style::default()
+        },
+    }
+}
+
+fn build_status_indicator(
+    status: FileIndicator,
     completeness: i32,
     opacity: f32,
 ) -> iced::widget::Container<'static, Message> {
     use crate::ui::styles::{border_radius, colors, shadows};
     use iced::Border;
 
-    // Enhanced status indicators with badge styling
-    if is_missing {
-        container(text("⚠").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
-            container::Style {
-                text_color: Some(with_alpha(colors::WARNING_REFINED, opacity)),
-                ..Default::default()
-            }
-        })
-    } else if is_complete {
-        container(text("✓").size(typography::SIZE_BASE))
+    match status {
+        FileIndicator::Missing => {
+            container(text("⚠").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
+                container::Style {
+                    text_color: Some(with_alpha(colors::WARNING_REFINED, opacity)),
+                    ..Default::default()
+                }
+            })
+        }
+        FileIndicator::Complete => container(text("✓").size(typography::SIZE_BASE))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
@@ -221,10 +260,8 @@ fn build_status_indicator(
                 shadow: shadows::shadow_sm(),
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 ..Default::default()
-            })
-    } else if is_selected && has_progress {
-        // Show play icon for current file with enhanced gradient background
-        container(text("▶").size(typography::SIZE_BASE))
+            }),
+        FileIndicator::SelectedWithProgress => container(text("▶").size(typography::SIZE_BASE))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
@@ -236,17 +273,15 @@ fn build_status_indicator(
                 shadow: shadows::shadow_sm(),
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 ..Default::default()
-            })
-    } else if has_progress {
-        // Show percentage only for in-progress files that aren't selected
-        container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
-            move |_theme: &iced::Theme| container::Style {
-                text_color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-                ..Default::default()
-            },
+            }),
+        FileIndicator::Progress => container(
+            text(format!("{completeness}%")).size(typography::SIZE_SM),
         )
-    } else {
-        container(text("").size(typography::SIZE_SM))
+        .style(move |_theme: &iced::Theme| container::Style {
+            text_color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+            ..Default::default()
+        }),
+        FileIndicator::None => container(text("").size(typography::SIZE_SM)),
     }
 }
 

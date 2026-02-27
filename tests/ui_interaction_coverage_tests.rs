@@ -184,17 +184,17 @@ fn test_empty_audiobook_list_shows_empty_state() {
     let scan_state = ScanState::Idle;
 
     // View should render empty state without panic
-    let element = audiobook_list::view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        0,
-        false,
-        "",
-        nodoka::ui::state::AudiobookSortOrder::default(),
-        nodoka::ui::state::AudiobookFilterStatus::default(),
-    );
+    let element = audiobook_list::view(&audiobook_list::ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: 0,
+        prefers_reduced_motion: false,
+        search_query: "",
+        sort_order: nodoka::ui::state::AudiobookSortOrder::default(),
+        filter_status: nodoka::ui::state::AudiobookFilterStatus::default(),
+    });
     drop(element);
 }
 
@@ -212,17 +212,17 @@ fn test_skeleton_ui_renders_during_scan_with_empty_library() {
     };
 
     // Should render skeleton UI instead of empty state
-    let element = audiobook_list::view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        0,
-        false,
-        "",
-        nodoka::ui::state::AudiobookSortOrder::default(),
-        nodoka::ui::state::AudiobookFilterStatus::default(),
-    );
+    let element = audiobook_list::view(&audiobook_list::ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: 0,
+        prefers_reduced_motion: false,
+        search_query: "",
+        sort_order: nodoka::ui::state::AudiobookSortOrder::default(),
+        filter_status: nodoka::ui::state::AudiobookFilterStatus::default(),
+    });
     drop(element); // Verify no panic during render
 }
 
@@ -238,17 +238,17 @@ fn test_empty_state_renders_when_scan_idle_and_no_audiobooks() {
     let scan_state = ScanState::Idle;
 
     // Should render empty state with helpful message
-    let element = audiobook_list::view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        0,
-        false,
-        "",
-        nodoka::ui::state::AudiobookSortOrder::default(),
-        nodoka::ui::state::AudiobookFilterStatus::default(),
-    );
+    let element = audiobook_list::view(&audiobook_list::ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: 0,
+        prefers_reduced_motion: false,
+        search_query: "",
+        sort_order: nodoka::ui::state::AudiobookSortOrder::default(),
+        filter_status: nodoka::ui::state::AudiobookFilterStatus::default(),
+    });
     drop(element); // Verify no panic during render
 }
 

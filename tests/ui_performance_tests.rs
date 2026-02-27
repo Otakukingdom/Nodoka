@@ -425,17 +425,17 @@ fn test_audiobook_list_rendering_with_hover_states() {
 
     // Render audiobook list
     let start = Instant::now();
-    let element = audiobook_list::view(
-        &audiobooks,
-        Some(500),
-        &cover_thumbnails,
-        &scan_state,
-        0,
-        false,
-        "",
-        nodoka::ui::state::AudiobookSortOrder::default(),
-        nodoka::ui::state::AudiobookFilterStatus::default(),
-    );
+    let element = audiobook_list::view(&audiobook_list::ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: Some(500),
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: 0,
+        prefers_reduced_motion: false,
+        search_query: "",
+        sort_order: nodoka::ui::state::AudiobookSortOrder::default(),
+        filter_status: nodoka::ui::state::AudiobookFilterStatus::default(),
+    });
     drop(element);
     let render_duration = start.elapsed();
 

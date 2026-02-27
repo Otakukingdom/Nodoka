@@ -11,7 +11,20 @@ use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::path::PathBuf;
 
-/// Renders the audiobook list with improved visual design
+/// Parameter bundle for [`view`].
+pub struct ViewParams<'a, S: BuildHasher> {
+    pub audiobooks: &'a [Audiobook],
+    pub selected_id: Option<i64>,
+    pub cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
+    pub scan_state: &'a ScanState,
+    pub animation_elapsed_ms: u64,
+    pub prefers_reduced_motion: bool,
+    pub search_query: &'a str,
+    pub sort_order: crate::ui::state::AudiobookSortOrder,
+    pub filter_status: crate::ui::state::AudiobookFilterStatus,
+}
+
+/// Renders the audiobook list with improved visual design.
 ///
 /// Features:
 /// - Empty state with helpful guidance when no audiobooks exist
@@ -22,35 +35,18 @@ use std::path::PathBuf;
 /// - Improved spacing (8px between items) for better touch targets
 /// - Success indicator for completed audiobooks
 /// - Search/filter/sort support with efficient filtering
-///
-/// # Clippy allowance
-///
-/// This function has 9 parameters which exceeds clippy's default limit.
-/// The parameters represent distinct UI concerns (data, selection, thumbnails,
-/// state, animation, accessibility, and filtering) and grouping them into a
-/// struct would not improve clarity or reduce coupling to State.
 #[must_use]
-#[allow(clippy::too_many_arguments)]
-pub fn view<'a, S: BuildHasher>(
-    audiobooks: &'a [Audiobook],
-    selected_id: Option<i64>,
-    cover_thumbnails: &'a HashMap<i64, PathBuf, S>,
-    scan_state: &'a ScanState,
-    animation_elapsed_ms: u64,
-    prefers_reduced_motion: bool,
-    search_query: &str,
-    sort_order: crate::ui::state::AudiobookSortOrder,
-    filter_status: crate::ui::state::AudiobookFilterStatus,
-) -> Element<'a, Message> {
+pub fn view<'a, S: BuildHasher>(params: &ViewParams<'a, S>) -> Element<'a, Message> {
     use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
 
     // Apply filters to get a filtered list
-    let filtered: Vec<&Audiobook> = audiobooks
+    let filtered: Vec<&Audiobook> = params
+        .audiobooks
         .iter()
         .filter(|ab| {
             // Apply search filter (case-insensitive on title and author)
-            if !search_query.is_empty() {
-                let query_lower = search_query.to_lowercase();
+            if !params.search_query.is_empty() {
+                let query_lower = params.search_query.to_lowercase();
                 let title_match = ab.name.to_lowercase().contains(&query_lower);
                 let author_match = ab
                     .author
@@ -62,7 +58,7 @@ pub fn view<'a, S: BuildHasher>(
             }
 
             // Apply status filter
-            match filter_status {
+            match params.filter_status {
                 AudiobookFilterStatus::All => true,
                 AudiobookFilterStatus::InProgress => ab.completeness > 0 && ab.completeness < 100,
                 AudiobookFilterStatus::Complete => ab.completeness >= 100,
@@ -72,12 +68,12 @@ pub fn view<'a, S: BuildHasher>(
         .collect();
 
     // Check if we should show empty state
-    let has_active_filters = !search_query.is_empty()
-        || sort_order != AudiobookSortOrder::default()
-        || filter_status != AudiobookFilterStatus::default();
+    let has_active_filters = !params.search_query.is_empty()
+        || params.sort_order != AudiobookSortOrder::default()
+        || params.filter_status != AudiobookFilterStatus::default();
 
     if filtered.is_empty() {
-        return match scan_state {
+        return match params.scan_state {
             ScanState::Scanning { .. } => skeleton_audiobook_list(),
             ScanState::Idle => {
                 if has_active_filters {
@@ -103,7 +99,7 @@ pub fn view<'a, S: BuildHasher>(
 
     // Apply sort order (we need to collect into a Vec to sort)
     let mut sorted_filtered = filtered;
-    match sort_order {
+    match params.sort_order {
         AudiobookSortOrder::RecentlyPlayed => {
             sorted_filtered.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
         }
@@ -122,10 +118,13 @@ pub fn view<'a, S: BuildHasher>(
         .iter()
         .enumerate()
         .fold(column![].spacing(spacing::SM), |col, (index, ab)| {
-            let is_selected = selected_id == ab.id;
-            let animation =
-                list_item_animation(index, animation_elapsed_ms, prefers_reduced_motion);
-            let item = build_audiobook_item(ab, is_selected, cover_thumbnails, animation);
+            let is_selected = params.selected_id == ab.id;
+            let animation = list_item_animation(
+                index,
+                params.animation_elapsed_ms,
+                params.prefers_reduced_motion,
+            );
+            let item = build_audiobook_item(ab, is_selected, params.cover_thumbnails, animation);
             col.push(item)
         })
         .into();

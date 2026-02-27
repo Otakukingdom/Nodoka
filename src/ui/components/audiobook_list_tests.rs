@@ -41,17 +41,17 @@ fn test_view_renders_empty_list() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -61,17 +61,17 @@ fn test_view_renders_single_audiobook() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -85,17 +85,17 @@ fn test_view_renders_multiple_audiobooks() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -108,17 +108,17 @@ fn test_view_renders_with_selection() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        Some(2),
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: Some(2),
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -129,17 +129,17 @@ fn test_view_renders_with_cover_thumbnails() {
     cover_thumbnails.insert(1, PathBuf::from("/test/cover1.jpg"));
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -225,17 +225,17 @@ fn test_view_handles_large_list() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -290,31 +290,31 @@ fn test_view_properly_passes_selection_state_to_items() {
     let scan_state = ScanState::Idle;
 
     // Test with no selection
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 
     // Test with book 2 selected
-    let element = view(
-        &audiobooks,
-        Some(2),
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: Some(2),
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -326,17 +326,17 @@ fn test_skeleton_ui_renders_during_scan() {
         directory: Some("/test/path".to_string()),
     };
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }
 
@@ -346,16 +346,16 @@ fn test_empty_state_renders_when_idle_and_no_audiobooks() {
     let cover_thumbnails: HashMap<i64, PathBuf> = HashMap::new();
     let scan_state = ScanState::Idle;
 
-    let element = view(
-        &audiobooks,
-        None,
-        &cover_thumbnails,
-        &scan_state,
-        TEST_ANIMATION_ELAPSED_MS,
-        TEST_PREFERS_REDUCED_MOTION,
-        TEST_SEARCH_QUERY,
-        test_sort_order(),
-        test_filter_status(),
-    );
+    let element = view(&ViewParams {
+        audiobooks: &audiobooks,
+        selected_id: None,
+        cover_thumbnails: &cover_thumbnails,
+        scan_state: &scan_state,
+        animation_elapsed_ms: TEST_ANIMATION_ELAPSED_MS,
+        prefers_reduced_motion: TEST_PREFERS_REDUCED_MOTION,
+        search_query: TEST_SEARCH_QUERY,
+        sort_order: test_sort_order(),
+        filter_status: test_filter_status(),
+    });
     drop(element);
 }

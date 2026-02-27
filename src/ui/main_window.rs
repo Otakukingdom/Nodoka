@@ -270,17 +270,17 @@ fn build_library_column(state: &State) -> Element<'_, Message> {
 
     let toolbar = library_toolbar::view(&state.search_query, state.sort_order, state.filter_status);
     let continue_listening = continue_listening::view(last_audiobook, &state.cover_thumbnails);
-    let audiobook_list = audiobook_list::view(
-        &state.audiobooks,
-        state.selected_audiobook,
-        &state.cover_thumbnails,
-        &state.scan_state,
-        audiobook_elapsed,
-        state.prefers_reduced_motion,
-        &state.search_query,
-        state.sort_order,
-        state.filter_status,
-    );
+    let audiobook_list = audiobook_list::view(&audiobook_list::ViewParams {
+        audiobooks: &state.audiobooks,
+        selected_id: state.selected_audiobook,
+        cover_thumbnails: &state.cover_thumbnails,
+        scan_state: &state.scan_state,
+        animation_elapsed_ms: audiobook_elapsed,
+        prefers_reduced_motion: state.prefers_reduced_motion,
+        search_query: &state.search_query,
+        sort_order: state.sort_order,
+        filter_status: state.filter_status,
+    });
 
     column![toolbar, continue_listening, audiobook_list]
         .spacing(spacing::MD)
@@ -404,11 +404,9 @@ fn build_wide_layout(state: &State) -> Element<'_, Message> {
         if state.focus_mode && state.playback == crate::ui::PlaybackStatus::Playing {
             (0_u16, 10_u16, false)
         } else {
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let left_portion = (state.panel_ratio * 10.0) as u16;
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let right_portion = ((1.0 - state.panel_ratio) * 10.0) as u16;
-            (left_portion.max(1), right_portion.max(1), true)
+            let left_portion = portion_from_ratio(state.panel_ratio).max(1);
+            let right_portion = portion_from_ratio(1.0 - state.panel_ratio).max(1);
+            (left_portion, right_portion, true)
         };
 
     if show_left_panel {
@@ -442,6 +440,32 @@ fn build_wide_layout(state: &State) -> Element<'_, Message> {
         .height(Length::Fill)
         .spacing(spacing::SM)
         .into()
+    }
+}
+
+fn portion_from_ratio(ratio: f32) -> u16 {
+    let ratio = ratio.clamp(0.0, 1.0);
+
+    if ratio >= 1.0 {
+        10
+    } else if ratio >= 0.9 {
+        9
+    } else if ratio >= 0.8 {
+        8
+    } else if ratio >= 0.7 {
+        7
+    } else if ratio >= 0.6 {
+        6
+    } else if ratio >= 0.5 {
+        5
+    } else if ratio >= 0.4 {
+        4
+    } else if ratio >= 0.3 {
+        3
+    } else if ratio >= 0.2 {
+        2
+    } else {
+        u16::from(ratio >= 0.1)
     }
 }
 
