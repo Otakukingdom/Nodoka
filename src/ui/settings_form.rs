@@ -5,7 +5,7 @@
 use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
-use iced::{Border, Element, Length};
+use iced::{Border, Color, Element, Length};
 
 fn build_directory_list(state: &State) -> Element<'static, Message> {
     use crate::ui::styles::colors;
@@ -205,7 +205,10 @@ fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
 }
 
 fn section_header(title: &'static str) -> Element<'static, Message> {
-    use crate::ui::styles::{border_radius, colors};
+    use crate::ui::styles::{border_radius, colors, shadows};
+
+    let gradient_start = colors::SIGNATURE_GRADIENT_START;
+    let gradient_end = colors::AURORA_ROSE_GRADIENT_END;
 
     column![
         container(text(title).size(typography::SIZE_LG))
@@ -216,18 +219,24 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
                 left: 0.0,
             })
             .style(|_theme: &iced::Theme| container::Style {
-                text_color: Some(colors::PRIMARY),
+                text_color: Some(colors::TEXT_PRIMARY),
                 ..Default::default()
             }),
         container(Space::new())
             .width(Length::Fill)
-            .height(Length::Fixed(3.0))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+            .height(Length::Fixed(3.5))
+            .style(move |_theme: &iced::Theme| container::Style {
+                // Enhanced gradient background for section divider
+                background: Some(Color::from_rgb(
+                    f32::midpoint(gradient_start.r, gradient_end.r),
+                    f32::midpoint(gradient_start.g, gradient_end.g),
+                    f32::midpoint(gradient_start.b, gradient_end.b),
+                ).into()),
                 border: Border {
                     radius: border_radius::FULL.into(),
                     ..Default::default()
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             }),
     ]
@@ -237,20 +246,29 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
 fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
 
+    let badge_gradient = {
+        let signature = colors::SIGNATURE_GRADIENT_START;
+        let aurora = colors::AURORA_ROSE_GRADIENT_START;
+        Color::from_rgb(
+            f32::midpoint(signature.r, aurora.r),
+            f32::midpoint(signature.g, aurora.g),
+            f32::midpoint(signature.b, aurora.b),
+        )
+    };
+
     row![
         container(text(keys).size(typography::SIZE_SM))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
-                // Enhanced keyboard shortcut badge with subtle gradient
-                background: Some(colors::SUBTLE_GRADIENT_START.into()),
-                border: iced::Border {
-                    // Rose tint border for distinctive appearance
-                    color: colors::PRIMARY_GRADIENT_START,
-                    width: 1.5,
+                background: Some(badge_gradient.into()),
+                border: Border {
+                    // Enhanced gradient border for distinctive appearance
+                    color: colors::AURORA_ROSE_GRADIENT_END,
+                    width: 2.0,
                     radius: border_radius::SM.into(),
                 },
-                // Small shadow for depth
-                shadow: shadows::shadow_xs(),
+                shadow: shadows::shadow_sm(),
+                text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()
             })
             .width(Length::Fixed(120.0)),

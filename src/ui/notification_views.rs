@@ -101,25 +101,48 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
 }
 
 /// Helper function for premium gradient notification colors with increased saturation
-/// Creates sophisticated gradient-to-solid colors for each notification type
-/// Uses Aurora Rose gradient for Info type for distinctive brand identity
+/// Enhanced gradient notification colors with increased saturation
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
-            // Enhanced emerald with increased saturation for better contrast
-            Color::from_rgb(0.04, 0.80, 0.42)
+            // Enhanced emerald gradient for success
+            let emerald_start = crate::ui::styles::colors::EMERALD_GRADIENT_START;
+            let emerald_end = crate::ui::styles::colors::EMERALD_GRADIENT_END;
+            Color::from_rgb(
+                f32::midpoint(emerald_start.r, emerald_end.r),
+                f32::midpoint(emerald_start.g, emerald_end.g),
+                f32::midpoint(emerald_start.b, emerald_end.b),
+            )
         }
         crate::ui::state::NotificationType::Info => {
-            // Aurora Rose gradient for distinctive brand identity (enhanced)
-            Color::from_rgb(0.94, 0.48, 0.68)
+            // Aurora Rose gradient for distinctive brand identity
+            let aurora_start = crate::ui::styles::colors::AURORA_ROSE_GRADIENT_START;
+            let aurora_end = crate::ui::styles::colors::AURORA_ROSE_GRADIENT_END;
+            Color::from_rgb(
+                f32::midpoint(aurora_start.r, aurora_end.r),
+                f32::midpoint(aurora_start.g, aurora_end.g),
+                f32::midpoint(aurora_start.b, aurora_end.b),
+            )
         }
         crate::ui::state::NotificationType::Warning => {
-            // Enhanced amber with increased saturation
-            Color::from_rgb(0.95, 0.62, 0.12)
+            // Enhanced gold gradient for warnings
+            let gold_start = crate::ui::styles::colors::GOLD_GRADIENT_START;
+            let gold_end = crate::ui::styles::colors::GOLD_GRADIENT_END;
+            Color::from_rgb(
+                f32::midpoint(gold_start.r, gold_end.r),
+                f32::midpoint(gold_start.g, gold_end.g),
+                f32::midpoint(gold_start.b, gold_end.b),
+            )
         }
         crate::ui::state::NotificationType::Error => {
-            // Rose-tinted for brand consistency with increased saturation
-            Color::from_rgb(0.94, 0.18, 0.38)
+            // Enhanced sunset gradient for errors
+            let sunset_start = crate::ui::styles::colors::SUNSET_GRADIENT_START;
+            let sunset_end = crate::ui::styles::colors::SUNSET_GRADIENT_END;
+            Color::from_rgb(
+                f32::midpoint(sunset_start.r, sunset_end.r),
+                f32::midpoint(sunset_start.g, sunset_end.g),
+                f32::midpoint(sunset_start.b, sunset_end.b),
+            )
         }
     }
 }

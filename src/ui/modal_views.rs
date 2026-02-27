@@ -47,20 +47,17 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
 /// Enhanced glass-morphism backdrop with multi-color tint
 /// Creates premium backdrop with sophisticated color layering for depth and richness
 fn improved_glass_backdrop(opacity: f32) -> Color {
-    // Premium multi-layer color for enhanced depth
-    // Combines warm rose base with cool blue-gray overlay for dramatic depth
-    let base_r = 0.15;  // Enhanced rose base for warmth
-    let base_g = 0.08;
-    let base_b = 0.12;
-    let overlay_r = 0.06;  // Cool overlay for depth
-    let overlay_g = 0.10;
-    let overlay_b = 0.20;
+    // Enhanced multi-layer glass-morphism for premium modal feel
+    // Combines warm rose base with cool overlay and brand gradient tint
+    let base = Color::from_rgb(0.12, 0.08, 0.15);  // Deep rose base
+    let overlay = Color::from_rgb(0.08, 0.12, 0.25);  // Cool overlay
+    let tint = colors::SIGNATURE_GRADIENT_START;  // Brand tint
 
     Color {
-        r: (base_r + overlay_r * 0.25),
-        g: (base_g + overlay_g * 0.25),
-        b: (base_b + overlay_b * 0.25),
-        a: (0.85 * opacity).clamp(0.0, 0.94),  // Increased opacity for better focus
+        r: (base.r.mul_add(0.3, overlay.r.mul_add(0.25, tint.r * 0.15))),
+        g: (base.g.mul_add(0.3, overlay.g.mul_add(0.25, tint.g * 0.15))),
+        b: (base.b.mul_add(0.3, overlay.b.mul_add(0.25, tint.b * 0.15))),
+        a: (0.90 * opacity).clamp(0.0, 0.96),  // Increased opacity for better focus
     }
 }
 
@@ -334,15 +331,17 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
 }
 
 /// Creates premium multi-gradient border color for modal cards
-/// Blends Velvet and Aurora gradients for distinctive premium appearance
+/// Enhanced with Aurora Rose gradient for distinctive brand identity
 fn with_alpha_gradient_border_premium(opacity: f32) -> Color {
-    let velvet = colors::VELVET_GRADIENT_END;
-    let aurora = colors::AURORA_ROSE_GRADIENT_END;
+    // Enhanced Aurora Rose gradient for distinctive brand identity
+    let aurora = colors::AURORA_ROSE_GRADIENT_START;
+    let sunset = colors::SUNSET_GRADIENT_END;
     let primary = colors::PRIMARY;
+
     Color {
-        r: primary.r.mul_add(0.25, velvet.r.mul_add(0.4, aurora.r * 0.35)) * opacity,
-        g: primary.g.mul_add(0.25, velvet.g.mul_add(0.4, aurora.g * 0.35)) * opacity,
-        b: primary.b.mul_add(0.25, velvet.b.mul_add(0.4, aurora.b * 0.35)) * opacity,
+        r: aurora.r.mul_add(0.35, sunset.r.mul_add(0.30, primary.r * 0.25)) * opacity,
+        g: aurora.g.mul_add(0.35, sunset.g.mul_add(0.30, primary.g * 0.25)) * opacity,
+        b: aurora.b.mul_add(0.35, sunset.b.mul_add(0.30, primary.b * 0.25)) * opacity,
         a: opacity,
     }
 }

@@ -19,9 +19,9 @@ pub fn playback_controls(
         .padding(spacing::MD)
         .width(Length::Fixed(100.0))
         .style(if play_pause_focused {
-            button_styles::primary_focused
+            button_styles::premium_control_focused
         } else {
-            button_styles::primary
+            button_styles::premium_control
         });
 
     let stop_button = button(text("Stop").size(typography::SIZE_BASE))
@@ -29,9 +29,9 @@ pub fn playback_controls(
         .padding(spacing::MD)
         .width(Length::Fixed(100.0))
         .style(if stop_focused {
-            button_styles::secondary_focused
+            button_styles::premium_control_focused
         } else {
-            button_styles::secondary
+            button_styles::premium_control
         });
 
     let play_button = mouse_area(ripple_stack(

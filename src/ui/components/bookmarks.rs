@@ -4,6 +4,7 @@ use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
 use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
 use crate::ui::styles::colors;
+use crate::ui::styles::components::text_input_styles;
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Color, Element, Length};
@@ -88,12 +89,14 @@ pub fn editor(
     let label_input = text_input("Label", &editor.label)
         .on_input(Message::BookmarkEditorLabelChanged)
         .padding(spacing::SM)
-        .width(Length::Fill);
+        .width(Length::Fill)
+        .style(text_input_styles::premium);
 
     let note_input = text_input("Note (optional)", &editor.note)
         .on_input(Message::BookmarkEditorNoteChanged)
         .padding(spacing::SM)
-        .width(Length::Fill);
+        .width(Length::Fill)
+        .style(text_input_styles::premium);
 
     let pos = format_position(editor.position_ms);
 
@@ -169,7 +172,19 @@ fn bookmark_row(
     let pos = format_position(bm.position_ms);
     let id = bm.id;
 
-    // Timestamp badge with gradient background and premium styling
+    // Compute badge colors before creating containers
+    let timestamp_badge_color = Color::from_rgb(
+        f32::midpoint(colors::SIGNATURE_GRADIENT_START.r, colors::AURORA_ROSE_GRADIENT_END.r),
+        f32::midpoint(colors::SIGNATURE_GRADIENT_START.g, colors::AURORA_ROSE_GRADIENT_END.g),
+        f32::midpoint(colors::SIGNATURE_GRADIENT_START.b, colors::AURORA_ROSE_GRADIENT_END.b),
+    );
+    let note_badge_color = Color::from_rgb(
+        f32::midpoint(colors::CELESTIAL_GRADIENT_START.r, colors::CELESTIAL_GRADIENT_END.r),
+        f32::midpoint(colors::CELESTIAL_GRADIENT_START.g, colors::CELESTIAL_GRADIENT_END.g),
+        f32::midpoint(colors::CELESTIAL_GRADIENT_START.b, colors::CELESTIAL_GRADIENT_END.b),
+    );
+
+    // Timestamp badge with enhanced signature gradient for brand consistency
     let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
         move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
@@ -177,18 +192,18 @@ fn bookmark_row(
     ))
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
+        background: Some(with_alpha(timestamp_badge_color, opacity).into()),
         text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
-            color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-            width: 1.0,
+            color: with_alpha(colors::SIGNATURE_GRADIENT_END, opacity),
+            width: 1.5,
             radius: border_radius::SM.into(),
         },
-        shadow: shadows::shadow_xs(),
+        shadow: shadows::aurora_shadow_tinted(0.15),
         ..Default::default()
     });
 
-    // Note indicator badge if bookmark has note with premium gradient styling
+    // Note indicator badge with celestial gradient for distinct appearance
     let note_badge = if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
         container(
             text("NOTE")
@@ -199,14 +214,14 @@ fn bookmark_row(
         )
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
         .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
+            background: Some(with_alpha(note_badge_color, opacity).into()),
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
-                color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
+                color: with_alpha(colors::CELESTIAL_GRADIENT_END, opacity),
                 width: 1.0,
                 radius: border_radius::SM.into(),
             },
-            shadow: shadows::shadow_xs(),
+            shadow: shadows::celestial_shadow(),
             ..Default::default()
         })
     } else {

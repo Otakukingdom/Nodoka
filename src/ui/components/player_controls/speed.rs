@@ -61,14 +61,38 @@ pub fn speed_controls(
     .placeholder("Speed")
     .width(iced::Length::Fixed(140.0));
 
+    // Enhanced gradient color based on speed level
+    let speed_gradient_color = if state.speed >= 1.5 {
+        // Fast speeds: accent gradient
+        iced::Color::from_rgb(
+            colors::ACCENT_GRADIENT_START.r.mul_add(0.4, colors::PRIMARY_GRADIENT_START.r * 0.6),
+            colors::ACCENT_GRADIENT_START.g.mul_add(0.4, colors::PRIMARY_GRADIENT_START.g * 0.6),
+            colors::ACCENT_GRADIENT_START.b.mul_add(0.4, colors::PRIMARY_GRADIENT_START.b * 0.6),
+        )
+    } else if state.speed >= 1.0 {
+        // Normal speeds: primary gradient
+        iced::Color::from_rgb(
+            colors::PRIMARY_GRADIENT_START.r.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.r * 0.5),
+            colors::PRIMARY_GRADIENT_START.g.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.g * 0.5),
+            colors::PRIMARY_GRADIENT_START.b.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.b * 0.5),
+        )
+    } else {
+        // Slow speeds: softer aurora gradient
+        iced::Color::from_rgb(
+            colors::AURORA_ROSE_GRADIENT_START.r.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.r * 0.6),
+            colors::AURORA_ROSE_GRADIENT_START.g.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.g * 0.6),
+            colors::AURORA_ROSE_GRADIENT_START.b.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.b * 0.6),
+        )
+    };
+
     let content = container(
         row![
             text("Speed:").size(typography::SIZE_SM),
             picker,
             text(format_speed_label(state.speed))
                 .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::PRIMARY),
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(speed_gradient_color),
                 }),
         ]
         .spacing(spacing::SM)

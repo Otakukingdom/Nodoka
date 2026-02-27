@@ -2,7 +2,7 @@
 
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
-use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
+use crate::ui::styles::{animations, border_radius, colors, loading, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{
     button, column, container, image, mouse_area, row, scrollable, text, Space,
@@ -550,15 +550,17 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Premium sunset gradient for hover states with distinctive branding
-/// Creates warm rose-to-coral transition with configurable opacity
-fn with_alpha_gradient_sunset(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
-    let blend_factor = blend_factor.clamp(0.0, 1.0);
-    let inv_blend = 1.0 - blend_factor;
+/// Enhanced premium sunset gradient for hover with multi-layer blend
+/// Creates warm rose-to-coral transition with distinctive brand identity
+fn with_alpha_gradient_sunset(start: Color, end: Color, blend: f32, opacity: f32) -> Color {
+    // Enhanced premium sunset gradient for hover with multi-layer blend
+    let mid1 = colors::PRIMARY_GRADIENT_START;
+    let mid2 = colors::ACCENT_GRADIENT_START;
+
     Color {
-        r: start.r.mul_add(blend_factor, end.r * inv_blend) * opacity,
-        g: start.g.mul_add(blend_factor, end.g * inv_blend) * opacity,
-        b: start.b.mul_add(blend_factor, end.b * inv_blend) * opacity,
+        r: end.r.mul_add(blend * 0.3, start.r.mul_add(blend * 0.25, mid1.r.mul_add(0.20, mid2.r * 0.15))) * opacity,
+        g: end.g.mul_add(blend * 0.3, start.g.mul_add(blend * 0.25, mid1.g.mul_add(0.20, mid2.g * 0.15))) * opacity,
+        b: end.b.mul_add(blend * 0.3, start.b.mul_add(blend * 0.25, mid1.b.mul_add(0.20, mid2.b * 0.15))) * opacity,
         a: opacity,
     }
 }

@@ -64,14 +64,17 @@ pub fn view(
     // Enhanced icon with 4-color signature gradient for brand consistency
     // Combines signature, primary, sunset, and accent gradients for distinctive appearance
     let icon_gradient = {
-        let start = colors::SIGNATURE_GRADIENT_START;
-        let mid1 = colors::PRIMARY_GRADIENT_START;
-        let mid2 = colors::SUNSET_GRADIENT_START;
-        let end = colors::ACCENT_GRADIENT_END;
+        // Enhanced 5-color signature gradient for distinctive brand identity
+        let signature = colors::SIGNATURE_GRADIENT_START;
+        let aurora = colors::AURORA_ROSE_GRADIENT_START;
+        let sunset = colors::SUNSET_GRADIENT_START;
+        let primary = colors::PRIMARY_GRADIENT_START;
+        let accent = colors::ACCENT_GRADIENT_END;
+
         Color {
-            r: end.r.mul_add(0.30, mid2.r.mul_add(0.25, mid1.r.mul_add(0.25, start.r * 0.20))),
-            g: end.g.mul_add(0.30, mid2.g.mul_add(0.25, mid1.g.mul_add(0.25, start.g * 0.20))),
-            b: end.b.mul_add(0.30, mid2.b.mul_add(0.25, mid1.b.mul_add(0.25, start.b * 0.20))),
+            r: accent.r.mul_add(0.25, sunset.r.mul_add(0.20, primary.r.mul_add(0.20, aurora.r.mul_add(0.15, signature.r * 0.20)))),
+            g: accent.g.mul_add(0.25, sunset.g.mul_add(0.20, primary.g.mul_add(0.20, aurora.g.mul_add(0.15, signature.g * 0.20)))),
+            b: accent.b.mul_add(0.25, sunset.b.mul_add(0.20, primary.b.mul_add(0.20, aurora.b.mul_add(0.15, signature.b * 0.20)))),
             a: 1.0,
         }
     };

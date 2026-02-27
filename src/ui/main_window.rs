@@ -311,21 +311,29 @@ fn build_detail_panel(state: &State) -> Element<'_, Message> {
 }
 
 /// Creates a draggable divider between panels with enhanced visual treatment.
-/// Enhanced with subtle rose tint for integration with design system.
+/// Enhanced with multi-gradient tint for sophisticated panel separation.
 fn panel_divider(width: f32) -> Element<'static, Message> {
     use iced::widget::mouse_area;
+
+    // Enhanced multi-gradient tint for panel divider
+    let divider_bg = {
+        let base = colors::BG_SECONDARY;
+        let primary = colors::PRIMARY_GRADIENT_START;
+        let sunset = colors::SUNSET_GRADIENT_START;
+        let aurora = colors::AURORA_ROSE_GRADIENT_START;
+
+        Color::from_rgb(
+            base.r.mul_add(0.08, primary.r.mul_add(0.04, sunset.r.mul_add(0.02, aurora.r * 0.01))),
+            base.g.mul_add(0.08, primary.g.mul_add(0.04, sunset.g.mul_add(0.02, aurora.g * 0.01))),
+            base.b.mul_add(0.08, primary.b.mul_add(0.04, sunset.b.mul_add(0.02, aurora.b * 0.01))),
+        )
+    };
 
     let divider = container(Space::new())
         .width(Length::Fixed(width))
         .height(Length::Fill)
-        .style(|_theme: &iced::Theme| container::Style {
-            // Enhanced with subtle rose tint for integration with design system
-            background: Some(Color::from_rgba(
-                colors::PRIMARY_GRADIENT_START.r * 0.08,
-                colors::PRIMARY_GRADIENT_START.g * 0.08,
-                colors::PRIMARY_GRADIENT_START.b * 0.08,
-                0.12,
-            ).into()),
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(divider_bg.into()),
             ..Default::default()
         });
 

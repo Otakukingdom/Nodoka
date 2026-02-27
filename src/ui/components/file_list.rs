@@ -113,7 +113,7 @@ fn build_file_item(
     let content_container = if selected {
         container(content_column)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha_gradient(colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END, opacity).into()),
+                background: Some(selection_gradient_enhanced(opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
@@ -333,16 +333,19 @@ fn build_file_number_badge(
     })
 }
 
-/// Creates gradient color for file number badge background
-/// Enhanced with signature gradient for brand consistency
+/// Creates premium gradient color for file number badge background
+/// Enhanced with 4-color blend for sophisticated brand appearance
 fn with_alpha_gradient_badge(_start: Color, _end: Color, opacity: f32) -> Color {
-    // Use signature gradient for brand consistency
-    let start = colors::SIGNATURE_GRADIENT_START;
+    // Enhanced 4-color blend for premium badge appearance
+    let signature = colors::SIGNATURE_GRADIENT_START;
+    let aurora = colors::AURORA_ROSE_GRADIENT_START;
+    let accent = colors::ACCENT_GRADIENT_START;
     let end = colors::ACCENT_GRADIENT_END;
+
     Color {
-        r: start.r.mul_add(0.6 * opacity, end.r * 0.4 * opacity),
-        g: start.g.mul_add(0.6 * opacity, end.g * 0.4 * opacity),
-        b: start.b.mul_add(0.6 * opacity, end.b * 0.4 * opacity),
+        r: end.r.mul_add(0.25, aurora.r.mul_add(0.25, accent.r.mul_add(0.25, signature.r * 0.25))) * opacity,
+        g: end.g.mul_add(0.25, aurora.g.mul_add(0.25, accent.g.mul_add(0.25, signature.g * 0.25))) * opacity,
+        b: end.b.mul_add(0.25, aurora.b.mul_add(0.25, accent.b.mul_add(0.25, signature.b * 0.25))) * opacity,
         a: opacity,
     }
 }
@@ -446,15 +449,22 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Creates a gradient color by blending two colors
-fn with_alpha_gradient(start: Color, end: Color, opacity: f32) -> Color {
+/// Enhanced multi-layer gradient for selection
+/// Blends signature, primary, sunset, and accent gradients for distinctive selection appearance
+fn selection_gradient_enhanced(opacity: f32) -> Color {
+    let signature = colors::SIGNATURE_GRADIENT_START;
+    let primary = colors::PRIMARY_GRADIENT_START;
+    let sunset = colors::SUNSET_GRADIENT_START;
+    let accent = colors::ACCENT_GRADIENT_START;
+
     Color {
-        r: f32::midpoint(start.r, end.r) * opacity,
-        g: f32::midpoint(start.g, end.g) * opacity,
-        b: f32::midpoint(start.b, end.b) * opacity,
-        a: opacity,
+        r: accent.r.mul_add(0.20, sunset.r.mul_add(0.25, primary.r.mul_add(0.30, signature.r * 0.15))) * opacity,
+        g: accent.g.mul_add(0.20, sunset.g.mul_add(0.25, primary.g.mul_add(0.30, signature.g * 0.15))) * opacity,
+        b: accent.b.mul_add(0.20, sunset.b.mul_add(0.25, primary.b.mul_add(0.30, signature.b * 0.15))) * opacity,
+        a: 0.98 * opacity,
     }
 }
+
 
 /// Formats duration in milliseconds to human-readable time string
 fn format_duration(duration_ms: Option<i64>) -> String {

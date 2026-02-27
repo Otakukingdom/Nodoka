@@ -197,17 +197,19 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
 }
 
 /// Creates multi-layer gradient color for Continue Listening card
-/// Enhanced 4-color blend with increased saturation for dramatic effect
+/// Enhanced 5-color signature gradient for distinctive premium appearance
 fn continue_gradient_multi_layer() -> Color {
-    // Enhanced 4-color gradient with increased saturation for more vibrant appearance
-    let start = colors::CONTINUE_GRADIENT_START;
-    let mid1 = colors::PRIMARY_GRADIENT_START;
-    let mid2 = colors::SUNSET_GRADIENT_START;
-    let end = colors::CONTINUE_GRADIENT_END;
+    // Enhanced 5-color gradient with signature brand identity
+    let signature = colors::SIGNATURE_GRADIENT_START;
+    let aurora = colors::AURORA_ROSE_GRADIENT_START;
+    let sunset = colors::SUNSET_GRADIENT_START;
+    let primary = colors::PRIMARY_GRADIENT_START;
+    let continue_gradient = colors::CONTINUE_GRADIENT_START;
+
     Color {
-        r: end.r.mul_add(0.30, mid2.r.mul_add(0.25, mid1.r.mul_add(0.25, start.r * 0.20))),
-        g: end.g.mul_add(0.30, mid2.g.mul_add(0.25, mid1.g.mul_add(0.25, start.g * 0.20))),
-        b: end.b.mul_add(0.30, mid2.b.mul_add(0.25, mid1.b.mul_add(0.25, start.b * 0.20))),
+        r: continue_gradient.r.mul_add(0.25, aurora.r.mul_add(0.20, sunset.r.mul_add(0.20, primary.r.mul_add(0.15, signature.r * 0.10)))),
+        g: continue_gradient.g.mul_add(0.25, aurora.g.mul_add(0.20, sunset.g.mul_add(0.20, primary.g.mul_add(0.15, signature.g * 0.10)))),
+        b: continue_gradient.b.mul_add(0.25, aurora.b.mul_add(0.20, sunset.b.mul_add(0.20, primary.b.mul_add(0.15, signature.b * 0.10)))),
         a: 1.0,
     }
 }

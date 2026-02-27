@@ -407,6 +407,195 @@ pub mod button_styles {
         };
         style
     }
+
+    /// Premium control button style for player controls
+    /// Uses Signature multi-color gradient for distinctive brand identity
+    /// Enhanced with premium hover states and refined visual treatment
+    #[must_use]
+    pub fn premium_control(_theme: &iced::Theme, status: button::Status) -> button::Style {
+        match status {
+            button::Status::Active => button::Style {
+                // Signature 5-color gradient for premium brand identity
+                background: Some({
+                    Color::from_rgb(
+                        colors::SIGNATURE_GRADIENT_START.r.mul_add(0.25, colors::AURORA_ROSE_GRADIENT_START.r.mul_add(0.20, colors::PRIMARY_GRADIENT_START.r.mul_add(0.20, colors::CELESTIAL_GRADIENT_START.r * 0.20))),
+                        colors::SIGNATURE_GRADIENT_START.g.mul_add(0.25, colors::AURORA_ROSE_GRADIENT_START.g.mul_add(0.20, colors::PRIMARY_GRADIENT_START.g.mul_add(0.20, colors::CELESTIAL_GRADIENT_START.g * 0.20))),
+                        colors::SIGNATURE_GRADIENT_START.b.mul_add(0.25, colors::AURORA_ROSE_GRADIENT_START.b.mul_add(0.20, colors::PRIMARY_GRADIENT_START.b.mul_add(0.20, colors::CELESTIAL_GRADIENT_START.b * 0.20))),
+                    )
+                }.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: colors::SIGNATURE_GRADIENT_END,
+                    width: 2.0,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_md(),
+                ..Default::default()
+            },
+            button::Status::Hovered => button::Style {
+                // Enhanced brightened gradient for premium hover effect
+                background: Some({
+                    Color::from_rgb(
+                        colors::SIGNATURE_GRADIENT_END.r.mul_add(0.35, colors::AURORA_ROSE_GRADIENT_END.r.mul_add(0.25, colors::ACCENT_GRADIENT_START.r.mul_add(0.20, colors::PRIMARY_GRADIENT_END.r * 0.20))),
+                        colors::SIGNATURE_GRADIENT_END.g.mul_add(0.35, colors::AURORA_ROSE_GRADIENT_END.g.mul_add(0.25, colors::ACCENT_GRADIENT_START.g.mul_add(0.20, colors::PRIMARY_GRADIENT_END.g * 0.20))),
+                        colors::SIGNATURE_GRADIENT_END.b.mul_add(0.35, colors::AURORA_ROSE_GRADIENT_END.b.mul_add(0.25, colors::ACCENT_GRADIENT_START.b.mul_add(0.20, colors::PRIMARY_GRADIENT_END.b * 0.20))),
+                    )
+                }.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: colors::ACCENT_GRADIENT_END,
+                    width: 2.0,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_lg(),
+                ..Default::default()
+            },
+            button::Status::Pressed => button::Style {
+                // Slightly darkened gradient for pressed feedback
+                background: Some({
+                    Color::from_rgb(
+                        colors::PRIMARY.r * 0.90,
+                        colors::PRIMARY.g * 0.90,
+                        colors::PRIMARY.b * 0.90,
+                    )
+                }.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: colors::SIGNATURE_GRADIENT_END,
+                    width: 2.5,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            },
+            button::Status::Disabled => button::Style {
+                background: Some(Color {
+                    r: colors::SIGNATURE_GRADIENT_START.r * 0.5,
+                    g: colors::SIGNATURE_GRADIENT_START.g * 0.5,
+                    b: colors::SIGNATURE_GRADIENT_START.b * 0.5,
+                    a: 0.5,
+                }.into()),
+                text_color: Color {
+                    r: colors::TEXT_ON_PRIMARY.r,
+                    g: colors::TEXT_ON_PRIMARY.g,
+                    b: colors::TEXT_ON_PRIMARY.b,
+                    a: 0.5,
+                },
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+        }
+    }
+
+    /// Premium control button style with focus indicator
+    /// Enhanced with signature glow for distinctive brand presence
+    #[must_use]
+    pub fn premium_control_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
+        let mut style = premium_control(theme, status);
+        style.shadow = shadows::glow_signature(0.7);
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
+    }
+}
+
+/// Premium text input styling with gradient border on focus
+///
+/// Provides polished form field styling with enhanced visual feedback
+/// for focus states using brand-consistent gradient colors.
+pub mod text_input_styles {
+    use super::{border_radius, colors, Border};
+    use iced::widget::text_input;
+
+    /// Premium text input style with gradient border on focus
+    ///
+    /// Features a subtle border in default state and an enhanced
+    /// gradient border when focused, providing clear visual feedback.
+    #[must_use]
+    pub fn premium(_theme: &iced::Theme, status: text_input::Status) -> text_input::Style {
+        match status {
+            text_input::Status::Focused { .. } => text_input::Style {
+                background: iced::Background::Color(colors::BG_ELEVATED),
+                border: Border {
+                    // Premium gradient border for focus state
+                    color: colors::PRIMARY_GRADIENT_START,
+                    width: 2.5,
+                    radius: border_radius::MD.into(),
+                },
+                icon: colors::TEXT_SECONDARY,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+            _ => text_input::Style {
+                background: iced::Background::Color(colors::BG_SECONDARY),
+                border: Border {
+                    color: colors::BORDER_PROMINENT,
+                    width: 1.5,
+                    radius: border_radius::MD.into(),
+                },
+                icon: colors::TEXT_DISABLED,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+        }
+    }
+
+    /// Premium text input style with enhanced focus indicator
+    ///
+    /// Adds a stronger focus ring and enhanced shadow for better
+    /// keyboard navigation visibility (WCAG 2.1 AA compliance).
+    #[must_use]
+    pub fn premium_focused(_theme: &iced::Theme, status: text_input::Status) -> text_input::Style {
+        let mut style = premium(_theme, status);
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
+    }
+
+    /// Subtle text input style for secondary inputs
+    ///
+    /// Uses more understated styling for less prominent form fields.
+    #[must_use]
+    pub fn subtle(_theme: &iced::Theme, status: text_input::Status) -> text_input::Style {
+        match status {
+            text_input::Status::Focused { .. } => text_input::Style {
+                background: iced::Background::Color(colors::BG_ELEVATED),
+                border: Border {
+                    color: colors::BORDER_PROMINENT,
+                    width: 2.0,
+                    radius: border_radius::SM.into(),
+                },
+                icon: colors::TEXT_DISABLED,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+            _ => text_input::Style {
+                background: iced::Background::Color(colors::BG_SECONDARY),
+                border: Border {
+                    color: colors::BORDER_SUBTLE,
+                    width: 1.0,
+                    radius: border_radius::SM.into(),
+                },
+                icon: colors::TEXT_DISABLED,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+        }
+    }
 }
 
 #[cfg(test)]

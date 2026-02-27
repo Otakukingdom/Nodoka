@@ -16,7 +16,7 @@ pub fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> 
     let toggle = button(text("Vol").size(typography::SIZE_SM))
         .on_press(Message::ToggleVolumeExpanded)
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-        .style(button_styles::secondary);
+        .style(button_styles::premium_control);
 
     let slider_row: Element<'_, Message> = if state.volume_expanded {
         row![
@@ -25,11 +25,18 @@ pub fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> 
                 .height(20.0)
                 .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
                     let level_color = slider::volume_slider::level_color(volume_level);
+                    let gradient_start = slider::volume_slider::level_color_gradient_start(volume_level);
+                    // Enhanced multi-layer gradient for premium volume fill
+                    let enhanced_fill = Color::from_rgb(
+                        gradient_start.r.mul_add(0.35, level_color.r.mul_add(0.35, colors::ACCENT_GRADIENT_START.r * 0.30)),
+                        gradient_start.g.mul_add(0.35, level_color.g.mul_add(0.35, colors::ACCENT_GRADIENT_START.g * 0.30)),
+                        gradient_start.b.mul_add(0.35, level_color.b.mul_add(0.35, colors::ACCENT_GRADIENT_START.b * 0.30)),
+                    );
                     iced::widget::slider::Style {
                         rail: iced::widget::slider::Rail {
                             backgrounds: (
                                 iced::Background::Color(colors::BG_SECONDARY),
-                                iced::Background::Color(level_color),
+                                iced::Background::Color(enhanced_fill),
                             ),
                             width: 4.0,
                             border: iced::Border {

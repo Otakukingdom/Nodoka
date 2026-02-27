@@ -798,4 +798,16 @@ pub mod shadows {
             blur_radius: 14.0 * intensity,
         }
     }
+
+    /// Signature multi-color glow for distinctive brand presence
+    /// Creates soft glow with brand-consistent signature gradient
+    #[must_use]
+    pub fn glow_signature(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.42).clamp(0.0, 0.58);
+        Shadow {
+            color: Color::from_rgba(0.88, 0.25, 0.50, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 13.0 * intensity,
+        }
+    }
 }

@@ -3,6 +3,48 @@
 //! This module provides enhanced styling for sliders and progress bars
 //! with gradient fills, track decorations, and refined visual treatment.
 
+use crate::ui::styles::colors;
+use iced::widget::slider;
+use iced::{Border, Color};
+
+/// Premium progress slider style with enhanced gradient fill
+#[must_use]
+pub fn progress_premium(
+    _theme: &iced::Theme,
+    _status: slider::Status,
+) -> slider::Style {
+    let fill_color = Color::from_rgb(
+        colors::ACCENT_GRADIENT_START.r.mul_add(0.3, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35, colors::SUNSET_GRADIENT_START.r * 0.35)),
+        colors::ACCENT_GRADIENT_START.g.mul_add(0.3, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35, colors::SUNSET_GRADIENT_START.g * 0.35)),
+        colors::ACCENT_GRADIENT_START.b.mul_add(0.3, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35, colors::SUNSET_GRADIENT_START.b * 0.35)),
+    );
+
+    slider::Style {
+        rail: slider::Rail {
+            backgrounds: (
+                iced::Background::Color(colors::BG_SECONDARY),
+                iced::Background::Color(fill_color),
+            ),
+            width: 10.0,
+            border: Border {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
+                width: 1.5,
+                radius: 5.0.into(),
+            },
+        },
+        handle: slider::Handle {
+            shape: slider::HandleShape::Circle { radius: 12.0 },
+            background: iced::Background::Color(Color::from_rgb(
+                colors::PRIMARY_GRADIENT_START.r.mul_add(0.4, colors::SUNSET_GRADIENT_START.r * 0.6),
+                colors::PRIMARY_GRADIENT_START.g.mul_add(0.4, colors::SUNSET_GRADIENT_START.g * 0.6),
+                colors::PRIMARY_GRADIENT_START.b.mul_add(0.4, colors::SUNSET_GRADIENT_START.b * 0.6),
+            )),
+            border_width: 2.5,
+            border_color: colors::ACCENT_GRADIENT_END,
+        },
+    }
+}
+
 /// Premium progress bar styling with gradient effects
 pub mod progress_bar {
     use crate::ui::styles::colors;

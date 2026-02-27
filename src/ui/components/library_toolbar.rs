@@ -2,6 +2,7 @@
 
 use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
 use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
+use crate::ui::styles::components::text_input_styles;
 use crate::ui::Message;
 use iced::widget::{button, column, row, text, text_input, Space};
 use iced::{Border, Element, Length};
@@ -68,33 +69,8 @@ fn search_bar_style(
     _theme: &iced::Theme,
     status: iced::widget::text_input::Status,
 ) -> iced::widget::text_input::Style {
-    use iced::widget::text_input;
-    match status {
-        text_input::Status::Focused { .. } => text_input::Style {
-            background: iced::Background::Color(colors::BG_ELEVATED),
-            border: Border {
-                color: colors::PRIMARY_GRADIENT_START,
-                width: 2.0,
-                radius: border_radius::MD.into(),
-            },
-            icon: colors::TEXT_SECONDARY,
-            placeholder: colors::TEXT_DISABLED,
-            value: colors::TEXT_PRIMARY,
-            selection: colors::SELECTION_BG,
-        },
-        _ => text_input::Style {
-            background: iced::Background::Color(colors::BG_ELEVATED),
-            border: Border {
-                color: colors::BORDER_SUBTLE,
-                width: 1.0,
-                radius: border_radius::MD.into(),
-            },
-            icon: colors::TEXT_SECONDARY,
-            placeholder: colors::TEXT_DISABLED,
-            value: colors::TEXT_PRIMARY,
-            selection: colors::SELECTION_BG,
-        },
-    }
+    // Use premium styling with enhanced gradient border on focus
+    text_input_styles::premium(_theme, status)
 }
 
 fn build_sort_buttons(sort_order: AudiobookSortOrder) -> Element<'static, Message> {

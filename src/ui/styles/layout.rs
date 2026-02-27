@@ -51,3 +51,29 @@ pub mod border_radius {
     /// Full radius for pill-shaped elements (999px)
     pub const FULL: f32 = 999.0;
 }
+
+/// Scrollbar styling constants for premium appearance
+///
+/// Note: Application depends on iced framework scrollbar styling support.
+/// These constants provide brand-consistent colors for custom scrollbar rendering.
+pub mod scrollbar {
+    use super::super::colors;
+
+    /// Scrollbar track background - subtle neutral
+    pub const TRACK_BG: iced::Color = colors::BG_SECONDARY;
+
+    /// Scrollbar thumb - gradient with signature brand colors
+    pub const THUMB_GRADIENT_START: iced::Color = colors::SIGNATURE_GRADIENT_START;
+    pub const THUMB_GRADIENT_END: iced::Color = colors::AURORA_ROSE_GRADIENT_END;
+
+    /// Scrollbar thumb hover - brighter gradient
+    pub const THUMB_HOVER_START: iced::Color = colors::PRIMARY_GRADIENT_START;
+    pub const THUMB_HOVER_END: iced::Color = colors::ACCENT_GRADIENT_END;
+
+    /// Scrollbar thumb active - pressed state gradient
+    pub const THUMB_ACTIVE_START: iced::Color = colors::SUNSET_GRADIENT_START;
+    pub const THUMB_ACTIVE_END: iced::Color = colors::SUNSET_GRADIENT_END;
+
+    /// Scrollbar corner - between track and page
+    pub const CORNER: iced::Color = colors::BG_ELEVATED;
+}
