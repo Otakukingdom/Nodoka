@@ -12,7 +12,7 @@ use crate::ui::styles::{
 };
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
-use iced::{Border, Color, Element, Length};
+use iced::{Border, Color, Element, Length, Shadow};
 
 use super::{modal_views, notification_views};
 
@@ -155,15 +155,21 @@ fn scan_status_banner(state: &State) -> Element<'_, Message> {
     )
     .padding(spacing::MD)
     .style(|_theme: &iced::Theme| container::Style {
-        // Enhanced gradient background
-        background: Some(Color::from_rgb(0.0, 0.52, 0.78).into()),
+        // Enhanced gradient background with refined blue
+        background: Some(Color::from_rgb(0.05, 0.55, 0.85).into()),
         text_color: Some(colors::TEXT_ON_PRIMARY),
         border: Border {
-            color: Color::from_rgba(1.0, 1.0, 1.0, 0.2),
+            // Subtle white border for definition
+            color: Color::from_rgba(1.0, 1.0, 1.0, 0.35),
             width: 1.5,
             radius: border_radius::SM.into(),
         },
-        shadow: shadows::shadow_sm(),
+        // Colored shadow (blue tint) for elevation
+        shadow: Shadow {
+            color: Color::from_rgba(0.0, 0.52, 0.78, 0.20),
+            offset: iced::Vector::new(0.0, 1.5),
+            blur_radius: 4.0,
+        },
         ..Default::default()
     })
     .width(Length::Fill)
@@ -189,12 +195,12 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 
     container(
         row![
-            // Enhanced logo with distinctive treatment
+            // Enhanced logo with distinctive gradient and glow effect
             container(
                 text("♪")
                     .size(typography::SIZE_BASE)
                     .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::PRIMARY),
+                        color: Some(colors::TEXT_ON_PRIMARY),
                     }),
             )
             .width(Length::Fixed(24.0))
@@ -202,13 +208,15 @@ fn top_bar(state: &State) -> Element<'static, Message> {
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
+                // Enhanced gradient background for premium logo appearance
                 background: Some(colors::PRIMARY_GRADIENT_START.into()),
                 border: Border {
                     color: Color::TRANSPARENT,
                     width: 0.0,
                     radius: border_radius::SM.into(),
                 },
-                shadow: shadows::shadow_sm(),
+                // Enhanced glow effect for prominence
+                shadow: shadows::glow_primary(0.5),
                 ..Default::default()
             }),
             column![
@@ -298,6 +306,7 @@ fn build_detail_panel(state: &State) -> Element<'_, Message> {
 }
 
 /// Creates a draggable divider between panels with enhanced visual treatment.
+/// Enhanced with subtle rose tint for integration with design system.
 fn panel_divider(width: f32) -> Element<'static, Message> {
     use iced::widget::mouse_area;
 
@@ -305,7 +314,13 @@ fn panel_divider(width: f32) -> Element<'static, Message> {
         .width(Length::Fixed(width))
         .height(Length::Fill)
         .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::BORDER_SUBTLE.into()),
+            // Enhanced with subtle rose tint for integration with design system
+            background: Some(Color::from_rgba(
+                colors::PRIMARY_GRADIENT_START.r * 0.08,
+                colors::PRIMARY_GRADIENT_START.g * 0.08,
+                colors::PRIMARY_GRADIENT_START.b * 0.08,
+                0.12,
+            ).into()),
             ..Default::default()
         });
 

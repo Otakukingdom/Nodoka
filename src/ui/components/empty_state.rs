@@ -67,13 +67,16 @@ pub fn view(
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(colors::BG_ELEVATED.into()),
+            // Enhanced gradient background with smooth rose-to-pink transition
+            background: Some(colors::PRIMARY_GRADIENT_START.into()),
             border: Border {
-                color: colors::PRIMARY_GRADIENT_START,
+                color: colors::PRIMARY_GRADIENT_END,
                 width: 2.0,
                 radius: (icon_size * 1.8 / 2.0).into(),
             },
-            shadow: shadows::shadow_lg(),
+            // Add glow effect for premium appearance
+            shadow: shadows::glow_primary(0.4),
+            text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
         });
 

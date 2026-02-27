@@ -213,25 +213,26 @@ fn build_status_indicator(
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
                 border: Border {
+                    color: with_alpha(colors::SUCCESS_LIGHT, opacity),
+                    width: 1.0,
                     radius: border_radius::SM.into(),
-                    ..Default::default()
                 },
+                shadow: shadows::shadow_sm(),
+                text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 ..Default::default()
             })
     } else if is_selected && has_progress {
-        // Show play icon for current file with gradient background (more prominent)
+        // Show play icon for current file with enhanced gradient background
         container(text("▶").size(typography::SIZE_BASE))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
                 border: Border {
+                    color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
+                    width: 1.0,
                     radius: border_radius::SM.into(),
-                    ..Default::default()
                 },
                 shadow: shadows::shadow_sm(),
-                ..Default::default()
-            })
-            .style(move |_theme: &iced::Theme| container::Style {
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 ..Default::default()
             })
@@ -284,8 +285,9 @@ fn build_file_number_badge(
     .style(move |_theme: &iced::Theme| container::Style {
         background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
         border: Border {
+            color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
+            width: 1.0,
             radius: border_radius::SM.into(),
-            ..Default::default()
         },
         shadow: shadows::shadow_xs(),
         ..Default::default()

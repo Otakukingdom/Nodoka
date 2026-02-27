@@ -44,13 +44,14 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
         .into()
 }
 
-/// Improved glass-morphism backdrop with better color treatment
+/// Enhanced glass-morphism backdrop with subtle rose tint
+/// Creates premium backdrop effect with refined color treatment
 fn improved_glass_backdrop(opacity: f32) -> Color {
     Color {
-        r: 0.1,
-        g: 0.1,
-        b: 0.12,
-        a: (0.6 * opacity).clamp(0.0, 0.88),
+        r: 0.12,
+        g: 0.10,
+        b: 0.15,
+        a: (0.65 * opacity).clamp(0.0, 0.85),
     }
 }
 
@@ -184,21 +185,22 @@ fn shortcut_group(
 ///
 /// Creates a refined modal overlay with:
 /// - Extra extra large shadow (xxl) for premium elevation
-/// - Refined border with gradient treatment
+/// - Refined border with rose gradient treatment
+/// - XL border radius for softer appearance
 /// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
 where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    let border_color = with_alpha_gradient_border(colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END, opacity);
+    let border_color = with_alpha_gradient_border(colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
                 width: 2.5,
-                radius: border_radius::LG.into(),
+                radius: border_radius::XL.into(),
             },
             shadow: shadows::shadow_xxl(),
             ..Default::default()

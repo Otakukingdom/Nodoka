@@ -420,4 +420,48 @@ pub mod shadows {
     pub const MD_BORDER: Color = Color::from_rgb(0.8, 0.8, 0.8); // #CCCCCC
     /// Large shadow equivalent as border color for compatibility
     pub const LG_BORDER: Color = Color::from_rgb(0.75, 0.75, 0.75); // #BFBFBF
+    /// ===== Rose-Tinted Shadows for Premium Feel =====
+    /// Rose-tinted shadow for elevated elements
+    /// Creates distinctive character with subtle rose color instead of pure black
+    #[must_use]
+    pub const fn shadow_primary() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.15),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 4.0,
+        }
+    }
+
+    /// Warm shadow for depth in light theme
+    /// Provides subtle warmth for sophisticated appearance
+    #[must_use]
+    pub const fn shadow_warm() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
+            offset: Vector::new(0.0, 1.0),
+            blur_radius: 2.0,
+        }
+    }
+
+    /// Rose-tinted medium shadow for cards
+    /// Enhanced with rose color for distinctive character
+    #[must_use]
+    pub const fn shadow_md_rose() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.11),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 4.0,
+        }
+    }
+
+    /// Rose-tinted large shadow for modals
+    /// Creates premium elevation with rose tint
+    #[must_use]
+    pub const fn shadow_lg_rose() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.16),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 8.0,
+        }
+    }
 }

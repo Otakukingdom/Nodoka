@@ -48,7 +48,7 @@ pub mod button_styles {
 
     /// Primary action button style (e.g., Play, Save, Add)
     /// Uses primary brand color with white text
-    /// Provides hover/pressed/focus states with micro-interactions
+    /// Provides hover/pressed/focus states with enhanced micro-interactions
     #[must_use]
     pub fn primary(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
@@ -64,11 +64,11 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                background: Some(colors::PRIMARY_HOVER.into()),
+                background: Some(colors::PRIMARY_GRADIENT_START.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 1.0,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -78,8 +78,8 @@ pub mod button_styles {
                 background: Some(colors::PRIMARY_ACTIVE.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 1.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_xs(),
@@ -110,7 +110,7 @@ pub mod button_styles {
 
     /// Secondary action button style (e.g., Cancel, Close, Stop)
     /// Uses elevated background with primary text color and border
-    /// Enhanced with micro-interactions for premium feel
+    /// Enhanced with refined micro-interactions for premium feel
     #[must_use]
     pub fn secondary(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
@@ -126,10 +126,10 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                background: Some(colors::BG_HOVER.into()),
+                background: Some(colors::BG_TIER.into()),
                 text_color: colors::TEXT_PRIMARY,
                 border: Border {
-                    color: colors::BORDER_DEFAULT,
+                    color: colors::PRIMARY_GRADIENT_START,
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
@@ -144,6 +144,7 @@ pub mod button_styles {
                     width: 2.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
@@ -179,19 +180,19 @@ pub mod button_styles {
                 background: Some(colors::PRIMARY_GRADIENT_START.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 1.0,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                background: Some(colors::PRIMARY_GRADIENT_END.into()),
+                background: Some(colors::ACCENT_GRADIENT_START.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::ACCENT_GRADIENT_END,
+                    width: 1.0,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_lg(),
@@ -201,8 +202,8 @@ pub mod button_styles {
                 background: Some(colors::PRIMARY.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 1.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_sm(),

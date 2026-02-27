@@ -691,4 +691,269 @@ mod tests {
             "Focus ring on dark background meets WCAG AA (3:1)"
         );
     }
+
+    // === Gradient Smoothness Tests ===
+
+    #[test]
+    fn test_primary_gradient_has_smooth_transition() {
+        let start = colors::PRIMARY_GRADIENT_START;
+        let end = colors::PRIMARY_GRADIENT_END;
+
+        // Calculate total color difference
+        let delta_r = (start.r - end.r).abs();
+        let delta_g = (start.g - end.g).abs();
+        let delta_b = (start.b - end.b).abs();
+        let total_delta = delta_r + delta_g + delta_b;
+
+        // Transition should be noticeable but not extreme
+        assert!(
+            total_delta > 0.05,
+            "Primary gradient should have noticeable transition"
+        );
+        assert!(
+            total_delta < 0.8,
+            "Primary gradient transition should not be too extreme"
+        );
+    }
+
+    #[test]
+    fn test_accent_gradient_has_smooth_transition() {
+        let start = colors::ACCENT_GRADIENT_START;
+        let end = colors::ACCENT_GRADIENT_END;
+
+        let delta_r = (start.r - end.r).abs();
+        let delta_g = (start.g - end.g).abs();
+        let delta_b = (start.b - end.b).abs();
+        let total_delta = delta_r + delta_g + delta_b;
+
+        assert!(
+            total_delta > 0.05,
+            "Accent gradient should have noticeable transition"
+        );
+        assert!(
+            total_delta < 0.8,
+            "Accent gradient transition should not be too extreme"
+        );
+    }
+
+    #[test]
+    fn test_continue_gradient_is_distinctive_and_smooth() {
+        let start = colors::CONTINUE_GRADIENT_START;
+        let end = colors::CONTINUE_GRADIENT_END;
+
+        let delta_r = (start.r - end.r).abs();
+        let delta_g = (start.g - end.g).abs();
+        let delta_b = (start.b - end.b).abs();
+        let total_delta = delta_r + delta_g + delta_b;
+
+        assert!(
+            total_delta > 0.05,
+            "Continue gradient should have noticeable transition"
+        );
+        // Continue gradient is intentionally more dramatic for the hero card
+        assert!(
+            total_delta < 1.0,
+            "Continue gradient transition should be smooth, got {total_delta}"
+        );
+    }
+
+    #[test]
+    fn test_subtle_gradient_is_truly_subtle() {
+        let start = colors::SUBTLE_GRADIENT_START;
+        let end = colors::SUBTLE_GRADIENT_END;
+
+        let delta_r = (start.r - end.r).abs();
+        let delta_g = (start.g - end.g).abs();
+        let delta_b = (start.b - end.b).abs();
+        let total_delta = delta_r + delta_g + delta_b;
+
+        // Subtle gradient should have minimal transition
+        assert!(
+            total_delta < 0.3,
+            "Subtle gradient should have minimal transition, got {total_delta}"
+        );
+    }
+
+    #[test]
+    fn test_all_gradients_are_within_valid_rgb_range() {
+        let gradient_pairs = [
+            (colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END),
+            (colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END),
+            (colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END),
+            (colors::CONTINUE_GRADIENT_START, colors::CONTINUE_GRADIENT_END),
+        ];
+
+        for (start, end) in gradient_pairs {
+            assert!((0.0..=1.0).contains(&start.r));
+            assert!((0.0..=1.0).contains(&start.g));
+            assert!((0.0..=1.0).contains(&start.b));
+            assert!((0.0..=1.0).contains(&end.r));
+            assert!((0.0..=1.0).contains(&end.g));
+            assert!((0.0..=1.0).contains(&end.b));
+        }
+    }
+
+    #[test]
+    fn test_gradient_colors_have_proper_contrast_for_white_text() {
+        // Test that gradient END colors (darker) have sufficient contrast with white text
+        // Gradient start colors are lighter and may not meet 4.5:1, but gradient
+        // end colors are darker and provide the needed contrast for text
+        let gradient_colors = [
+            colors::PRIMARY_GRADIENT_START,  // Dark rose - meets contrast
+            colors::PRIMARY_GRADIENT_END,     // Even darker - meets contrast
+            colors::ACCENT_GRADIENT_END,      // Teal - should meet contrast
+            colors::CONTINUE_GRADIENT_END,    // Darker pink - meets contrast
+        ];
+
+        for gradient in gradient_colors {
+            let ratio = wcag_contrast_ratio(colors::TEXT_ON_PRIMARY, gradient);
+            assert!(
+                ratio >= 3.0,
+                "Gradient color should have at least 3.0:1 contrast for large text, got {ratio:.2}"
+            );
+        }
+    }
+
+    // === Enhanced Shadow Tests ===
+
+    #[test]
+    fn test_shadow_xs_has_minimal_elevation() {
+        let shadow = effects::shadows::shadow_xs();
+        assert!(
+            shadow.blur_radius <= 4.0,
+            "Shadow XS should have minimal blur, got {}",
+            shadow.blur_radius
+        );
+        assert!(
+            shadow.color.a <= 0.1,
+            "Shadow XS should have minimal opacity, got {}",
+            shadow.color.a
+        );
+    }
+
+    #[test]
+    fn test_shadow_xxl_has_maximum_elevation() {
+        let shadow = effects::shadows::shadow_xxl();
+        assert!(
+            shadow.blur_radius >= 20.0,
+            "Shadow XXL should have significant blur, got {}",
+            shadow.blur_radius
+        );
+        assert!(
+            shadow.blur_radius <= 30.0,
+            "Shadow XXL blur should be reasonable, got {}",
+            shadow.blur_radius
+        );
+    }
+
+    #[test]
+    fn test_shadow_opacity_levels_are_consistent() {
+        let shadows = [
+            effects::shadows::shadow_xs(),
+            effects::shadows::shadow_sm(),
+            effects::shadows::shadow_md(),
+            effects::shadows::shadow_lg(),
+            effects::shadows::shadow_xl(),
+            effects::shadows::shadow_xxl(),
+        ];
+
+        // Verify each shadow has valid opacity
+        for (i, shadow) in shadows.iter().enumerate() {
+            assert!(
+                shadow.color.a >= 0.0 && shadow.color.a <= 0.5,
+                "Shadow level {} has invalid opacity {}",
+                i,
+                shadow.color.a
+            );
+        }
+    }
+
+    #[test]
+    fn test_shadow_offset_increases_with_elevation() {
+        let xs_offset = effects::shadows::shadow_xs().offset.y;
+        let md_offset = effects::shadows::shadow_md().offset.y;
+        let xxl_offset = effects::shadows::shadow_xxl().offset.y;
+
+        assert!(
+            xxl_offset > md_offset,
+            "XXL shadow offset should be greater than MD"
+        );
+        assert!(
+            md_offset > xs_offset,
+            "MD shadow offset should be greater than XS"
+        );
+    }
+
+    // === Warm and Cool Gradient Tests ===
+
+    #[test]
+    fn test_warm_gradient_has_warm_tones() {
+        // Warm gradient should lean toward red/orange
+        let warm = colors::GRADIENT_WARM_START;
+        assert!(
+            warm.r > warm.b,
+            "Warm gradient should have more red than blue"
+        );
+        assert!(
+            warm.r > 0.5,
+            "Warm gradient should have significant red component"
+        );
+    }
+
+    #[test]
+    fn test_cool_gradient_has_cool_tones() {
+        // Cool gradient should lean toward blue/cyan
+        let cool = colors::GRADIENT_COOL_START;
+        assert!(
+            cool.b > cool.r,
+            "Cool gradient should have more blue than red"
+        );
+        assert!(
+            cool.b > 0.5,
+            "Cool gradient should have significant blue component"
+        );
+    }
+
+    // === Hover State Utility Tests ===
+
+    #[test]
+    fn test_hover_subtle_returns_subtle_color() {
+        use interactive::hover_subtle;
+
+        let hover = hover_subtle(0.5);
+        assert!(
+            hover.a <= 0.15,
+            "Subtle hover should have low opacity, got {}",
+            hover.a
+        );
+    }
+
+    #[test]
+    fn test_hover_elevated_returns_moderate_color() {
+        use interactive::hover_elevated;
+
+        let hover = hover_elevated(0.7);
+        assert!(
+            hover.a <= 0.25,
+            "Elevated hover should have moderate opacity, got {}",
+            hover.a
+        );
+    }
+
+    #[test]
+    fn test_hover_glow_returns_premium_color() {
+        use interactive::hover_glow;
+
+        let glow = hover_glow(0.6);
+        assert!(
+            glow.a <= 0.35,
+            "Glow should have reasonable opacity, got {}",
+            glow.a
+        );
+        // Should have rose tint from PRIMARY_GRADIENT_START
+        assert!(
+            glow.r > glow.b,
+            "Glow should have rose tint (more red than blue)"
+        );
+    }
 }

@@ -42,13 +42,14 @@ fn build_directory_list(state: &State) -> Element<'static, Message> {
                     )
                     .padding(spacing::SM)
                     .style(move |_theme: &iced::Theme| container::Style {
-                        background: Some(colors::BG_ELEVATED.into()),
+                        background: Some(colors::BG_RAISED.into()),
                         border: iced::Border {
-                            color: colors::BORDER_DEFAULT,
+                            color: colors::BORDER_SUBTLE,
                             width: 1.0,
                             radius: border_radius::MD.into(),
                         },
-                        shadow: shadows::shadow_sm(),
+                        // Enhanced shadow for better depth
+                        shadow: shadows::shadow_md(),
                         ..Default::default()
                     }),
                 )
@@ -234,18 +235,22 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
 }
 
 fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'static, Message> {
-    use crate::ui::styles::colors;
+    use crate::ui::styles::{border_radius, colors};
 
     row![
         container(text(keys).size(typography::SIZE_SM))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
-                background: Some(colors::BG_ELEVATED.into()),
+                // Enhanced keyboard shortcut badge with subtle gradient
+                background: Some(colors::SUBTLE_GRADIENT_START.into()),
                 border: iced::Border {
-                    color: colors::BORDER_DEFAULT,
-                    width: 1.0,
+                    // Rose tint border for distinctive appearance
+                    color: colors::PRIMARY_GRADIENT_START,
+                    width: 1.5,
                     radius: border_radius::SM.into(),
                 },
+                // Small shadow for depth
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             })
             .width(Length::Fixed(120.0)),

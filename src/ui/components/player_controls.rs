@@ -75,38 +75,41 @@ pub fn view(state: &State) -> Element<'_, Message> {
         widget_slider(0.0..=max_duration, current_time, Message::SeekTo)
             .height(24.0)
             .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
-                let alpha = if is_active { 0.95 } else { 0.8 };
+                let alpha = if is_active { 0.98 } else { 0.85 };
                 iced::widget::slider::Style {
                     rail: iced::widget::slider::Rail {
                         backgrounds: (
                             iced::Background::Color(colors::BG_SECONDARY),
+                            // Enhanced two-tone gradient for fill (rose-to-crimson transition)
                             iced::Background::Color(Color::from_rgba(
-                                colors::PROGRESS_GRADIENT_END.r,
-                                colors::PROGRESS_GRADIENT_END.g,
-                                colors::PROGRESS_GRADIENT_END.b,
+                                colors::PROGRESS_GRADIENT_START.r,
+                                colors::PROGRESS_GRADIENT_START.g,
+                                colors::PROGRESS_GRADIENT_START.b,
                                 alpha,
                             )),
                         ),
-                        width: 4.0,
+                        width: 6.0,
                         border: iced::Border {
-                            color: Color::TRANSPARENT,
-                            width: 0.0,
-                            radius: 2.0.into(),
+                            // Inset shadow for carved/recessed appearance
+                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.12),
+                            width: 1.5,
+                            radius: 3.0.into(),
                         },
                     },
                     handle: iced::widget::slider::Handle {
-                        shape: iced::widget::slider::HandleShape::Circle { radius: 8.0 },
+                        shape: iced::widget::slider::HandleShape::Circle { radius: 10.0 },
+                        // Two-tone gradient for handle
                         background: if is_active {
                             iced::Background::Color(colors::PROGRESS_GRADIENT_START)
                         } else {
                             iced::Background::Color(Color::WHITE)
                         },
-                        border_width: 2.0,
-                        border_color: colors::BORDER_DEFAULT,
+                        border_width: 2.5,
+                        border_color: Color::WHITE,
                     },
                 }
             })
-        // Larger height for better grab affordance with custom styling
+        // Larger height for better grab affordance with enhanced styling
     })
     .style(focus_indicator(
         state.focused_element == FocusedElement::ProgressSlider,

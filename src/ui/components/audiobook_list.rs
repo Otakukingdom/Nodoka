@@ -155,15 +155,15 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let cover = build_cover(ab.id, cover_thumbnails, opacity);
     let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
-    // Apply selection styling with left border accent and subtle gradient
-    // Left border (4px PRIMARY color) provides clear visual indicator for selected item
+    // Apply selection styling with refined gradient border and enhanced shadow
+    // Left border (4px) with gradient provides clear visual indicator for selected item
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha_gradient_enhanced(colors::SUBTLE_GRADIENT_START, colors::PRIMARY_GRADIENT_START, opacity).into()),
+                background: Some(with_alpha_gradient_enhanced(colors::SUBTLE_GRADIENT_START, colors::PRIMARY_GRADIENT_START, 0.18, opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
-                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
+                    color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
                     width: 4.0,
                     radius: border_radius::MD.into(),
                 },
@@ -513,9 +513,10 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Enhanced gradient for selection state with smoother transition
-fn with_alpha_gradient_enhanced(start: Color, end: Color, opacity: f32) -> Color {
-    let blend_factor = 0.6;
+/// Enhanced gradient for selection state with configurable blend
+/// Creates smooth gradient transition between two colors with opacity control
+fn with_alpha_gradient_enhanced(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
+    let blend_factor = blend_factor.clamp(0.0, 1.0);
     let inv_blend = 1.0 - blend_factor;
     Color {
         r: start.r.mul_add(blend_factor, end.r * inv_blend) * opacity,

@@ -59,11 +59,13 @@ pub fn view<'a, S: BuildHasher>(
             )
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(|_theme: &iced::Theme| container::Style {
-                background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.25).into()),
+                background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.3).into()),
                 border: Border {
+                    color: Color::from_rgba(1.0, 1.0, 1.0, 0.5),
+                    width: 1.0,
                     radius: border_radius::SM.into(),
-                    ..Default::default()
                 },
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             }),
             text(&audiobook.name)
@@ -98,14 +100,15 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
-            // Enhanced gradient with smoother transition
+            // Enhanced gradient with luminous rose-to-crimson transition
             background: Some(colors::CONTINUE_GRADIENT_START.into()),
             border: Border {
-                color: colors::PRIMARY_GRADIENT_START,
-                width: 2.0,
+                color: colors::ACCENT_GRADIENT_END,
+                width: 2.5,
                 radius: border_radius::LG.into(),
             },
             shadow: shadows::shadow_xxl(),
+            text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
         })
         .width(Length::Fill)
