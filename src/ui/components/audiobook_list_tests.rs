@@ -359,3 +359,146 @@ fn test_empty_state_renders_when_idle_and_no_audiobooks() {
     });
     drop(element);
 }
+
+fn create_test_audiobook_full(
+    id: i64,
+    name: &str,
+    author: Option<&str>,
+    completeness: i32,
+    created_at: chrono::DateTime<chrono::Utc>,
+    last_listened: Option<chrono::DateTime<chrono::Utc>>,
+) -> Audiobook {
+    Audiobook {
+        id: Some(id),
+        directory: "/test".to_string(),
+        name: name.to_string(),
+        author: author.map(std::string::ToString::to_string),
+        full_path: format!("/test/{name}"),
+        completeness,
+        default_order: 0,
+        selected_file: None,
+        total_duration_ms: None,
+        remaining_duration_ms: None,
+        created_at,
+        last_listened,
+    }
+}
+
+#[test]
+fn test_filter_and_sort_filters_by_search_query_title_case_insensitive() {
+    let audiobooks = vec![
+        create_test_audiobook(1, "The Odyssey", 0),
+        create_test_audiobook(2, "Other Book", 0),
+    ];
+
+    let filtered = filter_and_sort_audiobooks(
+        &audiobooks,
+        "odys",
+        crate::ui::state::AudiobookSortOrder::Title,
+        crate::ui::state::AudiobookFilterStatus::All,
+    );
+
+    let ids: Vec<i64> = filtered.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![1]);
+}
+
+#[test]
+fn test_filter_and_sort_filters_by_search_query_author_case_insensitive() {
+    let audiobooks = vec![
+        {
+            let mut ab = create_test_audiobook(1, "Book One", 0);
+            ab.author = Some("Jane Doe".to_string());
+            ab
+        },
+        create_test_audiobook(2, "Book Two", 0),
+    ];
+
+    let filtered = filter_and_sort_audiobooks(
+        &audiobooks,
+        "DOE",
+        crate::ui::state::AudiobookSortOrder::Title,
+        crate::ui::state::AudiobookFilterStatus::All,
+    );
+
+    let ids: Vec<i64> = filtered.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![1]);
+}
+
+#[test]
+fn test_filter_and_sort_filters_by_status() {
+    let audiobooks = vec![
+        create_test_audiobook(1, "Not Started", 0),
+        create_test_audiobook(2, "In Progress", 50),
+        create_test_audiobook(3, "Complete", 100),
+    ];
+
+    let not_started = filter_and_sort_audiobooks(
+        &audiobooks,
+        "",
+        crate::ui::state::AudiobookSortOrder::Title,
+        crate::ui::state::AudiobookFilterStatus::NotStarted,
+    );
+    let ids: Vec<i64> = not_started.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![1]);
+
+    let in_progress = filter_and_sort_audiobooks(
+        &audiobooks,
+        "",
+        crate::ui::state::AudiobookSortOrder::Title,
+        crate::ui::state::AudiobookFilterStatus::InProgress,
+    );
+    let ids: Vec<i64> = in_progress.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![2]);
+
+    let complete = filter_and_sort_audiobooks(
+        &audiobooks,
+        "",
+        crate::ui::state::AudiobookSortOrder::Title,
+        crate::ui::state::AudiobookFilterStatus::Complete,
+    );
+    let ids: Vec<i64> = complete.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![3]);
+}
+
+#[test]
+fn test_filter_and_sort_sorts_by_progress_desc() {
+    let audiobooks = vec![
+        create_test_audiobook(1, "Book A", 10),
+        create_test_audiobook(2, "Book B", 90),
+        create_test_audiobook(3, "Book C", 50),
+    ];
+
+    let sorted = filter_and_sort_audiobooks(
+        &audiobooks,
+        "",
+        crate::ui::state::AudiobookSortOrder::Progress,
+        crate::ui::state::AudiobookFilterStatus::All,
+    );
+
+    let ids: Vec<i64> = sorted.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![2, 3, 1]);
+}
+
+#[test]
+fn test_filter_and_sort_sorts_by_recently_played_desc_with_none_last() {
+    use chrono::TimeZone;
+
+    let t0 = chrono::Utc.timestamp_opt(1_700_000_000, 0).unwrap();
+    let t1 = chrono::Utc.timestamp_opt(1_700_000_100, 0).unwrap();
+
+    let audiobooks = vec![
+        create_test_audiobook_full(1, "Book A", None, 0, t0, Some(t0)),
+        create_test_audiobook_full(2, "Book B", None, 0, t0, Some(t1)),
+        create_test_audiobook_full(3, "Book C", None, 0, t0, None),
+    ];
+
+    let sorted = filter_and_sort_audiobooks(
+        &audiobooks,
+        "",
+        crate::ui::state::AudiobookSortOrder::RecentlyPlayed,
+        crate::ui::state::AudiobookFilterStatus::All,
+    );
+
+    let ids: Vec<i64> = sorted.iter().filter_map(|ab| ab.id).collect();
+    assert_eq!(ids, vec![2, 1, 3]);
+}

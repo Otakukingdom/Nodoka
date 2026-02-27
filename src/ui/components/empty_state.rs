@@ -27,11 +27,11 @@ pub enum EmptyStateContext {
 impl EmptyStateContext {
     const fn icon_text(self) -> &'static str {
         match self {
-            Self::Library => "♪",
-            Self::FileList => "📁",
-            Self::Bookmarks => "🔖",
-            Self::SearchResults => "🔍",
-            Self::Generic => "○",
+            Self::Library => "LB",
+            Self::FileList => "FL",
+            Self::Bookmarks => "BM",
+            Self::SearchResults => "SR",
+            Self::Generic => "O",
         }
     }
 
@@ -165,12 +165,12 @@ pub fn simple(
     action_label: Option<&'static str>,
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
-    let context = if icon == Some("♪") {
-        EmptyStateContext::Library
-    } else if icon == Some("🔖") {
-        EmptyStateContext::Bookmarks
-    } else {
-        EmptyStateContext::Generic
+    let context = match icon {
+        Some("LB") => EmptyStateContext::Library,
+        Some("FL") => EmptyStateContext::FileList,
+        Some("BM") => EmptyStateContext::Bookmarks,
+        Some("SR") => EmptyStateContext::SearchResults,
+        _ => EmptyStateContext::Generic,
     };
 
     view(context, title, description, action_label, action_message)
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn test_simple_empty_state_with_library_context() {
         let element = simple(
-            Some("♪"),
+            Some("LB"),
             "No Audiobooks",
             "Add directories to get started",
             Some("Add Directory"),
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn test_simple_empty_state_with_bookmark_context() {
         let element = simple(
-            Some("🔖"),
+            Some("BM"),
             "No Bookmarks",
             "Create bookmarks to mark important positions",
             Some("Add Bookmark"),

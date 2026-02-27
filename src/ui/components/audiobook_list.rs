@@ -24,6 +24,57 @@ pub struct ViewParams<'a, S: BuildHasher> {
     pub filter_status: crate::ui::state::AudiobookFilterStatus,
 }
 
+fn filter_and_sort_audiobooks<'a>(
+    audiobooks: &'a [Audiobook],
+    search_query: &str,
+    sort_order: crate::ui::state::AudiobookSortOrder,
+    filter_status: crate::ui::state::AudiobookFilterStatus,
+) -> Vec<&'a Audiobook> {
+    use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
+
+    let query_lower = search_query.to_lowercase();
+
+    let mut filtered: Vec<&Audiobook> = audiobooks
+        .iter()
+        .filter(|ab| {
+            if !query_lower.is_empty() {
+                let title_match = ab.name.to_lowercase().contains(&query_lower);
+                let author_match = ab
+                    .author
+                    .as_ref()
+                    .is_some_and(|a| a.to_lowercase().contains(&query_lower));
+                if !title_match && !author_match {
+                    return false;
+                }
+            }
+
+            match filter_status {
+                AudiobookFilterStatus::All => true,
+                AudiobookFilterStatus::InProgress => ab.completeness > 0 && ab.completeness < 100,
+                AudiobookFilterStatus::Complete => ab.completeness >= 100,
+                AudiobookFilterStatus::NotStarted => ab.completeness == 0,
+            }
+        })
+        .collect();
+
+    match sort_order {
+        AudiobookSortOrder::RecentlyPlayed => {
+            filtered.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
+        }
+        AudiobookSortOrder::Title => {
+            filtered.sort_by(|a, b| a.name.cmp(&b.name));
+        }
+        AudiobookSortOrder::Progress => {
+            filtered.sort_by(|a, b| b.completeness.cmp(&a.completeness));
+        }
+        AudiobookSortOrder::DateAdded => {
+            filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        }
+    }
+
+    filtered
+}
+
 /// Renders the audiobook list with improved visual design.
 ///
 /// Features:
@@ -39,33 +90,12 @@ pub struct ViewParams<'a, S: BuildHasher> {
 pub fn view<'a, S: BuildHasher>(params: &ViewParams<'a, S>) -> Element<'a, Message> {
     use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
 
-    // Apply filters to get a filtered list
-    let filtered: Vec<&Audiobook> = params
-        .audiobooks
-        .iter()
-        .filter(|ab| {
-            // Apply search filter (case-insensitive on title and author)
-            if !params.search_query.is_empty() {
-                let query_lower = params.search_query.to_lowercase();
-                let title_match = ab.name.to_lowercase().contains(&query_lower);
-                let author_match = ab
-                    .author
-                    .as_ref()
-                    .is_some_and(|a| a.to_lowercase().contains(&query_lower));
-                if !title_match && !author_match {
-                    return false;
-                }
-            }
-
-            // Apply status filter
-            match params.filter_status {
-                AudiobookFilterStatus::All => true,
-                AudiobookFilterStatus::InProgress => ab.completeness > 0 && ab.completeness < 100,
-                AudiobookFilterStatus::Complete => ab.completeness >= 100,
-                AudiobookFilterStatus::NotStarted => ab.completeness == 0,
-            }
-        })
-        .collect();
+    let filtered = filter_and_sort_audiobooks(
+        params.audiobooks,
+        params.search_query,
+        params.sort_order,
+        params.filter_status,
+    );
 
     // Check if we should show empty state
     let has_active_filters = !params.search_query.is_empty()
@@ -97,24 +127,7 @@ pub fn view<'a, S: BuildHasher>(params: &ViewParams<'a, S>) -> Element<'a, Messa
         };
     }
 
-    // Apply sort order (we need to collect into a Vec to sort)
-    let mut sorted_filtered = filtered;
-    match params.sort_order {
-        AudiobookSortOrder::RecentlyPlayed => {
-            sorted_filtered.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
-        }
-        AudiobookSortOrder::Title => {
-            sorted_filtered.sort_by(|a, b| a.name.cmp(&b.name));
-        }
-        AudiobookSortOrder::Progress => {
-            sorted_filtered.sort_by(|a, b| b.completeness.cmp(&a.completeness));
-        }
-        AudiobookSortOrder::DateAdded => {
-            sorted_filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-        }
-    }
-
-    let items: Element<_> = sorted_filtered
+    let items: Element<_> = filtered
         .iter()
         .enumerate()
         .fold(column![].spacing(spacing::SM), |col, (index, ab)| {
@@ -446,9 +459,15 @@ fn build_content_column(ab: &Audiobook, opacity: f32) -> Vec<Element<'_, Message
 fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    container(
+    let p = u16::from(completeness_u8.min(100));
+    let inner: Element<'static, Message> = if p == 0 {
         container(Space::new())
-            .width(Length::FillPortion(u16::from(completeness_u8)))
+            .width(Length::Fill)
+            .height(Length::Fixed(8.0))
+            .into()
+    } else if p >= 100 {
+        container(Space::new())
+            .width(Length::Fill)
             .height(Length::Fixed(8.0))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
@@ -459,20 +478,45 @@ fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'sta
                 },
                 shadow: shadows::shadow_xs(),
                 ..Default::default()
-            }),
-    )
-    .width(Length::Fill)
-    .height(Length::Fixed(8.0))
-    .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
-        border: Border {
-            color: with_alpha(colors::BORDER_SUBTLE, opacity),
-            width: 1.0,
-            radius: border_radius::FULL.into(),
-        },
-        ..Default::default()
-    })
-    .into()
+            })
+            .into()
+    } else {
+        let filled = container(Space::new())
+            .width(Length::FillPortion(p))
+            .height(Length::Fixed(8.0))
+            .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::FULL.into(),
+                },
+                shadow: shadows::shadow_xs(),
+                ..Default::default()
+            });
+        let empty = container(Space::new())
+            .width(Length::FillPortion(100 - p))
+            .height(Length::Fixed(8.0));
+
+        row![filled, empty]
+            .width(Length::Fill)
+            .height(Length::Fixed(8.0))
+            .into()
+    };
+
+    container(inner)
+        .width(Length::Fill)
+        .height(Length::Fixed(8.0))
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
+            border: Border {
+                color: with_alpha(colors::BORDER_SUBTLE, opacity),
+                width: 1.0,
+                radius: border_radius::FULL.into(),
+            },
+            ..Default::default()
+        })
+        .into()
 }
 
 /// Formats remaining time for display

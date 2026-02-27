@@ -45,7 +45,8 @@
 pub mod audiobook_list;
 pub mod bookmarks;
 pub mod continue_listening;
-pub mod empty_state;
+#[path = "empty_state.rs"]
+pub mod empty_state_view;
 pub mod file_list;
 pub mod library_toolbar;
 pub mod player_controls;
@@ -72,11 +73,11 @@ mod visual_tests;
 /// # Examples
 ///
 /// ```ignore
-/// use nodoka::ui::components::{empty_state, empty_state::EmptyStateContext};
+/// use nodoka::ui::components::{empty_state, empty_state_view::EmptyStateContext};
 /// use nodoka::ui::Message;
 ///
 /// // Premium empty state with context
-/// let state = empty_state::view(
+/// let state = empty_state_view::view(
 ///     EmptyStateContext::Library,
 ///     "No Audiobooks Found",
 ///     "Add audiobook directories in Settings to get started. Nodoka will automatically scan for audiobook files.",
@@ -86,7 +87,7 @@ mod visual_tests;
 ///
 /// // Simplified empty state (backward compatible)
 /// let state = empty_state(
-///     Some("♪"),
+///     Some("LB"),
 ///     "No Files",
 ///     "Select an audiobook from the list to view its files.",
 ///     None,
@@ -102,5 +103,5 @@ pub fn empty_state<'a>(
     action_message: Option<crate::ui::Message>,
 ) -> iced::Element<'a, crate::ui::Message> {
     // Use the new premium empty state module
-    empty_state::simple(icon, title, description, action_label, action_message)
+    empty_state_view::simple(icon, title, description, action_label, action_message)
 }

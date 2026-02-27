@@ -60,6 +60,10 @@ pub mod loading {
 pub mod button_styles {
     use super::{border_radius, border_width, button, colors, shadows, Border, Color};
 
+    fn brighten_channel(x: f32, delta: f32) -> f32 {
+        (x + delta).min(1.0)
+    }
+
     /// Primary action button style (e.g., Play, Save, Add)
     /// Uses simplified 2-color Aurora Rose gradient for distinctive brand identity
     #[must_use]
@@ -95,9 +99,9 @@ pub mod button_styles {
                         let start = colors::PRIMARY_GRADIENT_START;
                         let end = colors::AURORA_ROSE_GRADIENT_END;
                         Color::from_rgb(
-                            f32::midpoint(start.r, end.r).mul_add(0.05, 0.05),
-                            f32::midpoint(start.g, end.g).mul_add(0.05, 0.05),
-                            f32::midpoint(start.b, end.b).mul_add(0.05, 0.05),
+                            brighten_channel(f32::midpoint(start.r, end.r), 0.05),
+                            brighten_channel(f32::midpoint(start.g, end.g), 0.05),
+                            brighten_channel(f32::midpoint(start.b, end.b), 0.05),
                         )
                     }
                     .into(),
@@ -252,9 +256,9 @@ pub mod button_styles {
                         let start = colors::CELESTIAL_GRADIENT_START;
                         let end = colors::CELESTIAL_GRADIENT_END;
                         Color::from_rgb(
-                            f32::midpoint(start.r, end.r).mul_add(0.08, 0.05),
-                            f32::midpoint(start.g, end.g).mul_add(0.08, 0.05),
-                            f32::midpoint(start.b, end.b).mul_add(0.08, 0.05),
+                            brighten_channel(f32::midpoint(start.r, end.r), 0.07),
+                            brighten_channel(f32::midpoint(start.g, end.g), 0.07),
+                            brighten_channel(f32::midpoint(start.b, end.b), 0.07),
                         )
                     }
                     .into(),

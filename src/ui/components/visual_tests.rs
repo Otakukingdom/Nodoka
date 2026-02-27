@@ -48,7 +48,7 @@ mod tests {
     /// Tests that empty state component renders for all contexts
     #[test]
     fn test_empty_state_renders_all_contexts() {
-        use crate::ui::components::empty_state::EmptyStateContext;
+        use crate::ui::components::empty_state_view::EmptyStateContext;
 
         let contexts = [
             (
@@ -79,8 +79,13 @@ mod tests {
         ];
 
         for (context, title, description) in contexts {
-            let element =
-                crate::ui::components::empty_state::view(context, title, description, None, None);
+            let element = crate::ui::components::empty_state_view::view(
+                context,
+                title,
+                description,
+                None,
+                None,
+            );
             drop(element);
         }
     }
@@ -88,10 +93,10 @@ mod tests {
     /// Tests that empty state renders with action buttons
     #[test]
     fn test_empty_state_renders_with_actions() {
-        use crate::ui::components::empty_state::EmptyStateContext;
+        use crate::ui::components::empty_state_view::EmptyStateContext;
         use crate::ui::Message;
 
-        let element = crate::ui::components::empty_state::view(
+        let element = crate::ui::components::empty_state_view::view(
             EmptyStateContext::Library,
             "No Audiobooks",
             "Add directories to get started",

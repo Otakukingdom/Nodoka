@@ -295,12 +295,18 @@ fn build_progress_element(
 
     if has_progress && !is_complete && !is_missing {
         let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
-        container(
+        let p = u16::from(completeness_u8.min(100));
+
+        let inner: Element<'static, Message> = if p == 0 {
             container(Space::new())
-                .width(Length::FillPortion(u16::from(completeness_u8)))
+                .width(Length::Fill)
+                .height(Length::Fixed(8.0))
+                .into()
+        } else if p >= 100 {
+            container(Space::new())
+                .width(Length::Fill)
                 .height(Length::Fixed(8.0))
                 .style(|_theme: &iced::Theme| container::Style {
-                    // Enhanced gradient fill for progress bar
                     background: Some(colors::PROGRESS_GRADIENT_START.into()),
                     border: Border {
                         color: Color::TRANSPARENT,
@@ -309,19 +315,44 @@ fn build_progress_element(
                     },
                     shadow: shadows::shadow_xs(),
                     ..Default::default()
-                }),
-        )
-        .width(Length::Fill)
-        .height(Length::Fixed(8.0))
-        .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::BG_SECONDARY.into()),
-            border: Border {
-                color: colors::BORDER_SUBTLE,
-                width: border_width::XS,
-                radius: border_radius::FULL.into(),
-            },
-            ..Default::default()
-        })
+                })
+                .into()
+        } else {
+            let filled = container(Space::new())
+                .width(Length::FillPortion(p))
+                .height(Length::Fixed(8.0))
+                .style(|_theme: &iced::Theme| container::Style {
+                    background: Some(colors::PROGRESS_GRADIENT_START.into()),
+                    border: Border {
+                        color: Color::TRANSPARENT,
+                        width: 0.0,
+                        radius: border_radius::FULL.into(),
+                    },
+                    shadow: shadows::shadow_xs(),
+                    ..Default::default()
+                });
+            let empty = container(Space::new())
+                .width(Length::FillPortion(100 - p))
+                .height(Length::Fixed(8.0));
+
+            row![filled, empty]
+                .width(Length::Fill)
+                .height(Length::Fixed(8.0))
+                .into()
+        };
+
+        container(inner)
+            .width(Length::Fill)
+            .height(Length::Fixed(8.0))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BG_SECONDARY.into()),
+                border: Border {
+                    color: colors::BORDER_SUBTLE,
+                    width: border_width::XS,
+                    radius: border_radius::FULL.into(),
+                },
+                ..Default::default()
+            })
     } else {
         container(Space::new())
             .width(Length::Fill)

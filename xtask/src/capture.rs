@@ -275,8 +275,13 @@ fn save_rgba_as_png(
 ) -> Result<(), Box<dyn std::error::Error>> {
     use image::{ImageBuffer, RgbaImage};
 
-    let img: RgbaImage = ImageBuffer::from_raw(width, height, rgba_bytes.to_vec())
-        .ok_or("Failed to create image buffer from RGBA bytes")?;
+    let img: RgbaImage =
+        ImageBuffer::from_raw(width, height, rgba_bytes.to_vec()).ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Failed to create image buffer from RGBA bytes",
+            )
+        })?;
 
     img.save(path)?;
     Ok(())
@@ -327,7 +332,8 @@ impl CaptureManifest {
     ///
     /// Returns an error if JSON serialization or file writing fails.
     pub fn save_to_file(&self, path: &Path) -> std::io::Result<()> {
-        let json = serde_json::to_string_pretty(self)?;
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
         fs::write(path, json)?;
         Ok(())
     }
