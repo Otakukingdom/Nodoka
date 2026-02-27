@@ -54,7 +54,14 @@ fn test_button_styles_have_distinct_appearances() {
     assert!(secondary.border.width > 0.0);
 
     // Primary has a subtle border (2.0px REGULAR) for definition
-    assert_eq!(primary.border.width, expected_primary_border);
+    let width_tolerance = 0.001;
+    assert!(
+        (primary.border.width - expected_primary_border).abs() <= width_tolerance,
+        "Primary border width {} should match REGULAR {} (tolerance {})",
+        primary.border.width,
+        expected_primary_border,
+        width_tolerance
+    );
 }
 
 #[test]

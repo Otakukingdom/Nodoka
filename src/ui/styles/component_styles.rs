@@ -29,32 +29,49 @@ pub mod empty_state_styles {
 /// Notification toast styling utilities
 pub mod notification_styles {
     use crate::ui::state::NotificationType;
+    use crate::ui::styles::accessibility;
     use crate::ui::styles::{border_radius, colors, shadows, Border};
     use iced::widget::container;
 
     #[must_use]
-    pub const fn background_color(kind: &NotificationType) -> iced::Color {
-        const fn midpoint(a: iced::Color, b: iced::Color) -> iced::Color {
-            iced::Color::from_rgb(
-                f32::midpoint(a.r, b.r),
-                f32::midpoint(a.g, b.g),
-                f32::midpoint(a.b, b.b),
-            )
+    pub fn background_color(kind: &NotificationType) -> iced::Color {
+        fn pick_readable_background(a: iced::Color, b: iced::Color) -> iced::Color {
+            let ratio_a = accessibility::gradient::contrast_ratio(TEXT_COLOR, a);
+            let ratio_b = accessibility::gradient::contrast_ratio(TEXT_COLOR, b);
+            let mut bg = if ratio_a >= ratio_b { a } else { b };
+
+            // Ensure WCAG AA contrast for normal text (4.5:1).
+            // If the palette colors are too bright, darken towards black until readable.
+            let mut t = 0.0_f32;
+            while accessibility::gradient::contrast_ratio(TEXT_COLOR, bg)
+                < accessibility::CONTRAST_RATIO_AA_NORMAL
+                && t < 0.6
+            {
+                t = (t + 0.05).min(0.6);
+                bg = iced::Color::from_rgb(
+                    bg.r + (0.0 - bg.r) * t,
+                    bg.g + (0.0 - bg.g) * t,
+                    bg.b + (0.0 - bg.b) * t,
+                );
+            }
+
+            bg
         }
 
         match kind {
-            NotificationType::Success => {
-                midpoint(colors::EMERALD_GRADIENT_START, colors::EMERALD_GRADIENT_END)
-            }
-            NotificationType::Info => midpoint(
+            NotificationType::Success => pick_readable_background(
+                colors::EMERALD_GRADIENT_START,
+                colors::EMERALD_GRADIENT_END,
+            ),
+            NotificationType::Info => pick_readable_background(
                 colors::AURORA_ROSE_GRADIENT_START,
                 colors::AURORA_ROSE_GRADIENT_END,
             ),
             NotificationType::Warning => {
-                midpoint(colors::GOLD_GRADIENT_START, colors::GOLD_GRADIENT_END)
+                pick_readable_background(colors::GOLD_GRADIENT_START, colors::GOLD_GRADIENT_END)
             }
             NotificationType::Error => {
-                midpoint(colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END)
+                pick_readable_background(colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END)
             }
         }
     }
