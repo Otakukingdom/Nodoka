@@ -160,14 +160,14 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha_gradient(colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END, opacity).into()),
+                background: Some(with_alpha_gradient_enhanced(colors::SUBTLE_GRADIENT_START, colors::PRIMARY_GRADIENT_START, opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
                     width: 4.0,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             })
             .width(Length::Fill)
@@ -280,30 +280,51 @@ fn build_content_row<'a>(
     opacity: f32,
     offset_y: f32,
 ) -> iced::widget::Row<'a, Message> {
-    use crate::ui::styles::colors;
-
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = offset_y.clamp(0.0, max_offset);
-
-    // Progress bar for visual representation of completeness (simplified, thin 4px bar)
     let completeness_u8 = u8::try_from(ab.completeness.clamp(0, 100)).unwrap_or(0);
 
-    // Calculate remaining time, preferring per-file progress when available.
     let remaining_text = format_remaining_time(
         ab.remaining_duration_ms,
         ab.total_duration_ms,
         ab.completeness,
     );
-
-    // Format last listened timestamp as relative time
     let last_listened_text = format_relative_time(ab.last_listened);
 
-    // Build metadata row: remaining time + last listened (no percentage - shown by progress bar)
-    // Show completion badge for 100% complete audiobooks
-    let mut metadata_items: Vec<Element<'_, Message>> = Vec::new();
+    let metadata_items = build_metadata_items(ab, remaining_text, last_listened_text, opacity);
+    let metadata_row = iced::widget::Row::with_children(metadata_items);
+
+    let mut content_column = build_content_column(ab, opacity);
+    content_column.push(build_progress_bar_element(completeness_u8, opacity));
+    content_column.push(metadata_row.into());
+
+    row![
+        cover,
+        iced::widget::Column::with_children(content_column)
+            .spacing(spacing::XS)
+            .width(Length::Fill)
+    ]
+    .spacing(spacing::MD)
+    .padding(iced::Padding {
+        top: spacing::SM + offset_y,
+        bottom: spacing::SM + (max_offset - offset_y),
+        left: spacing::MD,
+        right: spacing::MD,
+    })
+}
+
+/// Builds metadata items for the audiobook row
+fn build_metadata_items<'a>(
+    ab: &'a Audiobook,
+    remaining_text: String,
+    last_listened_text: String,
+    opacity: f32,
+) -> Vec<Element<'a, Message>> {
+    use crate::ui::styles::{border_radius, colors};
+
+    let mut metadata_items: Vec<Element<'a, Message>> = Vec::new();
 
     if ab.completeness >= 100 {
-        // Completion badge for finished audiobooks with enhanced styling
         metadata_items.push(
             container(text("✓ Complete")
                 .size(typography::SIZE_SM)
@@ -322,7 +343,6 @@ fn build_content_row<'a>(
             .into(),
         );
     } else if !remaining_text.is_empty() {
-        // Show remaining time for in-progress audiobooks
         metadata_items.push(
             text(remaining_text)
                 .size(typography::SIZE_SM)
@@ -345,9 +365,14 @@ fn build_content_row<'a>(
         );
     }
 
-    let metadata_row = iced::widget::Row::with_children(metadata_items);
+    metadata_items
+}
 
-    // Build content column with title, author (if available), progress bar, and metadata
+/// Builds the content column with title and author
+#[allow(clippy::elidable_lifetime_names)]
+fn build_content_column<'a>(ab: &'a Audiobook, opacity: f32) -> Vec<Element<'a, Message>> {
+    use crate::ui::styles::colors;
+
     let mut content_column = vec![text(&ab.name)
         .size(typography::SIZE_LG)
         .style(move |_theme: &iced::Theme| iced::widget::text::Style {
@@ -366,50 +391,40 @@ fn build_content_row<'a>(
         );
     }
 
-    content_column.push(
-        container(
-            container(Space::new())
-                .width(Length::FillPortion(u16::from(completeness_u8)))
-                .height(Length::Fixed(4.0))
-                .style(move |_theme: &iced::Theme| container::Style {
-                    background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.0,
-                        radius: border_radius::FULL.into(),
-                    },
-                    ..Default::default()
-                })
-        )
-        .width(Length::Fill)
-        .height(Length::Fixed(4.0))
-        .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
-            border: Border {
-                color: Color::TRANSPARENT,
-                width: 0.0,
-                radius: border_radius::FULL.into(),
-            },
-            ..Default::default()
-        })
-        .into(),
-    );
+    content_column
+}
 
-    content_column.push(metadata_row.into());
+/// Builds the progress bar element
+fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
 
-    row![
-        cover,
-        iced::widget::Column::with_children(content_column)
-            .spacing(spacing::XS)
-            .width(Length::Fill)
-    ]
-    .spacing(spacing::MD)
-    .padding(iced::Padding {
-        top: spacing::SM + offset_y,
-        bottom: spacing::SM + (max_offset - offset_y),
-        left: spacing::MD,
-        right: spacing::MD,
+    container(
+        container(Space::new())
+            .width(Length::FillPortion(u16::from(completeness_u8)))
+            .height(Length::Fixed(6.0))
+            .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::FULL.into(),
+                },
+                shadow: shadows::shadow_xs(),
+                ..Default::default()
+            })
+    )
+    .width(Length::Fill)
+    .height(Length::Fixed(6.0))
+    .style(move |_theme: &iced::Theme| container::Style {
+        background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
+        border: Border {
+            color: with_alpha(colors::BORDER_SUBTLE, opacity),
+            width: 1.0,
+            radius: border_radius::FULL.into(),
+        },
+        ..Default::default()
     })
+    .into()
 }
 
 /// Formats remaining time for display
@@ -498,14 +513,14 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Creates a gradient color by blending two colors
-///
-/// Used for subtle gradient backgrounds on elevated surfaces.
-fn with_alpha_gradient(start: Color, end: Color, opacity: f32) -> Color {
+/// Enhanced gradient for selection state with smoother transition
+fn with_alpha_gradient_enhanced(start: Color, end: Color, opacity: f32) -> Color {
+    let blend_factor = 0.6;
+    let inv_blend = 1.0 - blend_factor;
     Color {
-        r: f32::midpoint(start.r, end.r) * opacity,
-        g: f32::midpoint(start.g, end.g) * opacity,
-        b: f32::midpoint(start.b, end.b) * opacity,
+        r: start.r.mul_add(blend_factor, end.r * inv_blend) * opacity,
+        g: start.g.mul_add(blend_factor, end.g * inv_blend) * opacity,
+        b: start.b.mul_add(blend_factor, end.b * inv_blend) * opacity,
         a: opacity,
     }
 }

@@ -138,6 +138,7 @@ pub fn sleep_timer_controls(state: &State) -> Element<'_, Message> {
 }
 
 /// Formats remaining seconds for sleep timer display (M:SS format)
+#[must_use]
 pub fn format_remaining_seconds(secs: i64) -> String {
     let secs = secs.max(0);
     let minutes = secs / 60;

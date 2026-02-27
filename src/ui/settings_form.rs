@@ -5,7 +5,7 @@
 use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
-use iced::{Element, Length};
+use iced::{Border, Element, Length};
 
 fn build_directory_list(state: &State) -> Element<'static, Message> {
     use crate::ui::styles::colors;
@@ -204,7 +204,7 @@ fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
 }
 
 fn section_header(title: &'static str) -> Element<'static, Message> {
-    use crate::ui::styles::colors;
+    use crate::ui::styles::{border_radius, colors};
 
     column![
         container(text(title).size(typography::SIZE_LG))
@@ -220,9 +220,13 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
             }),
         container(Space::new())
             .width(Length::Fill)
-            .height(Length::Fixed(2.0))
+            .height(Length::Fixed(3.0))
             .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BORDER_DEFAULT.into()),
+                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+                border: Border {
+                    radius: border_radius::FULL.into(),
+                    ..Default::default()
+                },
                 ..Default::default()
             }),
     ]

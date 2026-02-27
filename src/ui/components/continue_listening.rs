@@ -6,7 +6,7 @@ use crate::ui::styles::{
 };
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
-use iced::{Border, Element, Length};
+use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::path::PathBuf;
@@ -49,33 +49,47 @@ pub fn view<'a, S: BuildHasher>(
     let content = row![
         cover,
         column![
-            text("Continue Listening")
-                .size(typography::SIZE_SM)
-                .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_SECONDARY),
-                }),
+            // Enhanced "Continue Listening" label with refined styling
+            container(
+                text("Continue Listening")
+                    .size(typography::SIZE_SM)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_ON_PRIMARY),
+                    }),
+            )
+            .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.25).into()),
+                border: Border {
+                    radius: border_radius::SM.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
             text(&audiobook.name)
                 .size(typography::SIZE_XL)
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_PRIMARY),
+                    color: Some(colors::TEXT_ON_PRIMARY),
                 }),
             text(progress_text)
                 .size(typography::SIZE_BASE)
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(colors::TEXT_SECONDARY),
+                    color: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.9)),
                 }),
         ]
         .spacing(spacing::SM),
         Space::new().width(Length::Fill),
         button(
-            text("Play")
-                .size(typography::SIZE_LG)
+            text("▶")
+                .size(typography::SIZE_BASE)
                 .style(|_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(colors::TEXT_ON_PRIMARY),
                 })
         )
         .on_press(Message::PlayLastListened)
         .padding(spacing::LG)
+        .width(Length::Fixed(56.0))
+        .height(Length::Fixed(56.0))
         .style(button_styles::elevated),
     ]
     .spacing(spacing::LG)
@@ -84,6 +98,7 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
+            // Enhanced gradient with smoother transition
             background: Some(colors::CONTINUE_GRADIENT_START.into()),
             border: Border {
                 color: colors::PRIMARY_GRADIENT_START,

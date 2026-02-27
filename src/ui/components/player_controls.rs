@@ -202,13 +202,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
             )
             .padding(spacing::MD)
             .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::SUBTLE_GRADIENT_START.into()),
+                // Enhanced gradient with more vibrant transition
+                background: Some(colors::CONTINUE_GRADIENT_START.into()),
                 border: Border {
-                    color: colors::BORDER_PROMINENT,
-                    width: 1.5,
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 2.0,
                     radius: border_radius::LG.into(),
                 },
-                shadow: shadows::shadow_xl(),
+                shadow: shadows::shadow_xxl(),
                 ..Default::default()
             })
         },

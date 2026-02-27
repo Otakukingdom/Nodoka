@@ -5,6 +5,7 @@ use crate::models::AudiobookFile;
 /// Extracts a readable chapter name from a file name
 ///
 /// Removes common audiobook prefixes, file extensions, and cleans up formatting
+#[must_use]
 pub fn extract_chapter_name(filename: &str) -> &str {
     // Remove file extension
     let without_ext = filename.rsplit_once('.').map_or(filename, |(name, _)| name);
@@ -16,6 +17,7 @@ pub fn extract_chapter_name(filename: &str) -> &str {
 /// Calculates a progress summary showing chapters and remaining time
 ///
 /// Returns a string like "Chapter 5 of 12 · 3h 45m remaining"
+#[must_use]
 pub fn calculate_progress_summary(
     files: &[AudiobookFile],
     selected_file: Option<&String>,

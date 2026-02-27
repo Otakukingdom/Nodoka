@@ -14,11 +14,11 @@ use iced::{Border, Color, Element, Length};
 /// Creates a premium semi-transparent overlay using glass-morphism design.
 /// The backdrop dims the background content while maintaining visual context.
 pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
-    let glass_opacity = (opacity * 0.94).clamp(0.0, 1.0);
+    let glass_opacity = (opacity * 0.92).clamp(0.0, 1.0);
     button(container(text("")).width(Length::Fill).height(Length::Fill))
         .style(
             move |_theme: &iced::Theme, _status| iced::widget::button::Style {
-                background: Some(with_alpha_gradient_backdrop(glass_opacity).into()),
+                background: Some(improved_glass_backdrop(glass_opacity).into()),
                 ..Default::default()
             },
         )
@@ -33,15 +33,25 @@ pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static
 /// Uses the same glass-morphism effect as `modal_backdrop` but without
 /// click-to-dismiss functionality for use with loading indicators.
 pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Message> {
-    let glass_opacity = (opacity * 0.85).clamp(0.0, 1.0);
+    let glass_opacity = (opacity * 0.88).clamp(0.0, 1.0);
     container(text(""))
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-            background: Some(with_alpha(colors::GLASS_OVERLAY, glass_opacity).into()),
+            background: Some(improved_glass_backdrop(glass_opacity).into()),
             ..Default::default()
         })
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
+}
+
+/// Improved glass-morphism backdrop with better color treatment
+fn improved_glass_backdrop(opacity: f32) -> Color {
+    Color {
+        r: 0.1,
+        g: 0.1,
+        b: 0.12,
+        a: (0.6 * opacity).clamp(0.0, 0.88),
+    }
 }
 
 /// Renders the keyboard shortcuts help overlay.
@@ -181,22 +191,22 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    let border_color = with_alpha(colors::PRIMARY_GRADIENT_END, opacity);
+    let border_color = with_alpha_gradient_border(colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
-                width: 2.0,
+                width: 2.5,
                 radius: border_radius::LG.into(),
             },
             shadow: shadows::shadow_xxl(),
             ..Default::default()
         })
         .padding(spacing::XL) // Increased padding for better content breathing room
-        .max_width(600.0) // Maximum width for readability
+        .max_width(650.0) // Increased width for better content fit
         .width(Length::Fill) // Fill available space on narrow screens
-        .max_height(800.0) // Maximum height
+        .max_height(850.0) // Increased height
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .into()
@@ -305,11 +315,12 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-fn with_alpha_gradient_backdrop(opacity: f32) -> Color {
+/// Helper function for gradient border color
+fn with_alpha_gradient_border(start: Color, end: Color, opacity: f32) -> Color {
     Color {
-        r: colors::dark_theme::BG_PRIMARY.r,
-        g: colors::dark_theme::BG_PRIMARY.g,
-        b: colors::dark_theme::BG_PRIMARY.b,
-        a: (0.5 * opacity).clamp(0.0, 0.95),
+        r: f32::midpoint(start.r, end.r) * opacity,
+        g: f32::midpoint(start.g, end.g) * opacity,
+        b: f32::midpoint(start.b, end.b) * opacity,
+        a: opacity,
     }
 }

@@ -7,6 +7,7 @@ use iced::widget::{button, container, mouse_area, row, text, Space};
 use iced::{Color, Element, Length, Point};
 
 /// Renders play/pause and stop buttons with ripple effects
+#[must_use]
 pub fn playback_controls(
     state: &State,
     play_pause_label: &'static str,

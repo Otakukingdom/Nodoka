@@ -92,6 +92,7 @@ pub fn volume_to_level(volume: i32) -> f32 {
 /// - Medium volume (30-70%): Warning yellow
 /// - Low volume (1-30%): Error red
 /// - Muted (0%): Disabled gray
+#[must_use]
 pub fn volume_level_color(volume: f32) -> iced::Color {
     if volume >= 0.7 {
         colors::SUCCESS // High volume: green
@@ -105,6 +106,7 @@ pub fn volume_level_color(volume: f32) -> iced::Color {
 }
 
 /// Formats time in milliseconds for display (H:MM:SS or M:SS format)
+#[must_use]
 pub fn format_time(ms: f64) -> String {
     // Convert f64 milliseconds to i64 for time calculations
     let ms_i64 = f64_to_ms(ms).unwrap_or(0);
@@ -120,6 +122,7 @@ pub fn format_time(ms: f64) -> String {
 }
 
 /// Formats remaining time with a "-" prefix to indicate time left
+#[must_use]
 pub fn format_time_remaining(ms: f64) -> String {
     let ms_i64 = f64_to_ms(ms).unwrap_or(0).max(0);
     let seconds = ms_i64 / 1000;

@@ -60,25 +60,25 @@ pub fn view(
     action_label: Option<&'static str>,
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
-    let icon_size = typography::type_scale::DISPLAY_SIZE;
-    let icon = container(text(context.icon_text()).size(icon_size * 1.2))
-        .width(Length::Fixed(icon_size * 1.5))
-        .height(Length::Fixed(icon_size * 1.5))
+    let icon_size = typography::type_scale::DISPLAY_SIZE * 1.5;
+    let icon = container(text(context.icon_text()).size(icon_size))
+        .width(Length::Fixed(icon_size * 1.8))
+        .height(Length::Fixed(icon_size * 1.8))
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(colors::BG_SECONDARY.into()),
+            background: Some(colors::BG_ELEVATED.into()),
             border: Border {
-                color: colors::BORDER_DEFAULT,
+                color: colors::PRIMARY_GRADIENT_START,
                 width: 2.0,
-                radius: (icon_size * 1.5 / 2.0).into(),
+                radius: (icon_size * 1.8 / 2.0).into(),
             },
-            shadow: shadows::shadow_md(),
+            shadow: shadows::shadow_lg(),
             ..Default::default()
         });
 
     let title_heading = text(title)
-        .size(typography::type_scale::H2_SIZE)
+        .size(typography::type_scale::H1_SIZE)
         .style(move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(context.title_color()),
         });
@@ -90,18 +90,18 @@ pub fn view(
                 color: Some(colors::TEXT_SECONDARY),
             }),
     )
-    .width(Length::Fixed(420.0))
+    .width(Length::Fixed(480.0))
     .center_x(Length::Fill);
 
-    let mut content_column = column![icon, Space::new().height(Length::Fixed(spacing::XL)), title_heading]
+    let mut content_column = column![icon, Space::new().height(Length::Fixed(spacing::XXL)), title_heading]
         .align_x(iced::Alignment::Center)
         .spacing(spacing::SM);
 
-    content_column = content_column.push(Space::new().height(Length::Fixed(spacing::MD)));
+    content_column = content_column.push(Space::new().height(Length::Fixed(spacing::LG)));
     content_column = content_column.push(description_text);
 
     if let (Some(label), Some(msg)) = (action_label, action_message) {
-        content_column = content_column.push(Space::new().height(Length::Fixed(spacing::XL)));
+        content_column = content_column.push(Space::new().height(Length::Fixed(spacing::XXL)));
         content_column = content_column.push(
             button(
                 text(label)
@@ -113,9 +113,9 @@ pub fn view(
             .on_press(msg)
             .padding(iced::Padding::from([
                 spacing::MD,
-                spacing::XL,
+                spacing::XXL,
             ]))
-            .style(button_styles::primary),
+            .style(button_styles::elevated),
         );
     }
 
@@ -125,11 +125,11 @@ pub fn view(
         .style(|_theme: &iced::Theme| container::Style {
             background: Some(colors::BG_ELEVATED.into()),
             border: Border {
-                color: colors::BORDER_DEFAULT,
-                width: 1.0,
+                color: colors::BORDER_PROMINENT,
+                width: 1.5,
                 radius: border_radius::XL.into(),
             },
-            shadow: shadows::shadow_xl(),
+            shadow: shadows::shadow_xxl(),
             ..Default::default()
         });
 

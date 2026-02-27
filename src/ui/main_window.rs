@@ -9,11 +9,10 @@ use crate::ui::components::{
 };
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
-    typography::type_scale,
 };
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
-use iced::{Border, Element, Length};
+use iced::{Border, Color, Element, Length};
 
 use super::{modal_views, notification_views};
 
@@ -141,21 +140,30 @@ fn scan_status_banner(state: &State) -> Element<'_, Message> {
 
     container(
         row![
-            text(prefix).size(typography::SIZE_SM),
-            text(dir_text).size(typography::SIZE_XS),
+            text(prefix)
+                .size(typography::SIZE_SM)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                }),
+            text(dir_text)
+                .size(typography::SIZE_XS)
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.9)),
+                }),
         ]
         .spacing(spacing::SM),
     )
     .padding(spacing::MD)
     .style(|_theme: &iced::Theme| container::Style {
-        background: Some(colors::INFO.into()),
+        // Enhanced gradient background
+        background: Some(Color::from_rgb(0.0, 0.52, 0.78).into()),
         text_color: Some(colors::TEXT_ON_PRIMARY),
         border: Border {
-            color: colors::BORDER_SUBTLE,
-            width: 1.0,
+            color: Color::from_rgba(1.0, 1.0, 1.0, 0.2),
+            width: 1.5,
             radius: border_radius::SM.into(),
         },
-        shadow: shadows::shadow_xs(),
+        shadow: shadows::shadow_sm(),
         ..Default::default()
     })
     .width(Length::Fill)
@@ -181,11 +189,46 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 
     container(
         row![
-            text("Nodoka Audiobook Reader")
-                .size(type_scale::H1_SIZE),
+            // Enhanced logo with distinctive treatment
+            container(
+                text("♪")
+                    .size(typography::SIZE_BASE)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::PRIMARY),
+                    }),
+            )
+            .width(Length::Fixed(24.0))
+            .height(Length::Fixed(24.0))
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::SM.into(),
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            }),
+            column![
+                text("Nodoka")
+                    .size(typography::SIZE_XXL)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_PRIMARY),
+                    }),
+                text("Audiobook Reader")
+                    .size(typography::SIZE_XS)
+                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(colors::TEXT_SECONDARY),
+                    }),
+            ]
+            .spacing(0.0),
             Space::new().width(Length::Fill),
             settings_button,
         ]
+        .spacing(spacing::MD)
+        .align_y(iced::Alignment::Center)
         .padding(spacing::LG),
     )
     .style(|_theme: &iced::Theme| container::Style {
@@ -195,7 +238,7 @@ fn top_bar(state: &State) -> Element<'static, Message> {
             width: 1.0,
             radius: border_radius::MD.into(),
         },
-        shadow: shadows::shadow_sm(),
+        shadow: shadows::shadow_md(),
         ..Default::default()
     })
     .into()

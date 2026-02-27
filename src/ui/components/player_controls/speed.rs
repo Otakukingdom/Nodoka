@@ -18,6 +18,7 @@ pub enum SpeedPreset {
 impl SpeedPreset {
     pub const ALL: [Self; 5] = [Self::X075, Self::X10, Self::X125, Self::X15, Self::X20];
 
+    #[must_use]
     pub const fn as_f32(self) -> f32 {
         match self {
             Self::X075 => 0.75,
@@ -28,6 +29,7 @@ impl SpeedPreset {
         }
     }
 
+    #[must_use]
     pub fn from_speed(speed: f32) -> Option<Self> {
         Self::ALL
             .iter()
@@ -46,6 +48,7 @@ impl std::fmt::Display for SpeedPreset {
 }
 
 /// Renders speed controls with preset dropdown
+#[must_use]
 pub fn speed_controls(
     state: &State,
     _speed_step: i32,
@@ -82,6 +85,7 @@ pub fn speed_controls(
 }
 
 /// Formats speed value as "1.5x" string
+#[must_use]
 pub fn format_speed_label(speed: f32) -> String {
     let fixed = format!("{speed:.2}");
     let trimmed = fixed.trim_end_matches('0').trim_end_matches('.');

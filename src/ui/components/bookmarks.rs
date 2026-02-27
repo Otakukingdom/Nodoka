@@ -54,9 +54,12 @@ pub fn view<'a>(
             .into()
     };
 
-    column![header, scrollable(items).height(Length::FillPortion(1))]
-        .height(Length::Fill)
-        .into()
+    column![
+        header,
+        scrollable(items).height(Length::FillPortion(1))
+    ]
+    .height(Length::Fill)
+    .into()
 }
 
 /// Renders the bookmark editor modal with improved layout and visual feedback

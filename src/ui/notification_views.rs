@@ -44,13 +44,14 @@ pub(super) fn notification_area(state: &State) -> Element<'_, Message> {
 /// Renders a single notification toast with premium styling
 ///
 /// Creates refined notification toasts with:
-/// - Enhanced shadow (md) for elevation
-/// - Gradient-tinted backgrounds based on notification kind
+/// - Enhanced shadow (xxl) for elevation
+/// - Darker gradient-tinted backgrounds for better contrast
 /// - Smooth progress bar with gradient treatment
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
     use crate::ui::styles::components::notification_styles;
 
-    let bg_color = notification_styles::background_color(&notification.kind);
+    // Use darker colors for better contrast with white text
+    let bg_color = notification_gradient_color(&notification.kind);
     let icon_text = notification.icon();
 
     let content_col = notification_content_column(notification);
@@ -84,14 +85,32 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.25),
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.3),
                 width: 1.5,
                 radius: border_radius::MD.into(),
             },
-            shadow: shadows::shadow_xl(),
+            shadow: shadows::shadow_xxl(),
             ..Default::default()
         })
         .into()
+}
+
+/// Helper function for darker gradient notification colors for better contrast
+const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
+    match kind {
+        crate::ui::state::NotificationType::Success => {
+            Color::from_rgb(0.08, 0.65, 0.35)  // Darker green
+        }
+        crate::ui::state::NotificationType::Info => {
+            Color::from_rgb(0.0, 0.50, 0.80)  // Darker blue
+        }
+        crate::ui::state::NotificationType::Warning => {
+            Color::from_rgb(0.85, 0.50, 0.10)  // Darker orange
+        }
+        crate::ui::state::NotificationType::Error => {
+            Color::from_rgb(0.80, 0.10, 0.20)  // Darker red
+        }
+    }
 }
 
 /// Builds notification content column with optional title and message.
