@@ -536,7 +536,7 @@ pub mod dark_theme {
     pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.42);
 
     /// ===== Premium Distinctive Gradients for Dark Theme =====
-
+    ///
     /// Premium sunset gradient for dark theme with enhanced brightness
     /// Creates warm, sophisticated rose-to-coral transition optimized for dark backgrounds
     pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.99, 0.35, 0.50);

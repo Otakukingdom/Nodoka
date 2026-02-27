@@ -541,14 +541,21 @@ mod tests {
 
     #[test]
     fn test_shadow_levels_have_valid_values() {
-        let shadow_xs = effects::shadows::shadow_xs();
-        let shadow_sm = effects::shadows::shadow_sm();
-        let shadow_md = effects::shadows::shadow_md();
-        let shadow_lg = effects::shadows::shadow_lg();
-        let shadow_xl = effects::shadows::shadow_xl();
-        let shadow_xxl = effects::shadows::shadow_xxl();
+        let shadow_extra_small = effects::shadows::shadow_xs();
+        let shadow_small = effects::shadows::shadow_sm();
+        let shadow_medium = effects::shadows::shadow_md();
+        let shadow_large = effects::shadows::shadow_lg();
+        let shadow_extra_large = effects::shadows::shadow_xl();
+        let shadow_extra_extra = effects::shadows::shadow_xxl();
 
-        let shadows = [shadow_xs, shadow_sm, shadow_md, shadow_lg, shadow_xl, shadow_xxl];
+        let shadows = [
+            shadow_extra_small,
+            shadow_small,
+            shadow_medium,
+            shadow_large,
+            shadow_extra_large,
+            shadow_extra_extra,
+        ];
 
         for shadow in shadows {
             assert!(
@@ -568,46 +575,64 @@ mod tests {
 
     #[test]
     fn test_shadow_progression_increases() {
-        let blur_xs = effects::shadows::shadow_xs().blur_radius;
-        let blur_sm = effects::shadows::shadow_sm().blur_radius;
-        let blur_md = effects::shadows::shadow_md().blur_radius;
-        let blur_lg = effects::shadows::shadow_lg().blur_radius;
-        let blur_xl = effects::shadows::shadow_xl().blur_radius;
-        let blur_xxl = effects::shadows::shadow_xxl().blur_radius;
+        let blur_extra_small = effects::shadows::shadow_xs().blur_radius;
+        let blur_small = effects::shadows::shadow_sm().blur_radius;
+        let blur_medium = effects::shadows::shadow_md().blur_radius;
+        let blur_large = effects::shadows::shadow_lg().blur_radius;
+        let blur_extra_large = effects::shadows::shadow_xl().blur_radius;
+        let blur_extra_extra = effects::shadows::shadow_xxl().blur_radius;
 
-        assert!(blur_xs <= blur_sm, "Shadow XS blur should be <= SM");
-        assert!(blur_sm <= blur_md, "Shadow SM blur should be <= MD");
-        assert!(blur_md <= blur_lg, "Shadow MD blur should be <= LG");
-        assert!(blur_lg <= blur_xl, "Shadow LG blur should be <= XL");
-        assert!(blur_xl <= blur_xxl, "Shadow XL blur should be <= XXL");
+        assert!(blur_extra_small <= blur_small, "Shadow XS blur should be <= SM");
+        assert!(blur_small <= blur_medium, "Shadow SM blur should be <= MD");
+        assert!(blur_medium <= blur_large, "Shadow MD blur should be <= LG");
+        assert!(blur_large <= blur_extra_large, "Shadow LG blur should be <= XL");
+        assert!(
+            blur_extra_large <= blur_extra_extra,
+            "Shadow XL blur should be <= XXL"
+        );
     }
 
     #[test]
     fn test_shadow_offset_y_increases_with_level() {
-        let offset_xs = effects::shadows::shadow_xs().offset.y;
-        let offset_sm = effects::shadows::shadow_sm().offset.y;
-        let offset_md = effects::shadows::shadow_md().offset.y;
-        let offset_lg = effects::shadows::shadow_lg().offset.y;
-        let offset_xl = effects::shadows::shadow_xl().offset.y;
-        let offset_xxl = effects::shadows::shadow_xxl().offset.y;
+        let offset_extra_small = effects::shadows::shadow_xs().offset.y;
+        let offset_small = effects::shadows::shadow_sm().offset.y;
+        let offset_medium = effects::shadows::shadow_md().offset.y;
+        let offset_large = effects::shadows::shadow_lg().offset.y;
+        let offset_extra_large = effects::shadows::shadow_xl().offset.y;
+        let offset_extra_extra = effects::shadows::shadow_xxl().offset.y;
 
-        assert!(offset_xs <= offset_sm, "Shadow XS offset should be <= SM");
-        assert!(offset_sm <= offset_md, "Shadow SM offset should be <= MD");
-        assert!(offset_md <= offset_lg, "Shadow MD offset should be <= LG");
-        assert!(offset_lg <= offset_xl, "Shadow LG offset should be <= XL");
-        assert!(offset_xl <= offset_xxl, "Shadow XL offset should be <= XXL");
+        assert!(
+            offset_extra_small <= offset_small,
+            "Shadow XS offset should be <= SM"
+        );
+        assert!(offset_small <= offset_medium, "Shadow SM offset should be <= MD");
+        assert!(offset_medium <= offset_large, "Shadow MD offset should be <= LG");
+        assert!(
+            offset_large <= offset_extra_large,
+            "Shadow LG offset should be <= XL"
+        );
+        assert!(
+            offset_extra_large <= offset_extra_extra,
+            "Shadow XL offset should be <= XXL"
+        );
     }
 
     #[test]
     fn test_shadow_alpha_increases_with_level() {
-        let alpha_sm = effects::shadows::shadow_sm().color.a;
-        let alpha_md = effects::shadows::shadow_md().color.a;
-        let alpha_xl = effects::shadows::shadow_xl().color.a;
-        let alpha_xxl = effects::shadows::shadow_xxl().color.a;
+        let alpha_small = effects::shadows::shadow_sm().color.a;
+        let alpha_medium = effects::shadows::shadow_md().color.a;
+        let alpha_extra_large = effects::shadows::shadow_xl().color.a;
+        let alpha_extra_extra = effects::shadows::shadow_xxl().color.a;
 
-        assert!(alpha_md >= alpha_sm, "Shadow MD alpha should be >= SM");
-        assert!(alpha_xl >= alpha_md, "Shadow XL alpha should be >= MD");
-        assert!(alpha_xxl >= alpha_xl, "Shadow XXL alpha should be >= XL");
+        assert!(alpha_medium >= alpha_small, "Shadow MD alpha should be >= SM");
+        assert!(
+            alpha_extra_large >= alpha_medium,
+            "Shadow XL alpha should be >= MD"
+        );
+        assert!(
+            alpha_extra_extra >= alpha_extra_large,
+            "Shadow XXL alpha should be >= XL"
+        );
     }
 
     #[test]

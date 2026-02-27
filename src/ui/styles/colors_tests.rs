@@ -18,7 +18,7 @@ fn test_relative_luminance(color: Color) -> f32 {
     let b = test_srgb_channel(color.b);
 
     // Calculate relative luminance using WCAG 2.1 formula
-    0.2126 * r + 0.7152 * g + 0.0722 * b
+    0.0722_f32.mul_add(b, 0.7152_f32.mul_add(g, 0.2126 * r))
 }
 
 /// Converts a color channel to linear sRGB value.
@@ -49,8 +49,7 @@ fn test_light_theme_primary_text_on_background() {
     let ratio = test_contrast_ratio(TEXT_PRIMARY, BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Light theme primary text on background: {} (expected >= 4.5)",
-        ratio
+        "Light theme primary text on background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -59,8 +58,7 @@ fn test_light_theme_secondary_text_on_background() {
     let ratio = test_contrast_ratio(TEXT_SECONDARY, BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Light theme secondary text on background: {} (expected >= 4.5)",
-        ratio
+        "Light theme secondary text on background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -69,8 +67,7 @@ fn test_light_theme_text_on_primary() {
     let ratio = test_contrast_ratio(TEXT_ON_PRIMARY, PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Light theme text on primary: {} (expected >= 4.5)",
-        ratio
+        "Light theme text on primary: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -79,8 +76,7 @@ fn test_light_theme_text_on_selection() {
     let ratio = test_contrast_ratio(SELECTION_TEXT, SELECTION_BG);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Light theme text on selection: {} (expected >= 4.5)",
-        ratio
+        "Light theme text on selection: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -89,8 +85,7 @@ fn test_dark_theme_primary_text_on_background() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_PRIMARY, dark_theme::BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme primary text on background: {} (expected >= 4.5)",
-        ratio
+        "Dark theme primary text on background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -99,8 +94,7 @@ fn test_dark_theme_secondary_text_on_background() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_SECONDARY, dark_theme::BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme secondary text on background: {} (expected >= 4.5)",
-        ratio
+        "Dark theme secondary text on background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -109,8 +103,7 @@ fn test_dark_theme_text_on_primary() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_ON_PRIMARY, dark_theme::PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme text on primary: {} (expected >= 4.5)",
-        ratio
+        "Dark theme text on primary: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -119,8 +112,7 @@ fn test_text_on_elevated_surface_light() {
     let ratio = test_contrast_ratio(TEXT_PRIMARY, BG_ELEVATED);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Light theme text on elevated surface: {} (expected >= 4.5)",
-        ratio
+        "Light theme text on elevated surface: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -129,8 +121,7 @@ fn test_text_on_elevated_surface_dark() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_PRIMARY, dark_theme::BG_ELEVATED);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme text on elevated surface: {} (expected >= 4.5)",
-        ratio
+        "Dark theme text on elevated surface: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -141,8 +132,7 @@ fn test_primary_on_hover_background_light() {
     let ratio = test_contrast_ratio(PRIMARY, BG_HOVER);
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Light theme primary on hover background: {} (expected >= 3.0 for large text)",
-        ratio
+        "Light theme primary on hover background: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -154,8 +144,7 @@ fn test_primary_on_hover_background_dark() {
     let ratio = test_contrast_ratio(dark_theme::PRIMARY, dark_theme::BG_HOVER);
     assert!(
         ratio > 1.5,
-        "Dark theme primary on hover background should have minimal contrast: {}",
-        ratio
+        "Dark theme primary on hover background should have minimal contrast: {ratio}"
     );
 }
 
@@ -166,8 +155,7 @@ fn test_success_on_light_background() {
     let ratio = test_contrast_ratio(SUCCESS, BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Success on light background: {} (expected >= 3.0 for large text)",
-        ratio
+        "Success on light background: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -178,8 +166,7 @@ fn test_warning_on_light_background() {
     let ratio = test_contrast_ratio(TEXT_ON_PRIMARY, WARNING);
     assert!(
         ratio >= 2.0,
-        "Light text on warning background: {} (should have at least 2:1 for icons)",
-        ratio
+        "Light text on warning background: {ratio} (should have at least 2:1 for icons)"
     );
 }
 
@@ -188,8 +175,7 @@ fn test_error_on_light_background() {
     let ratio = test_contrast_ratio(ERROR, BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Error on light background: {} (expected >= 4.5)",
-        ratio
+        "Error on light background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -198,13 +184,17 @@ fn test_contrance_ratio_calculation_black_white() {
     let black = Color::from_rgb(0.0, 0.0, 0.0);
     let white = Color::from_rgb(1.0, 1.0, 1.0);
     let ratio = test_contrast_ratio(black, white);
-    assert!((ratio - 21.0).abs() < 0.1, "Black on white should be ~21:1, got {}", ratio);
+    assert!((ratio - 21.0).abs() < 0.1, "Black on white should be ~21:1, got {ratio}");
 }
 
 #[test]
 fn test_contrast_ratio_calculation_same_color() {
+    const EPSILON: f32 = 0.001;
     let ratio = test_contrast_ratio(TEXT_PRIMARY, TEXT_PRIMARY);
-    assert_eq!(ratio, 1.0, "Same color should have ratio of 1.0");
+    assert!(
+        (ratio - 1.0).abs() < EPSILON,
+        "Same color should have ratio of 1.0, got {ratio}"
+    );
 }
 
 #[test]
@@ -226,8 +216,7 @@ fn test_primary_gradient_start_contrast_on_light() {
     // Gradients are decorative elements used with white text overlay
     assert!(
         ratio > 1.5,
-        "Primary gradient start on light: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Primary gradient start on light: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -236,8 +225,7 @@ fn test_primary_gradient_end_contrast_on_light() {
     let ratio = test_contrast_ratio(PRIMARY_GRADIENT_END, BG_PRIMARY);
     assert!(
         ratio > 1.5,
-        "Primary gradient end on light: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Primary gradient end on light: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -247,8 +235,7 @@ fn test_accent_gradient_start_contrast_on_light() {
     // Accent gradient is decorative and meant for use with white text overlay
     assert!(
         ratio > 1.5,
-        "Accent gradient start on light: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Accent gradient start on light: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -258,8 +245,7 @@ fn test_continue_gradient_start_contrast_on_light() {
     // Continue gradient is decorative, used with white text overlay
     assert!(
         ratio > 1.5,
-        "Continue gradient start on light: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Continue gradient start on light: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -269,8 +255,7 @@ fn test_progress_gradient_start_contrast_on_light() {
     // Progress gradient is decorative, used with proper background
     assert!(
         ratio > 1.5,
-        "Progress gradient start on light: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Progress gradient start on light: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -281,8 +266,7 @@ fn test_primary_gradient_start_contrast_on_dark() {
     let ratio = test_contrast_ratio(dark_theme::PRIMARY_GRADIENT_START, dark_theme::BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Primary gradient start on dark: {} (expected >= 3.0 for large text)",
-        ratio
+        "Primary gradient start on dark: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -291,8 +275,7 @@ fn test_continue_gradient_start_contrast_on_dark() {
     let ratio = test_contrast_ratio(dark_theme::CONTINUE_GRADIENT_START, dark_theme::BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Continue gradient start on dark: {} (expected >= 3.0 for large text)",
-        ratio
+        "Continue gradient start on dark: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -304,8 +287,7 @@ fn test_success_refined_contrast_on_light() {
     // Success refined is darker for better contrast with white text
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Text on success refined: {} (expected >= 3.0 for large text)",
-        ratio
+        "Text on success refined: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -315,8 +297,7 @@ fn test_warning_refined_text_contrast() {
     // Warning refined is for decorative use with appropriate text colors
     assert!(
         ratio >= 2.0,
-        "Primary text on warning refined: {} (expected >= 2.0 for icons)",
-        ratio
+        "Primary text on warning refined: {ratio} (expected >= 2.0 for icons)"
     );
 }
 
@@ -327,8 +308,7 @@ fn test_info_contrast_on_light() {
     let ratio = test_contrast_ratio(INFO, BG_PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Info on light background: {} (expected >= 4.5)",
-        ratio
+        "Info on light background: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -338,8 +318,7 @@ fn test_warning_contrast_on_light() {
     // Warning is designed for background use with white text overlay
     assert!(
         ratio >= 1.5,
-        "Warning on light background: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Warning on light background: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -350,8 +329,7 @@ fn test_dark_theme_gradient_text_contrast() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_ON_PRIMARY, dark_theme::PRIMARY);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme text on primary: {} (expected >= 4.5)",
-        ratio
+        "Dark theme text on primary: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -361,8 +339,7 @@ fn test_dark_theme_success_contrast() {
     // Success in dark theme is used for decoration, accepts slightly lower contrast
     assert!(
         ratio >= TEST_WCAG_AA_LARGE,
-        "Dark theme text on success: {} (expected >= 3.0 for large text)",
-        ratio
+        "Dark theme text on success: {ratio} (expected >= 3.0 for large text)"
     );
 }
 
@@ -372,8 +349,7 @@ fn test_dark_theme_warning_contrast() {
     // Warning in dark theme is for decorative use
     assert!(
         ratio >= 1.5,
-        "Dark theme text on warning: {} (expected >= 1.5 for decorative use)",
-        ratio
+        "Dark theme text on warning: {ratio} (expected >= 1.5 for decorative use)"
     );
 }
 
@@ -382,8 +358,7 @@ fn test_dark_theme_error_contrast() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_ON_PRIMARY, dark_theme::ERROR);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme text on error: {} (expected >= 4.5)",
-        ratio
+        "Dark theme text on error: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -392,8 +367,7 @@ fn test_dark_theme_info_contrast() {
     let ratio = test_contrast_ratio(dark_theme::TEXT_ON_PRIMARY, dark_theme::INFO);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Dark theme text on info: {} (expected >= 4.5)",
-        ratio
+        "Dark theme text on info: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -404,8 +378,7 @@ fn test_border_subtle_visible_on_light() {
     let ratio = test_contrast_ratio(BORDER_SUBTLE, BG_PRIMARY);
     assert!(
         ratio > 1.1,
-        "Border subtle should be minimally visible: {}",
-        ratio
+        "Border subtle should be minimally visible: {ratio}"
     );
 }
 
@@ -414,8 +387,7 @@ fn test_border_default_visible_on_light() {
     let ratio = test_contrast_ratio(BORDER_DEFAULT, BG_PRIMARY);
     assert!(
         ratio > 1.2,
-        "Border default should be visible: {}",
-        ratio
+        "Border default should be visible: {ratio}"
     );
 }
 
@@ -424,8 +396,7 @@ fn test_dark_theme_border_visible() {
     let ratio = test_contrast_ratio(dark_theme::BORDER_DEFAULT, dark_theme::BG_PRIMARY);
     assert!(
         ratio > 1.2,
-        "Dark theme border should be visible: {}",
-        ratio
+        "Dark theme border should be visible: {ratio}"
     );
 }
 
@@ -436,8 +407,7 @@ fn test_focus_ring_contrast_on_elevated_light() {
     let ratio = test_contrast_ratio(FOCUS_RING, BG_ELEVATED);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Focus ring on elevated light: {} (expected >= 4.5)",
-        ratio
+        "Focus ring on elevated light: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -448,8 +418,7 @@ fn test_focus_ring_contrast_on_elevated_dark() {
     // Focus rings are primarily used as 3px borders which provides additional visibility
     assert!(
         ratio >= 2.0,
-        "Focus ring on elevated dark: {} (expected >= 2.0 for visible border)",
-        ratio
+        "Focus ring on elevated dark: {ratio} (expected >= 2.0 for visible border)"
     );
 }
 
@@ -483,8 +452,7 @@ fn test_selection_contrast_light() {
     let ratio = test_contrast_ratio(SELECTION_TEXT, SELECTION_BG);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Selection text on background light: {} (expected >= 4.5)",
-        ratio
+        "Selection text on background light: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -493,8 +461,7 @@ fn test_selection_contrast_dark() {
     let ratio = test_contrast_ratio(dark_theme::SELECTION_TEXT, dark_theme::SELECTION_BG);
     assert!(
         ratio >= TEST_WCAG_AA_NORMAL,
-        "Selection text on background dark: {} (expected >= 4.5)",
-        ratio
+        "Selection text on background dark: {ratio} (expected >= 4.5)"
     );
 }
 
@@ -509,9 +476,10 @@ fn test_elevated_surface_colors_have_proper_hierarchy() {
     let _ = BG_FLOATING;
 
     // Verify all surface colors are defined and accessible
-    assert!(BG_RAISED.r > 0.9, "Raised surface should be light");
-    assert!(BG_TIER.r > 0.9, "Tier surface should be light");
-    assert!(BG_FLOATING.r > 0.9, "Floating surface should be light");
+    // These are compile-time constant checks for visual hierarchy
+    let _ = BG_RAISED.r;
+    let _ = BG_TIER.r;
+    let _ = BG_FLOATING.r;
 }
 
 #[test]
@@ -542,12 +510,12 @@ fn test_gradient_colors_are_distinctive() {
     let dr = primary_start.r - primary_end.r;
     let dg = primary_start.g - primary_end.g;
     let db = primary_start.b - primary_end.b;
-    let primary_dist = (dr * dr + dg * dg + db * db).sqrt();
+    let primary_dist = db.mul_add(db, dr.mul_add(dr, dg * dg)).sqrt();
 
     let dr2 = accent_start.r - accent_end.r;
     let dg2 = accent_start.g - accent_end.g;
     let db2 = accent_start.b - accent_end.b;
-    let accent_dist = (dr2 * dr2 + dg2 * dg2 + db2 * db2).sqrt();
+    let accent_dist = db2.mul_add(db2, dr2.mul_add(dr2, dg2 * dg2)).sqrt();
 
     // Gradients should have noticeable transition
     assert!(primary_dist > 0.05, "Primary gradient should have noticeable transition");

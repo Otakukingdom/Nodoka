@@ -503,3 +503,220 @@ pub mod tooltip_styles {
         }
     }
 }
+
+/// Premium input field styles for text inputs and search
+///
+/// Provides consistent styling for text input components with:
+/// - Premium border colors with subtle rose tint
+/// - Enhanced focus state with thicker border
+/// - Background color that works in both themes
+/// - Proper placeholder text color
+/// - Consistent padding and border radius
+pub mod input_styles {
+    use super::{border_radius, colors, Border};
+
+    /// Returns premium text input style with consistent visual treatment
+    ///
+    /// # Input Style Specifications
+    ///
+    /// - **Border width**: 2px for focused state, 1px for default
+    /// - **Border radius**: Medium (8px) for soft appearance
+    /// - **Background**: Elevated surface color
+    /// - **Placeholder text**: Secondary color with reduced opacity
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// text_input("Search...", search_query)
+    ///     .style(input_styles::text_input)
+    /// ```
+    #[must_use]
+    pub fn text_input(_theme: &iced::Theme, status: iced::widget::text_input::Status) -> iced::widget::text_input::Style {
+        match status {
+            iced::widget::text_input::Status::Active
+            | iced::widget::text_input::Status::Hovered => iced::widget::text_input::Style {
+                background: iced::Background::Color(colors::BG_ELEVATED),
+                border: Border {
+                    color: colors::BORDER_SUBTLE,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                icon: colors::TEXT_SECONDARY,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+            iced::widget::text_input::Status::Focused { .. } => iced::widget::text_input::Style {
+                background: iced::Background::Color(colors::BG_ELEVATED),
+                border: Border {
+                    color: colors::PRIMARY_GRADIENT_START,
+                    width: 2.0,
+                    radius: border_radius::MD.into(),
+                },
+                icon: colors::TEXT_SECONDARY,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_PRIMARY,
+                selection: colors::SELECTION_BG,
+            },
+            iced::widget::text_input::Status::Disabled => iced::widget::text_input::Style {
+                background: iced::Background::Color(iced::Color {
+                    r: colors::BG_ELEVATED.r,
+                    g: colors::BG_ELEVATED.g,
+                    b: colors::BG_ELEVATED.b,
+                    a: 0.6,
+                }),
+                border: Border {
+                    color: colors::BORDER_SUBTLE,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                icon: colors::TEXT_DISABLED,
+                placeholder: colors::TEXT_DISABLED,
+                value: colors::TEXT_DISABLED,
+                selection: colors::SELECTION_BG,
+            },
+        }
+    }
+}
+
+/// Premium card style system for consistent elevation and depth
+///
+/// Provides multiple card variants for different use cases:
+/// - `card_default()` - Standard card with subtle elevation
+/// - `card_elevated()` - Prominent card with stronger shadow
+/// - `card_interactive()` - Card with hover state support
+/// - `card_selected()` - Card with active/selected styling
+///
+/// # Card Style Hierarchy
+///
+/// Cards use elevation through shadows to establish visual hierarchy:
+/// - **Default**: Small shadow (1px offset, 2px blur)
+/// - **Elevated**: Medium shadow (2px offset, 4px blur)
+/// - **Interactive**: Medium shadow with hover transition
+/// - **Selected**: Large shadow (4px offset, 8px blur) with accent border
+pub mod card_styles {
+    use super::{border_radius, colors, shadows, Border};
+
+    /// Standard card style with subtle elevation
+    ///
+    /// Use for standard content cards that need mild elevation from the background.
+    /// Provides subtle background tint with border for clear separation.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(content)
+    ///     .style(move |_theme| card_styles::card_default()(_theme))
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_default() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_ELEVATED.into()),
+            border: Border {
+                color: colors::BORDER_SUBTLE,
+                width: 1.0,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_sm(),
+            ..Default::default()
+        }
+    }
+
+    /// Elevated card style for prominent elements
+    ///
+    /// Use for featured content or important cards that need stronger elevation.
+    /// Provides enhanced shadow and accent border for visual prominence.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(featured_content)
+    ///     .style(move |_theme| card_styles::card_elevated()(_theme))
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_elevated() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_RAISED.into()),
+            border: Border {
+                color: colors::PRIMARY_GRADIENT_START,
+                width: 1.5,
+                radius: border_radius::LG.into(),
+            },
+            shadow: shadows::shadow_lg(),
+            ..Default::default()
+        }
+    }
+
+    /// Interactive card style with hover state support
+    ///
+    /// Use for cards that respond to user interaction. Apply this style
+    /// to a button wrapper for hover effects.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// button(container(content).style(card_styles::card_default()))
+    ///     .style(|_theme, status| {
+    ///         match status {
+    ///             button::Status::Hovered => card_styles::card_interactive_hover()(_theme),
+    ///             _ => button::Style::default(),
+    ///         }
+    ///     })
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_interactive() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_ELEVATED.into()),
+            border: Border {
+                color: colors::BORDER_PROMINENT,
+                width: 1.0,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_md(),
+            ..Default::default()
+        }
+    }
+
+    /// Interactive card hover state with enhanced styling
+    ///
+    /// Apply to button wrapper when card is in hovered state.
+    /// Provides gradient background and enhanced shadow for feedback.
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_interactive_hover() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::SURFACE_HOVER.into()),
+            border: Border {
+                color: colors::PRIMARY_GRADIENT_START,
+                width: 1.5,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_md(),
+            ..Default::default()
+        }
+    }
+
+    /// Selected card style with accent border and elevation
+    ///
+    /// Use for currently selected items or active cards. Provides maximum
+    /// elevation with large shadow and distinctive accent border.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(content)
+    ///     .style(move |_theme| card_styles::card_selected()(_theme))
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_selected() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_RAISED.into()),
+            border: Border {
+                color: colors::ACCENT_GRADIENT_END,
+                width: 2.5,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_lg(),
+            ..Default::default()
+        }
+    }
+}

@@ -285,11 +285,22 @@ mod tests {
 
     #[test]
     fn test_typography_sizes_descend_properly() {
-        assert!(typography::SIZE_XXL > typography::SIZE_XL);
-        assert!(typography::SIZE_XL > typography::SIZE_LG);
-        assert!(typography::SIZE_LG > typography::SIZE_BASE);
-        assert!(typography::SIZE_BASE > typography::SIZE_SM);
-        assert!(typography::SIZE_SM > typography::SIZE_XS);
+        // Verify typography scale descends from XXL to XS
+        let sizes = [
+            typography::SIZE_XXL,
+            typography::SIZE_XL,
+            typography::SIZE_LG,
+            typography::SIZE_BASE,
+            typography::SIZE_SM,
+            typography::SIZE_XS,
+        ];
+        // Verify each size is smaller than the previous
+        for window in sizes.windows(2) {
+            let [first, second] = *window else {
+                continue;
+            };
+            assert!(first > second, "Typography sizes should descend");
+        }
     }
 
     // === Component State Tests ===

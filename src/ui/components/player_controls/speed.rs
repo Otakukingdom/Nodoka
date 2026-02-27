@@ -98,11 +98,27 @@ mod tests {
 
     #[test]
     fn test_speed_preset_values() {
-        assert_eq!(SpeedPreset::X075.as_f32(), 0.75);
-        assert_eq!(SpeedPreset::X10.as_f32(), 1.0);
-        assert_eq!(SpeedPreset::X125.as_f32(), 1.25);
-        assert_eq!(SpeedPreset::X15.as_f32(), 1.5);
-        assert_eq!(SpeedPreset::X20.as_f32(), 2.0);
+        const EPSILON: f32 = 0.001;
+        assert!(
+            (SpeedPreset::X075.as_f32() - 0.75).abs() < EPSILON,
+            "Speed preset 0.75x mismatch"
+        );
+        assert!(
+            (SpeedPreset::X10.as_f32() - 1.0).abs() < EPSILON,
+            "Speed preset 1.0x mismatch"
+        );
+        assert!(
+            (SpeedPreset::X125.as_f32() - 1.25).abs() < EPSILON,
+            "Speed preset 1.25x mismatch"
+        );
+        assert!(
+            (SpeedPreset::X15.as_f32() - 1.5).abs() < EPSILON,
+            "Speed preset 1.5x mismatch"
+        );
+        assert!(
+            (SpeedPreset::X20.as_f32() - 2.0).abs() < EPSILON,
+            "Speed preset 2.0x mismatch"
+        );
     }
 
     #[test]

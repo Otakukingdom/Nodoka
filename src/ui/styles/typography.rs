@@ -350,7 +350,7 @@ pub mod preset {
     }
 
     /// ===== Premium Heading Presets =====
-
+    ///
     /// Premium heading preset with distinctive character
     /// Creates memorable typography with tighter letter-spacing and refined line-height
     pub struct PremiumHeading {

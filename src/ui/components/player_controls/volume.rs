@@ -168,9 +168,19 @@ mod tests {
 
     #[test]
     fn test_volume_to_level() {
-        assert_eq!(volume_to_level(0), 0.0);
-        assert_eq!(volume_to_level(100), 0.5);
-        assert_eq!(volume_to_level(200), 1.0);
+        const EPSILON: f32 = 0.001;
+        assert!(
+            (volume_to_level(0) - 0.0).abs() < EPSILON,
+            "Volume 0 should map to level 0.0"
+        );
+        assert!(
+            (volume_to_level(100) - 0.5).abs() < EPSILON,
+            "Volume 100 should map to level 0.5"
+        );
+        assert!(
+            (volume_to_level(200) - 1.0).abs() < EPSILON,
+            "Volume 200 should map to level 1.0"
+        );
     }
 
     #[test]
