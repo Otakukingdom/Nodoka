@@ -2,7 +2,7 @@
 
 use crate::models::Audiobook;
 use crate::ui::styles::{
-    border_radius, colors, shadows, spacing, typography,
+    border_radius, button_styles, colors, shadows, spacing, typography,
 };
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
@@ -76,17 +76,7 @@ pub fn view<'a, S: BuildHasher>(
         )
         .on_press(Message::PlayLastListened)
         .padding(spacing::LG)
-        .style(move |_theme: &iced::Theme, _status| button::Style {
-            background: Some(colors::CONTINUE_GRADIENT_START.into()),
-            text_color: colors::TEXT_ON_PRIMARY,
-            border: Border {
-                radius: border_radius::FULL.into(),
-                width: 0.0,
-                ..Default::default()
-            },
-            shadow: shadows::shadow_md(),
-            ..Default::default()
-        }),
+        .style(button_styles::elevated),
     ]
     .spacing(spacing::LG)
     .padding(spacing::LG)
@@ -94,10 +84,10 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::BG_ELEVATED.into()),
+            background: Some(colors::CONTINUE_GRADIENT_START.into()),
             border: Border {
-                color: colors::BORDER_SUBTLE,
-                width: 1.5,
+                color: colors::PRIMARY_GRADIENT_START,
+                width: 2.0,
                 radius: border_radius::LG.into(),
             },
             shadow: shadows::shadow_xxl(),

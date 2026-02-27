@@ -5,7 +5,7 @@ use crate::ui::state::ScanState;
 use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{
-    button, column, container, image, mouse_area, progress_bar, row, scrollable, text, Space,
+    button, column, container, image, mouse_area, row, scrollable, text, Space,
 };
 use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
@@ -186,11 +186,11 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 button::Status::Hovered if !selected => button::Style {
                     background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
                     border: Border {
-                        color: with_alpha(colors::BORDER_SUBTLE, opacity),
-                        width: 1.0,
+                        color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
+                        width: 1.5,
                         radius: border_radius::SM.into(),
                     },
-                    shadow: shadows::shadow_xs(),
+                    shadow: shadows::shadow_md(),
                     ..button::Style::default()
                 },
                 button::Status::Pressed if !selected => button::Style {
@@ -200,6 +200,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                         width: 1.5,
                         radius: border_radius::SM.into(),
                     },
+                    shadow: shadows::shadow_sm(),
                     ..button::Style::default()
                 },
                 // Default transparent style for all other states
@@ -286,7 +287,6 @@ fn build_content_row<'a>(
 
     // Progress bar for visual representation of completeness (simplified, thin 4px bar)
     let completeness_u8 = u8::try_from(ab.completeness.clamp(0, 100)).unwrap_or(0);
-    let progress = progress_bar(0.0..=100.0, f32::from(completeness_u8));
 
     // Calculate remaining time, preferring per-file progress when available.
     let remaining_text = format_remaining_time(
@@ -367,10 +367,32 @@ fn build_content_row<'a>(
     }
 
     content_column.push(
-        container(progress)
-            .width(Length::Fill)
-            .height(Length::Fixed(4.0))
-            .into(),
+        container(
+            container(Space::new())
+                .width(Length::FillPortion(u16::from(completeness_u8)))
+                .height(Length::Fixed(4.0))
+                .style(move |_theme: &iced::Theme| container::Style {
+                    background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
+                    border: Border {
+                        color: Color::TRANSPARENT,
+                        width: 0.0,
+                        radius: border_radius::FULL.into(),
+                    },
+                    ..Default::default()
+                })
+        )
+        .width(Length::Fill)
+        .height(Length::Fixed(4.0))
+        .style(move |_theme: &iced::Theme| container::Style {
+            background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::FULL.into(),
+            },
+            ..Default::default()
+        })
+        .into(),
     );
 
     content_column.push(metadata_row.into());

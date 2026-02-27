@@ -14,11 +14,11 @@ use iced::{Border, Color, Element, Length};
 /// Creates a premium semi-transparent overlay using glass-morphism design.
 /// The backdrop dims the background content while maintaining visual context.
 pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
-    let glass_opacity = (opacity * 0.88).clamp(0.0, 1.0);
+    let glass_opacity = (opacity * 0.94).clamp(0.0, 1.0);
     button(container(text("")).width(Length::Fill).height(Length::Fill))
         .style(
             move |_theme: &iced::Theme, _status| iced::widget::button::Style {
-                background: Some(with_alpha(colors::GLASS_OVERLAY, glass_opacity).into()),
+                background: Some(with_alpha_gradient_backdrop(glass_opacity).into()),
                 ..Default::default()
             },
         )
@@ -144,13 +144,13 @@ fn shortcut_group(
                 )
                 .padding(iced::Padding::from([spacing::XS, spacing::SM]))
                 .style(|_theme: &iced::Theme| iced::widget::container::Style {
-                    background: Some(colors::BG_ELEVATED.into()),
+                    background: Some(colors::SUBTLE_GRADIENT_START.into()),
                     border: Border {
                         color: colors::PRIMARY_GRADIENT_START,
-                        width: 1.0,
+                        width: 1.5,
                         radius: border_radius::SM.into(),
                     },
-                    shadow: shadows::shadow_xs(),
+                    shadow: shadows::shadow_sm(),
                     ..Default::default()
                 }),
                 Space::new().width(Length::Fixed(spacing::MD)),
@@ -173,7 +173,7 @@ fn shortcut_group(
 /// Premium modal card with glass-morphism backdrop and elevated shadow
 ///
 /// Creates a refined modal overlay with:
-/// - Extra large shadow (xl) for premium elevation
+/// - Extra extra large shadow (xxl) for premium elevation
 /// - Refined border with gradient treatment
 /// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
@@ -190,7 +190,7 @@ where
                 width: 2.0,
                 radius: border_radius::LG.into(),
             },
-            shadow: shadows::shadow_xl(),
+            shadow: shadows::shadow_xxl(),
             ..Default::default()
         })
         .padding(spacing::XL) // Increased padding for better content breathing room
@@ -302,5 +302,14 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
+    }
+}
+
+fn with_alpha_gradient_backdrop(opacity: f32) -> Color {
+    Color {
+        r: colors::dark_theme::BG_PRIMARY.r,
+        g: colors::dark_theme::BG_PRIMARY.g,
+        b: colors::dark_theme::BG_PRIMARY.b,
+        a: (0.5 * opacity).clamp(0.0, 0.95),
     }
 }

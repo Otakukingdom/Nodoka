@@ -84,11 +84,11 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.2),
-                width: 1.0,
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.25),
+                width: 1.5,
                 radius: border_radius::MD.into(),
             },
-            shadow: shadows::shadow_lg(),
+            shadow: shadows::shadow_xl(),
             ..Default::default()
         })
         .into()

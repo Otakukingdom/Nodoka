@@ -798,10 +798,12 @@ mod tests {
     fn test_border_radius_increases() {
         use crate::ui::styles::layout::border_radius;
 
-        assert!(border_radius::SM < border_radius::MD);
-        assert!(border_radius::MD < border_radius::LG);
-        assert!(border_radius::LG < border_radius::XL);
-        assert!(border_radius::XL < border_radius::FULL);
+        const {
+            assert!(border_radius::SM < border_radius::MD);
+            assert!(border_radius::MD < border_radius::LG);
+            assert!(border_radius::LG < border_radius::XL);
+            assert!(border_radius::XL < border_radius::FULL);
+        }
     }
 
     #[test]
@@ -830,18 +832,20 @@ mod tests {
     #[test]
     fn test_dark_theme_colors_have_lower_luminance() {
         // Dark theme backgrounds should be darker than light theme
-        assert!(
-            dark_theme::BG_PRIMARY.r < colors::BG_PRIMARY.r,
-            "Dark theme primary background should be darker"
-        );
-        assert!(
-            dark_theme::BG_PRIMARY.g < colors::BG_PRIMARY.g,
-            "Dark theme primary background should be darker"
-        );
-        assert!(
-            dark_theme::BG_PRIMARY.b < colors::BG_PRIMARY.b,
-            "Dark theme primary background should be darker"
-        );
+        const {
+            assert!(
+                dark_theme::BG_PRIMARY.r < colors::BG_PRIMARY.r,
+                "Dark theme primary background should be darker"
+            );
+            assert!(
+                dark_theme::BG_PRIMARY.g < colors::BG_PRIMARY.g,
+                "Dark theme primary background should be darker"
+            );
+            assert!(
+                dark_theme::BG_PRIMARY.b < colors::BG_PRIMARY.b,
+                "Dark theme primary background should be darker"
+            );
+        }
     }
 
     #[test]
@@ -893,19 +897,25 @@ mod tests {
     #[test]
     fn test_notification_colors_are_semantically_correct() {
         // Success should be greenish, warning should be orangish, error should be reddish
-        assert!(
-            colors::SUCCESS.g > colors::SUCCESS.r,
-            "Success should have more green than red"
-        );
+        const {
+            assert!(
+                colors::SUCCESS.g > colors::SUCCESS.r,
+                "Success should have more green than red"
+            );
+        }
 
-        assert!(
-            colors::WARNING.r > colors::WARNING.b,
-            "Warning should have more red than blue"
-        );
+        const {
+            assert!(
+                colors::WARNING.r > colors::WARNING.b,
+                "Warning should have more red than blue"
+            );
+        }
 
-        assert!(
-            colors::ERROR.r > colors::ERROR.g,
-            "Error should have more red than green"
-        );
+        const {
+            assert!(
+                colors::ERROR.r > colors::ERROR.g,
+                "Error should have more red than green"
+            );
+        }
     }
 }
