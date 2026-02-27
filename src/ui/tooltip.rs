@@ -83,97 +83,145 @@ impl TooltipTarget {
     #[must_use]
     pub fn tooltip(self) -> Tooltip {
         match self {
-            Self::PlayPause => Tooltip {
-                text: "Play/Pause (Space)".to_string(),
-                position: TooltipPosition::Top,
-                anchor: TooltipAnchor::PlayerControls,
-            },
-            Self::Stop => Tooltip {
-                text: "Stop".to_string(),
-                position: TooltipPosition::Top,
-                anchor: TooltipAnchor::PlayerControls,
-            },
-            Self::Progress => Tooltip {
-                text: "Seek (← →)".to_string(),
-                position: TooltipPosition::Top,
-                anchor: TooltipAnchor::PlayerControls,
-            },
-            Self::Speed => Tooltip {
-                text: "Playback Speed".to_string(),
-                position: TooltipPosition::Top,
-                anchor: TooltipAnchor::PlayerControls,
-            },
-            Self::Volume => Tooltip {
-                text: "Volume".to_string(),
-                position: TooltipPosition::Left,
-                anchor: TooltipAnchor::PlayerControls,
-            },
-            Self::Settings => Tooltip {
-                text: "Settings".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::TopBar,
-            },
-            Self::AudiobookItem => Tooltip {
-                text: "Select Audiobook".to_string(),
-                position: TooltipPosition::Right,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::SearchBar => Tooltip {
-                text: "Search audiobooks by title or author (Ctrl+F)".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::SortButton => Tooltip {
-                text: "Change sort order for library".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::FilterChipAll => Tooltip {
-                text: "Show all audiobooks".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::FilterChipInProgress => Tooltip {
-                text: "Show only partially listened audiobooks".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::FilterChipComplete => Tooltip {
-                text: "Show only completed audiobooks".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::FilterChipNotStarted => Tooltip {
-                text: "Show only not-started audiobooks".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::ClearFilters => Tooltip {
-                text: "Reset search, sort, and filters to defaults".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::ContinueListeningPlay => Tooltip {
-                text: "Resume playback where you left off (Ctrl+R)".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::FocusModeToggle => Tooltip {
-                text: "Hide library panel for distraction-free listening (Ctrl+L)".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::TopBar,
-            },
-            Self::PanelResizeDivider => Tooltip {
-                text: "Adjust panel sizes with Ctrl+[ and Ctrl+]".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::LibraryLeft,
-            },
-            Self::ThemeToggle => Tooltip {
-                text: "Switch between light and dark themes (Ctrl+T)".to_string(),
-                position: TooltipPosition::Bottom,
-                anchor: TooltipAnchor::TopBar,
-            },
+            Self::PlayPause | Self::Stop | Self::Progress | Self::Speed | Self::Volume => {
+                tooltip_player_controls(self)
+            }
+            Self::Settings | Self::FocusModeToggle | Self::ThemeToggle => tooltip_top_bar(self),
+            Self::AudiobookItem
+            | Self::SearchBar
+            | Self::SortButton
+            | Self::FilterChipAll
+            | Self::FilterChipInProgress
+            | Self::FilterChipComplete
+            | Self::FilterChipNotStarted
+            | Self::ClearFilters
+            | Self::ContinueListeningPlay
+            | Self::PanelResizeDivider => tooltip_library_left(self),
         }
+    }
+}
+
+fn tooltip_player_controls(target: TooltipTarget) -> Tooltip {
+    match target {
+        TooltipTarget::PlayPause => Tooltip {
+            text: "Play/Pause (Space)".to_string(),
+            position: TooltipPosition::Top,
+            anchor: TooltipAnchor::PlayerControls,
+        },
+        TooltipTarget::Stop => Tooltip {
+            text: "Stop".to_string(),
+            position: TooltipPosition::Top,
+            anchor: TooltipAnchor::PlayerControls,
+        },
+        TooltipTarget::Progress => Tooltip {
+            text: "Seek (← →)".to_string(),
+            position: TooltipPosition::Top,
+            anchor: TooltipAnchor::PlayerControls,
+        },
+        TooltipTarget::Speed => Tooltip {
+            text: "Playback Speed".to_string(),
+            position: TooltipPosition::Top,
+            anchor: TooltipAnchor::PlayerControls,
+        },
+        TooltipTarget::Volume => Tooltip {
+            text: "Volume".to_string(),
+            position: TooltipPosition::Left,
+            anchor: TooltipAnchor::PlayerControls,
+        },
+        _ => unreachable!("non-player-controls tooltip target"),
+    }
+}
+
+fn tooltip_top_bar(target: TooltipTarget) -> Tooltip {
+    match target {
+        TooltipTarget::Settings => Tooltip {
+            text: "Settings".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::TopBar,
+        },
+        TooltipTarget::FocusModeToggle => Tooltip {
+            text: format!(
+                "Hide library panel for distraction-free listening ({})",
+                crate::ui::shortcuts::format_command_shortcut("L")
+            ),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::TopBar,
+        },
+        TooltipTarget::ThemeToggle => Tooltip {
+            text: format!(
+                "Switch between light and dark themes ({})",
+                crate::ui::shortcuts::format_command_shortcut("T")
+            ),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::TopBar,
+        },
+        _ => unreachable!("non-top-bar tooltip target"),
+    }
+}
+
+fn tooltip_library_left(target: TooltipTarget) -> Tooltip {
+    match target {
+        TooltipTarget::AudiobookItem => Tooltip {
+            text: "Select Audiobook".to_string(),
+            position: TooltipPosition::Right,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::SearchBar => Tooltip {
+            text: format!(
+                "Search audiobooks by title or author ({})",
+                crate::ui::shortcuts::format_command_shortcut("F")
+            ),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::SortButton => Tooltip {
+            text: "Change sort order for library".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::FilterChipAll => Tooltip {
+            text: "Show all audiobooks".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::FilterChipInProgress => Tooltip {
+            text: "Show only partially listened audiobooks".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::FilterChipComplete => Tooltip {
+            text: "Show only completed audiobooks".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::FilterChipNotStarted => Tooltip {
+            text: "Show only not-started audiobooks".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::ClearFilters => Tooltip {
+            text: "Reset search, sort, and filters to defaults".to_string(),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::ContinueListeningPlay => Tooltip {
+            text: format!(
+                "Resume playback where you left off ({})",
+                crate::ui::shortcuts::format_command_shortcut("R")
+            ),
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        TooltipTarget::PanelResizeDivider => Tooltip {
+            text: {
+                let dec = crate::ui::shortcuts::format_command_shortcut("[");
+                let inc = crate::ui::shortcuts::format_command_shortcut("]");
+                format!("Adjust panel sizes with {dec} and {inc}")
+            },
+            position: TooltipPosition::Bottom,
+            anchor: TooltipAnchor::LibraryLeft,
+        },
+        _ => unreachable!("non-library-left tooltip target"),
     }
 }
 

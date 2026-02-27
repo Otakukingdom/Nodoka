@@ -49,9 +49,9 @@ pub mod notification_styles {
             {
                 t = (t + 0.05).min(0.6);
                 bg = iced::Color::from_rgb(
-                    bg.r + (0.0 - bg.r) * t,
-                    bg.g + (0.0 - bg.g) * t,
-                    bg.b + (0.0 - bg.b) * t,
+                    (0.0 - bg.r).mul_add(t, bg.r),
+                    (0.0 - bg.g).mul_add(t, bg.g),
+                    (0.0 - bg.b).mul_add(t, bg.b),
                 );
             }
 
