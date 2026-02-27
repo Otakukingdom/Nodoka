@@ -47,16 +47,16 @@ pub mod button_styles {
     use super::{border_radius, button, colors, shadows, Border, Color};
 
     /// Primary action button style (e.g., Play, Save, Add)
-    /// Uses primary brand color with premium gradient treatment
+    /// Uses Aurora Rose gradient for distinctive brand identity
     /// Enhanced with refined hover states and focus indicators
     #[must_use]
     pub fn primary(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
             button::Status::Active => button::Style {
-                // Multi-layer primary gradient for depth
+                // Aurora Rose gradient for distinctive brand identity
                 background: Some({
-                    let start = colors::PRIMARY_GRADIENT_START;
-                    let end = colors::PRIMARY_GRADIENT_END;
+                    let start = colors::AURORA_ROSE_GRADIENT_START;
+                    let end = colors::AURORA_ROSE_GRADIENT_END;
                     Color::from_rgb(
                         f32::midpoint(start.r, end.r),
                         f32::midpoint(start.g, end.g),
@@ -65,18 +65,18 @@ pub mod button_styles {
                 }.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
+                    color: colors::AURORA_ROSE_GRADIENT_END,
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::aurora_shadow(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                // Brightened gradient for hover effect
+                // Brightened Aurora Rose gradient for hover effect
                 background: Some({
-                    let start = colors::PRIMARY_GRADIENT_START;
-                    let end = colors::PRIMARY_GRADIENT_END;
+                    let start = colors::AURORA_ROSE_GRADIENT_START;
+                    let end = colors::AURORA_ROSE_GRADIENT_END;
                     Color::from_rgb(
                         f32::midpoint(start.r, end.r).mul_add(0.05, 0.05),
                         f32::midpoint(start.g, end.g).mul_add(0.05, 0.05),
@@ -85,7 +85,7 @@ pub mod button_styles {
                 }.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
+                    color: colors::AURORA_ROSE_GRADIENT_END,
                     width: 1.5,
                     radius: border_radius::MD.into(),
                 },
@@ -100,7 +100,7 @@ pub mod button_styles {
                 }.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
+                    color: colors::AURORA_ROSE_GRADIENT_END,
                     width: 2.0,
                     radius: border_radius::MD.into(),
                 },
@@ -109,9 +109,9 @@ pub mod button_styles {
             },
             button::Status::Disabled => button::Style {
                 background: Some(Color {
-                    r: colors::PRIMARY_GRADIENT_START.r * 0.5,
-                    g: colors::PRIMARY_GRADIENT_START.g * 0.5,
-                    b: colors::PRIMARY_GRADIENT_START.b * 0.5,
+                    r: colors::AURORA_ROSE_GRADIENT_START.r * 0.5,
+                    g: colors::AURORA_ROSE_GRADIENT_START.g * 0.5,
+                    b: colors::AURORA_ROSE_GRADIENT_START.b * 0.5,
                     a: 0.5,
                 }.into()),
                 text_color: Color {
@@ -180,46 +180,45 @@ pub mod button_styles {
     }
 
     /// Elevated action button style (e.g., Primary CTAs, prominent actions)
-    /// Uses multi-layer gradient background for dramatic prominence
-    /// Enhanced with premium micro-interactions and strong shadows
+    /// Uses Celestial Twilight gradient for dramatic premium prominence
+    /// Enhanced with distinctive evening-themed elevation
     #[must_use]
     pub fn elevated(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
             button::Status::Active => button::Style {
-                // Multi-layer gradient combining sunset, primary, and accent
+                // Celestial Twilight gradient for premium prominence
                 background: Some({
-                    let sunset = colors::SUNSET_GRADIENT_START;
-                    let primary = colors::PRIMARY_GRADIENT_START;
-                    let accent = colors::ACCENT_GRADIENT_START;
+                    let start = colors::CELESTIAL_GRADIENT_START;
+                    let end = colors::CELESTIAL_GRADIENT_END;
                     Color::from_rgb(
-                        accent.r.mul_add(0.25, sunset.r.mul_add(0.4, primary.r * 0.35)),
-                        accent.g.mul_add(0.25, sunset.g.mul_add(0.4, primary.g * 0.35)),
-                        accent.b.mul_add(0.25, sunset.b.mul_add(0.4, primary.b * 0.35)),
+                        f32::midpoint(start.r, end.r),
+                        f32::midpoint(start.g, end.g),
+                        f32::midpoint(start.b, end.b),
                     )
                 }.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::ACCENT_GRADIENT_END,
+                    color: colors::CELESTIAL_GRADIENT_END,
                     width: 1.5,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::celestial_shadow(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
-                // Enhanced gradient with stronger accent presence
+                // Enhanced Celestial gradient for hover
                 background: Some({
-                    let sunset = colors::SUNSET_GRADIENT_START;
-                    let accent = colors::ACCENT_GRADIENT_START;
+                    let start = colors::CELESTIAL_GRADIENT_START;
+                    let end = colors::CELESTIAL_GRADIENT_END;
                     Color::from_rgb(
-                        accent.r.mul_add(0.55, sunset.r * 0.45),
-                        accent.g.mul_add(0.55, sunset.g * 0.45),
-                        accent.b.mul_add(0.55, sunset.b * 0.45),
+                        f32::midpoint(start.r, end.r).mul_add(0.08, 0.05),
+                        f32::midpoint(start.g, end.g).mul_add(0.08, 0.05),
+                        f32::midpoint(start.b, end.b).mul_add(0.08, 0.05),
                     )
                 }.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::ACCENT_GRADIENT_END,
+                    color: colors::CELESTIAL_GRADIENT_END,
                     width: 2.0,
                     radius: border_radius::MD.into(),
                 },
@@ -230,7 +229,7 @@ pub mod button_styles {
                 background: Some(colors::PRIMARY.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
+                    color: colors::CELESTIAL_GRADIENT_END,
                     width: 2.0,
                     radius: border_radius::MD.into(),
                 },
@@ -239,9 +238,9 @@ pub mod button_styles {
             },
             button::Status::Disabled => button::Style {
                 background: Some(Color {
-                    r: colors::PRIMARY_GRADIENT_START.r * 0.5,
-                    g: colors::PRIMARY_GRADIENT_START.g * 0.5,
-                    b: colors::PRIMARY_GRADIENT_START.b * 0.5,
+                    r: colors::CELESTIAL_GRADIENT_START.r * 0.5,
+                    g: colors::CELESTIAL_GRADIENT_START.g * 0.5,
+                    b: colors::CELESTIAL_GRADIENT_START.b * 0.5,
                     a: 0.5,
                 }.into()),
                 text_color: Color {
@@ -342,11 +341,11 @@ pub mod button_styles {
 
     /// Primary button style with focus indicator
     /// Adds a blue shadow/ring for WCAG 2.1 AA compliance (3px minimum)
-    /// Enhanced with glow effect for better visibility
+    /// Enhanced with Aurora glow for distinctive brand presence
     #[must_use]
     pub fn primary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = primary(theme, status);
-        style.shadow = shadows::glow_primary(0.6);
+        style.shadow = shadows::glow_aurora(0.7);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,
@@ -356,11 +355,11 @@ pub mod button_styles {
     }
 
     /// Secondary button style with focus indicator
-    /// Enhanced with glow effect for visibility
+    /// Enhanced with Aurora glow for visibility
     #[must_use]
     pub fn secondary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = secondary(theme, status);
-        style.shadow = shadows::glow_primary(0.3);
+        style.shadow = shadows::glow_aurora(0.4);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,
@@ -370,11 +369,11 @@ pub mod button_styles {
     }
 
     /// Elevated button style with focus indicator
-    /// Enhanced with strong glow effect for prominence
+    /// Enhanced with Celestial glow for dramatic prominence
     #[must_use]
     pub fn elevated_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = elevated(theme, status);
-        style.shadow = shadows::glow_primary(0.8);
+        style.shadow = shadows::glow_celestial(0.8);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,

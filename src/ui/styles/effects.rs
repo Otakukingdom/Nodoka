@@ -722,4 +722,80 @@ pub mod shadows {
             blur_radius: blur,
         }
     }
+
+    /// ===== Aurora Rose Brand Shadow =====
+    ///
+    /// Creates Aurora rose-tinted shadow for premium brand elevation
+    /// Uses distinctive Aurora Rose gradient colors for brand identity
+    #[must_use]
+    pub const fn aurora_shadow() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.88, 0.12, 0.28, 0.15),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 16.0,
+        }
+    }
+
+    /// Creates Aurora rose-tinted shadow with configurable intensity
+    /// Provides distinctive brand shadow for cards and elevated elements
+    #[must_use]
+    pub fn aurora_shadow_tinted(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.18).clamp(0.0, 0.25);
+        Shadow {
+            color: Color {
+                r: 0.88 * alpha,
+                g: 0.12 * alpha,
+                b: 0.28 * alpha,
+                a: alpha,
+            },
+            offset: Vector::new(0.0, 4.0 * intensity),
+            blur_radius: 16.0 * intensity,
+        }
+    }
+
+    /// Creates Celestial purple-rose shadow for dramatic elevation
+    /// Provides sophisticated evening-themed shadow for premium elements
+    #[must_use]
+    pub const fn celestial_shadow() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.50, 0.10, 0.48, 0.18),
+            offset: Vector::new(0.0, 6.0),
+            blur_radius: 20.0,
+        }
+    }
+
+    /// Creates Velvet plum shadow for luxurious dark mode depth
+    /// Provides rich burgundy-tinted shadow for premium dark theme elevation
+    #[must_use]
+    pub const fn velvet_shadow() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.25, 0.08, 0.35, 0.20),
+            offset: Vector::new(0.0, 8.0),
+            blur_radius: 24.0,
+        }
+    }
+
+    /// Aurora Rose glow for premium brand presence
+    /// Creates soft rose glow for distinctive brand elevation
+    #[must_use]
+    pub fn glow_aurora(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.40).clamp(0.0, 0.55);
+        Shadow {
+            color: Color::from_rgba(0.96, 0.81, 1.0, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 12.0 * intensity,
+        }
+    }
+
+    /// Celestial glow for dramatic evening accents
+    /// Creates deep purple-rose glow for premium highlights
+    #[must_use]
+    pub fn glow_celestial(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.45).clamp(0.0, 0.60);
+        Shadow {
+            color: Color::from_rgba(0.50, 0.10, 0.48, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 14.0 * intensity,
+        }
+    }
 }

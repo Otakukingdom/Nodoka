@@ -102,13 +102,15 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
 
 /// Helper function for premium gradient notification colors with increased saturation
 /// Creates sophisticated gradient-to-solid colors for each notification type
+/// Uses Aurora Rose gradient for Info type for distinctive brand identity
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
             Color::from_rgb(0.05, 0.75, 0.40)  // Increased saturation
         }
         crate::ui::state::NotificationType::Info => {
-            Color::from_rgb(0.05, 0.72, 0.95)  // Increased saturation
+            // Aurora Rose gradient for distinctive brand identity
+            Color::from_rgb(0.92, 0.46, 0.64)
         }
         crate::ui::state::NotificationType::Warning => {
             Color::from_rgb(0.92, 0.58, 0.08)  // Increased saturation

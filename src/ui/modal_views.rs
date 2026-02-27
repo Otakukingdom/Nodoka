@@ -203,8 +203,8 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with signature gradient color for brand consistency
-    let border_color = with_alpha(colors::SIGNATURE_GRADIENT_END, opacity);
+    // Enhanced border with Velvet gradient for premium dark theme treatment
+    let border_color = with_alpha(colors::VELVET_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),

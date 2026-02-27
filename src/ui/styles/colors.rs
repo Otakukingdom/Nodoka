@@ -344,6 +344,38 @@ pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.75, 0.09, 0.22, 0.25);
 /// Creates warm presence without overwhelming
 pub const SIGNATURE_TINT: Color = Color::from_rgba(0.75, 0.09, 0.22, 0.06);
 
+/// ===== Distinctive Brand Gradients for Premium Identity =====
+///
+/// Aurora Rose gradient - distinctive brand identity gradient
+/// Smooth transition from soft pink to deep rose with warm undertones
+/// Creates luminous, romantic gradient for premium brand presence
+pub const AURORA_ROSE_GRADIENT_START: Color = Color::from_rgb(0.96, 0.81, 1.0);
+pub const AURORA_ROSE_GRADIENT_END: Color = Color::from_rgb(0.88, 0.12, 0.28);
+
+/// Celestial Twilight gradient - premium evening gradient
+/// Combines deep purple-blue with warm rose accent for dramatic depth
+/// Creates sophisticated transition from dusk to rose
+pub const CELESTIAL_GRADIENT_START: Color = Color::from_rgb(0.30, 0.11, 0.58);
+pub const CELESTIAL_GRADIENT_END: Color = Color::from_rgb(0.75, 0.09, 0.37);
+
+/// Velvet Night gradient - luxurious dark mode gradient
+/// Rich burgundy to deep plum for premium dark theme elevation
+/// Creates dramatic depth for dark mode premium elements
+pub const VELVET_GRADIENT_START: Color = Color::from_rgb(0.35, 0.11, 0.53);
+pub const VELVET_GRADIENT_END: Color = Color::from_rgb(0.10, 0.02, 0.08);
+
+/// Aurora Rose glow for premium brand elevation
+/// Creates soft rose glow for distinctive brand presence
+pub const AURORA_ROSE_GLOW: Color = Color::from_rgba(0.96, 0.81, 1.0, 0.35);
+
+/// Celestial glow for dramatic evening accents
+/// Creates deep purple-rose glow for premium highlights
+pub const CELESTIAL_GLOW: Color = Color::from_rgba(0.50, 0.10, 0.48, 0.40);
+
+/// Velvet shadow for dark mode depth
+/// Creates rich plum shadow for luxurious dark mode elevation
+pub const VELVET_SHADOW: Color = Color::from_rgba(0.25, 0.08, 0.35, 0.30);
+
 /// Legacy top-bar color – golden yellow `#FEDB53` (superseded by design system colors).
 pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325);
 /// Legacy player background (alias for [`BG_ELEVATED`]).
@@ -611,6 +643,38 @@ pub mod dark_theme {
 
     /// Premium glow for dark theme with enhanced brightness
     pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.82, 0.10, 0.25, 0.40);
+
+    /// ===== Distinctive Brand Gradients for Dark Theme =====
+    ///
+    /// Aurora Rose gradient for dark theme - distinctive brand identity
+    /// Enhanced with maximum brightness for luminous pink-to-rose transition
+    /// Creates romantic, premium gradient optimized for dark backgrounds
+    pub const AURORA_ROSE_GRADIENT_START: Color = Color::from_rgb(0.98, 0.85, 1.0);
+    pub const AURORA_ROSE_GRADIENT_END: Color = Color::from_rgb(0.92, 0.15, 0.32);
+
+    /// Celestial Twilight gradient for dark theme - premium evening gradient
+    /// Enhanced with deeper purple-blue for dramatic depth on dark backgrounds
+    /// Creates sophisticated dusk-to-rose transition
+    pub const CELESTIAL_GRADIENT_START: Color = Color::from_rgb(0.35, 0.15, 0.65);
+    pub const CELESTIAL_GRADIENT_END: Color = Color::from_rgb(0.82, 0.10, 0.40);
+
+    /// Velvet Night gradient for dark theme - luxurious gradient
+    /// Rich burgundy-to-plum transition for maximum depth in dark mode
+    /// Creates dramatic elevation for premium dark mode elements
+    pub const VELVET_GRADIENT_START: Color = Color::from_rgb(0.42, 0.15, 0.62);
+    pub const VELVET_GRADIENT_END: Color = Color::from_rgb(0.15, 0.03, 0.12);
+
+    /// Aurora Rose glow for dark theme premium elevation
+    /// Creates soft rose glow with enhanced brightness for visibility
+    pub const AURORA_ROSE_GLOW: Color = Color::from_rgba(0.96, 0.85, 1.0, 0.45);
+
+    /// Celestial glow for dark theme dramatic accents
+    /// Creates deep purple-rose glow for premium dark highlights
+    pub const CELESTIAL_GLOW: Color = Color::from_rgba(0.58, 0.15, 0.58, 0.50);
+
+    /// Velvet shadow for dark mode depth - enhanced for dramatic effect
+    /// Creates rich plum shadow for luxurious dark mode elevation
+    pub const VELVET_SHADOW: Color = Color::from_rgba(0.32, 0.12, 0.42, 0.40);
 
     /// ===== Premium Gradients for Dark Theme Special Use Cases =====
     /// Subtle gradient for dark theme backgrounds
