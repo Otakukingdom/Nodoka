@@ -125,57 +125,57 @@ mod tests {
     #[test]
     fn test_badge_gradient_primary_returns_valid_style() {
         let style = badge_gradient(BadgeKind::Primary)(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_badge_gradient_accent_returns_valid_style() {
         let style = badge_gradient(BadgeKind::Accent)(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_badge_gradient_success_returns_valid_style() {
         let style = badge_gradient(BadgeKind::Success)(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_badge_gradient_warning_returns_valid_style() {
         let style = badge_gradient(BadgeKind::Warning)(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_badge_gradient_error_returns_valid_style() {
         let style = badge_gradient(BadgeKind::Error)(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_badge_padding_compact_returns_valid_padding() {
         let padding = badge_padding(BadgeSize::Compact);
-        assert_eq!(padding.top, 2.0);
-        assert_eq!(padding.bottom, 2.0);
-        assert_eq!(padding.left, 6.0);
-        assert_eq!(padding.right, 6.0);
+        assert!((padding.top - 2.0).abs() < f32::EPSILON);
+        assert!((padding.bottom - 2.0).abs() < f32::EPSILON);
+        assert!((padding.left - 6.0).abs() < f32::EPSILON);
+        assert!((padding.right - 6.0).abs() < f32::EPSILON);
     }
 
     #[test]
     fn test_badge_padding_default_returns_valid_padding() {
         let padding = badge_padding(BadgeSize::Default);
-        assert_eq!(padding.top, 4.0);
-        assert_eq!(padding.bottom, 4.0);
-        assert_eq!(padding.left, 10.0);
-        assert_eq!(padding.right, 10.0);
+        assert!((padding.top - 4.0).abs() < f32::EPSILON);
+        assert!((padding.bottom - 4.0).abs() < f32::EPSILON);
+        assert!((padding.left - 10.0).abs() < f32::EPSILON);
+        assert!((padding.right - 10.0).abs() < f32::EPSILON);
     }
 
     #[test]
     fn test_badge_padding_prominent_returns_valid_padding() {
         let padding = badge_padding(BadgeSize::Prominent);
-        assert_eq!(padding.top, 6.0);
-        assert_eq!(padding.bottom, 6.0);
-        assert_eq!(padding.left, 14.0);
-        assert_eq!(padding.right, 14.0);
+        assert!((padding.top - 6.0).abs() < f32::EPSILON);
+        assert!((padding.bottom - 6.0).abs() < f32::EPSILON);
+        assert!((padding.left - 14.0).abs() < f32::EPSILON);
+        assert!((padding.right - 14.0).abs() < f32::EPSILON);
     }
 }

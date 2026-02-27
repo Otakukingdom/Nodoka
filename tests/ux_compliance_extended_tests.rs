@@ -836,7 +836,7 @@ fn test_volume_color_semantic_thresholds() {
 #[test]
 fn test_notification_color_contrast_wcag_aa() {
     use state::NotificationType;
-    use styles::components::notification_styles;
+    use styles::component_styles::notification_styles;
 
     // All notification backgrounds should have 4.5:1 contrast with white text
     let variants = [
@@ -860,7 +860,7 @@ fn test_notification_color_contrast_wcag_aa() {
 
 #[test]
 fn test_empty_state_visual_hierarchy() {
-    use styles::components::empty_state_styles;
+    use styles::component_styles::empty_state_styles;
 
     // Icon should be secondary (less prominent than heading)
     assert_eq!(
@@ -886,7 +886,7 @@ fn test_empty_state_visual_hierarchy() {
 
 #[test]
 fn test_tooltip_max_width_prevents_excessive_length() {
-    use styles::components::tooltip_styles;
+    use styles::component_styles::tooltip_styles;
 
     assert!(
         (tooltip_styles::MAX_WIDTH - 250.0).abs() < 0.001,
@@ -896,7 +896,7 @@ fn test_tooltip_max_width_prevents_excessive_length() {
 
 #[test]
 fn test_tooltip_contrast_wcag_aaa() {
-    use styles::components::tooltip_styles;
+    use styles::component_styles::tooltip_styles;
 
     let bg = tooltip_styles::BACKGROUND_COLOR;
     let text = tooltip_styles::TEXT_COLOR;

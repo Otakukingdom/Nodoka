@@ -61,17 +61,16 @@ pub fn view(
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
     let icon_size = typography::type_scale::DISPLAY_SIZE * 1.5;
-    // Enhanced icon with multi-layer gradient (three-color blend)
-    // Combines sunset, primary, and accent gradients for sophisticated depth
-    // Creates a distinctive premium appearance that sets the design apart
+    // Enhanced icon with signature gradient for brand consistency
+    // Combines signature, primary, and accent gradients for distinctive appearance
     let icon_gradient = {
-        let start = colors::SUNSET_GRADIENT_START;
+        let start = colors::SIGNATURE_GRADIENT_START;
         let mid = colors::PRIMARY_GRADIENT_START;
         let end = colors::ACCENT_GRADIENT_END;
         Color {
-            r: end.r.mul_add(0.3, mid.r.mul_add(0.3, start.r * 0.4)),
-            g: end.g.mul_add(0.3, mid.g.mul_add(0.3, start.g * 0.4)),
-            b: end.b.mul_add(0.3, mid.b.mul_add(0.3, start.b * 0.4)),
+            r: end.r.mul_add(0.35, mid.r.mul_add(0.35, start.r * 0.30)),
+            g: end.g.mul_add(0.35, mid.g.mul_add(0.35, start.g * 0.30)),
+            b: end.b.mul_add(0.35, mid.b.mul_add(0.35, start.b * 0.30)),
             a: 1.0,
         }
     };
@@ -84,14 +83,14 @@ pub fn view(
             background: Some(icon_gradient.into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
-                width: 2.5,
+                width: 3.0,
                 radius: (icon_size * 1.6 / 2.0).into(),
             },
-            // Multi-layer shadow combining ambient lift with rose-tinted definition
+            // Enhanced shadow with increased blur for premium depth
             shadow: Shadow {
                 color: Color::from_rgba(0.95, 0.85, 0.90, 0.08),
                 offset: Vector::new(0.0, 1.0),
-                blur_radius: 2.0,
+                blur_radius: 6.0,
             },
             text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()

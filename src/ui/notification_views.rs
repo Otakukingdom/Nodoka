@@ -86,39 +86,35 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
                 color: Color::from_rgba(1.0, 1.0, 1.0, 0.5),
-                width: 2.5, // Slightly thicker for more prominence
+                width: 3.0,
                 radius: border_radius::MD.into(),
             },
             // Enhanced multi-layer shadow for dramatic elevation
             shadow: iced::Shadow {
                 color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
                 offset: iced::Vector::new(0.0, 4.0),
-                blur_radius: 12.0,
+                blur_radius: 20.0,
             },
             ..Default::default()
         })
         .into()
 }
 
-/// Helper function for premium gradient notification colors with better contrast
+/// Helper function for premium gradient notification colors with increased saturation
 /// Creates sophisticated gradient-to-solid colors for each notification type
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
-            // Enhanced forest green with depth gradient
-            Color::from_rgb(0.08, 0.68, 0.32)
+            Color::from_rgb(0.05, 0.75, 0.40)  // Increased saturation
         }
         crate::ui::state::NotificationType::Info => {
-            // Enhanced royal blue gradient
-            Color::from_rgb(0.05, 0.62, 0.92)
+            Color::from_rgb(0.05, 0.72, 0.95)  // Increased saturation
         }
         crate::ui::state::NotificationType::Warning => {
-            // Enhanced rich amber with warmth
-            Color::from_rgb(0.88, 0.52, 0.08)
+            Color::from_rgb(0.92, 0.58, 0.08)  // Increased saturation
         }
         crate::ui::state::NotificationType::Error => {
-            // Enhanced premium rose-red for brand consistency
-            Color::from_rgb(0.88, 0.15, 0.30)
+            Color::from_rgb(0.92, 0.20, 0.35)  // Rose-tinted for brand consistency
         }
     }
 }

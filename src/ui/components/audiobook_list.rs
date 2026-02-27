@@ -160,20 +160,20 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                // Enhanced multi-layer gradient for selection
+                // Enhanced multi-layer gradient for selection with increased saturation
                 background: Some(Color {
-                    r: colors::ACCENT_GRADIENT_START.r.mul_add(0.20, colors::PRIMARY_GRADIENT_START.r.mul_add(0.30, colors::SUNSET_GRADIENT_START.r * 0.50)),
-                    g: colors::ACCENT_GRADIENT_START.g.mul_add(0.20, colors::PRIMARY_GRADIENT_START.g.mul_add(0.30, colors::SUNSET_GRADIENT_START.g * 0.50)),
-                    b: colors::ACCENT_GRADIENT_START.b.mul_add(0.20, colors::PRIMARY_GRADIENT_START.b.mul_add(0.30, colors::SUNSET_GRADIENT_START.b * 0.50)),
-                    a: 0.95 * opacity,
+                    r: colors::ACCENT_GRADIENT_START.r.mul_add(0.25, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35, colors::SUNSET_GRADIENT_START.r * 0.40)),
+                    g: colors::ACCENT_GRADIENT_START.g.mul_add(0.25, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35, colors::SUNSET_GRADIENT_START.g * 0.40)),
+                    b: colors::ACCENT_GRADIENT_START.b.mul_add(0.25, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35, colors::SUNSET_GRADIENT_START.b * 0.40)),
+                    a: 0.98 * opacity,
                 }.into()),
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 border: Border {
                     color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-                    width: 4.5,
+                    width: 5.5,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::shadow_lg(),
                 ..Default::default()
             })
             .width(Length::Fill)
@@ -190,21 +190,21 @@ fn build_audiobook_item<'a, S: BuildHasher>(
             use iced::widget::button;
             match status {
                 button::Status::Hovered if !selected => {
-                    // Premium sunset gradient hover with enhanced glow
+                    // Enhanced premium sunset gradient hover with more prominent appearance
                     button::Style {
                         background: Some(with_alpha_gradient_sunset(
                             colors::SUNSET_GRADIENT_START,
                             colors::SUNSET_GRADIENT_END,
-                            0.22,
+                            0.30,
                             opacity,
                         )
                         .into()),
                         border: Border {
                             color: with_alpha(colors::SUNSET_GRADIENT_END, opacity),
-                            width: 2.0,
+                            width: 2.5,
                             radius: border_radius::SM.into(),
                         },
-                        shadow: shadows::glow_sunset(0.35),
+                        shadow: shadows::glow_sunset(0.50),
                         ..button::Style::default()
                     }
                 }
@@ -438,7 +438,7 @@ fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'sta
     container(
         container(Space::new())
             .width(Length::FillPortion(u16::from(completeness_u8)))
-            .height(Length::Fixed(6.0))
+            .height(Length::Fixed(8.0))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::PROGRESS_GRADIENT_START, opacity).into()),
                 border: Border {
@@ -451,7 +451,7 @@ fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'sta
             })
     )
     .width(Length::Fill)
-    .height(Length::Fixed(6.0))
+    .height(Length::Fixed(8.0))
     .style(move |_theme: &iced::Theme| container::Style {
         background: Some(with_alpha(colors::BG_SECONDARY, opacity).into()),
         border: Border {

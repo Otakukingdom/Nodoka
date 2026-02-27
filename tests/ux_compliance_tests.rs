@@ -846,19 +846,19 @@ fn test_shadow_xs_follows_design_system() {
     let shadow = shadows::shadow_xs();
     assert_approx_eq_f32(
         shadow.offset.y,
-        0.5,
+        2.0,
         0.001,
-        "XS shadow offset should be 0.5px",
+        "XS shadow offset should be 2px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        1.0,
+        3.0,
         0.001,
-        "XS shadow blur should be 1px",
+        "XS shadow blur should be 3px",
     );
     assert!(
-        (shadow.color.a - 0.04).abs() < 1e-6,
-        "XS shadow opacity should be 0.04"
+        (shadow.color.a - 0.05).abs() < 1e-6,
+        "XS shadow opacity should be 0.05"
     );
 }
 
@@ -869,19 +869,19 @@ fn test_shadow_sm_follows_design_system() {
     let shadow = shadows::shadow_sm();
     assert_approx_eq_f32(
         shadow.offset.y,
-        1.0,
+        4.0,
         0.001,
-        "Small shadow offset should be 1px",
+        "Small shadow offset should be 4px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        2.0,
+        6.0,
         0.001,
-        "Small shadow blur should be 2px",
+        "Small shadow blur should be 6px",
     );
     assert!(
-        (shadow.color.a - 0.06).abs() < 1e-6,
-        "Small shadow opacity should be 0.06"
+        (shadow.color.a - 0.08).abs() < 1e-6,
+        "Small shadow opacity should be 0.08"
     );
 }
 
@@ -892,19 +892,19 @@ fn test_shadow_md_follows_design_system() {
     let shadow = shadows::shadow_md();
     assert_approx_eq_f32(
         shadow.offset.y,
-        2.0,
+        8.0,
         0.001,
-        "Medium shadow offset should be 2px",
+        "Medium shadow offset should be 8px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        4.0,
+        12.0,
         0.001,
-        "Medium shadow blur should be 4px",
+        "Medium shadow blur should be 12px",
     );
     assert!(
-        (shadow.color.a - 0.10).abs() < 1e-6,
-        "Medium shadow opacity should be 0.10"
+        (shadow.color.a - 0.13).abs() < 1e-6,
+        "Medium shadow opacity should be 0.13"
     );
 }
 
@@ -915,19 +915,19 @@ fn test_shadow_lg_follows_design_system() {
     let shadow = shadows::shadow_lg();
     assert_approx_eq_f32(
         shadow.offset.y,
-        4.0,
+        16.0,
         0.001,
-        "Large shadow offset should be 4px",
+        "Large shadow offset should be 16px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        8.0,
+        24.0,
         0.001,
-        "Large shadow blur should be 8px",
+        "Large shadow blur should be 24px",
     );
     assert!(
-        (shadow.color.a - 0.14).abs() < 1e-6,
-        "Large shadow opacity should be 0.14"
+        (shadow.color.a - 0.18).abs() < 1e-6,
+        "Large shadow opacity should be 0.18"
     );
 }
 
@@ -938,19 +938,19 @@ fn test_shadow_xl_follows_design_system() {
     let shadow = shadows::shadow_xl();
     assert_approx_eq_f32(
         shadow.offset.y,
-        8.0,
+        24.0,
         0.001,
-        "XL shadow offset should be 8px",
+        "XL shadow offset should be 24px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        16.0,
+        40.0,
         0.001,
-        "XL shadow blur should be 16px",
+        "XL shadow blur should be 40px",
     );
     assert!(
-        (shadow.color.a - 0.18).abs() < 1e-6,
-        "XL shadow opacity should be 0.18"
+        (shadow.color.a - 0.23).abs() < 1e-6,
+        "XL shadow opacity should be 0.23"
     );
 }
 
@@ -961,19 +961,19 @@ fn test_shadow_xxl_follows_design_system() {
     let shadow = shadows::shadow_xxl();
     assert_approx_eq_f32(
         shadow.offset.y,
-        12.0,
+        48.0,
         0.001,
-        "XXL shadow offset should be 12px",
+        "XXL shadow offset should be 48px",
     );
     assert_approx_eq_f32(
         shadow.blur_radius,
-        24.0,
+        80.0,
         0.001,
-        "XXL shadow blur should be 24px",
+        "XXL shadow blur should be 80px",
     );
     assert!(
-        (shadow.color.a - 0.26).abs() < 1e-6,
-        "XXL shadow opacity should be 0.26"
+        (shadow.color.a - 0.32).abs() < 1e-6,
+        "XXL shadow opacity should be 0.32"
     );
 }
 

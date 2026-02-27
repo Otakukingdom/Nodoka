@@ -178,7 +178,7 @@ mod tests {
     #[test]
     fn test_empty_state_container_style_returns_valid() {
         let style = empty_state_styles::container_style(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
@@ -190,13 +190,13 @@ mod tests {
     #[test]
     fn test_tooltip_container_style_returns_valid() {
         let style = tooltip_styles::container_style(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_divider_horizontal_returns_valid() {
         let border = divider_styles::horizontal();
-        assert_eq!(border.width, 1.0);
+        assert!((border.width - 1.0).abs() < f32::EPSILON);
     }
 
     #[test]
@@ -205,6 +205,6 @@ mod tests {
             &iced::Theme::Light,
             iced::widget::text_input::Status::Focused { is_hovered: false },
         );
-        drop(style);
+        let _ = style;
     }
 }

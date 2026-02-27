@@ -1,7 +1,7 @@
 //! File list component showing individual audio files within an audiobook.
 
 use crate::models::AudiobookFile;
-use crate::ui::styles::{animations, spacing, typography};
+use crate::ui::styles::{animations, colors, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length, Shadow};
@@ -262,10 +262,9 @@ fn build_progress_element(
         container(
             container(Space::new())
                 .width(Length::FillPortion(u16::from(completeness_u8)))
-                .height(Length::Fixed(6.0))
+                .height(Length::Fixed(8.0))
                 .style(|_theme: &iced::Theme| container::Style {
                     // Enhanced gradient fill for progress bar
-                    // Uses premium rose gradient for distinctive visual appeal
                     background: Some(colors::PROGRESS_GRADIENT_START.into()),
                     border: Border {
                         color: Color::TRANSPARENT,
@@ -277,7 +276,7 @@ fn build_progress_element(
                 }),
         )
         .width(Length::Fill)
-        .height(Length::Fixed(6.0))
+        .height(Length::Fixed(8.0))
         .style(|_theme: &iced::Theme| container::Style {
             background: Some(colors::BG_SECONDARY.into()),
             border: Border {
@@ -290,7 +289,7 @@ fn build_progress_element(
     } else {
         container(Space::new())
             .width(Length::Fill)
-            .height(Length::Fixed(6.0))
+            .height(Length::Fixed(8.0))
     }
 }
 
@@ -318,29 +317,32 @@ fn build_file_number_badge(
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
         // Premium gradient background for distinctive badge appearance
-        // Uses diagonal gradient blend from accent to primary for sophisticated look
         background: Some(badge_gradient.into()),
         border: Border {
             color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-            width: 1.2,
+            width: 1.5,
             radius: border_radius::SM.into(),
         },
-        // Multi-layer shadow for premium depth
+        // Enhanced shadow with increased blur for premium depth
         shadow: Shadow {
             color: with_alpha(colors::ACCENT_GRADIENT_START, 0.15),
             offset: iced::Vector::new(0.0, 1.0),
-            blur_radius: 3.0,
+            blur_radius: 5.0,
         },
         ..Default::default()
     })
 }
 
 /// Creates gradient color for file number badge background
-fn with_alpha_gradient_badge(start: Color, end: Color, opacity: f32) -> Color {
+/// Enhanced with signature gradient for brand consistency
+fn with_alpha_gradient_badge(_start: Color, _end: Color, opacity: f32) -> Color {
+    // Use signature gradient for brand consistency
+    let start = colors::SIGNATURE_GRADIENT_START;
+    let end = colors::ACCENT_GRADIENT_END;
     Color {
-        r: f32::midpoint(start.r, end.r) * opacity,
-        g: f32::midpoint(start.g, end.g) * opacity,
-        b: f32::midpoint(start.b, end.b) * opacity,
+        r: start.r.mul_add(0.6 * opacity, end.r * 0.4 * opacity),
+        g: start.g.mul_add(0.6 * opacity, end.g * 0.4 * opacity),
+        b: start.b.mul_add(0.6 * opacity, end.b * 0.4 * opacity),
         a: opacity,
     }
 }

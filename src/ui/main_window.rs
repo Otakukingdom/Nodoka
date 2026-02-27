@@ -209,19 +209,18 @@ fn top_bar(state: &State) -> Element<'static, Message> {
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
                 // Premium multi-gradient background for distinctive branding
-                // Combines sunset rose with primary and accent for sophisticated look
-                // Uses solid color with gradient blend for compatibility
+                // Uses enhanced 4-color blend for maximum brand recognition
                 background: Some(logo_gradient_premium().into()),
                 border: Border {
                     color: Color::from_rgba(1.0, 1.0, 1.0, 0.6),
-                    width: 1.5,
+                    width: 2.0,
                     radius: border_radius::SM.into(),
                 },
-                // Multi-layer glow with enhanced rose tint
+                // Enhanced multi-layer glow with stronger rose tint
                 shadow: Shadow {
-                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.5),
+                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.55),
                     offset: Vector::new(0.0, 0.0),
-                    blur_radius: 8.0,
+                    blur_radius: 12.0,
                 },
                 ..Default::default()
             }),
@@ -249,10 +248,10 @@ fn top_bar(state: &State) -> Element<'static, Message> {
         background: Some(colors::BG_FLOATING.into()),
         border: Border {
             color: colors::BORDER_SUBTLE,
-            width: 1.0,
+            width: 1.5,
             radius: border_radius::MD.into(),
         },
-        shadow: shadows::shadow_md(),
+        shadow: shadows::shadow_lg(),
         ..Default::default()
     })
     .into()
@@ -438,16 +437,17 @@ fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
 }
 
 /// Creates premium gradient color for application logo
-/// Blends sunset rose with primary and accent for distinctive branding
+/// Enhanced with 4-color blend for distinctive brand identity
 fn logo_gradient_premium() -> Color {
-    // Blend three colors for sophisticated multi-layer appearance
-    let start = colors::SUNSET_GRADIENT_START;
-    let mid = colors::PRIMARY;
-    let end = colors::SUNSET_GRADIENT_END;
+    // Enhanced 4-color blend for distinctive brand identity
+    let start = colors::SIGNATURE_GRADIENT_START;
+    let mid1 = colors::PRIMARY_GRADIENT_START;
+    let mid2 = colors::SUNSET_GRADIENT_START;
+    let end = colors::SIGNATURE_GRADIENT_END;
     Color {
-        r: end.r.mul_add(0.35, start.r.mul_add(0.35, mid.r * 0.30)),
-        g: end.g.mul_add(0.35, start.g.mul_add(0.35, mid.g * 0.30)),
-        b: end.b.mul_add(0.35, start.b.mul_add(0.35, mid.b * 0.30)),
+        r: end.r.mul_add(0.30, mid2.r.mul_add(0.20, mid1.r.mul_add(0.20, start.r * 0.30))),
+        g: end.g.mul_add(0.30, mid2.g.mul_add(0.20, mid1.g.mul_add(0.20, start.g * 0.30))),
+        b: end.b.mul_add(0.30, mid2.b.mul_add(0.20, mid1.b.mul_add(0.20, start.b * 0.30))),
         a: 1.0,
     }
 }

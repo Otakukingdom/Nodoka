@@ -101,18 +101,17 @@ pub fn view<'a, S: BuildHasher>(
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
             // Enhanced multi-layer gradient background for dramatic depth
-            // Creates premium rose-to-crimson transition with middle accent
             background: Some(continue_gradient_multi_layer().into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
-                width: 2.5,
+                width: 3.0,
                 radius: border_radius::LG.into(),
             },
-            // Enhanced multi-layer shadow for dramatic elevation using improved shadow levels
+            // Enhanced multi-layer shadow with increased blur for dramatic elevation
             shadow: Shadow {
                 color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
                 offset: Vector::new(0.0, 4.0),
-                blur_radius: 8.0,
+                blur_radius: 16.0,
             },
             text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
@@ -198,17 +197,17 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
 }
 
 /// Creates multi-layer gradient color for Continue Listening card
-/// Blends four colors for sophisticated multi-layer appearance with dramatic effect
+/// Enhanced 4-color blend with increased saturation for dramatic effect
 fn continue_gradient_multi_layer() -> Color {
-    // Blend four colors for sophisticated multi-layer appearance
+    // Enhanced 4-color gradient with increased saturation for more vibrant appearance
     let start = colors::CONTINUE_GRADIENT_START;
     let mid1 = colors::PRIMARY_GRADIENT_START;
     let mid2 = colors::SUNSET_GRADIENT_START;
     let end = colors::CONTINUE_GRADIENT_END;
     Color {
-        r: mid2.r.mul_add(0.2, mid1.r.mul_add(0.3, end.r.mul_add(0.25, start.r * 0.25))),
-        g: mid2.g.mul_add(0.2, mid1.g.mul_add(0.3, end.g.mul_add(0.25, start.g * 0.25))),
-        b: mid2.b.mul_add(0.2, mid1.b.mul_add(0.3, end.b.mul_add(0.25, start.b * 0.25))),
+        r: end.r.mul_add(0.30, mid2.r.mul_add(0.25, mid1.r.mul_add(0.25, start.r * 0.20))),
+        g: end.g.mul_add(0.30, mid2.g.mul_add(0.25, mid1.g.mul_add(0.25, start.g * 0.20))),
+        b: end.b.mul_add(0.30, mid2.b.mul_add(0.25, mid1.b.mul_add(0.25, start.b * 0.20))),
         a: 1.0,
     }
 }

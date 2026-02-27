@@ -28,8 +28,8 @@ use crate::ui::styles::{border_radius, colors, shadows, Border, Color};
 /// - **Selected**: Large shadow (16px offset, 24px blur) with accent border
 /// - **Premium**: Multi-layer rose-tinted shadow with gradient background
 /// - **Featured**: Maximum elevation with multi-layer shadow and premium gradient
-
-/// Standard card style with subtle elevation
+///
+///   Standard card style with subtle elevation
 ///
 /// Use for standard content cards that need mild elevation from the background.
 /// Provides subtle background tint with border for clear separation.
@@ -416,66 +416,66 @@ mod tests {
     fn test_card_default_returns_valid_style() {
         let style = card_default()(&iced::Theme::Light);
         // Just verify it doesn't panic
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_default_hover_returns_valid_style() {
         let style = card_default_hover()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_elevated_returns_valid_style() {
         let style = card_elevated()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_elevated_hover_returns_valid_style() {
         let style = card_elevated_hover()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_interactive_returns_valid_style() {
         let style = card_interactive()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_interactive_hover_returns_valid_style() {
         let style = card_interactive_hover()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_selected_returns_valid_style() {
         let style = card_selected()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_selected_hover_returns_valid_style() {
         let style = card_selected_hover()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_premium_returns_valid_style() {
         let style = card_premium()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_premium_hover_returns_valid_style() {
         let style = card_premium_hover()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_card_featured_returns_valid_style() {
         let style = card_featured()(&iced::Theme::Light);
-        drop(style);
+        let _ = style;
     }
 }

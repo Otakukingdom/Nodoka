@@ -164,13 +164,14 @@ fn shortcut_group(
                 )
                 .padding(iced::Padding::from([spacing::XS, spacing::SM]))
                 .style(|_theme: &iced::Theme| iced::widget::container::Style {
-                    background: Some(colors::SUBTLE_GRADIENT_START.into()),
+                    // Use signature gradient for brand consistency
+                    background: Some(colors::SIGNATURE_GRADIENT_START.into()),
                     border: Border {
-                        color: colors::PRIMARY_GRADIENT_START,
-                        width: 1.5,
+                        color: colors::ACCENT_GRADIENT_END,
+                        width: 2.0,
                         radius: border_radius::SM.into(),
                     },
-                    shadow: shadows::shadow_sm(),
+                    shadow: shadows::shadow_md(),
                     ..Default::default()
                 }),
                 Space::new().width(Length::Fixed(spacing::MD)),
@@ -202,35 +203,28 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with multi-color gradient effect for premium feel
-    let border_color = with_alpha_gradient_border_enhanced(
-        colors::SUNSET_GRADIENT_START,
-        colors::PRIMARY_GRADIENT_START,
-        colors::SUNSET_GRADIENT_END,
-        opacity,
-    );
+    // Enhanced border with signature gradient color for brand consistency
+    let border_color = with_alpha(colors::SIGNATURE_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
-                width: 3.5, // Slightly thicker for more prominence
+                width: 4.0,
                 radius: border_radius::XL.into(),
             },
-            // Multi-layer premium shadow: ambient + rose-tinted directional
-            // Combines subtle ambient shadow for lift with rose-tinted shadow for definition
+            // Enhanced multi-layer shadow with rose tint for dramatic elevation
             shadow: Shadow {
-                // Ambient shadow with slight rose tint for sophisticated elevation
-                color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
-                offset: Vector::new(0.0, 2.0),
-                blur_radius: 6.0,
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.18),
+                offset: Vector::new(0.0, 8.0),
+                blur_radius: 32.0,
             },
             ..Default::default()
         })
-        .padding(spacing::XL) // Increased padding for better content breathing room
-        .max_width(680.0) // Increased width for better content fit
-        .width(Length::Fill) // Fill available space on narrow screens
-        .max_height(850.0) // Increased height
+        .padding(spacing::XL)
+        .max_width(700.0)
+        .width(Length::Fill)
+        .max_height(880.0)
         .center_x(Length::Fill)
         .center_y(Length::Fill)
         .into()
@@ -336,16 +330,5 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
-    }
-}
-
-/// Enhanced helper function for gradient border with three-color blend
-/// Creates sophisticated border color by blending three gradient colors
-fn with_alpha_gradient_border_enhanced(start: Color, mid: Color, end: Color, opacity: f32) -> Color {
-    Color {
-        r: f32::midpoint(start.r, end.r).mul_add(0.4, mid.r * 0.6).clamp(0.0, 1.0) * opacity,
-        g: f32::midpoint(start.g, end.g).mul_add(0.4, mid.g * 0.6).clamp(0.0, 1.0) * opacity,
-        b: f32::midpoint(start.b, end.b).mul_add(0.4, mid.b * 0.6).clamp(0.0, 1.0) * opacity,
-        a: opacity,
     }
 }

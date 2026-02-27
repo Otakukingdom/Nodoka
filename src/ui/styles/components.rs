@@ -429,66 +429,66 @@ mod tests {
     #[test]
     fn test_button_primary_active_returns_valid() {
         let style = button_styles::primary(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_primary_hovered_returns_valid() {
         let style = button_styles::primary(&iced::Theme::Light, button::Status::Hovered);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_primary_pressed_returns_valid() {
         let style = button_styles::primary(&iced::Theme::Light, button::Status::Pressed);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_primary_disabled_returns_valid() {
         let style = button_styles::primary(&iced::Theme::Light, button::Status::Disabled);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_secondary_active_returns_valid() {
         let style = button_styles::secondary(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_elevated_active_returns_valid() {
         let style = button_styles::elevated(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_danger_active_returns_valid() {
         let style = button_styles::danger(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_primary_focused_returns_valid() {
         let style = button_styles::primary_focused(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_secondary_focused_returns_valid() {
         let style = button_styles::secondary_focused(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_elevated_focused_returns_valid() {
         let style = button_styles::elevated_focused(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 
     #[test]
     fn test_button_danger_focused_returns_valid() {
         let style = button_styles::danger_focused(&iced::Theme::Light, button::Status::Active);
-        drop(style);
+        let _ = style;
     }
 }

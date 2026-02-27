@@ -80,18 +80,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     rail: iced::widget::slider::Rail {
                         backgrounds: (
                             iced::Background::Color(colors::BG_SECONDARY),
-                            // Enhanced multi-layer gradient for premium fill
-                            // Blends sunset, primary, and accent gradients for depth
+                            // Enhanced multi-layer gradient for premium fill with increased saturation
                             iced::Background::Color(Color::from_rgba(
-                                colors::ACCENT_GRADIENT_START.r.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.r.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.r * 0.5 * alpha)),
-                                colors::ACCENT_GRADIENT_START.g.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.g.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.g * 0.5 * alpha)),
-                                colors::ACCENT_GRADIENT_START.b.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.b.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.b * 0.5 * alpha)),
+                                colors::ACCENT_GRADIENT_START.r.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.r * 0.40 * alpha)),
+                                colors::ACCENT_GRADIENT_START.g.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.g * 0.40 * alpha)),
+                                colors::ACCENT_GRADIENT_START.b.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.b * 0.40 * alpha)),
                                 alpha,
                             )),
                         ),
-                        width: 10.0, // Thicker for better visibility
+                        width: 10.0,
                         border: iced::Border {
-                            // Enhanced inset shadow for carved/recessed appearance
                             color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
                             width: 1.5,
                             radius: 5.0.into(),
@@ -154,11 +152,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .center_x(Length::Fill)
                         .center_y(Length::Fill)
                         .style(|_theme: &iced::Theme| container::Style {
-                            // Premium multi-layer gradient for cover placeholder
+                            // Enhanced 4-color gradient for cover placeholder
                             background: Some(Color::from_rgb(
-                                colors::SUNSET_GRADIENT_START.r.mul_add(0.15, colors::PRIMARY_GRADIENT_START.r.mul_add(0.25, colors::BG_ELEVATED.r * 0.6)),
-                                colors::SUNSET_GRADIENT_START.g.mul_add(0.15, colors::PRIMARY_GRADIENT_START.g.mul_add(0.25, colors::BG_ELEVATED.g * 0.6)),
-                                colors::SUNSET_GRADIENT_START.b.mul_add(0.15, colors::PRIMARY_GRADIENT_START.b.mul_add(0.25, colors::BG_ELEVATED.b * 0.6)),
+                                colors::ACCENT_GRADIENT_START.r.mul_add(0.15, colors::PRIMARY_GRADIENT_START.r.mul_add(0.25, colors::BG_ELEVATED.r.mul_add(0.30, colors::SUNSET_GRADIENT_START.r * 0.30))),
+                                colors::ACCENT_GRADIENT_START.g.mul_add(0.15, colors::PRIMARY_GRADIENT_START.g.mul_add(0.25, colors::BG_ELEVATED.g.mul_add(0.30, colors::SUNSET_GRADIENT_START.g * 0.30))),
+                                colors::ACCENT_GRADIENT_START.b.mul_add(0.15, colors::PRIMARY_GRADIENT_START.b.mul_add(0.25, colors::BG_ELEVATED.b.mul_add(0.30, colors::SUNSET_GRADIENT_START.b * 0.30))),
                             ).into()),
                             border: Border {
                                 color: colors::PRIMARY_GRADIENT_END,
@@ -219,7 +217,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             )
             .padding(spacing::MD)
             .style(|_theme: &iced::Theme| container::Style {
-                // Multi-layer gradient effect for depth - using blended color
+                // Multi-layer gradient effect for depth
                 background: Some(Color::from_rgba(
                     f32::midpoint(colors::CONTINUE_GRADIENT_START.r, colors::CONTINUE_GRADIENT_END.r),
                     f32::midpoint(colors::CONTINUE_GRADIENT_START.g, colors::CONTINUE_GRADIENT_END.g),
@@ -228,14 +226,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ).into()),
                 border: Border {
                     color: colors::ACCENT_GRADIENT_END,
-                    width: 2.5,
+                    width: 3.5,
                     radius: border_radius::LG.into(),
                 },
-                // Multi-layer shadow for dramatic elevation
+                // Enhanced multi-layer shadow for dramatic elevation
                 shadow: iced::Shadow {
                     color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
                     offset: iced::Vector::new(0.0, 8.0),
-                    blur_radius: 24.0,
+                    blur_radius: 32.0,
                 },
                 text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()

@@ -244,9 +244,9 @@ pub const CONTINUE_GRADIENT_START: Color = Color::from_rgb(1.0, 0.57, 0.67);
 pub const CONTINUE_GRADIENT_END: Color = Color::from_rgb(0.91, 0.14, 0.32);
 
 /// Progress bar gradient for visual engagement.
-/// Refined with smooth rose-to-crimson flow for polished appearance.
-pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(0.975, 0.28, 0.43);
-pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.88, 0.13, 0.28);
+/// Enhanced with increased saturation for more vibrant appearance.
+pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(1.0, 0.32, 0.48);
+pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.92, 0.18, 0.32);
 
 /// Warm gradient for accent elements and badges.
 /// Provides sophisticated amber-rose tint for distinctive highlights.
@@ -527,8 +527,8 @@ pub mod dark_theme {
 
     /// Primary gradient colors for dark theme.
     /// Enhanced with optimized brightness and smoother interpolation for visibility.
-    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.28, 0.45);
-    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.88, 0.15, 0.32);
+    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.32, 0.48);
+    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.90, 0.17, 0.35);
 
     /// Accent gradient colors for dark theme.
     /// Enhanced with vibrant rose-to-magenta transition for maximum visibility.
@@ -537,13 +537,13 @@ pub mod dark_theme {
 
     /// Continue listening card gradient for dark theme.
     /// Enhanced with maximum brightness to maintain vibrancy on dark backgrounds.
-    pub const CONTINUE_GRADIENT_START: Color = Color::from_rgb(1.0, 0.58, 0.69);
-    pub const CONTINUE_GRADIENT_END: Color = Color::from_rgb(0.93, 0.16, 0.34);
+    pub const CONTINUE_GRADIENT_START: Color = Color::from_rgb(1.0, 0.62, 0.72);
+    pub const CONTINUE_GRADIENT_END: Color = Color::from_rgb(0.95, 0.18, 0.36);
 
     /// Progress bar gradient for dark theme.
-    /// Enhanced with optimized brightness for visibility on dark backgrounds.
-    pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(0.98, 0.30, 0.45);
-    pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.89, 0.15, 0.30);
+    /// Enhanced with increased saturation for more vibrant appearance.
+    pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(1.0, 0.32, 0.50);
+    pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.92, 0.18, 0.35);
 
     /// Warm gradient for accent elements in dark theme.
     /// Provides sophisticated amber-rose tint for distinctive highlights.
