@@ -69,9 +69,9 @@ pub fn view(
         let mid = colors::PRIMARY_GRADIENT_START;
         let end = colors::ACCENT_GRADIENT_END;
         Color {
-            r: start.r * 0.4 + mid.r * 0.3 + end.r * 0.3,
-            g: start.g * 0.4 + mid.g * 0.3 + end.g * 0.3,
-            b: start.b * 0.4 + mid.b * 0.3 + end.b * 0.3,
+            r: end.r.mul_add(0.3, mid.r.mul_add(0.3, start.r * 0.4)),
+            g: end.g.mul_add(0.3, mid.g.mul_add(0.3, start.g * 0.4)),
+            b: end.b.mul_add(0.3, mid.b.mul_add(0.3, start.b * 0.4)),
             a: 1.0,
         }
     };

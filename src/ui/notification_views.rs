@@ -48,7 +48,7 @@ pub(super) fn notification_area(state: &State) -> Element<'_, Message> {
 /// - Darker gradient-tinted backgrounds for better contrast
 /// - Smooth progress bar with gradient treatment
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
-    use crate::ui::styles::components::notification_styles;
+    use crate::ui::styles::component_styles::notification_styles;
 
     // Use darker colors for better contrast with white text
     let bg_color = notification_gradient_color(&notification.kind);
@@ -132,14 +132,14 @@ fn notification_content_column(
     if let Some(title) = &notification.title {
         content_col = content_col.push(text(title).size(typography::SIZE_BASE).style(
             |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
+                color: Some(crate::ui::styles::component_styles::notification_styles::TEXT_COLOR),
             },
         ));
     }
 
     content_col = content_col.push(text(&notification.message).size(typography::SIZE_SM).style(
         |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(crate::ui::styles::components::notification_styles::TEXT_COLOR),
+            color: Some(crate::ui::styles::component_styles::notification_styles::TEXT_COLOR),
         },
     ));
 
@@ -170,7 +170,7 @@ fn notification_main_content<'a>(
 /// - Subtle border for better affordance
 /// - Consistent padding and border-radius
 fn notification_button(label: &str, on_press: Message) -> Element<'_, Message> {
-    use crate::ui::styles::components::notification_styles;
+    use crate::ui::styles::component_styles::notification_styles;
 
     let btn = button(
         text(label)
@@ -222,7 +222,7 @@ fn notification_progress_bar(
     remaining_portion: u16,
     kind: &crate::ui::state::NotificationType,
 ) -> Element<'static, Message> {
-    use crate::ui::styles::components::notification_styles;
+    use crate::ui::styles::component_styles::notification_styles;
 
     // Use gradient colors based on notification kind
     let progress_color = match kind {

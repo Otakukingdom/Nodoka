@@ -29,18 +29,28 @@ pub mod weight {
 
 /// Line height ratios for different text contexts
 pub mod line_height {
+    /// Extra tight line height for large headings (1.15)
+    pub const EXTRA_TIGHT: f32 = 1.15;
     /// Tight line height for headings (1.2)
     pub const TIGHT: f32 = 1.2;
+    /// Dense line height for compact UI (1.3)
+    pub const DENSE: f32 = 1.3;
     /// Normal line height for body text (1.5)
     pub const NORMAL: f32 = 1.5;
     /// Relaxed line height for long-form content (1.6)
     pub const RELAXED: f32 = 1.6;
-    /// Dense line height for compact UI (1.3)
-    pub const DENSE: f32 = 1.3;
+    /// Extra relaxed line height for maximum readability (1.75)
+    pub const EXTRA_RELAXED: f32 = 1.75;
 }
 
 /// Letter spacing adjustments for display text
 pub mod letter_spacing {
+    /// Extra tight letter spacing for dramatic headings (-0.03em)
+    pub const EXTRA_TIGHT: f32 = -0.03;
+    /// Tight letter spacing for distinctive headings (-0.02em)
+    pub const TIGHT: f32 = -0.02;
+    /// Slightly tight letter spacing for premium headings (-0.01em)
+    pub const SLIGHT_TIGHT: f32 = -0.01;
     /// No letter spacing adjustment
     pub const NONE: f32 = 0.0;
     /// Slight letter spacing for headings (+0.01em)
@@ -49,20 +59,29 @@ pub mod letter_spacing {
     pub const MODERATE: f32 = 0.02;
     /// Wide letter spacing for buttons/labels (+0.05em)
     pub const WIDE: f32 = 0.05;
+    /// Extra wide letter spacing for emphasis (+0.08em)
+    pub const EXTRA_WIDE: f32 = 0.08;
 }
 
 /// Type scale pairing system - combines sizes with weights for hierarchy
 ///
 /// Usage:
+/// - Grand: Extra large hero text for feature sections
 /// - Display: Hero sections, large titles
 /// - Heading 1: Page titles
 /// - Heading 2: Section titles
 /// - Heading 3: Subsection titles
+/// - Heading 4: Minor headings
+/// - Body Large: Emphasized body text
 /// - Body: Primary content
 /// - Small: Secondary content, metadata
 /// - Caption: Tiny labels, hints
 pub mod type_scale {
     use super::weight;
+
+    /// Grand/hero text - extra large for feature sections
+    pub const GRAND_SIZE: f32 = 56.0;
+    pub const GRAND_WEIGHT: u16 = weight::BOLD;
 
     /// Display/hero text - largest, boldest
     pub const DISPLAY_SIZE: f32 = 48.0;
@@ -79,6 +98,14 @@ pub mod type_scale {
     /// Heading 3 - subsection titles
     pub const H3_SIZE: f32 = 20.0;
     pub const H3_WEIGHT: u16 = weight::MEDIUM;
+
+    /// Heading 4 - minor headings
+    pub const H4_SIZE: f32 = 18.0;
+    pub const H4_WEIGHT: u16 = weight::MEDIUM;
+
+    /// Body large text - emphasized body text
+    pub const BODY_LARGE_SIZE: f32 = 18.0;
+    pub const BODY_LARGE_WEIGHT: u16 = weight::REGULAR;
 
     /// Body text - primary content
     pub const BODY_SIZE: f32 = 16.0;
@@ -527,6 +554,149 @@ pub mod preset {
             iced::Color::WHITE
         }
     }
+    /// Body large text preset for emphasized content
+    pub struct BodyLarge {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for BodyLarge {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl BodyLarge {
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::BODY_LARGE_SIZE,
+                weight: type_scale::BODY_LARGE_WEIGHT,
+                line_height_ratio: line_height::RELAXED,
+                letter_spacing: super::letter_spacing::NONE,
+            }
+        }
+
+        #[must_use]
+        pub const fn medium() -> Self {
+            Self {
+                size: type_scale::BODY_LARGE_SIZE,
+                weight: weight::MEDIUM,
+                line_height_ratio: line_height::RELAXED,
+                letter_spacing: super::letter_spacing::NONE,
+            }
+        }
+
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::body(theme)
+        }
+    }
+
+    /// Compact text preset for dense UI elements
+    pub struct Compact {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for Compact {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl Compact {
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::SMALL_SIZE,
+                weight: weight::MEDIUM,
+                line_height_ratio: line_height::DENSE,
+                letter_spacing: super::letter_spacing::NONE,
+            }
+        }
+
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::body(theme)
+        }
+    }
+
+    /// Label text preset for form labels and UI labels
+    pub struct Label {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for Label {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl Label {
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::SMALL_SIZE,
+                weight: weight::SEMIBOLD,
+                line_height_ratio: line_height::DENSE,
+                letter_spacing: super::letter_spacing::SLIGHT,
+            }
+        }
+
+        #[must_use]
+        pub const fn uppercase() -> Self {
+            Self {
+                size: type_scale::CAPTION_SIZE,
+                weight: weight::SEMIBOLD,
+                line_height_ratio: line_height::DENSE,
+                letter_spacing: super::letter_spacing::WIDE,
+            }
+        }
+
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::metadata(theme)
+        }
+    }
+
+    /// Subheading text preset for content sections
+    pub struct Subheading {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for Subheading {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl Subheading {
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::H4_SIZE,
+                weight: type_scale::H4_WEIGHT,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: super::letter_spacing::SLIGHT_TIGHT,
+            }
+        }
+
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::heading(theme)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -552,15 +722,19 @@ mod tests {
     const _: () = assert!(weight::BOLD < weight::EXTRA_BOLD);
 
     /// Verifies line height ratios are positive for valid layout.
+    const _: () = assert!(line_height::EXTRA_TIGHT > 0.0);
     const _: () = assert!(line_height::TIGHT > 0.0);
+    const _: () = assert!(line_height::DENSE > 0.0);
     const _: () = assert!(line_height::NORMAL > 0.0);
     const _: () = assert!(line_height::RELAXED > 0.0);
-    const _: () = assert!(line_height::DENSE > 0.0);
+    const _: () = assert!(line_height::EXTRA_RELAXED > 0.0);
 
     /// Verifies line height ratios progress from tight to relaxed.
+    const _: () = assert!(line_height::EXTRA_TIGHT < line_height::TIGHT);
     const _: () = assert!(line_height::TIGHT < line_height::DENSE);
     const _: () = assert!(line_height::DENSE < line_height::NORMAL);
     const _: () = assert!(line_height::NORMAL < line_height::RELAXED);
+    const _: () = assert!(line_height::RELAXED < line_height::EXTRA_RELAXED);
 
     /// Verifies letter spacing values are non-negative.
     const _: () = assert!(letter_spacing::NONE >= 0.0);
@@ -569,19 +743,25 @@ mod tests {
     const _: () = assert!(letter_spacing::WIDE >= 0.0);
 
     /// Verifies type scale sizes are positive for rendering.
+    const _: () = assert!(type_scale::GRAND_SIZE > 0.0);
     const _: () = assert!(type_scale::DISPLAY_SIZE > 0.0);
     const _: () = assert!(type_scale::H1_SIZE > 0.0);
     const _: () = assert!(type_scale::H2_SIZE > 0.0);
     const _: () = assert!(type_scale::H3_SIZE > 0.0);
+    const _: () = assert!(type_scale::H4_SIZE > 0.0);
+    const _: () = assert!(type_scale::BODY_LARGE_SIZE > 0.0);
     const _: () = assert!(type_scale::BODY_SIZE > 0.0);
     const _: () = assert!(type_scale::SMALL_SIZE > 0.0);
     const _: () = assert!(type_scale::CAPTION_SIZE > 0.0);
 
     /// Verifies type scale sizes descend properly for visual hierarchy.
+    const _: () = assert!(type_scale::GRAND_SIZE > type_scale::DISPLAY_SIZE);
     const _: () = assert!(type_scale::DISPLAY_SIZE > type_scale::H1_SIZE);
     const _: () = assert!(type_scale::H1_SIZE > type_scale::H2_SIZE);
     const _: () = assert!(type_scale::H2_SIZE > type_scale::H3_SIZE);
-    const _: () = assert!(type_scale::H3_SIZE > type_scale::BODY_SIZE);
+    const _: () = assert!(type_scale::H3_SIZE > type_scale::H4_SIZE);
+    const _: () = assert!(type_scale::H4_SIZE >= type_scale::BODY_LARGE_SIZE);
+    const _: () = assert!(type_scale::BODY_LARGE_SIZE >= type_scale::BODY_SIZE);
     const _: () = assert!(type_scale::BODY_SIZE > type_scale::SMALL_SIZE);
     const _: () = assert!(type_scale::SMALL_SIZE > type_scale::CAPTION_SIZE);
 
@@ -640,6 +820,38 @@ mod tests {
         assert!(button.size > 0.0);
         assert!(button.weight >= 100 && button.weight <= 900);
         assert!(button.line_height_ratio > 0.0);
+    }
+
+    #[test]
+    fn test_preset_body_large_returns_valid_values() {
+        let body_large = preset::BodyLarge::new();
+        assert!(body_large.size > 0.0);
+        assert!(body_large.weight >= 100 && body_large.weight <= 900);
+        assert!(body_large.line_height_ratio > 0.0);
+    }
+
+    #[test]
+    fn test_preset_compact_returns_valid_values() {
+        let compact = preset::Compact::new();
+        assert!(compact.size > 0.0);
+        assert!(compact.weight >= 100 && compact.weight <= 900);
+        assert!(compact.line_height_ratio > 0.0);
+    }
+
+    #[test]
+    fn test_preset_label_returns_valid_values() {
+        let label = preset::Label::new();
+        assert!(label.size > 0.0);
+        assert!(label.weight >= 100 && label.weight <= 900);
+        assert!(label.line_height_ratio > 0.0);
+    }
+
+    #[test]
+    fn test_preset_subheading_returns_valid_values() {
+        let subheading = preset::Subheading::new();
+        assert!(subheading.size > 0.0);
+        assert!(subheading.weight >= 100 && subheading.weight <= 900);
+        assert!(subheading.line_height_ratio > 0.0);
     }
 
     #[test]

@@ -237,7 +237,7 @@ where
 }
 
 pub(super) fn tooltip_overlay(tooltip: &crate::ui::tooltip::Tooltip) -> Element<'static, Message> {
-    use crate::ui::styles::components::tooltip_styles;
+    use crate::ui::styles::component_styles::tooltip_styles;
     use iced::widget::text::Wrapping;
 
     let text_element = text(tooltip.text.clone())

@@ -73,48 +73,52 @@ pub fn view(state: &State) -> Element<'_, Message> {
         let current_time = state.current_time.clamp(0.0, max_duration);
         let is_active = state.playback == PlaybackStatus::Playing;
         widget_slider(0.0..=max_duration, current_time, Message::SeekTo)
-            .height(24.0)
+            .height(28.0)
             .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
                 let alpha = if is_active { 1.0 } else { 0.92 };
                 iced::widget::slider::Style {
                     rail: iced::widget::slider::Rail {
                         backgrounds: (
                             iced::Background::Color(colors::BG_SECONDARY),
-                            // Enhanced multi-color gradient for premium fill
-                            // Blends sunset start with primary gradient for depth
+                            // Enhanced multi-layer gradient for premium fill
+                            // Blends sunset, primary, and accent gradients for depth
                             iced::Background::Color(Color::from_rgba(
-                                colors::SUNSET_GRADIENT_START.r * alpha,
-                                colors::SUNSET_GRADIENT_START.g * alpha,
-                                colors::SUNSET_GRADIENT_START.b * alpha,
+                                colors::ACCENT_GRADIENT_START.r.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.r.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.r * 0.5 * alpha)),
+                                colors::ACCENT_GRADIENT_START.g.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.g.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.g * 0.5 * alpha)),
+                                colors::ACCENT_GRADIENT_START.b.mul_add(0.2 * alpha, colors::PRIMARY_GRADIENT_START.b.mul_add(0.3 * alpha, colors::SUNSET_GRADIENT_START.b * 0.5 * alpha)),
                                 alpha,
                             )),
                         ),
-                        width: 8.0, // Thicker for better visibility
+                        width: 10.0, // Thicker for better visibility
                         border: iced::Border {
                             // Enhanced inset shadow for carved/recessed appearance
-                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.18),
+                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
                             width: 1.5,
-                            radius: 4.0.into(),
+                            radius: 5.0.into(),
                         },
                     },
                     handle: iced::widget::slider::Handle {
-                        shape: iced::widget::slider::HandleShape::Circle { radius: 11.0 },
-                        // Premium sunset gradient for active handle with enhanced fill
+                        shape: iced::widget::slider::HandleShape::Circle { radius: 12.0 },
+                        // Premium multi-layer gradient for active handle
                         background: if is_active {
-                            iced::Background::Color(colors::SUNSET_GRADIENT_START)
+                            iced::Background::Color(Color::from_rgb(
+                                colors::PRIMARY_GRADIENT_START.r.mul_add(0.4, colors::SUNSET_GRADIENT_START.r * 0.6),
+                                colors::PRIMARY_GRADIENT_START.g.mul_add(0.4, colors::SUNSET_GRADIENT_START.g * 0.6),
+                                colors::PRIMARY_GRADIENT_START.b.mul_add(0.4, colors::SUNSET_GRADIENT_START.b * 0.6),
+                            ))
                         } else {
                             iced::Background::Color(colors::BG_ELEVATED)
                         },
                         border_width: 2.5,
                         border_color: if is_active {
-                            colors::SUNSET_GRADIENT_END
+                            colors::ACCENT_GRADIENT_END
                         } else {
                             colors::BORDER_SUBTLE
                         },
                     },
                 }
             })
-        // Larger height for better grab affordance with enhanced styling
+        // Enhanced height for better grab affordance
     })
     .style(focus_indicator(
         state.focused_element == FocusedElement::ProgressSlider,
@@ -134,12 +138,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(spacing::SM)
         } else {
             // Build cover art thumbnail (100x100px for better visibility)
-            // Enhanced with border and elevation for premium feel
+            // Enhanced with multi-layer gradient and elevation for premium feel
             let cover_element: Element<'_, Message> = audiobook_id
                 .and_then(|id| state.cover_thumbnails.get(&id))
                 .map_or_else(
                     || {
-                        // No cover available - show placeholder with enhanced gradient pattern
+                        // No cover available - show placeholder with premium multi-layer gradient
                         container(text("♪").size(typography::SIZE_XXL).style(
                             |_theme: &iced::Theme| iced::widget::text::Style {
                                 color: Some(colors::TEXT_SECONDARY),
@@ -150,16 +154,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .center_x(Length::Fill)
                         .center_y(Length::Fill)
                         .style(|_theme: &iced::Theme| container::Style {
-                            // Subtle gradient pattern for premium placeholder
-                            background: Some(Color::from_rgba(
-                                f32::midpoint(colors::BG_ELEVATED.r, colors::BG_RAISED.r),
-                                f32::midpoint(colors::BG_ELEVATED.g, colors::BG_RAISED.g),
-                                f32::midpoint(colors::BG_ELEVATED.b, colors::BG_RAISED.b),
-                                1.0,
+                            // Premium multi-layer gradient for cover placeholder
+                            background: Some(Color::from_rgb(
+                                colors::SUNSET_GRADIENT_START.r.mul_add(0.15, colors::PRIMARY_GRADIENT_START.r.mul_add(0.25, colors::BG_ELEVATED.r * 0.6)),
+                                colors::SUNSET_GRADIENT_START.g.mul_add(0.15, colors::PRIMARY_GRADIENT_START.g.mul_add(0.25, colors::BG_ELEVATED.g * 0.6)),
+                                colors::SUNSET_GRADIENT_START.b.mul_add(0.15, colors::PRIMARY_GRADIENT_START.b.mul_add(0.25, colors::BG_ELEVATED.b * 0.6)),
                             ).into()),
                             border: Border {
-                                color: colors::PRIMARY_GRADIENT_START,
-                                width: 1.5,
+                                color: colors::PRIMARY_GRADIENT_END,
+                                width: 2.0,
                                 radius: border_radius::MD.into(),
                             },
                             shadow: shadows::shadow_md(),
@@ -168,7 +171,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .into()
                     },
                     |path| {
-                        // Show cover thumbnail with enhanced border
+                        // Show cover thumbnail with enhanced gradient border
                         container(
                             image(iced::widget::image::Handle::from_path(path.clone()))
                                 .width(Length::Fixed(100.0))
@@ -176,8 +179,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         )
                         .style(|_theme: &iced::Theme| container::Style {
                             border: Border {
-                                color: colors::BORDER_SUBTLE,
-                                width: 1.0,
+                                color: colors::PRIMARY_GRADIENT_START,
+                                width: 1.5,
                                 radius: border_radius::MD.into(),
                             },
                             shadow: shadows::shadow_md(),

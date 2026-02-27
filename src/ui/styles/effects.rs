@@ -230,12 +230,12 @@ pub mod easing {
 ///
 /// # Shadow Levels
 ///
-/// - **Extra Small (xs)**: Minimal elevation (0.5px offset, 1px blur) - for very subtle depth
-/// - **Small (sm)**: Subtle lift (1px offset, 2px blur) - for buttons and input fields
-/// - **Medium (md)**: Moderate elevation (2px offset, 4px blur) - for cards and panels
-/// - **Large (lg)**: High elevation (4px offset, 8px blur) - for modals and dropdowns
-/// - **Extra Large (xl)**: Featured elevation (8px offset, 16px blur) - for hero content
-/// - **Extra Extra Large (xxl)**: Maximum elevation (12px offset, 24px blur) - for prominent elements
+/// - **Extra Small (xs)**: Minimal elevation (2px offset, 3px blur) - for very subtle depth
+/// - **Small (sm)**: Subtle lift (4px offset, 6px blur) - for buttons and input fields
+/// - **Medium (md)**: Moderate elevation (8px offset, 12px blur) - for cards and panels
+/// - **Large (lg)**: High elevation (16px offset, 24px blur) - for modals and dropdowns
+/// - **Extra Large (xl)**: Featured elevation (24px offset, 40px blur) - for hero content
+/// - **Extra Extra Large (xxl)**: Maximum elevation (48px offset, 80px blur) - for prominent elements
 ///
 /// # Examples
 ///
@@ -255,90 +255,90 @@ pub mod shadows {
 
     /// Extra subtle shadow for minimal elevation
     ///
-    /// Equivalent to: 0 0.5px 1px rgba(0,0,0,0.04)
+    /// Equivalent to: 0 2px 3px rgba(0,0,0,0.05)
     ///
     /// Use for very subtle depth on small UI elements.
     #[must_use]
     pub const fn shadow_xs() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.04),
-            offset: Vector::new(0.0, 0.5),
-            blur_radius: 1.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.05),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 3.0,
         }
     }
 
     /// Subtle lift shadow for minor elevation (buttons, input fields)
     ///
-    /// Equivalent to: 0 1px 2px rgba(0,0,0,0.06)
+    /// Equivalent to: 0 4px 6px rgba(0,0,0,0.08)
     ///
     /// Use for interactive elements that need minimal elevation like buttons
     /// and form inputs.
     #[must_use]
     pub const fn shadow_sm() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.06),
-            offset: Vector::new(0.0, 1.0),
-            blur_radius: 2.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.08),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 6.0,
         }
     }
 
     /// Card/button shadow for moderate elevation
     ///
-    /// Equivalent to: 0 2px 4px rgba(0,0,0,0.10)
+    /// Equivalent to: 0 8px 12px rgba(0,0,0,0.13)
     ///
     /// Use for cards, raised panels, and floating buttons that need clear
     /// separation from the background.
     #[must_use]
     pub const fn shadow_md() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.10),
-            offset: Vector::new(0.0, 2.0),
-            blur_radius: 4.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.13),
+            offset: Vector::new(0.0, 8.0),
+            blur_radius: 12.0,
         }
     }
 
     /// Modal/dropdown shadow for high elevation
     ///
-    /// Equivalent to: 0 4px 8px rgba(0,0,0,0.14)
+    /// Equivalent to: 0 16px 24px rgba(0,0,0,0.18)
     ///
     /// Use for modals, dropdowns, and popovers that float above the main
     /// content layer.
     #[must_use]
     pub const fn shadow_lg() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.14),
-            offset: Vector::new(0.0, 4.0),
-            blur_radius: 8.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.18),
+            offset: Vector::new(0.0, 16.0),
+            blur_radius: 24.0,
         }
     }
 
     /// Hero/featured shadow for maximum elevation
     ///
-    /// Equivalent to: 0 8px 16px rgba(0,0,0,0.18)
+    /// Equivalent to: 0 24px 40px rgba(0,0,0,0.23)
     ///
     /// Use for hero images, featured content, or elements that need maximum
     /// visual prominence.
     #[must_use]
     pub const fn shadow_xl() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.18),
-            offset: Vector::new(0.0, 8.0),
-            blur_radius: 16.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.23),
+            offset: Vector::new(0.0, 24.0),
+            blur_radius: 40.0,
         }
     }
 
     /// Extra large shadow for dramatic elevation
     ///
-    /// Equivalent to: 0 12px 24px rgba(0,0,0,0.26)
+    /// Equivalent to: 0 48px 80px rgba(0,0,0,0.32)
     ///
     /// Use for very prominent elements like the continue listening card
     /// or featured modals.
     #[must_use]
     pub const fn shadow_xxl() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.0, 0.0, 0.0, 0.26),
-            offset: Vector::new(0.0, 12.0),
-            blur_radius: 24.0,
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.32),
+            offset: Vector::new(0.0, 48.0),
+            blur_radius: 80.0,
         }
     }
 
@@ -426,9 +426,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_primary() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.15),
-            offset: Vector::new(0.0, 2.0),
-            blur_radius: 4.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.16),
+            offset: Vector::new(0.0, 8.0),
+            blur_radius: 12.0,
         }
     }
 
@@ -437,9 +437,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_warm() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
-            offset: Vector::new(0.0, 1.0),
-            blur_radius: 2.0,
+            color: Color::from_rgba(0.95, 0.85, 0.90, 0.14),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 6.0,
         }
     }
 
@@ -448,9 +448,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_md_rose() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.11),
-            offset: Vector::new(0.0, 2.0),
-            blur_radius: 4.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.14),
+            offset: Vector::new(0.0, 8.0),
+            blur_radius: 12.0,
         }
     }
 
@@ -459,9 +459,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_lg_rose() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.16),
-            offset: Vector::new(0.0, 4.0),
-            blur_radius: 8.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
+            offset: Vector::new(0.0, 16.0),
+            blur_radius: 24.0,
         }
     }
 
@@ -521,9 +521,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_xs_brand() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.06),
-            offset: Vector::new(0.0, 0.5),
-            blur_radius: 1.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.07),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 3.0,
         }
     }
 
@@ -531,9 +531,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_sm_brand() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.09),
-            offset: Vector::new(0.0, 1.0),
-            blur_radius: 2.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.11),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 6.0,
         }
     }
 
@@ -541,9 +541,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_md_brand() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.14),
-            offset: Vector::new(0.0, 2.0),
-            blur_radius: 4.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.17),
+            offset: Vector::new(0.0, 8.0),
+            blur_radius: 12.0,
         }
     }
 
@@ -551,9 +551,9 @@ pub mod shadows {
     #[must_use]
     pub const fn shadow_lg_brand() -> Shadow {
         Shadow {
-            color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
-            offset: Vector::new(0.0, 4.0),
-            blur_radius: 8.0,
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.24),
+            offset: Vector::new(0.0, 16.0),
+            blur_radius: 24.0,
         }
     }
 
@@ -568,15 +568,15 @@ pub mod shadows {
         vec![
             // Ambient shadow for subtle lift
             Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.04),
-                offset: Vector::new(0.0, 1.0),
-                blur_radius: 3.0,
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.05),
+                offset: Vector::new(0.0, 4.0),
+                blur_radius: 8.0,
             },
             // Directional rose-tinted shadow for definition
             Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.08),
-                offset: Vector::new(0.0, 2.0),
-                blur_radius: 6.0,
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.10),
+                offset: Vector::new(0.0, 8.0),
+                blur_radius: 16.0,
             },
         ]
     }
@@ -587,14 +587,14 @@ pub mod shadows {
     pub fn shadow_card_premium() -> Vec<Shadow> {
         vec![
             Shadow {
-                color: Color::from_rgba(0.95, 0.85, 0.90, 0.08),
-                offset: Vector::new(0.0, 1.0),
-                blur_radius: 2.0,
+                color: Color::from_rgba(0.95, 0.85, 0.90, 0.10),
+                offset: Vector::new(0.0, 4.0),
+                blur_radius: 8.0,
             },
             Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.12),
-                offset: Vector::new(0.0, 2.5),
-                blur_radius: 5.0,
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.15),
+                offset: Vector::new(0.0, 10.0),
+                blur_radius: 20.0,
             },
         ]
     }
@@ -605,19 +605,19 @@ pub mod shadows {
     pub fn shadow_modal_premium() -> Vec<Shadow> {
         vec![
             Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.05),
-                offset: Vector::new(0.0, 2.0),
-                blur_radius: 4.0,
-            },
-            Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.15),
-                offset: Vector::new(0.0, 4.0),
-                blur_radius: 8.0,
-            },
-            Shadow {
-                color: Color::from_rgba(0.98, 0.32, 0.45, 0.08),
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.06),
                 offset: Vector::new(0.0, 8.0),
                 blur_radius: 16.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.18),
+                offset: Vector::new(0.0, 16.0),
+                blur_radius: 32.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.98, 0.32, 0.45, 0.10),
+                offset: Vector::new(0.0, 24.0),
+                blur_radius: 48.0,
             },
         ]
     }

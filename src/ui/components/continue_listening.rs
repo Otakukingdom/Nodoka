@@ -100,21 +100,19 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
-            // Multi-layer gradient background for dramatic depth
+            // Enhanced multi-layer gradient background for dramatic depth
             // Creates premium rose-to-crimson transition with middle accent
-            // Uses solid color with gradient blend for compatibility
             background: Some(continue_gradient_multi_layer().into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
                 width: 2.5,
                 radius: border_radius::LG.into(),
             },
-            // Multi-layer shadow for dramatic elevation
-            // Combines ambient shadow with rose-tinted directional shadow
+            // Enhanced multi-layer shadow for dramatic elevation using improved shadow levels
             shadow: Shadow {
-                color: Color::from_rgba(0.95, 0.85, 0.90, 0.10),
-                offset: Vector::new(0.0, 2.0),
-                blur_radius: 5.0,
+                color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
+                offset: Vector::new(0.0, 4.0),
+                blur_radius: 8.0,
             },
             text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
@@ -148,8 +146,8 @@ fn build_large_cover<S: BuildHasher>(
             .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_SECONDARY.into()),
                 border: Border {
-                    color: colors::BORDER_SUBTLE,
-                    width: 1.0,
+                    color: colors::PRIMARY_GRADIENT_START,
+                    width: 1.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -182,10 +180,15 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
     .width(Length::Fixed(size))
     .height(Length::Fixed(size))
     .style(|_theme: &iced::Theme| container::Style {
-        background: Some(colors::BG_SECONDARY.into()),
+        // Premium gradient placeholder for sophisticated appearance
+        background: Some(Color::from_rgb(
+            colors::SUNSET_GRADIENT_START.r.mul_add(0.1, colors::PRIMARY_GRADIENT_START.r.mul_add(0.2, colors::BG_SECONDARY.r * 0.7)),
+            colors::SUNSET_GRADIENT_START.g.mul_add(0.1, colors::PRIMARY_GRADIENT_START.g.mul_add(0.2, colors::BG_SECONDARY.g * 0.7)),
+            colors::SUNSET_GRADIENT_START.b.mul_add(0.1, colors::PRIMARY_GRADIENT_START.b.mul_add(0.2, colors::BG_SECONDARY.b * 0.7)),
+        ).into()),
         border: Border {
-            color: colors::BORDER_SUBTLE,
-            width: 1.0,
+            color: colors::PRIMARY_GRADIENT_START,
+            width: 1.5,
             radius: border_radius::MD.into(),
         },
         shadow: shadows::shadow_md(),
@@ -203,9 +206,9 @@ fn continue_gradient_multi_layer() -> Color {
     let mid2 = colors::SUNSET_GRADIENT_START;
     let end = colors::CONTINUE_GRADIENT_END;
     Color {
-        r: end.r * 0.25 + start.r * 0.25 + mid1.r * 0.3 + mid2.r * 0.2,
-        g: end.g * 0.25 + start.g * 0.25 + mid1.g * 0.3 + mid2.g * 0.2,
-        b: end.b * 0.25 + start.b * 0.25 + mid1.b * 0.3 + mid2.b * 0.2,
+        r: mid2.r.mul_add(0.2, mid1.r.mul_add(0.3, end.r.mul_add(0.25, start.r * 0.25))),
+        g: mid2.g.mul_add(0.2, mid1.g.mul_add(0.3, end.g.mul_add(0.25, start.g * 0.25))),
+        b: mid2.b.mul_add(0.2, mid1.b.mul_add(0.3, end.b.mul_add(0.25, start.b * 0.25))),
         a: 1.0,
     }
 }

@@ -159,7 +159,10 @@ use iced::{Border, Color, Theme};
 // Module declarations
 pub mod accessibility;
 pub mod animations;
+pub mod badge_styles;
+pub mod card_styles;
 pub mod colors;
+pub mod component_styles;
 pub mod components;
 pub mod design_system_tests;
 pub mod effects;
@@ -172,9 +175,11 @@ pub mod typography;
 
 // Re-export submodules for backward compatibility
 pub use accessibility::*;
+pub use badge_styles::*;
+pub use card_styles::*;
 pub use colors::*;
+pub use component_styles::*;
 pub use components::*;
-pub use components::{card_styles, input_styles};
 pub use effects::{cursor, shadows, transitions};
 pub use gradients::*;
 pub use interactive::*;

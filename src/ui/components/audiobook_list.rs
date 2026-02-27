@@ -155,23 +155,22 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let cover = build_cover(ab.id, cover_thumbnails, opacity);
     let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
-    // Apply selection styling with enhanced three-color gradient
-    // Multi-color gradient: blend subtle, primary, and accent for distinctive appearance
+    // Apply selection styling with enhanced multi-layer gradient
+    // Multi-color gradient: blend sunset, primary, and accent for distinctive appearance
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                // Multi-color gradient: blend subtle, primary, and accent
-                // Use inline calculations without let statements for struct literal
+                // Enhanced multi-layer gradient for selection
                 background: Some(Color {
-                    r: colors::SUBTLE_GRADIENT_START.r * 0.85 + colors::PRIMARY_GRADIENT_START.r * 0.09 + colors::ACCENT_GRADIENT_START.r * 0.06,
-                    g: colors::SUBTLE_GRADIENT_START.g * 0.85 + colors::PRIMARY_GRADIENT_START.g * 0.09 + colors::ACCENT_GRADIENT_START.g * 0.06,
-                    b: colors::SUBTLE_GRADIENT_START.b * 0.85 + colors::PRIMARY_GRADIENT_START.b * 0.09 + colors::ACCENT_GRADIENT_START.b * 0.06,
-                    a: opacity,
+                    r: colors::ACCENT_GRADIENT_START.r.mul_add(0.20, colors::PRIMARY_GRADIENT_START.r.mul_add(0.30, colors::SUNSET_GRADIENT_START.r * 0.50)),
+                    g: colors::ACCENT_GRADIENT_START.g.mul_add(0.20, colors::PRIMARY_GRADIENT_START.g.mul_add(0.30, colors::SUNSET_GRADIENT_START.g * 0.50)),
+                    b: colors::ACCENT_GRADIENT_START.b.mul_add(0.20, colors::PRIMARY_GRADIENT_START.b.mul_add(0.30, colors::SUNSET_GRADIENT_START.b * 0.50)),
+                    a: 0.95 * opacity,
                 }.into()),
-                text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
+                text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 border: Border {
                     color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-                    width: 4.0,
+                    width: 4.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -247,12 +246,16 @@ fn build_cover<S: BuildHasher>(
 ) -> Element<'_, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    // Larger cover thumbnail (120x120px) for better visibility
-    // Enhanced shadow (md) for better depth perception on covers
+    // Premium cover thumbnail (120x120px) with enhanced shadow and gradient treatments
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
-            // Premium gradient color for cover placeholder
-            let placeholder_bg = with_alpha_gradient_cover(colors::BG_ELEVATED, colors::BG_RAISED, opacity);
+            // Multi-layer premium gradient for cover placeholder
+            let placeholder_bg = with_alpha_gradient_cover_premium(
+                colors::BG_ELEVATED,
+                colors::PRIMARY_GRADIENT_START,
+                colors::SUNSET_GRADIENT_START,
+                opacity,
+            );
             container(
                 text("♪")
                     .size(typography::SIZE_XL)
@@ -265,12 +268,11 @@ fn build_cover<S: BuildHasher>(
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(move |_theme: &iced::Theme| container::Style {
-                // Premium gradient pattern for cover placeholder instead of plain color
-                // Uses subtle gradient for sophisticated appearance when no cover is available
+                // Multi-layer gradient for premium placeholder appearance
                 background: Some(placeholder_bg.into()),
                 border: Border {
-                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
-                    width: 1.5,
+                    color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
+                    width: 2.0,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -286,8 +288,8 @@ fn build_cover<S: BuildHasher>(
             )
             .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
-                    color: with_alpha(colors::BORDER_SUBTLE, opacity),
-                    width: 1.0,
+                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
+                    width: 1.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -298,12 +300,13 @@ fn build_cover<S: BuildHasher>(
     )
 }
 
-/// Creates gradient color for cover placeholder background
-fn with_alpha_gradient_cover(start: Color, end: Color, opacity: f32) -> Color {
+/// Creates multi-layer premium gradient for cover placeholder background
+/// Blends three colors for sophisticated appearance
+fn with_alpha_gradient_cover_premium(base: Color, primary: Color, accent: Color, opacity: f32) -> Color {
     Color {
-        r: f32::midpoint(start.r, end.r) * opacity,
-        g: f32::midpoint(start.g, end.g) * opacity,
-        b: f32::midpoint(start.b, end.b) * opacity,
+        r: accent.r.mul_add(0.1, primary.r.mul_add(0.2, base.r * 0.7)) * opacity,
+        g: accent.g.mul_add(0.1, primary.g.mul_add(0.2, base.g * 0.7)) * opacity,
+        b: accent.b.mul_add(0.1, primary.b.mul_add(0.2, base.b * 0.7)) * opacity,
         a: opacity,
     }
 }

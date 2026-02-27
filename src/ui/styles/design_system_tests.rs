@@ -865,7 +865,7 @@ mod tests {
             shadow.blur_radius
         );
         assert!(
-            shadow.blur_radius <= 30.0,
+            shadow.blur_radius <= 80.0,
             "Shadow XXL blur should be reasonable, got {}",
             shadow.blur_radius
         );

@@ -229,14 +229,14 @@ pub const SURFACE_HOVER: Color = Color::from_rgb(0.98, 0.975, 0.98);
 pub const SURFACE_ACTIVE: Color = Color::from_rgb(0.95, 0.94, 0.96);
 
 /// Primary gradient colors for visual depth on special elements.
-/// Refined with ultra-smooth rose-to-crimson transition for premium appearance.
-pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.97, 0.24, 0.38);
-pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.84, 0.11, 0.26);
+/// Enhanced with ultra-smooth rose-to-crimson transition for premium appearance.
+pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.99, 0.28, 0.42);
+pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.86, 0.13, 0.28);
 
 /// Accent gradient colors for CTAs and highlights.
-/// Refined with vibrant rose-to-magenta transition for distinctive appeal.
-pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(0.995, 0.48, 0.56);
-pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.91, 0.14, 0.32);
+/// Enhanced with vibrant rose-to-magenta transition for distinctive appeal.
+pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(1.0, 0.50, 0.60);
+pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.92, 0.15, 0.35);
 
 /// Continue listening card gradient for premium feel.
 /// Refined with luminous rose-to-crimson transition for dramatic effect.
@@ -288,9 +288,9 @@ pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.26);
 
 /// ===== Premium Distinctive Gradients =====
 /// Premium sunset gradient for distinctive brand identity
-/// Creates warm, sophisticated rose-to-coral transition for premium appearance
-pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.98, 0.32, 0.45);
-pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.88, 0.15, 0.30);
+/// Enhanced with smoother interpolation for premium rose-to-coral transition
+pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.99, 0.35, 0.50);
+pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.90, 0.18, 0.35);
 
 /// Aurora gradient for premium cool accents
 /// Provides calming blue-to-purple transition for visual variety
@@ -313,7 +313,20 @@ pub const GOLD_GRADIENT_START: Color = Color::from_rgb(1.0, 0.82, 0.40);
 pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.92, 0.68, 0.25);
 
 /// Premium glow for active elements with enhanced rose tint
-pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.45);
+pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.50);
+
+/// ===== Premium Gradients for Special Use Cases =====
+/// Subtle gradient for backgrounds - very low contrast for premium depth
+pub const PREMIUM_SUBTLE_START: Color = Color::from_rgb(0.995, 0.985, 0.992);
+pub const PREMIUM_SUBTLE_END: Color = Color::from_rgb(0.98, 0.97, 0.985);
+
+/// Ocean gradient for cool accents - teal-to-blue transition
+pub const OCEAN_GRADIENT_START: Color = Color::from_rgb(0.50, 0.88, 0.93);
+pub const OCEAN_GRADIENT_END: Color = Color::from_rgb(0.40, 0.72, 0.85);
+
+/// Royal gradient for premium moments - purple-to-pink transition
+pub const ROYAL_GRADIENT_START: Color = Color::from_rgb(0.75, 0.60, 0.95);
+pub const ROYAL_GRADIENT_END: Color = Color::from_rgb(0.92, 0.50, 0.75);
 
 /// ===== Signature Brand Gradient =====
 ///
@@ -513,14 +526,14 @@ pub mod dark_theme {
     pub const SURFACE_ACTIVE: Color = Color::from_rgb(0.32, 0.31, 0.32);
 
     /// Primary gradient colors for dark theme.
-    /// Refined with enhanced brightness for excellent contrast on dark backgrounds.
-    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.98, 0.25, 0.40);
-    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.86, 0.13, 0.28);
+    /// Enhanced with optimized brightness and smoother interpolation for visibility.
+    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.28, 0.45);
+    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.88, 0.15, 0.32);
 
     /// Accent gradient colors for dark theme.
-    /// Refined with vibrant rose-to-magenta transition for visibility.
-    pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(1.0, 0.49, 0.58);
-    pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.92, 0.15, 0.33);
+    /// Enhanced with vibrant rose-to-magenta transition for maximum visibility.
+    pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(1.0, 0.52, 0.62);
+    pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.94, 0.18, 0.38);
 
     /// Continue listening card gradient for dark theme.
     /// Enhanced with maximum brightness to maintain vibrancy on dark backgrounds.
@@ -568,9 +581,9 @@ pub mod dark_theme {
     /// ===== Premium Distinctive Gradients for Dark Theme =====
     ///
     /// Premium sunset gradient for dark theme with enhanced brightness
-    /// Creates warm, sophisticated rose-to-coral transition optimized for dark backgrounds
-    pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.99, 0.35, 0.50);
-    pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.90, 0.18, 0.35);
+    /// Enhanced with smoother interpolation for premium appearance on dark backgrounds
+    pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(1.0, 0.40, 0.55);
+    pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.92, 0.20, 0.38);
 
     /// Aurora gradient for dark theme with enhanced brightness
     /// Provides calming blue-to-purple transition with better contrast on dark backgrounds
@@ -597,7 +610,20 @@ pub mod dark_theme {
     pub const SIGNATURE_GRADIENT_END: Color = Color::from_rgb(0.68, 0.08, 0.18);
 
     /// Premium glow for dark theme with enhanced brightness
-    pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.82, 0.10, 0.25, 0.35);
+    pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.82, 0.10, 0.25, 0.40);
+
+    /// ===== Premium Gradients for Dark Theme Special Use Cases =====
+    /// Subtle gradient for dark theme backgrounds
+    pub const PREMIUM_SUBTLE_START: Color = Color::from_rgb(0.22, 0.21, 0.23);
+    pub const PREMIUM_SUBTLE_END: Color = Color::from_rgb(0.20, 0.19, 0.22);
+
+    /// Ocean gradient for dark theme cool accents
+    pub const OCEAN_GRADIENT_START: Color = Color::from_rgb(0.55, 0.88, 0.93);
+    pub const OCEAN_GRADIENT_END: Color = Color::from_rgb(0.45, 0.72, 0.85);
+
+    /// Royal gradient for dark theme premium moments
+    pub const ROYAL_GRADIENT_START: Color = Color::from_rgb(0.80, 0.65, 0.98);
+    pub const ROYAL_GRADIENT_END: Color = Color::from_rgb(0.94, 0.55, 0.80);
 }
 
 /// WCAG AA minimum contrast ratio for normal text (4.5:1).
