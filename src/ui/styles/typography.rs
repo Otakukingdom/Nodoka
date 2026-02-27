@@ -15,8 +15,8 @@ pub const SIZE_PREMIUM: f32 = 28.0;
 pub const SIZE_DISPLAY_PREMIUM: f32 = 36.0;
 
 // Re-export preset and helper modules from parent module
-pub use crate::ui::styles::typography_presets::*;
 pub use crate::ui::styles::typography_helpers::*;
+pub use crate::ui::styles::typography_presets::*;
 
 /// Font weight constants for distinctive typography
 pub mod weight {
@@ -138,8 +138,8 @@ pub mod type_scale {
 /// Provides consistent text color selection based on hierarchy level
 /// and semantic purpose.
 pub mod semantic_color {
-    use crate::ui::styles::colors::{self, ColorType};
     use crate::ui::state::ThemeMode;
+    use crate::ui::styles::colors::{self, ColorType};
 
     /// Primary text color for headings and important content
     #[must_use]

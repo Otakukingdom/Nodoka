@@ -7,27 +7,25 @@
 //! - [`sleep`]: Sleep timer controls
 //! - [`helpers`]: Time formatting and progress calculation utilities
 
+pub mod helpers;
 mod playback;
 mod sleep;
 mod speed;
 mod volume;
-pub mod helpers;
 
-use crate::ui::styles::{
-    border_radius, colors, focus_indicator, shadows, spacing, typography,
-};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{border_radius, colors, focus_indicator, shadows, spacing, typography};
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{
     column, container, image, mouse_area, row, slider as widget_slider, text, Space,
 };
 use iced::{Border, Color, Element, Length};
 
+pub use helpers::{calculate_progress_summary, extract_chapter_name};
 pub use playback::playback_controls;
 pub use sleep::{format_remaining_seconds, sleep_timer_controls};
 pub use speed::{format_speed_label, speed_controls, SpeedPreset};
 pub use volume::{format_time, format_time_remaining, volume_controls, volume_level_color};
-pub use helpers::{calculate_progress_summary, extract_chapter_name};
 
 /// Renders the player controls component with improved UX
 ///
@@ -75,48 +73,68 @@ pub fn view(state: &State) -> Element<'_, Message> {
         let is_active = state.playback == PlaybackStatus::Playing;
         widget_slider(0.0..=max_duration, current_time, Message::SeekTo)
             .height(28.0)
-            .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
-                let alpha = if is_active { 1.0 } else { 0.92 };
-                iced::widget::slider::Style {
-                    rail: iced::widget::slider::Rail {
-                        backgrounds: (
-                            iced::Background::Color(colors::BG_SECONDARY),
-                            // Simplified 2-color gradient for premium fill
-                            iced::Background::Color(Color::from_rgba(
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::PROGRESS_GRADIENT_END.r) * alpha,
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::PROGRESS_GRADIENT_END.g) * alpha,
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::PROGRESS_GRADIENT_END.b) * alpha,
-                                alpha,
-                            )),
-                        ),
-                        width: 10.0,
-                        border: iced::Border {
-                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
-                            width: border_width::THIN,
-                            radius: 5.0.into(),
+            .style(
+                move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
+                    let alpha = if is_active { 1.0 } else { 0.92 };
+                    iced::widget::slider::Style {
+                        rail: iced::widget::slider::Rail {
+                            backgrounds: (
+                                iced::Background::Color(colors::BG_SECONDARY),
+                                // Simplified 2-color gradient for premium fill
+                                iced::Background::Color(Color::from_rgba(
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.r,
+                                        colors::PROGRESS_GRADIENT_END.r,
+                                    ) * alpha,
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.g,
+                                        colors::PROGRESS_GRADIENT_END.g,
+                                    ) * alpha,
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.b,
+                                        colors::PROGRESS_GRADIENT_END.b,
+                                    ) * alpha,
+                                    alpha,
+                                )),
+                            ),
+                            width: 10.0,
+                            border: iced::Border {
+                                color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
+                                width: border_width::THIN,
+                                radius: 5.0.into(),
+                            },
                         },
-                    },
-                    handle: iced::widget::slider::Handle {
-                        shape: iced::widget::slider::HandleShape::Circle { radius: 12.0 },
-                        // Simplified gradient for active handle
-                        background: if is_active {
-                            iced::Background::Color(Color::from_rgb(
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::SUNSET_GRADIENT_START.r),
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::SUNSET_GRADIENT_START.g),
-                                f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::SUNSET_GRADIENT_START.b),
-                            ))
-                        } else {
-                            iced::Background::Color(colors::BG_ELEVATED)
+                        handle: iced::widget::slider::Handle {
+                            shape: iced::widget::slider::HandleShape::Circle { radius: 12.0 },
+                            // Simplified gradient for active handle
+                            background: if is_active {
+                                iced::Background::Color(Color::from_rgb(
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.r,
+                                        colors::SUNSET_GRADIENT_START.r,
+                                    ),
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.g,
+                                        colors::SUNSET_GRADIENT_START.g,
+                                    ),
+                                    f32::midpoint(
+                                        colors::PRIMARY_GRADIENT_START.b,
+                                        colors::SUNSET_GRADIENT_START.b,
+                                    ),
+                                ))
+                            } else {
+                                iced::Background::Color(colors::BG_ELEVATED)
+                            },
+                            border_width: border_width::THICK,
+                            border_color: if is_active {
+                                colors::ACCENT_GRADIENT_END
+                            } else {
+                                colors::BORDER_SUBTLE
+                            },
                         },
-                        border_width: border_width::THICK,
-                        border_color: if is_active {
-                            colors::ACCENT_GRADIENT_END
-                        } else {
-                            colors::BORDER_SUBTLE
-                        },
-                    },
-                }
-            })
+                    }
+                },
+            )
     })
     .style(focus_indicator(
         state.focused_element == FocusedElement::ProgressSlider,
@@ -159,7 +177,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                                     f32::midpoint(base.r, accent.r),
                                     f32::midpoint(base.g, accent.g),
                                     f32::midpoint(base.b, accent.b),
-                                ).into()
+                                )
+                                .into()
                             }),
                             border: Border {
                                 color: colors::PRIMARY_GRADIENT_END,
@@ -228,7 +247,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         f32::midpoint(start.r, end.r),
                         f32::midpoint(start.g, end.g),
                         f32::midpoint(start.b, end.b),
-                    ).into()
+                    )
+                    .into()
                 }),
                 border: Border {
                     color: colors::CONTINUE_GRADIENT_END,

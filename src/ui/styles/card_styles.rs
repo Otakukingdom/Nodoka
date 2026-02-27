@@ -100,16 +100,19 @@ pub fn card_default_hover() -> impl Fn(&iced::Theme) -> iced::widget::container:
 #[must_use = "card style must be applied to a container"]
 pub fn card_elevated() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
-        background: Some({
-            // Subtle gradient tint for elevated appearance
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let bg = colors::BG_RAISED;
-            Color::from_rgb(
-                primary.r.mul_add(0.15, bg.r * 0.85),
-                primary.g.mul_add(0.15, bg.g * 0.85),
-                primary.b.mul_add(0.15, bg.b * 0.85),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Subtle gradient tint for elevated appearance
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let bg = colors::BG_RAISED;
+                Color::from_rgb(
+                    primary.r.mul_add(0.15, bg.r * 0.85),
+                    primary.g.mul_add(0.15, bg.g * 0.85),
+                    primary.b.mul_add(0.15, bg.b * 0.85),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::PRIMARY_GRADIENT_START,
             width: 1.5,
@@ -140,16 +143,19 @@ pub fn card_elevated() -> impl Fn(&iced::Theme) -> iced::widget::container::Styl
 #[must_use = "card style must be applied to a container"]
 pub fn card_elevated_hover() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
-        background: Some({
-            // Brighter gradient tint for hover effect
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let bg = colors::BG_RAISED;
-            Color::from_rgb(
-                primary.r.mul_add(0.25, bg.r * 0.75),
-                primary.g.mul_add(0.25, bg.g * 0.75),
-                primary.b.mul_add(0.25, bg.b * 0.75),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Brighter gradient tint for hover effect
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let bg = colors::BG_RAISED;
+                Color::from_rgb(
+                    primary.r.mul_add(0.25, bg.r * 0.75),
+                    primary.g.mul_add(0.25, bg.g * 0.75),
+                    primary.b.mul_add(0.25, bg.b * 0.75),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::PRIMARY_GRADIENT_END,
             width: 2.0,
@@ -198,16 +204,19 @@ pub fn card_interactive() -> impl Fn(&iced::Theme) -> iced::widget::container::S
 #[must_use = "card style must be applied to a container"]
 pub fn card_interactive_hover() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
-        background: Some({
-            // Enhanced gradient tint for interactive hover
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let hover = colors::SURFACE_HOVER;
-            Color::from_rgb(
-                primary.r.mul_add(0.25, hover.r * 0.75),
-                primary.g.mul_add(0.25, hover.g * 0.75),
-                primary.b.mul_add(0.25, hover.b * 0.75),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Enhanced gradient tint for interactive hover
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let hover = colors::SURFACE_HOVER;
+                Color::from_rgb(
+                    primary.r.mul_add(0.25, hover.r * 0.75),
+                    primary.g.mul_add(0.25, hover.g * 0.75),
+                    primary.b.mul_add(0.25, hover.b * 0.75),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::PRIMARY_GRADIENT_START,
             width: 1.5,
@@ -232,16 +241,19 @@ pub fn card_interactive_hover() -> impl Fn(&iced::Theme) -> iced::widget::contai
 #[must_use = "card style must be applied to a container"]
 pub fn card_selected() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
-        background: Some({
-            // Subtle accent gradient tint for selected state
-            let accent = colors::ACCENT_GRADIENT_START;
-            let bg = colors::BG_RAISED;
-            Color::from_rgb(
-                accent.r.mul_add(0.20, bg.r * 0.80),
-                accent.g.mul_add(0.20, bg.g * 0.80),
-                accent.b.mul_add(0.20, bg.b * 0.80),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Subtle accent gradient tint for selected state
+                let accent = colors::ACCENT_GRADIENT_START;
+                let bg = colors::BG_RAISED;
+                Color::from_rgb(
+                    accent.r.mul_add(0.20, bg.r * 0.80),
+                    accent.g.mul_add(0.20, bg.g * 0.80),
+                    accent.b.mul_add(0.20, bg.b * 0.80),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::ACCENT_GRADIENT_END,
             width: 2.5,
@@ -271,17 +283,20 @@ pub fn card_selected() -> impl Fn(&iced::Theme) -> iced::widget::container::Styl
 #[must_use = "card style must be applied to a container"]
 pub fn card_selected_hover() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
-        background: Some({
-            // Enhanced accent gradient tint for hover state
-            let accent = colors::ACCENT_GRADIENT_START;
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let bg = colors::BG_RAISED;
-            Color::from_rgb(
-                accent.r.mul_add(0.3, primary.r.mul_add(0.2, bg.r * 0.5)),
-                accent.g.mul_add(0.3, primary.g.mul_add(0.2, bg.g * 0.5)),
-                accent.b.mul_add(0.3, primary.b.mul_add(0.2, bg.b * 0.5)),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Enhanced accent gradient tint for hover state
+                let accent = colors::ACCENT_GRADIENT_START;
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let bg = colors::BG_RAISED;
+                Color::from_rgb(
+                    accent.r.mul_add(0.3, primary.r.mul_add(0.2, bg.r * 0.5)),
+                    accent.g.mul_add(0.3, primary.g.mul_add(0.2, bg.g * 0.5)),
+                    accent.b.mul_add(0.3, primary.b.mul_add(0.2, bg.b * 0.5)),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::PRIMARY_GRADIENT_START,
             width: 3.0,
@@ -308,16 +323,19 @@ pub fn card_selected_hover() -> impl Fn(&iced::Theme) -> iced::widget::container
 pub fn card_premium() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
         // Multi-layer gradient background for premium appearance
-        background: Some({
-            // Blend sunset and primary gradients for sophisticated rose tone
-            let sunset = colors::SUNSET_GRADIENT_START;
-            let primary = colors::PRIMARY_GRADIENT_START;
-            Color::from_rgb(
-                primary.r.mul_add(0.5, sunset.r * 0.5),
-                primary.g.mul_add(0.5, sunset.g * 0.5),
-                primary.b.mul_add(0.5, sunset.b * 0.5),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Blend sunset and primary gradients for sophisticated rose tone
+                let sunset = colors::SUNSET_GRADIENT_START;
+                let primary = colors::PRIMARY_GRADIENT_START;
+                Color::from_rgb(
+                    primary.r.mul_add(0.5, sunset.r * 0.5),
+                    primary.g.mul_add(0.5, sunset.g * 0.5),
+                    primary.b.mul_add(0.5, sunset.b * 0.5),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::PRIMARY_GRADIENT_END,
             width: 2.0,
@@ -349,17 +367,26 @@ pub fn card_premium() -> impl Fn(&iced::Theme) -> iced::widget::container::Style
 pub fn card_premium_hover() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
         // Enhanced multi-layer gradient background for hover state
-        background: Some({
-            // Brighter blend for hover effect with increased saturation
-            let sunset = colors::SUNSET_GRADIENT_START;
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let accent = colors::ACCENT_GRADIENT_START;
-            Color::from_rgb(
-                accent.r.mul_add(0.2, sunset.r.mul_add(0.4, primary.r * 0.4)),
-                accent.g.mul_add(0.2, sunset.g.mul_add(0.4, primary.g * 0.4)),
-                accent.b.mul_add(0.2, sunset.b.mul_add(0.4, primary.b * 0.4)),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Brighter blend for hover effect with increased saturation
+                let sunset = colors::SUNSET_GRADIENT_START;
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let accent = colors::ACCENT_GRADIENT_START;
+                Color::from_rgb(
+                    accent
+                        .r
+                        .mul_add(0.2, sunset.r.mul_add(0.4, primary.r * 0.4)),
+                    accent
+                        .g
+                        .mul_add(0.2, sunset.g.mul_add(0.4, primary.g * 0.4)),
+                    accent
+                        .b
+                        .mul_add(0.2, sunset.b.mul_add(0.4, primary.b * 0.4)),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             // Sunset gradient border for distinctive hover appearance
             color: colors::SUNSET_GRADIENT_END,
@@ -387,17 +414,26 @@ pub fn card_premium_hover() -> impl Fn(&iced::Theme) -> iced::widget::container:
 pub fn card_featured() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
     move |_theme: &iced::Theme| iced::widget::container::Style {
         // Multi-layer gradient background for dramatic featured appearance
-        background: Some({
-            // Blend sunset, primary, and accent gradients for maximum impact
-            let sunset = colors::SUNSET_GRADIENT_START;
-            let primary = colors::PRIMARY_GRADIENT_START;
-            let accent = colors::ACCENT_GRADIENT_START;
-            Color::from_rgb(
-                accent.r.mul_add(0.25, sunset.r.mul_add(0.4, primary.r * 0.35)),
-                accent.g.mul_add(0.25, sunset.g.mul_add(0.4, primary.g * 0.35)),
-                accent.b.mul_add(0.25, sunset.b.mul_add(0.4, primary.b * 0.35)),
-            )
-        }.into()),
+        background: Some(
+            {
+                // Blend sunset, primary, and accent gradients for maximum impact
+                let sunset = colors::SUNSET_GRADIENT_START;
+                let primary = colors::PRIMARY_GRADIENT_START;
+                let accent = colors::ACCENT_GRADIENT_START;
+                Color::from_rgb(
+                    accent
+                        .r
+                        .mul_add(0.25, sunset.r.mul_add(0.4, primary.r * 0.35)),
+                    accent
+                        .g
+                        .mul_add(0.25, sunset.g.mul_add(0.4, primary.g * 0.35)),
+                    accent
+                        .b
+                        .mul_add(0.25, sunset.b.mul_add(0.4, primary.b * 0.35)),
+                )
+            }
+            .into(),
+        ),
         border: Border {
             color: colors::ACCENT_GRADIENT_END,
             width: 2.5,

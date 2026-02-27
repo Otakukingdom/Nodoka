@@ -431,6 +431,9 @@ mod tests {
     fn test_hover_progression_subtle_to_elevated() {
         let subtle = hover_subtle(0.5);
         let elevated = hover_elevated(0.5);
-        assert!(elevated.a > subtle.a, "Elevated should have stronger alpha than subtle");
+        assert!(
+            elevated.a > subtle.a,
+            "Elevated should have stronger alpha than subtle"
+        );
     }
 }

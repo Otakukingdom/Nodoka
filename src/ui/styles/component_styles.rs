@@ -5,7 +5,6 @@
 
 /// Empty state component styling utilities
 pub mod empty_state_styles {
-    #[allow(unused_imports)]
     use crate::ui::styles::{border_radius, colors, Border};
     use iced::widget::container;
 
@@ -183,7 +182,8 @@ mod tests {
 
     #[test]
     fn test_notification_background_success_returns_valid_color() {
-        let color = notification_styles::background_color(&crate::ui::state::NotificationType::Success);
+        let color =
+            notification_styles::background_color(&crate::ui::state::NotificationType::Success);
         assert!(color.r >= 0.0 && color.r <= 1.0);
     }
 

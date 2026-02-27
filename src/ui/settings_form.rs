@@ -2,8 +2,8 @@
 //!
 //! Renders the settings form shown inside the settings modal overlay.
 
-use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -229,11 +229,14 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
             .height(Length::Fixed(3.0))
             .style(move |_theme: &iced::Theme| container::Style {
                 // Simplified 2-color gradient for section divider
-                background: Some(Color::from_rgb(
-                    f32::midpoint(gradient_start.r, gradient_end.r),
-                    f32::midpoint(gradient_start.g, gradient_end.g),
-                    f32::midpoint(gradient_start.b, gradient_end.b),
-                ).into()),
+                background: Some(
+                    Color::from_rgb(
+                        f32::midpoint(gradient_start.r, gradient_end.r),
+                        f32::midpoint(gradient_start.g, gradient_end.g),
+                        f32::midpoint(gradient_start.b, gradient_end.b),
+                    )
+                    .into()
+                ),
                 border: Border {
                     radius: border_radius::FULL.into(),
                     ..Default::default()

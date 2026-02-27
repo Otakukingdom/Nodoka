@@ -3,7 +3,7 @@
 use crate::models::SleepTimerMode;
 use crate::ui::styles::{button_styles, colors, spacing, typography};
 use crate::ui::{Message, State};
-use iced::widget::{button, pick_list, row, text, text_input, column, Space};
+use iced::widget::{button, column, pick_list, row, text, text_input, Space};
 use iced::Element;
 
 /// Sleep timer preset options

@@ -4,9 +4,9 @@
 //! presets with theme colors for easy application throughout the UI, ensuring
 //! consistent visual hierarchy.
 
-use iced::widget::text;
 use crate::ui::styles::colors;
 use crate::ui::styles::typography_presets as preset;
+use iced::widget::text;
 
 /// Creates a styled text element with distinctive heading preset.
 ///

@@ -1,10 +1,10 @@
 //! Volume controls with color-coded level indicators.
 
 use crate::conversions::f64_to_ms;
-use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::styles::slider;
+use crate::ui::styles::{button_styles, colors, focus_indicator, spacing, typography};
 use crate::ui::{Message, State};
-use iced::widget::{button, mouse_area, row, container, slider as widget_slider, text};
+use iced::widget::{button, container, mouse_area, row, slider as widget_slider, text};
 use iced::{Color, Element};
 
 /// Renders volume controls with expandable slider
@@ -23,36 +23,54 @@ pub fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> 
             widget_slider(0..=200, state.volume, Message::VolumeChanged)
                 .width(iced::Length::Fixed(120.0))
                 .height(20.0)
-                .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
-                    let level_color = slider::volume_slider::level_color(volume_level);
-                    let gradient_start = slider::volume_slider::level_color_gradient_start(volume_level);
-                    // Enhanced multi-layer gradient for premium volume fill
-                    let enhanced_fill = Color::from_rgb(
-                        gradient_start.r.mul_add(0.35, level_color.r.mul_add(0.35, colors::ACCENT_GRADIENT_START.r * 0.30)),
-                        gradient_start.g.mul_add(0.35, level_color.g.mul_add(0.35, colors::ACCENT_GRADIENT_START.g * 0.30)),
-                        gradient_start.b.mul_add(0.35, level_color.b.mul_add(0.35, colors::ACCENT_GRADIENT_START.b * 0.30)),
-                    );
-                    iced::widget::slider::Style {
-                        rail: iced::widget::slider::Rail {
-                            backgrounds: (
-                                iced::Background::Color(colors::BG_SECONDARY),
-                                iced::Background::Color(enhanced_fill),
+                .style(
+                    move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
+                        let level_color = slider::volume_slider::level_color(volume_level);
+                        let gradient_start =
+                            slider::volume_slider::level_color_gradient_start(volume_level);
+                        // Enhanced multi-layer gradient for premium volume fill
+                        let enhanced_fill = Color::from_rgb(
+                            gradient_start.r.mul_add(
+                                0.35,
+                                level_color
+                                    .r
+                                    .mul_add(0.35, colors::ACCENT_GRADIENT_START.r * 0.30),
                             ),
-                            width: 4.0,
-                            border: iced::Border {
-                                color: Color::TRANSPARENT,
-                                width: 0.0,
-                                radius: 2.0.into(),
+                            gradient_start.g.mul_add(
+                                0.35,
+                                level_color
+                                    .g
+                                    .mul_add(0.35, colors::ACCENT_GRADIENT_START.g * 0.30),
+                            ),
+                            gradient_start.b.mul_add(
+                                0.35,
+                                level_color
+                                    .b
+                                    .mul_add(0.35, colors::ACCENT_GRADIENT_START.b * 0.30),
+                            ),
+                        );
+                        iced::widget::slider::Style {
+                            rail: iced::widget::slider::Rail {
+                                backgrounds: (
+                                    iced::Background::Color(colors::BG_SECONDARY),
+                                    iced::Background::Color(enhanced_fill),
+                                ),
+                                width: 4.0,
+                                border: iced::Border {
+                                    color: Color::TRANSPARENT,
+                                    width: 0.0,
+                                    radius: 2.0.into(),
+                                },
                             },
-                        },
-                        handle: iced::widget::slider::Handle {
-                            shape: iced::widget::slider::HandleShape::Circle { radius: 8.0 },
-                            background: iced::Background::Color(gradient_color),
-                            border_width: 2.0,
-                            border_color: colors::BORDER_DEFAULT,
-                        },
+                            handle: iced::widget::slider::Handle {
+                                shape: iced::widget::slider::HandleShape::Circle { radius: 8.0 },
+                                background: iced::Background::Color(gradient_color),
+                                border_width: 2.0,
+                                border_color: colors::BORDER_DEFAULT,
+                            },
+                        }
                     }
-                }),
+                ),
             text(format!("{}%", state.volume))
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {

@@ -172,8 +172,8 @@ pub mod layout;
 pub mod micro_interactions;
 pub mod slider;
 pub mod typography;
-pub mod typography_presets;
 pub mod typography_helpers;
+pub mod typography_presets;
 
 // Re-export submodules for backward compatibility
 pub use accessibility::*;

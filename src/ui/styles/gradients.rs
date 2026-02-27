@@ -118,7 +118,11 @@ pub mod primary {
     /// Returns the interpolated primary gradient color at position t
     #[must_use]
     pub const fn at(t: f32) -> Color {
-        super::lerp_color(colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END, t)
+        super::lerp_color(
+            colors::PRIMARY_GRADIENT_START,
+            colors::PRIMARY_GRADIENT_END,
+            t,
+        )
     }
 }
 
@@ -132,7 +136,11 @@ pub mod accent {
     /// Returns the interpolated accent gradient color at position t
     #[must_use]
     pub const fn at(t: f32) -> Color {
-        super::lerp_color(colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END, t)
+        super::lerp_color(
+            colors::ACCENT_GRADIENT_START,
+            colors::ACCENT_GRADIENT_END,
+            t,
+        )
     }
 }
 
@@ -146,7 +154,11 @@ pub mod progress {
     /// Returns the interpolated progress gradient color at position t
     #[must_use]
     pub const fn at(t: f32) -> Color {
-        super::lerp_color(colors::PROGRESS_GRADIENT_START, colors::PROGRESS_GRADIENT_END, t)
+        super::lerp_color(
+            colors::PROGRESS_GRADIENT_START,
+            colors::PROGRESS_GRADIENT_END,
+            t,
+        )
     }
 }
 
@@ -160,7 +172,11 @@ pub mod continue_gradient {
     /// Returns the interpolated continue gradient color at position t
     #[must_use]
     pub const fn at(t: f32) -> Color {
-        super::lerp_color(colors::CONTINUE_GRADIENT_START, colors::CONTINUE_GRADIENT_END, t)
+        super::lerp_color(
+            colors::CONTINUE_GRADIENT_START,
+            colors::CONTINUE_GRADIENT_END,
+            t,
+        )
     }
 }
 
@@ -174,13 +190,17 @@ pub mod subtle {
     /// Returns the interpolated subtle gradient color at position t
     #[must_use]
     pub const fn at(t: f32) -> Color {
-        super::lerp_color(colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END, t)
+        super::lerp_color(
+            colors::SUBTLE_GRADIENT_START,
+            colors::SUBTLE_GRADIENT_END,
+            t,
+        )
     }
 }
 
 /// Gradient utility functions for common operations
 pub mod utils {
-    use super::{Color, lerp_color};
+    use super::{lerp_color, Color};
     use crate::ui::styles::colors;
 
     /// Creates a premium multi-stop gradient color for special elements
@@ -190,9 +210,17 @@ pub mod utils {
         let t = t.clamp(0.0, 1.0);
         // Blend between sunset and primary colors
         if t < 0.5 {
-            lerp_color(colors::SUNSET_GRADIENT_START, colors::PRIMARY_GRADIENT_START, t * 2.0)
+            lerp_color(
+                colors::SUNSET_GRADIENT_START,
+                colors::PRIMARY_GRADIENT_START,
+                t * 2.0,
+            )
         } else {
-            lerp_color(colors::PRIMARY_GRADIENT_START, colors::SUNSET_GRADIENT_END, (t - 0.5) * 2.0)
+            lerp_color(
+                colors::PRIMARY_GRADIENT_START,
+                colors::SUNSET_GRADIENT_END,
+                (t - 0.5) * 2.0,
+            )
         }
     }
 
@@ -200,7 +228,11 @@ pub mod utils {
     /// Returns blended color with warm color transition
     #[must_use]
     pub const fn diagonal_premium_gradient_color(t: f32) -> Color {
-        lerp_color(colors::ACCENT_GRADIENT_START, colors::PRIMARY_GRADIENT_END, t.clamp(0.0, 1.0))
+        lerp_color(
+            colors::ACCENT_GRADIENT_START,
+            colors::PRIMARY_GRADIENT_END,
+            t.clamp(0.0, 1.0),
+        )
     }
 
     /// Creates a multi-step gradient color by interpolating between multiple stops

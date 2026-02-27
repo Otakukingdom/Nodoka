@@ -2,7 +2,7 @@
 
 use crate::ui::styles::{colors, focus_indicator, spacing, typography};
 use crate::ui::{Message, State};
-use iced::widget::{mouse_area, pick_list, row, container, text};
+use iced::widget::{container, mouse_area, pick_list, row, text};
 use iced::Element;
 
 /// Playback speed preset options
@@ -49,11 +49,7 @@ impl std::fmt::Display for SpeedPreset {
 
 /// Renders speed controls with preset dropdown
 #[must_use]
-pub fn speed_controls(
-    state: &State,
-    _speed_step: i32,
-    is_focused: bool,
-) -> Element<'_, Message> {
+pub fn speed_controls(state: &State, _speed_step: i32, is_focused: bool) -> Element<'_, Message> {
     let selected = SpeedPreset::from_speed(state.speed);
     let picker = pick_list(SpeedPreset::ALL, selected, |preset| {
         Message::SpeedChanged(preset.as_f32())
@@ -65,23 +61,41 @@ pub fn speed_controls(
     let speed_gradient_color = if state.speed >= 1.5 {
         // Fast speeds: accent gradient
         iced::Color::from_rgb(
-            colors::ACCENT_GRADIENT_START.r.mul_add(0.4, colors::PRIMARY_GRADIENT_START.r * 0.6),
-            colors::ACCENT_GRADIENT_START.g.mul_add(0.4, colors::PRIMARY_GRADIENT_START.g * 0.6),
-            colors::ACCENT_GRADIENT_START.b.mul_add(0.4, colors::PRIMARY_GRADIENT_START.b * 0.6),
+            colors::ACCENT_GRADIENT_START
+                .r
+                .mul_add(0.4, colors::PRIMARY_GRADIENT_START.r * 0.6),
+            colors::ACCENT_GRADIENT_START
+                .g
+                .mul_add(0.4, colors::PRIMARY_GRADIENT_START.g * 0.6),
+            colors::ACCENT_GRADIENT_START
+                .b
+                .mul_add(0.4, colors::PRIMARY_GRADIENT_START.b * 0.6),
         )
     } else if state.speed >= 1.0 {
         // Normal speeds: primary gradient
         iced::Color::from_rgb(
-            colors::PRIMARY_GRADIENT_START.r.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.r * 0.5),
-            colors::PRIMARY_GRADIENT_START.g.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.g * 0.5),
-            colors::PRIMARY_GRADIENT_START.b.mul_add(0.5, colors::SIGNATURE_GRADIENT_START.b * 0.5),
+            colors::PRIMARY_GRADIENT_START
+                .r
+                .mul_add(0.5, colors::SIGNATURE_GRADIENT_START.r * 0.5),
+            colors::PRIMARY_GRADIENT_START
+                .g
+                .mul_add(0.5, colors::SIGNATURE_GRADIENT_START.g * 0.5),
+            colors::PRIMARY_GRADIENT_START
+                .b
+                .mul_add(0.5, colors::SIGNATURE_GRADIENT_START.b * 0.5),
         )
     } else {
         // Slow speeds: softer aurora gradient
         iced::Color::from_rgb(
-            colors::AURORA_ROSE_GRADIENT_START.r.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.r * 0.6),
-            colors::AURORA_ROSE_GRADIENT_START.g.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.g * 0.6),
-            colors::AURORA_ROSE_GRADIENT_START.b.mul_add(0.4, colors::CELESTIAL_GRADIENT_START.b * 0.6),
+            colors::AURORA_ROSE_GRADIENT_START
+                .r
+                .mul_add(0.4, colors::CELESTIAL_GRADIENT_START.r * 0.6),
+            colors::AURORA_ROSE_GRADIENT_START
+                .g
+                .mul_add(0.4, colors::CELESTIAL_GRADIENT_START.g * 0.6),
+            colors::AURORA_ROSE_GRADIENT_START
+                .b
+                .mul_add(0.4, colors::CELESTIAL_GRADIENT_START.b * 0.6),
         )
     };
 

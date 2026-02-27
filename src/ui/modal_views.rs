@@ -3,8 +3,8 @@
 //! This module keeps modal rendering concerns (backdrops, modal cards, keyboard help)
 //! out of the main window view orchestration.
 
-use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
 use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, text, Space};
@@ -49,8 +49,8 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
 /// Creates premium backdrop with cleaner color layering
 fn improved_glass_backdrop(opacity: f32) -> Color {
     // Simplified 2-color glass-morphism for cleaner modal feel
-    let base = Color::from_rgb(0.12, 0.08, 0.15);  // Deep rose base
-    let overlay = Color::from_rgb(0.08, 0.12, 0.25);  // Cool overlay
+    let base = Color::from_rgb(0.12, 0.08, 0.15); // Deep rose base
+    let overlay = Color::from_rgb(0.08, 0.12, 0.25); // Cool overlay
 
     Color {
         r: f32::midpoint(base.r, overlay.r),
@@ -168,7 +168,8 @@ fn shortcut_group(
                             f32::midpoint(start.r, end.r),
                             f32::midpoint(start.g, end.g),
                             f32::midpoint(start.b, end.b),
-                        ).into()
+                        )
+                        .into()
                     }),
                     border: Border {
                         color: colors::AURORA_ROSE_GRADIENT_END,

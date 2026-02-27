@@ -5,8 +5,8 @@
 
 use crate::ui::state::ThemeMode;
 use crate::ui::styles::typography::{
-    line_height, semantic_color, type_scale, weight, letter_spacing,
-    SIZE_PREMIUM, SIZE_DISPLAY_PREMIUM, SIZE_XXL,
+    letter_spacing, line_height, semantic_color, type_scale, weight, SIZE_DISPLAY_PREMIUM,
+    SIZE_PREMIUM, SIZE_XXL,
 };
 
 /// Display text preset for hero sections

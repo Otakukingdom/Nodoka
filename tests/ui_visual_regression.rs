@@ -31,9 +31,7 @@ fn wcag_contrast_ratio(foreground: iced::Color, background: iced::Color) -> f64 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nodoka::ui::styles::{
-        colors, dark_theme, typography, border_radius, spacing, interactive,
-    };
+    use nodoka::ui::styles::{border_radius, colors, dark_theme, interactive, spacing, typography};
 
     // === Contrast Ratio Tests ===
 
@@ -70,10 +68,7 @@ mod tests {
     #[test]
     fn test_contrast_ratio_progress_bar_on_elevated() {
         // Verify progress bar is visible on elevated background
-        let ratio = wcag_contrast_ratio(
-            colors::PRIMARY_GRADIENT_START,
-            colors::BG_ELEVATED
-        );
+        let ratio = wcag_contrast_ratio(colors::PRIMARY_GRADIENT_START, colors::BG_ELEVATED);
         assert!(
             ratio >= 3.0,
             "Progress bar contrast ratio {ratio:.2} does not meet WCAG AA large text (3:1)"
@@ -183,9 +178,9 @@ mod tests {
         let primary_start = colors::PRIMARY_GRADIENT_START;
         let continue_start = colors::CONTINUE_GRADIENT_START;
 
-        let delta = (primary_start.r - continue_start.r).abs() +
-            (primary_start.g - continue_start.g).abs() +
-            (primary_start.b - continue_start.b).abs();
+        let delta = (primary_start.r - continue_start.r).abs()
+            + (primary_start.g - continue_start.g).abs()
+            + (primary_start.b - continue_start.b).abs();
 
         assert!(
             delta > 0.05,
@@ -342,10 +337,10 @@ mod tests {
     fn test_notification_colors_have_sufficient_contrast() {
         // Use much darker notification colors that meet WCAG AA with white text
         // These colors have been adjusted to ensure 4.5:1 contrast ratio
-        let success_dark = iced::Color::from_rgb(0.02, 0.35, 0.15);  // Very dark green
-        let warning_dark = iced::Color::from_rgb(0.65, 0.35, 0.05);  // Darker orange/amber
-        let error_dark = iced::Color::from_rgb(0.70, 0.05, 0.10);  // Darker red
-        let info_dark = iced::Color::from_rgb(0.0, 0.35, 0.60);  // Darker blue
+        let success_dark = iced::Color::from_rgb(0.02, 0.35, 0.15); // Very dark green
+        let warning_dark = iced::Color::from_rgb(0.65, 0.35, 0.05); // Darker orange/amber
+        let error_dark = iced::Color::from_rgb(0.70, 0.05, 0.10); // Darker red
+        let info_dark = iced::Color::from_rgb(0.0, 0.35, 0.60); // Darker blue
 
         let notification_colors = [
             (success_dark, "Success"),

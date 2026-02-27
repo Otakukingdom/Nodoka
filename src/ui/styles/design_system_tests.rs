@@ -5,7 +5,10 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::ui::styles::{colors, dark_theme, effects, interactive, layout, animations, format_duration, format_time_ms};
+    use crate::ui::styles::{
+        animations, colors, dark_theme, effects, format_duration, format_time_ms, interactive,
+        layout,
+    };
 
     fn srgb_to_linear(channel: f64) -> f64 {
         if channel <= 0.04045 {
@@ -491,8 +494,14 @@ mod tests {
 
     #[test]
     fn test_primary_color_has_sufficient_saturation() {
-        let max_channel = colors::PRIMARY.r.max(colors::PRIMARY.g).max(colors::PRIMARY.b);
-        let min_channel = colors::PRIMARY.r.min(colors::PRIMARY.g).min(colors::PRIMARY.b);
+        let max_channel = colors::PRIMARY
+            .r
+            .max(colors::PRIMARY.g)
+            .max(colors::PRIMARY.b);
+        let min_channel = colors::PRIMARY
+            .r
+            .min(colors::PRIMARY.g)
+            .min(colors::PRIMARY.b);
         let saturation = max_channel - min_channel;
 
         assert!(
@@ -503,9 +512,8 @@ mod tests {
 
     #[test]
     fn test_gradient_colors_have_reasonable_transitions() {
-        let start_end_diff = (
-            colors::PRIMARY_GRADIENT_START.r - colors::PRIMARY_GRADIENT_END.r
-        ).abs();
+        let start_end_diff =
+            (colors::PRIMARY_GRADIENT_START.r - colors::PRIMARY_GRADIENT_END.r).abs();
 
         assert!(
             start_end_diff > 0.01 || start_end_diff < 1.0,
@@ -582,10 +590,16 @@ mod tests {
         let blur_extra_large = effects::shadows::shadow_xl().blur_radius;
         let blur_extra_extra = effects::shadows::shadow_xxl().blur_radius;
 
-        assert!(blur_extra_small <= blur_small, "Shadow XS blur should be <= SM");
+        assert!(
+            blur_extra_small <= blur_small,
+            "Shadow XS blur should be <= SM"
+        );
         assert!(blur_small <= blur_medium, "Shadow SM blur should be <= MD");
         assert!(blur_medium <= blur_large, "Shadow MD blur should be <= LG");
-        assert!(blur_large <= blur_extra_large, "Shadow LG blur should be <= XL");
+        assert!(
+            blur_large <= blur_extra_large,
+            "Shadow LG blur should be <= XL"
+        );
         assert!(
             blur_extra_large <= blur_extra_extra,
             "Shadow XL blur should be <= XXL"
@@ -605,8 +619,14 @@ mod tests {
             offset_extra_small <= offset_small,
             "Shadow XS offset should be <= SM"
         );
-        assert!(offset_small <= offset_medium, "Shadow SM offset should be <= MD");
-        assert!(offset_medium <= offset_large, "Shadow MD offset should be <= LG");
+        assert!(
+            offset_small <= offset_medium,
+            "Shadow SM offset should be <= MD"
+        );
+        assert!(
+            offset_medium <= offset_large,
+            "Shadow MD offset should be <= LG"
+        );
         assert!(
             offset_large <= offset_extra_large,
             "Shadow LG offset should be <= XL"
@@ -624,7 +644,10 @@ mod tests {
         let alpha_extra_large = effects::shadows::shadow_xl().color.a;
         let alpha_extra_extra = effects::shadows::shadow_xxl().color.a;
 
-        assert!(alpha_medium >= alpha_small, "Shadow MD alpha should be >= SM");
+        assert!(
+            alpha_medium >= alpha_small,
+            "Shadow MD alpha should be >= SM"
+        );
         assert!(
             alpha_extra_large >= alpha_medium,
             "Shadow XL alpha should be >= MD"
@@ -638,8 +661,14 @@ mod tests {
     #[test]
     fn test_shadow_values_are_positive() {
         let shadow = effects::shadows::shadow_md();
-        assert!(shadow.blur_radius >= 0.0, "Shadow blur must be non-negative");
-        assert!(shadow.offset.y >= 0.0, "Shadow offset Y should be non-negative");
+        assert!(
+            shadow.blur_radius >= 0.0,
+            "Shadow blur must be non-negative"
+        );
+        assert!(
+            shadow.offset.y >= 0.0,
+            "Shadow offset Y should be non-negative"
+        );
     }
 
     // Spacing grid tests
@@ -805,7 +834,10 @@ mod tests {
             (colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END),
             (colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END),
             (colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END),
-            (colors::CONTINUE_GRADIENT_START, colors::CONTINUE_GRADIENT_END),
+            (
+                colors::CONTINUE_GRADIENT_START,
+                colors::CONTINUE_GRADIENT_END,
+            ),
         ];
 
         for (start, end) in gradient_pairs {
@@ -824,10 +856,10 @@ mod tests {
         // Gradient start colors are lighter and may not meet 4.5:1, but gradient
         // end colors are darker and provide the needed contrast for text
         let gradient_colors = [
-            colors::PRIMARY_GRADIENT_START,  // Dark rose - meets contrast
-            colors::PRIMARY_GRADIENT_END,     // Even darker - meets contrast
-            colors::ACCENT_GRADIENT_END,      // Teal - should meet contrast
-            colors::CONTINUE_GRADIENT_END,    // Darker pink - meets contrast
+            colors::PRIMARY_GRADIENT_START, // Dark rose - meets contrast
+            colors::PRIMARY_GRADIENT_END,   // Even darker - meets contrast
+            colors::ACCENT_GRADIENT_END,    // Teal - should meet contrast
+            colors::CONTINUE_GRADIENT_END,  // Darker pink - meets contrast
         ];
 
         for gradient in gradient_colors {
@@ -909,76 +941,5 @@ mod tests {
         );
     }
 
-    // === Warm and Cool Gradient Tests ===
-
-    #[test]
-    fn test_warm_gradient_has_warm_tones() {
-        // Warm gradient should lean toward red/orange
-        let warm = colors::GRADIENT_WARM_START;
-        assert!(
-            warm.r > warm.b,
-            "Warm gradient should have more red than blue"
-        );
-        assert!(
-            warm.r > 0.5,
-            "Warm gradient should have significant red component"
-        );
-    }
-
-    #[test]
-    fn test_cool_gradient_has_cool_tones() {
-        // Cool gradient should lean toward blue/cyan
-        let cool = colors::GRADIENT_COOL_START;
-        assert!(
-            cool.b > cool.r,
-            "Cool gradient should have more blue than red"
-        );
-        assert!(
-            cool.b > 0.5,
-            "Cool gradient should have significant blue component"
-        );
-    }
-
-    // === Hover State Utility Tests ===
-
-    #[test]
-    fn test_hover_subtle_returns_subtle_color() {
-        use interactive::hover_subtle;
-
-        let hover = hover_subtle(0.5);
-        assert!(
-            hover.a <= 0.15,
-            "Subtle hover should have low opacity, got {}",
-            hover.a
-        );
-    }
-
-    #[test]
-    fn test_hover_elevated_returns_moderate_color() {
-        use interactive::hover_elevated;
-
-        let hover = hover_elevated(0.7);
-        assert!(
-            hover.a <= 0.25,
-            "Elevated hover should have moderate opacity, got {}",
-            hover.a
-        );
-    }
-
-    #[test]
-    fn test_hover_glow_returns_premium_color() {
-        use interactive::hover_glow;
-
-        let glow = hover_glow(0.6);
-        assert!(
-            glow.a <= 0.35,
-            "Glow should have reasonable opacity, got {}",
-            glow.a
-        );
-        // Should have rose tint from PRIMARY_GRADIENT_START
-        assert!(
-            glow.r > glow.b,
-            "Glow should have rose tint (more red than blue)"
-        );
-    }
+    include!("design_system_tests_extra.rs");
 }

@@ -2,8 +2,8 @@
 //!
 //! These functions render the notification overlay and its individual toasts.
 
-use crate::ui::styles::{border_radius, colors, spacing, typography};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{border_radius, colors, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, text, Space};
 use iced::{Border, Color, Element, Length};

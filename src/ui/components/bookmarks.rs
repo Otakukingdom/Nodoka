@@ -2,10 +2,10 @@
 
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
-use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
 use crate::ui::styles::colors;
 use crate::ui::styles::components::border_width;
 use crate::ui::styles::components::text_input_styles;
+use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Color, Element, Length};
@@ -66,12 +66,9 @@ pub fn view<'a>(
             .into()
     };
 
-    column![
-        header,
-        scrollable(items).height(Length::FillPortion(1))
-    ]
-    .height(Length::Fill)
-    .into()
+    column![header, scrollable(items).height(Length::FillPortion(1))]
+        .height(Length::Fill)
+        .into()
 }
 
 /// Renders the bookmark editor modal with improved layout and visual feedback
@@ -198,16 +195,27 @@ fn build_timestamp_badge(pos: String, opacity: f32) -> Element<'static, Message>
     use iced::Border;
 
     let timestamp_badge_color = Color::from_rgb(
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::ACCENT_GRADIENT_END.r),
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::ACCENT_GRADIENT_END.g),
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::ACCENT_GRADIENT_END.b),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.r,
+            colors::ACCENT_GRADIENT_END.r,
+        ),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.g,
+            colors::ACCENT_GRADIENT_END.g,
+        ),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.b,
+            colors::ACCENT_GRADIENT_END.b,
+        ),
     );
 
-    container(text(pos).size(typography::SIZE_SM).style(
-        move |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
-        },
-    ))
+    container(
+        text(pos)
+            .size(typography::SIZE_SM)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
+            }),
+    )
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
         background: Some(with_alpha(timestamp_badge_color, opacity).into()),
@@ -229,9 +237,18 @@ fn build_note_badge(bm: &Bookmark, opacity: f32) -> Element<'static, Message> {
     use iced::Border;
 
     let note_badge_color = Color::from_rgb(
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::CELESTIAL_GRADIENT_END.r),
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::CELESTIAL_GRADIENT_END.g),
-        f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::CELESTIAL_GRADIENT_END.b),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.r,
+            colors::CELESTIAL_GRADIENT_END.r,
+        ),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.g,
+            colors::CELESTIAL_GRADIENT_END.g,
+        ),
+        f32::midpoint(
+            colors::PRIMARY_GRADIENT_START.b,
+            colors::CELESTIAL_GRADIENT_END.b,
+        ),
     );
 
     if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
@@ -261,7 +278,11 @@ fn build_note_badge(bm: &Bookmark, opacity: f32) -> Element<'static, Message> {
 }
 
 /// Builds the jump-to-position button for a bookmark row
-fn build_jump_button(label_text: String, id: Option<i64>, opacity: f32) -> Element<'static, Message> {
+fn build_jump_button(
+    label_text: String,
+    id: Option<i64>,
+    opacity: f32,
+) -> Element<'static, Message> {
     button(
         text(label_text)
             .size(typography::SIZE_SM)

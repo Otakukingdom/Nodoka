@@ -9,14 +9,26 @@ use iced::{Border, Color};
 
 /// Premium progress slider style with enhanced gradient fill
 #[must_use]
-pub fn progress_premium(
-    _theme: &iced::Theme,
-    _status: slider::Status,
-) -> slider::Style {
+pub fn progress_premium(_theme: &iced::Theme, _status: slider::Status) -> slider::Style {
     let fill_color = Color::from_rgb(
-        colors::ACCENT_GRADIENT_START.r.mul_add(0.3, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35, colors::SUNSET_GRADIENT_START.r * 0.35)),
-        colors::ACCENT_GRADIENT_START.g.mul_add(0.3, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35, colors::SUNSET_GRADIENT_START.g * 0.35)),
-        colors::ACCENT_GRADIENT_START.b.mul_add(0.3, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35, colors::SUNSET_GRADIENT_START.b * 0.35)),
+        colors::ACCENT_GRADIENT_START.r.mul_add(
+            0.3,
+            colors::PRIMARY_GRADIENT_START
+                .r
+                .mul_add(0.35, colors::SUNSET_GRADIENT_START.r * 0.35),
+        ),
+        colors::ACCENT_GRADIENT_START.g.mul_add(
+            0.3,
+            colors::PRIMARY_GRADIENT_START
+                .g
+                .mul_add(0.35, colors::SUNSET_GRADIENT_START.g * 0.35),
+        ),
+        colors::ACCENT_GRADIENT_START.b.mul_add(
+            0.3,
+            colors::PRIMARY_GRADIENT_START
+                .b
+                .mul_add(0.35, colors::SUNSET_GRADIENT_START.b * 0.35),
+        ),
     );
 
     slider::Style {
@@ -35,9 +47,15 @@ pub fn progress_premium(
         handle: slider::Handle {
             shape: slider::HandleShape::Circle { radius: 12.0 },
             background: iced::Background::Color(Color::from_rgb(
-                colors::PRIMARY_GRADIENT_START.r.mul_add(0.4, colors::SUNSET_GRADIENT_START.r * 0.6),
-                colors::PRIMARY_GRADIENT_START.g.mul_add(0.4, colors::SUNSET_GRADIENT_START.g * 0.6),
-                colors::PRIMARY_GRADIENT_START.b.mul_add(0.4, colors::SUNSET_GRADIENT_START.b * 0.6),
+                colors::PRIMARY_GRADIENT_START
+                    .r
+                    .mul_add(0.4, colors::SUNSET_GRADIENT_START.r * 0.6),
+                colors::PRIMARY_GRADIENT_START
+                    .g
+                    .mul_add(0.4, colors::SUNSET_GRADIENT_START.g * 0.6),
+                colors::PRIMARY_GRADIENT_START
+                    .b
+                    .mul_add(0.4, colors::SUNSET_GRADIENT_START.b * 0.6),
             )),
             border_width: 2.5,
             border_color: colors::ACCENT_GRADIENT_END,
@@ -56,7 +74,10 @@ pub mod progress_bar {
     /// # Arguments
     /// * `value` - Current progress value (0.0 to 1.0)
     /// * `has_glow` - Whether to add a subtle glow effect
-    pub fn style(_value: f32, has_glow: bool) -> impl Fn(&iced::Theme) -> widget::progress_bar::Style {
+    pub fn style(
+        _value: f32,
+        has_glow: bool,
+    ) -> impl Fn(&iced::Theme) -> widget::progress_bar::Style {
         let alpha = if has_glow { 0.95 } else { 0.8 };
         move |_theme: &iced::Theme| {
             widget::progress_bar::Style {
@@ -81,35 +102,33 @@ pub mod progress_bar {
 
     /// Creates a custom slider style with enhanced visual treatment
     pub fn slider_style(is_active: bool) -> impl Fn(&iced::Theme) -> widget::slider::Style {
-        move |_theme: &iced::Theme| {
-            widget::slider::Style {
-                rail: widget::slider::Rail {
-                    backgrounds: (
-                        iced::Background::Color(Color::from_rgb(0.9, 0.9, 0.9)),
-                        iced::Background::Color(Color::from_rgb(0.9, 0.9, 0.9)),
-                    ),
+        move |_theme: &iced::Theme| widget::slider::Style {
+            rail: widget::slider::Rail {
+                backgrounds: (
+                    iced::Background::Color(Color::from_rgb(0.9, 0.9, 0.9)),
+                    iced::Background::Color(Color::from_rgb(0.9, 0.9, 0.9)),
+                ),
+                width: 1.0,
+                border: iced::Border {
+                    color: Color::from_rgb(0.8, 0.8, 0.8),
                     width: 1.0,
-                    border: iced::Border {
-                        color: Color::from_rgb(0.8, 0.8, 0.8),
-                        width: 1.0,
-                        radius: 2.0.into(),
-                    },
+                    radius: 2.0.into(),
                 },
-                handle: widget::slider::Handle {
-                    shape: widget::slider::HandleShape::Circle { radius: 8.0 },
-                    background: if is_active {
-                        iced::Background::Color(colors::PRIMARY)
-                    } else {
-                        iced::Background::Color(Color::WHITE)
-                    },
-                    border_width: if is_active { 0.0 } else { 2.0 },
-                    border_color: if is_active {
-                        Color::TRANSPARENT
-                    } else {
-                        colors::BORDER_DEFAULT
-                    },
+            },
+            handle: widget::slider::Handle {
+                shape: widget::slider::HandleShape::Circle { radius: 8.0 },
+                background: if is_active {
+                    iced::Background::Color(colors::PRIMARY)
+                } else {
+                    iced::Background::Color(Color::WHITE)
                 },
-            }
+                border_width: if is_active { 0.0 } else { 2.0 },
+                border_color: if is_active {
+                    Color::TRANSPARENT
+                } else {
+                    colors::BORDER_DEFAULT
+                },
+            },
         }
     }
 }

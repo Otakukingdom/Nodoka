@@ -1,8 +1,8 @@
 //! File list component showing individual audio files within an audiobook.
 
 use crate::models::AudiobookFile;
-use crate::ui::styles::{animations, colors, spacing, typography};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{animations, colors, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length, Shadow};
@@ -98,17 +98,17 @@ fn build_file_item(
         String::new()
     };
 
-    let content_column = build_content_column(
-        file.name.clone(),
+    let content_column = build_content_column(ContentColumnParams {
+        name: file.name.clone(),
         duration,
-        time_secondary,
+        time_remaining: time_secondary,
         continue_marker,
         file_number_badge,
         progress_element,
         status_indicator,
         opacity,
-        animation.offset_y,
-    );
+        offset_y: animation.offset_y,
+    });
 
     // Apply selection styling with enhanced gradient background
     let content_container = if selected {
@@ -343,8 +343,7 @@ fn with_alpha_gradient_badge(opacity: f32) -> Color {
     }
 }
 
-#[allow(clippy::too_many_arguments, clippy::needless_pass_by_value)]
-fn build_content_column(
+struct ContentColumnParams {
     name: String,
     duration: String,
     time_remaining: String,
@@ -354,8 +353,22 @@ fn build_content_column(
     status_indicator: iced::widget::Container<'static, Message>,
     opacity: f32,
     offset_y: f32,
-) -> iced::widget::Column<'static, Message> {
+}
+
+fn build_content_column(params: ContentColumnParams) -> iced::widget::Column<'static, Message> {
     use crate::ui::styles::colors;
+
+    let ContentColumnParams {
+        name,
+        duration,
+        time_remaining,
+        continue_marker,
+        file_number_badge,
+        progress_element,
+        status_indicator,
+        opacity,
+        offset_y,
+    } = params;
 
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = offset_y.clamp(0.0, max_offset);
@@ -454,7 +467,6 @@ fn selection_gradient_simplified(opacity: f32) -> Color {
         a: 0.98 * opacity,
     }
 }
-
 
 /// Formats duration in milliseconds to human-readable time string
 fn format_duration(duration_ms: Option<i64>) -> String {

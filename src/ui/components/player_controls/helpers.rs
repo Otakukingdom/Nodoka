@@ -106,7 +106,10 @@ mod tests {
     fn test_extract_chapter_name_removes_extension() {
         assert_eq!(extract_chapter_name("chapter1.mp3"), "chapter1");
         assert_eq!(extract_chapter_name("chapter_two.m4b"), "chapter_two");
-        assert_eq!(extract_chapter_name("03 The Adventure.flac"), "03 The Adventure");
+        assert_eq!(
+            extract_chapter_name("03 The Adventure.flac"),
+            "03 The Adventure"
+        );
     }
 
     #[test]

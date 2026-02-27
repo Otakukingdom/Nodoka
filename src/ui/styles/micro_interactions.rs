@@ -49,12 +49,17 @@ pub mod spring {
     ///
     /// Returns a value from 0.0 to 1.0 representing animation completion
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn progress(elapsed_ms: u64, duration_ms: u64) -> f32 {
+        let duration_ms = duration_ms.min(u64::from(u16::MAX));
+        let duration_ms = u16::try_from(duration_ms).unwrap_or(u16::MAX);
         if duration_ms == 0 {
             return 1.0;
         }
-        let progress = (elapsed_ms as f32 / duration_ms as f32).clamp(0.0, 1.0);
+
+        let elapsed_ms = elapsed_ms.min(u64::from(duration_ms));
+        let elapsed_ms = u16::try_from(elapsed_ms).unwrap_or(duration_ms);
+
+        let progress = (f32::from(elapsed_ms) / f32::from(duration_ms)).clamp(0.0, 1.0);
         // Ease-out-quad for smooth spring-like motion
         (1.0 - progress).mul_add(-(1.0 - progress), 1.0)
     }
@@ -77,10 +82,10 @@ pub mod shimmer {
     ///
     /// Returns a value from 0.0 to 1.0 representing shimmer position
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn position(elapsed_ms: u64) -> f32 {
-        let elapsed = elapsed_ms % DURATION_MS;
-        (elapsed as f32 / DURATION_MS as f32).clamp(0.0, 1.0)
+        let duration_ms = u16::try_from(DURATION_MS).unwrap_or(1);
+        let elapsed = u16::try_from(elapsed_ms % DURATION_MS).unwrap_or(0);
+        (f32::from(elapsed) / f32::from(duration_ms)).clamp(0.0, 1.0)
     }
 
     /// Shimmer gradient colors for three-stop gradient
@@ -105,9 +110,10 @@ pub mod pulse {
     ///
     /// Returns a value between `OPACITY_MIN` and `OPACITY_MAX`
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn opacity(elapsed_ms: u64) -> f32 {
-        let phase = (elapsed_ms as f32 / DURATION_MS as f32).fract();
+        let duration_ms = u16::try_from(DURATION_MS).unwrap_or(1);
+        let elapsed = u16::try_from(elapsed_ms % DURATION_MS).unwrap_or(0);
+        let phase = f32::from(elapsed) / f32::from(duration_ms);
         let sine = (phase * std::f32::consts::PI * 2.0).sin();
         let normalized = f32::midpoint(sine, 1.0);
         (OPACITY_MAX - OPACITY_MIN).mul_add(normalized, OPACITY_MIN)
@@ -149,18 +155,20 @@ pub mod ripple {
 
     /// Calculates ripple radius based on animation progress
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn radius(elapsed_ms: u64) -> f32 {
-        let progress = (elapsed_ms as f32 / DURATION_MS as f32).clamp(0.0, 1.0);
+        let duration_ms = u16::try_from(DURATION_MS).unwrap_or(1);
+        let elapsed_ms = u16::try_from(elapsed_ms.min(DURATION_MS)).unwrap_or(duration_ms);
+        let progress = (f32::from(elapsed_ms) / f32::from(duration_ms)).clamp(0.0, 1.0);
         let eased = ease_out(progress);
         MAX_RADIUS * eased
     }
 
     /// Calculates ripple opacity based on animation progress
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn opacity(elapsed_ms: u64) -> f32 {
-        let progress = (elapsed_ms as f32 / DURATION_MS as f32).clamp(0.0, 1.0);
+        let duration_ms = u16::try_from(DURATION_MS).unwrap_or(1);
+        let elapsed_ms = u16::try_from(elapsed_ms.min(DURATION_MS)).unwrap_or(duration_ms);
+        let progress = (f32::from(elapsed_ms) / f32::from(duration_ms)).clamp(0.0, 1.0);
         OPACITY * (1.0 - progress)
     }
 

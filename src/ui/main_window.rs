@@ -203,7 +203,7 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                         color: Some(colors::TEXT_ON_PRIMARY),
                     }),
             )
-            .width(Length::Fixed(32.0))  // Slightly larger for prominence
+            .width(Length::Fixed(32.0)) // Slightly larger for prominence
             .height(Length::Fixed(32.0))
             .center_x(Length::Fill)
             .center_y(Length::Fill)
@@ -212,12 +212,12 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                 background: Some(logo_gradient_premium().into()),
                 border: Border {
                     color: colors::AURORA_ROSE_GRADIENT_END,
-                    width: 2.0,  // Consistent border width
+                    width: 2.0, // Consistent border width
                     radius: border_radius::SM.into(),
                 },
                 // Refined rose-tinted glow for brand presence
                 shadow: Shadow {
-                    color: Color::from_rgba(0.96, 0.81, 1.0, 0.45),  // Aurora glow
+                    color: Color::from_rgba(0.96, 0.81, 1.0, 0.45), // Aurora glow
                     offset: Vector::new(0.0, 0.0),
                     blur_radius: 12.0,
                 },
@@ -248,10 +248,10 @@ fn top_bar(state: &State) -> Element<'static, Message> {
         background: Some(colors::BG_FLOATING.into()),
         border: Border {
             color: colors::BORDER_SUBTLE,
-            width: 2.0,  // Increased for more definition
+            width: 2.0, // Increased for more definition
             radius: border_radius::MD.into(),
         },
-        shadow: shadows::shadow_lg(),  // Large shadow for elevation
+        shadow: shadows::shadow_lg(), // Large shadow for elevation
         ..Default::default()
     })
     .into()
@@ -323,9 +323,24 @@ fn panel_divider(width: f32) -> Element<'static, Message> {
         let aurora = colors::AURORA_ROSE_GRADIENT_START;
 
         Color::from_rgb(
-            base.r.mul_add(0.08, primary.r.mul_add(0.04, sunset.r.mul_add(0.02, aurora.r * 0.01))),
-            base.g.mul_add(0.08, primary.g.mul_add(0.04, sunset.g.mul_add(0.02, aurora.g * 0.01))),
-            base.b.mul_add(0.08, primary.b.mul_add(0.04, sunset.b.mul_add(0.02, aurora.b * 0.01))),
+            base.r.mul_add(
+                0.08,
+                primary
+                    .r
+                    .mul_add(0.04, sunset.r.mul_add(0.02, aurora.r * 0.01)),
+            ),
+            base.g.mul_add(
+                0.08,
+                primary
+                    .g
+                    .mul_add(0.04, sunset.g.mul_add(0.02, aurora.g * 0.01)),
+            ),
+            base.b.mul_add(
+                0.08,
+                primary
+                    .b
+                    .mul_add(0.04, sunset.b.mul_add(0.02, aurora.b * 0.01)),
+            ),
         )
     };
 
@@ -446,16 +461,14 @@ fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
 
 /// Creates premium gradient color for application logo
 /// Simplified to 2-color blend for cleaner, more distinctive appearance
-#[allow(clippy::manual_midpoint)] // f32::midpoint is not const
 const fn logo_gradient_premium() -> Color {
     // Clean 2-color rose-to-coral gradient for distinctive branding
-    // Note: Manual midpoint used since f32::midpoint is not const
     let start = colors::PRIMARY_GRADIENT_START;
     let end = colors::AURORA_ROSE_GRADIENT_END;
     Color {
-        r: (start.r + end.r) / 2.0,
-        g: (start.g + end.g) / 2.0,
-        b: (start.b + end.b) / 2.0,
+        r: start.r + (end.r - start.r) * 0.5,
+        g: start.g + (end.g - start.g) * 0.5,
+        b: start.b + (end.b - start.b) * 0.5,
         a: 1.0,
     }
 }

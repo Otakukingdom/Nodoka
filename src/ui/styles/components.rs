@@ -67,15 +67,18 @@ pub mod button_styles {
         match status {
             button::Status::Active => button::Style {
                 // Simplified 2-color Aurora Rose gradient for cleaner appearance
-                background: Some({
-                    let start = colors::AURORA_ROSE_GRADIENT_START;
-                    let end = colors::AURORA_ROSE_GRADIENT_END;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r),
-                        f32::midpoint(start.g, end.g),
-                        f32::midpoint(start.b, end.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::AURORA_ROSE_GRADIENT_START;
+                        let end = colors::AURORA_ROSE_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r),
+                            f32::midpoint(start.g, end.g),
+                            f32::midpoint(start.b, end.b),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::AURORA_ROSE_GRADIENT_END,
@@ -87,15 +90,18 @@ pub mod button_styles {
             },
             button::Status::Hovered => button::Style {
                 // Brightened gradient for hover effect
-                background: Some({
-                    let start = colors::PRIMARY_GRADIENT_START;
-                    let end = colors::AURORA_ROSE_GRADIENT_END;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r).mul_add(0.05, 0.05),
-                        f32::midpoint(start.g, end.g).mul_add(0.05, 0.05),
-                        f32::midpoint(start.b, end.b).mul_add(0.05, 0.05),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::PRIMARY_GRADIENT_START;
+                        let end = colors::AURORA_ROSE_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r).mul_add(0.05, 0.05),
+                            f32::midpoint(start.g, end.g).mul_add(0.05, 0.05),
+                            f32::midpoint(start.b, end.b).mul_add(0.05, 0.05),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::AURORA_ROSE_GRADIENT_END,
@@ -107,10 +113,13 @@ pub mod button_styles {
             },
             button::Status::Pressed => button::Style {
                 // Darkened gradient for pressed feedback
-                background: Some({
-                    let base = colors::PRIMARY;
-                    Color::from_rgb(base.r * 0.85, base.g * 0.85, base.b * 0.85)
-                }.into()),
+                background: Some(
+                    {
+                        let base = colors::PRIMARY;
+                        Color::from_rgb(base.r * 0.85, base.g * 0.85, base.b * 0.85)
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::AURORA_ROSE_GRADIENT_END,
@@ -121,12 +130,15 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(Color {
-                    r: colors::AURORA_ROSE_GRADIENT_START.r * 0.5,
-                    g: colors::AURORA_ROSE_GRADIENT_START.g * 0.5,
-                    b: colors::AURORA_ROSE_GRADIENT_START.b * 0.5,
-                    a: 0.5,
-                }.into()),
+                background: Some(
+                    Color {
+                        r: colors::AURORA_ROSE_GRADIENT_START.r * 0.5,
+                        g: colors::AURORA_ROSE_GRADIENT_START.g * 0.5,
+                        b: colors::AURORA_ROSE_GRADIENT_START.b * 0.5,
+                        a: 0.5,
+                    }
+                    .into(),
+                ),
                 text_color: Color {
                     r: colors::TEXT_ON_PRIMARY.r,
                     g: colors::TEXT_ON_PRIMARY.g,
@@ -150,15 +162,18 @@ pub mod button_styles {
         match status {
             button::Status::Active => button::Style {
                 // Subtle gradient background for premium feel
-                background: Some({
-                    let start = colors::BG_FLOATING;
-                    let end = colors::BG_ELEVATED;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r),
-                        f32::midpoint(start.g, end.g),
-                        f32::midpoint(start.b, end.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::BG_FLOATING;
+                        let end = colors::BG_ELEVATED;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r),
+                            f32::midpoint(start.g, end.g),
+                            f32::midpoint(start.b, end.b),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_PRIMARY,
                 border: Border {
                     color: colors::BORDER_PROMINENT,
@@ -209,15 +224,18 @@ pub mod button_styles {
         match status {
             button::Status::Active => button::Style {
                 // Simplified 2-color Celestial gradient
-                background: Some({
-                    let start = colors::CELESTIAL_GRADIENT_START;
-                    let end = colors::CELESTIAL_GRADIENT_END;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r),
-                        f32::midpoint(start.g, end.g),
-                        f32::midpoint(start.b, end.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::CELESTIAL_GRADIENT_START;
+                        let end = colors::CELESTIAL_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r),
+                            f32::midpoint(start.g, end.g),
+                            f32::midpoint(start.b, end.b),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::CELESTIAL_GRADIENT_END,
@@ -229,15 +247,18 @@ pub mod button_styles {
             },
             button::Status::Hovered => button::Style {
                 // Brightened Celestial gradient for hover
-                background: Some({
-                    let start = colors::CELESTIAL_GRADIENT_START;
-                    let end = colors::CELESTIAL_GRADIENT_END;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r).mul_add(0.08, 0.05),
-                        f32::midpoint(start.g, end.g).mul_add(0.08, 0.05),
-                        f32::midpoint(start.b, end.b).mul_add(0.08, 0.05),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::CELESTIAL_GRADIENT_START;
+                        let end = colors::CELESTIAL_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r).mul_add(0.08, 0.05),
+                            f32::midpoint(start.g, end.g).mul_add(0.08, 0.05),
+                            f32::midpoint(start.b, end.b).mul_add(0.08, 0.05),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::CELESTIAL_GRADIENT_END,
@@ -259,12 +280,15 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(Color {
-                    r: colors::CELESTIAL_GRADIENT_START.r * 0.5,
-                    g: colors::CELESTIAL_GRADIENT_START.g * 0.5,
-                    b: colors::CELESTIAL_GRADIENT_START.b * 0.5,
-                    a: 0.5,
-                }.into()),
+                background: Some(
+                    Color {
+                        r: colors::CELESTIAL_GRADIENT_START.r * 0.5,
+                        g: colors::CELESTIAL_GRADIENT_START.g * 0.5,
+                        b: colors::CELESTIAL_GRADIENT_START.b * 0.5,
+                        a: 0.5,
+                    }
+                    .into(),
+                ),
                 text_color: Color {
                     r: colors::TEXT_ON_PRIMARY.r,
                     g: colors::TEXT_ON_PRIMARY.g,
@@ -288,15 +312,18 @@ pub mod button_styles {
         match status {
             button::Status::Active => button::Style {
                 // Simplified 2-color sunset gradient for danger state
-                background: Some({
-                    let start = colors::SUNSET_GRADIENT_START;
-                    let end = colors::SUNSET_GRADIENT_END;
-                    Color::from_rgb(
-                        f32::midpoint(start.r, end.r),
-                        f32::midpoint(start.g, end.g),
-                        f32::midpoint(start.b, end.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::SUNSET_GRADIENT_START;
+                        let end = colors::SUNSET_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r),
+                            f32::midpoint(start.g, end.g),
+                            f32::midpoint(start.b, end.b),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::SUNSET_GRADIENT_END,
@@ -308,15 +335,18 @@ pub mod button_styles {
             },
             button::Status::Hovered => button::Style {
                 // Stronger gradient for hover state
-                background: Some({
-                    let start = colors::SUNSET_GRADIENT_START;
-                    let end = colors::ERROR;
-                    Color::from_rgb(
-                        end.r.mul_add(0.3, start.r * 0.7),
-                        end.g.mul_add(0.3, start.g * 0.7),
-                        end.b.mul_add(0.3, start.b * 0.7),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        let start = colors::SUNSET_GRADIENT_START;
+                        let end = colors::ERROR;
+                        Color::from_rgb(
+                            end.r.mul_add(0.3, start.r * 0.7),
+                            end.g.mul_add(0.3, start.g * 0.7),
+                            end.b.mul_add(0.3, start.b * 0.7),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::SUNSET_GRADIENT_END,
@@ -338,12 +368,15 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(Color {
-                    r: colors::ERROR.r * 0.5,
-                    g: colors::ERROR.g * 0.5,
-                    b: colors::ERROR.b * 0.5,
-                    a: 0.5,
-                }.into()),
+                background: Some(
+                    Color {
+                        r: colors::ERROR.r * 0.5,
+                        g: colors::ERROR.g * 0.5,
+                        b: colors::ERROR.b * 0.5,
+                        a: 0.5,
+                    }
+                    .into(),
+                ),
                 text_color: Color {
                     r: colors::TEXT_ON_PRIMARY.r,
                     g: colors::TEXT_ON_PRIMARY.g,
@@ -420,13 +453,25 @@ pub mod button_styles {
         match status {
             button::Status::Active => button::Style {
                 // Simplified 2-color Signature gradient
-                background: Some({
-                    Color::from_rgb(
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_START.r, colors::PRIMARY_GRADIENT_START.r),
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_START.g, colors::PRIMARY_GRADIENT_START.g),
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_START.b, colors::PRIMARY_GRADIENT_START.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        Color::from_rgb(
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_START.r,
+                                colors::PRIMARY_GRADIENT_START.r,
+                            ),
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_START.g,
+                                colors::PRIMARY_GRADIENT_START.g,
+                            ),
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_START.b,
+                                colors::PRIMARY_GRADIENT_START.b,
+                            ),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::SIGNATURE_GRADIENT_END,
@@ -438,13 +483,25 @@ pub mod button_styles {
             },
             button::Status::Hovered => button::Style {
                 // Brightened gradient for hover
-                background: Some({
-                    Color::from_rgb(
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_END.r, colors::ACCENT_GRADIENT_START.r),
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_END.g, colors::ACCENT_GRADIENT_START.g),
-                        f32::midpoint(colors::SIGNATURE_GRADIENT_END.b, colors::ACCENT_GRADIENT_START.b),
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        Color::from_rgb(
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_END.r,
+                                colors::ACCENT_GRADIENT_START.r,
+                            ),
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_END.g,
+                                colors::ACCENT_GRADIENT_START.g,
+                            ),
+                            f32::midpoint(
+                                colors::SIGNATURE_GRADIENT_END.b,
+                                colors::ACCENT_GRADIENT_START.b,
+                            ),
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::ACCENT_GRADIENT_END,
@@ -456,13 +513,16 @@ pub mod button_styles {
             },
             button::Status::Pressed => button::Style {
                 // Darkened gradient for pressed feedback
-                background: Some({
-                    Color::from_rgb(
-                        colors::PRIMARY.r * 0.90,
-                        colors::PRIMARY.g * 0.90,
-                        colors::PRIMARY.b * 0.90,
-                    )
-                }.into()),
+                background: Some(
+                    {
+                        Color::from_rgb(
+                            colors::PRIMARY.r * 0.90,
+                            colors::PRIMARY.g * 0.90,
+                            colors::PRIMARY.b * 0.90,
+                        )
+                    }
+                    .into(),
+                ),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
                     color: colors::SIGNATURE_GRADIENT_END,
@@ -473,12 +533,15 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(Color {
-                    r: colors::SIGNATURE_GRADIENT_START.r * 0.5,
-                    g: colors::SIGNATURE_GRADIENT_START.g * 0.5,
-                    b: colors::SIGNATURE_GRADIENT_START.b * 0.5,
-                    a: 0.5,
-                }.into()),
+                background: Some(
+                    Color {
+                        r: colors::SIGNATURE_GRADIENT_START.r * 0.5,
+                        g: colors::SIGNATURE_GRADIENT_START.g * 0.5,
+                        b: colors::SIGNATURE_GRADIENT_START.b * 0.5,
+                        a: 0.5,
+                    }
+                    .into(),
+                ),
                 text_color: Color {
                     r: colors::TEXT_ON_PRIMARY.r,
                     g: colors::TEXT_ON_PRIMARY.g,

@@ -33,7 +33,10 @@ fn relative_luminance(color: Color) -> f32 {
     };
     0.0722_f32.mul_add(
         channel_luminance(color.b),
-        0.2126_f32.mul_add(channel_luminance(color.r), 0.7152 * channel_luminance(color.g)),
+        0.2126_f32.mul_add(
+            channel_luminance(color.r),
+            0.7152 * channel_luminance(color.g),
+        ),
     )
 }
 
@@ -45,24 +48,39 @@ mod tests {
     /// Tests that empty state component renders for all contexts
     #[test]
     fn test_empty_state_renders_all_contexts() {
-        use crate::ui::components::empty_state::{EmptyStateContext};
+        use crate::ui::components::empty_state::EmptyStateContext;
 
         let contexts = [
-            (EmptyStateContext::Library, "No Audiobooks", "Add directories to get started"),
-            (EmptyStateContext::FileList, "No Files", "Select an audiobook"),
-            (EmptyStateContext::Bookmarks, "No Bookmarks", "Create bookmarks"),
-            (EmptyStateContext::SearchResults, "No Results", "Try different search terms"),
-            (EmptyStateContext::Generic, "Nothing Here", "Check back later"),
+            (
+                EmptyStateContext::Library,
+                "No Audiobooks",
+                "Add directories to get started",
+            ),
+            (
+                EmptyStateContext::FileList,
+                "No Files",
+                "Select an audiobook",
+            ),
+            (
+                EmptyStateContext::Bookmarks,
+                "No Bookmarks",
+                "Create bookmarks",
+            ),
+            (
+                EmptyStateContext::SearchResults,
+                "No Results",
+                "Try different search terms",
+            ),
+            (
+                EmptyStateContext::Generic,
+                "Nothing Here",
+                "Check back later",
+            ),
         ];
 
         for (context, title, description) in contexts {
-            let element = crate::ui::components::empty_state::view(
-                context,
-                title,
-                description,
-                None,
-                None,
-            );
+            let element =
+                crate::ui::components::empty_state::view(context, title, description, None, None);
             drop(element);
         }
     }
@@ -70,7 +88,7 @@ mod tests {
     /// Tests that empty state renders with action buttons
     #[test]
     fn test_empty_state_renders_with_actions() {
-        use crate::ui::components::empty_state::{EmptyStateContext};
+        use crate::ui::components::empty_state::EmptyStateContext;
         use crate::ui::Message;
 
         let element = crate::ui::components::empty_state::view(
@@ -134,11 +152,17 @@ mod tests {
         // Test high contrast (black on white)
         let black = Color::from_rgb(0.0, 0.0, 0.0);
         let white = Color::from_rgb(1.0, 1.0, 1.0);
-        assert!(verify_contrast_ratio(black, white), "Black on white should pass WCAG AA");
+        assert!(
+            verify_contrast_ratio(black, white),
+            "Black on white should pass WCAG AA"
+        );
 
         // Test low contrast (gray on white)
         let gray = Color::from_rgb(0.8, 0.8, 0.8);
-        assert!(!verify_contrast_ratio(gray, white), "Light gray on white should fail WCAG AA");
+        assert!(
+            !verify_contrast_ratio(gray, white),
+            "Light gray on white should fail WCAG AA"
+        );
 
         // Test signature gradient with white text
         assert!(
@@ -167,11 +191,17 @@ mod tests {
         // White should have luminance ~1
         let white = Color::from_rgb(1.0, 1.0, 1.0);
         let white_luma = relative_luminance(white);
-        assert!(white_luma > 0.99, "White should have near-maximum luminance");
+        assert!(
+            white_luma > 0.99,
+            "White should have near-maximum luminance"
+        );
 
         // Mid gray should have luminance ~0.215
         let mid_gray = Color::from_rgb(0.5, 0.5, 0.5);
         let mid_luma = relative_luminance(mid_gray);
-        assert!((mid_luma - 0.215).abs() < 0.01, "Mid gray should have expected luminance");
+        assert!(
+            (mid_luma - 0.215).abs() < 0.01,
+            "Mid gray should have expected luminance"
+        );
     }
 }

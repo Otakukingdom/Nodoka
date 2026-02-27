@@ -1,10 +1,8 @@
 //! Continue Listening card component for quick resume functionality.
 
 use crate::models::Audiobook;
-use crate::ui::styles::{
-    border_radius, button_styles, colors, shadows, spacing, typography,
-};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
 use iced::{Border, Color, Element, Length, Shadow, Vector};
@@ -51,13 +49,11 @@ pub fn view<'a, S: BuildHasher>(
         cover,
         column![
             // Enhanced "Continue Listening" label with refined styling
-            container(
-                text("Continue Listening")
-                    .size(typography::SIZE_SM)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::TEXT_ON_PRIMARY),
-                    }),
-            )
+            container(text("Continue Listening").size(typography::SIZE_SM).style(
+                |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                }
+            ),)
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(|_theme: &iced::Theme| container::Style {
                 background: Some(Color::from_rgba(1.0, 1.0, 1.0, 0.3).into()),
@@ -188,7 +184,8 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
                 f32::midpoint(base.r, accent.r),
                 f32::midpoint(base.g, accent.g),
                 f32::midpoint(base.b, accent.b),
-            ).into()
+            )
+            .into()
         }),
         border: Border {
             color: colors::PRIMARY_GRADIENT_START,
@@ -202,16 +199,14 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
 }
 
 /// Creates simplified 2-color gradient for Continue Listening card
-#[allow(clippy::manual_midpoint)] // f32::midpoint is not const
 const fn continue_gradient() -> Color {
     // Clean 2-color rose-to-coral gradient
-    // Note: Manual midpoint used since f32::midpoint is not const
     let start = colors::CONTINUE_GRADIENT_START;
     let end = colors::CONTINUE_GRADIENT_END;
     Color {
-        r: (start.r + end.r) / 2.0,
-        g: (start.g + end.g) / 2.0,
-        b: (start.b + end.b) / 2.0,
+        r: start.r + (end.r - start.r) * 0.5,
+        g: start.g + (end.g - start.g) * 0.5,
+        b: start.b + (end.b - start.b) * 0.5,
         a: 1.0,
     }
 }

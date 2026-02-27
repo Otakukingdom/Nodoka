@@ -690,18 +690,6 @@ pub mod dark_theme {
     pub const ROYAL_GRADIENT_END: Color = Color::from_rgb(0.94, 0.55, 0.80);
 }
 
-/// WCAG AA minimum contrast ratio for normal text (4.5:1).
-#[allow(dead_code)]
-const WCAG_AA_NORMAL: f32 = 4.5;
-
-/// WCAG AA minimum contrast ratio for large text (3:1).
-#[allow(dead_code)]
-const WCAG_AA_LARGE: f32 = 3.0;
-
-/// WCAG AAA minimum contrast ratio for normal text (7:1).
-#[allow(dead_code)]
-const WCAG_AAA_NORMAL: f32 = 7.0;
-
 // Include color contrast tests from separate file to keep main module under 1000 lines
 #[cfg(test)]
 include!("colors_tests.rs");

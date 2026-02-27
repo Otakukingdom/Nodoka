@@ -3,10 +3,8 @@
 //! Provides illustration-quality placeholder graphics with enhanced
 //! visual hierarchy, premium button styling, and micro-interactions.
 
-use crate::ui::styles::{
-    button_styles, colors, shadows, spacing, typography,
-};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{button_styles, colors, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, container, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -91,11 +89,12 @@ pub fn view(
             ..Default::default()
         });
 
-    let title_heading = text(title)
-        .size(typography::type_scale::H1_SIZE)
-        .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-            color: Some(context.title_color()),
-        });
+    let title_heading =
+        text(title)
+            .size(typography::type_scale::H1_SIZE)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(context.title_color()),
+            });
 
     let description_text = container(
         text(description)
@@ -107,9 +106,13 @@ pub fn view(
     .width(Length::Fixed(480.0))
     .center_x(Length::Fill);
 
-    let mut content_column = column![icon, Space::new().height(Length::Fixed(spacing::XXL)), title_heading]
-        .align_x(iced::Alignment::Center)
-        .spacing(spacing::SM);
+    let mut content_column = column![
+        icon,
+        Space::new().height(Length::Fixed(spacing::XXL)),
+        title_heading
+    ]
+    .align_x(iced::Alignment::Center)
+    .spacing(spacing::SM);
 
     content_column = content_column.push(Space::new().height(Length::Fixed(spacing::LG)));
     content_column = content_column.push(description_text);
@@ -117,18 +120,13 @@ pub fn view(
     if let (Some(label), Some(msg)) = (action_label, action_message) {
         content_column = content_column.push(Space::new().height(Length::Fixed(spacing::XXL)));
         content_column = content_column.push(
-            button(
-                text(label)
-                    .size(typography::type_scale::BUTTON_SIZE)
-                    .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                        color: Some(colors::TEXT_ON_PRIMARY),
-                    }),
-            )
+            button(text(label).size(typography::type_scale::BUTTON_SIZE).style(
+                |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_ON_PRIMARY),
+                },
+            ))
             .on_press(msg)
-            .padding(iced::Padding::from([
-                spacing::MD,
-                spacing::XXL,
-            ]))
+            .padding(iced::Padding::from([spacing::MD, spacing::XXL]))
             .style(button_styles::elevated),
         );
     }
@@ -250,13 +248,7 @@ mod tests {
 
     #[test]
     fn test_simple_empty_state_without_icon() {
-        let element = simple(
-            None,
-            "No Items",
-            "No items available",
-            None,
-            None,
-        );
+        let element = simple(None, "No Items", "No items available", None, None);
         drop(element);
     }
 

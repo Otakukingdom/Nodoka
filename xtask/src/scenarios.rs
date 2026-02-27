@@ -6,10 +6,8 @@
 use chrono::Utc;
 use nodoka::db::Database;
 use nodoka::models::{Audiobook, AudiobookFile, Bookmark, Directory};
-use nodoka::ui::{
- ActiveModal, BookmarkEditor, LoadState, PlaybackStatus, State,
-};
 use nodoka::ui::animations::modal::ModalState;
+use nodoka::ui::{ActiveModal, BookmarkEditor, LoadState, PlaybackStatus, State};
 
 /// All screenshot scenarios to capture.
 #[derive(Debug, Clone, Copy)]
@@ -372,16 +370,32 @@ impl Scenario {
                 // Create enough files to show scrollbar in file list
                 if let Some(id) = setup_with_selected_audiobook(state, db) {
                     // Create 20+ files to ensure scrollbar is visible
+                    const CHAPTER_TITLES: [&str; 5] = [
+                        "The Beginning",
+                        "The Journey",
+                        "The Discovery",
+                        "The Challenge",
+                        "The Resolution",
+                    ];
                     let mut many_files = Vec::new();
                     for i in 0..25 {
+                        let chapter_title = CHAPTER_TITLES
+                            .get(i % CHAPTER_TITLES.len())
+                            .copied()
+                            .unwrap_or("The Beginning");
+
+                        let i_i64 = i64::try_from(i).unwrap_or(i64::MAX);
+                        let length_of_file =
+                            300_000_i64.saturating_add(i_i64.saturating_mul(10_000));
+
                         many_files.push(AudiobookFile {
                             audiobook_id: id,
-                            name: format!("Chapter {} - {}", i + 1, &["The Beginning", "The Journey", "The Discovery", "The Challenge", "The Resolution"][i % 5]),
+                            name: format!("Chapter {} - {}", i + 1, chapter_title,),
                             full_path: format!("/audiobooks/Foundation/chapter{}.mp3", i + 1),
-                            length_of_file: Some(300_000 + (i as i64 * 10_000)),
+                            length_of_file: Some(length_of_file),
                             seek_position: if i == 0 { Some(45_000) } else { Some(0) },
-                            checksum: Some(format!("checksum{}", i)),
-                            position: i as i32,
+                            checksum: Some(format!("checksum{i}")),
+                            position: i32::try_from(i).unwrap_or(i32::MAX),
                             completeness: if i == 0 { 15 } else { 0 },
                             file_exists: true,
                             created_at: Utc::now(),

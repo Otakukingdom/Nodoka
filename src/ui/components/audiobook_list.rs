@@ -2,12 +2,10 @@
 
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
-use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::styles::components::border_width;
+use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{
-    button, column, container, image, mouse_area, row, scrollable, text, Space,
-};
+use iced::widget::{button, column, container, image, mouse_area, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
@@ -161,16 +159,28 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
                 // Simplified 2-color gradient for cleaner selection appearance
-                background: Some(Color {
-                    r: f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::ACCENT_GRADIENT_START.r) * opacity,
-                    g: f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::ACCENT_GRADIENT_START.g) * opacity,
-                    b: f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::ACCENT_GRADIENT_START.b) * opacity,
-                    a: 0.98 * opacity,
-                }.into()),
+                background: Some(
+                    Color {
+                        r: f32::midpoint(
+                            colors::PRIMARY_GRADIENT_START.r,
+                            colors::ACCENT_GRADIENT_START.r,
+                        ) * opacity,
+                        g: f32::midpoint(
+                            colors::PRIMARY_GRADIENT_START.g,
+                            colors::ACCENT_GRADIENT_START.g,
+                        ) * opacity,
+                        b: f32::midpoint(
+                            colors::PRIMARY_GRADIENT_START.b,
+                            colors::ACCENT_GRADIENT_START.b,
+                        ) * opacity,
+                        a: 0.98 * opacity,
+                    }
+                    .into(),
+                ),
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 border: Border {
                     color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-                    width: 3.0,  // Consistent selection border width
+                    width: 3.0, // Consistent selection border width
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -191,16 +201,19 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                 button::Status::Hovered if !selected => {
                     // Simplified 2-color sunset gradient for hover
                     button::Style {
-                        background: Some({
-                            let start = colors::SUNSET_GRADIENT_START;
-                            let end = colors::SUNSET_GRADIENT_END;
-                            Color {
-                                r: f32::midpoint(start.r, end.r) * 0.30 * opacity,
-                                g: f32::midpoint(start.g, end.g) * 0.30 * opacity,
-                                b: f32::midpoint(start.b, end.b) * 0.30 * opacity,
-                                a: 0.30 * opacity,
+                        background: Some(
+                            {
+                                let start = colors::SUNSET_GRADIENT_START;
+                                let end = colors::SUNSET_GRADIENT_END;
+                                Color {
+                                    r: f32::midpoint(start.r, end.r) * 0.30 * opacity,
+                                    g: f32::midpoint(start.g, end.g) * 0.30 * opacity,
+                                    b: f32::midpoint(start.b, end.b) * 0.30 * opacity,
+                                    a: 0.30 * opacity,
+                                }
                             }
-                        }.into()),
+                            .into(),
+                        ),
                         border: Border {
                             color: with_alpha(colors::SUNSET_GRADIENT_END, opacity),
                             width: border_width::THIN,
@@ -363,11 +376,11 @@ fn build_metadata_items<'a>(
 
     if ab.completeness >= 100 {
         metadata_items.push(
-            container(text("✓ Complete")
-                .size(typography::SIZE_SM)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+            container(text("✓ Complete").size(typography::SIZE_SM).style(
+                move |_theme: &iced::Theme| iced::widget::text::Style {
                     color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
-                }))
+                },
+            ))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
@@ -406,8 +419,7 @@ fn build_metadata_items<'a>(
 }
 
 /// Builds the content column with title and author
-#[allow(clippy::elidable_lifetime_names)]
-fn build_content_column<'a>(ab: &'a Audiobook, opacity: f32) -> Vec<Element<'a, Message>> {
+fn build_content_column(ab: &Audiobook, opacity: f32) -> Vec<Element<'_, Message>> {
     use crate::ui::styles::colors;
 
     let mut content_column = vec![text(&ab.name)
@@ -448,7 +460,7 @@ fn build_progress_bar_element(completeness_u8: u8, opacity: f32) -> Element<'sta
                 },
                 shadow: shadows::shadow_xs(),
                 ..Default::default()
-            })
+            }),
     )
     .width(Length::Fill)
     .height(Length::Fixed(8.0))

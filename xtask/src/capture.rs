@@ -179,9 +179,7 @@ impl ScreenshotApp {
     fn handle_next_scenario(&mut self) -> Task<AppMessage> {
         let Some(&(scenario, theme)) = self.scenarios.get(self.current_index) else {
             // All scenarios captured — close the window to end the event loop.
-            return self
-                .window_id
-                .map_or_else(Task::none, window::close);
+            return self.window_id.map_or_else(Task::none, window::close);
         };
 
         self.state = State::default();
@@ -244,7 +242,10 @@ impl ScreenshotApp {
                 }
             }
             Err(e) => {
-                eprintln!("✗ Screenshot capture error for {}: {e}", scenario.filename());
+                eprintln!(
+                    "✗ Screenshot capture error for {}: {e}",
+                    scenario.filename()
+                );
             }
         }
 

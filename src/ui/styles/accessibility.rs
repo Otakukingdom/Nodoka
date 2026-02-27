@@ -238,28 +238,20 @@ pub fn skip_link_style(
 /// are not required to meet text contrast ratios, but must meet non-text
 /// component contrast requirements (3:1).
 pub mod gradient {
-    use super::{
-        verify_contrast_aa, colors, verify_contrast_non_text, Color, wcag_contrast_ratio,
-    };
+    use super::{colors, verify_contrast_aa, verify_contrast_non_text, wcag_contrast_ratio, Color};
 
     /// Verifies gradient start color meets WCAG AA for text on primary background
     ///
     /// Use this when placing white text on gradient backgrounds.
     #[must_use]
     pub fn verify_gradient_start_text_contrast() -> bool {
-        verify_contrast_aa(
-            colors::TEXT_ON_PRIMARY,
-            colors::PRIMARY_GRADIENT_START,
-        )
+        verify_contrast_aa(colors::TEXT_ON_PRIMARY, colors::PRIMARY_GRADIENT_START)
     }
 
     /// Verifies gradient end color meets WCAG AA for text on primary background
     #[must_use]
     pub fn verify_gradient_end_text_contrast() -> bool {
-        verify_contrast_aa(
-            colors::TEXT_ON_PRIMARY,
-            colors::PRIMARY_GRADIENT_END,
-        )
+        verify_contrast_aa(colors::TEXT_ON_PRIMARY, colors::PRIMARY_GRADIENT_END)
     }
 
     /// Verifies accent gradient colors meet non-text contrast requirements
@@ -267,55 +259,34 @@ pub mod gradient {
     /// Used for decorative elements like badges, indicators.
     #[must_use]
     pub fn verify_accent_gradient_non_text_contrast() -> bool {
-        verify_contrast_non_text(
-            colors::ACCENT_GRADIENT_START,
-            colors::BG_PRIMARY,
-        ) && verify_contrast_non_text(
-            colors::ACCENT_GRADIENT_END,
-            colors::BG_PRIMARY,
-        )
+        verify_contrast_non_text(colors::ACCENT_GRADIENT_START, colors::BG_PRIMARY)
+            && verify_contrast_non_text(colors::ACCENT_GRADIENT_END, colors::BG_PRIMARY)
     }
 
     /// Verifies continue listening gradient meets non-text contrast
     #[must_use]
     pub fn verify_continue_gradient_non_text_contrast() -> bool {
-        verify_contrast_non_text(
-            colors::CONTINUE_GRADIENT_START,
-            colors::BG_PRIMARY,
-        ) && verify_contrast_non_text(
-            colors::CONTINUE_GRADIENT_END,
-            colors::BG_PRIMARY,
-        )
+        verify_contrast_non_text(colors::CONTINUE_GRADIENT_START, colors::BG_PRIMARY)
+            && verify_contrast_non_text(colors::CONTINUE_GRADIENT_END, colors::BG_PRIMARY)
     }
 
     /// Verifies progress bar gradient meets WCAG AA for non-text elements
     #[must_use]
     pub fn verify_progress_gradient_contrast() -> bool {
-        verify_contrast_non_text(
-            colors::PROGRESS_GRADIENT_START,
-            colors::BG_PRIMARY,
-        ) && verify_contrast_non_text(
-            colors::PROGRESS_GRADIENT_END,
-            colors::BG_PRIMARY,
-        )
+        verify_contrast_non_text(colors::PROGRESS_GRADIENT_START, colors::BG_PRIMARY)
+            && verify_contrast_non_text(colors::PROGRESS_GRADIENT_END, colors::BG_PRIMARY)
     }
 
     /// Verifies refined success color maintains WCAG AA contrast for text
     #[must_use]
     pub fn verify_success_refined_text_contrast() -> bool {
-        verify_contrast_aa(
-            colors::TEXT_ON_PRIMARY,
-            colors::SUCCESS_REFINED,
-        )
+        verify_contrast_aa(colors::TEXT_ON_PRIMARY, colors::SUCCESS_REFINED)
     }
 
     /// Verifies refined warning color meets non-text component contrast
     #[must_use]
     pub fn verify_warning_refined_non_text_contrast() -> bool {
-        verify_contrast_non_text(
-            colors::WARNING_REFINED,
-            colors::BG_PRIMARY,
-        )
+        verify_contrast_non_text(colors::WARNING_REFINED, colors::BG_PRIMARY)
     }
 
     /// Calculates contrast ratio between two colors
@@ -347,10 +318,8 @@ mod tests {
 
     #[test]
     fn test_gradient_colors_are_measurable() {
-        let ratio = gradient::contrast_ratio(
-            colors::TEXT_ON_PRIMARY,
-            colors::PRIMARY_GRADIENT_START,
-        );
+        let ratio =
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::PRIMARY_GRADIENT_START);
         assert!(ratio > 0.0);
         assert!(ratio.is_finite());
     }
@@ -358,28 +327,19 @@ mod tests {
     #[test]
     fn test_primary_color_contrast_meets_wcag_aa() {
         // Critical: primary color with white text must pass WCAG AA
-        assert!(verify_contrast_aa(
-            colors::TEXT_ON_PRIMARY,
-            colors::PRIMARY,
-        ));
+        assert!(verify_contrast_aa(colors::TEXT_ON_PRIMARY, colors::PRIMARY,));
     }
 
     #[test]
     fn test_text_primary_on_background_meets_contrast() {
         // Critical: main text must be readable
-        assert!(verify_contrast_aa(
-            colors::TEXT_PRIMARY,
-            colors::BG_PRIMARY,
-        ));
+        assert!(verify_contrast_aa(colors::TEXT_PRIMARY, colors::BG_PRIMARY,));
     }
 
     #[test]
     fn test_error_color_contrast() {
         // Error semantic color should support white text
-        assert!(verify_contrast_aa(
-            colors::TEXT_ON_PRIMARY,
-            colors::ERROR,
-        ));
+        assert!(verify_contrast_aa(colors::TEXT_ON_PRIMARY, colors::ERROR,));
     }
 
     #[test]
