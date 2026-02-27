@@ -535,3 +535,104 @@ fn test_elevated_surface_colors_exist_in_dark_theme() {
     assert!(raised_r > 0.15, "Dark theme raised should be visible");
     assert!(tier_r > 0.15, "Dark theme tier should be visible");
 }
+
+// ===== Signature Gradient Contrast Tests =====
+
+#[test]
+fn test_signature_gradient_start_contrast_with_white_text() {
+    // Verify signature gradient has sufficient contrast with white text
+    let white_text = Color::WHITE;
+    let signature_bg = SIGNATURE_GRADIENT_START;
+    let ratio = test_contrast_ratio(signature_bg, white_text);
+    assert!(ratio >= 4.5, "Signature gradient must meet WCAG AA with white text");
+}
+
+#[test]
+fn test_signature_gradient_end_contrast_with_white_text() {
+    let white_text = Color::WHITE;
+    let signature_bg = SIGNATURE_GRADIENT_END;
+    let ratio = test_contrast_ratio(signature_bg, white_text);
+    assert!(ratio >= 4.5, "Signature gradient end must meet WCAG AA with white text");
+}
+
+#[test]
+fn test_dark_signature_gradient_start_contrast_with_white_text() {
+    // Verify dark theme signature gradient has sufficient contrast
+    let white_text = Color::WHITE;
+    let signature_bg = dark_theme::SIGNATURE_GRADIENT_START;
+    let ratio = test_contrast_ratio(signature_bg, white_text);
+    assert!(ratio >= 4.5, "Dark signature gradient must meet WCAG AA with white text");
+}
+
+#[test]
+fn test_dark_signature_gradient_end_contrast_with_white_text() {
+    let white_text = Color::WHITE;
+    let signature_bg = dark_theme::SIGNATURE_GRADIENT_END;
+    let ratio = test_contrast_ratio(signature_bg, white_text);
+    assert!(ratio >= 4.5, "Dark signature gradient end must meet WCAG AA with white text");
+}
+
+#[test]
+fn test_signature_gradient_has_distinctive_transition() {
+    // Signature gradient should have noticeable color difference
+    let start = SIGNATURE_GRADIENT_START;
+    let end = SIGNATURE_GRADIENT_END;
+
+    let dr = start.r - end.r;
+    let dg = start.g - end.g;
+    let db = start.b - end.b;
+    let dist = db.mul_add(db, dr.mul_add(dr, dg * dg)).sqrt();
+
+    assert!(dist > 0.05, "Signature gradient should have noticeable transition");
+}
+
+#[test]
+fn test_dark_signature_gradient_has_distinctive_transition() {
+    // Dark theme signature gradient should have noticeable color difference
+    let start = dark_theme::SIGNATURE_GRADIENT_START;
+    let end = dark_theme::SIGNATURE_GRADIENT_END;
+
+    let dr = start.r - end.r;
+    let dg = start.g - end.g;
+    let db = start.b - end.b;
+    let dist = db.mul_add(db, dr.mul_add(dr, dg * dg)).sqrt();
+
+    assert!(dist > 0.05, "Dark signature gradient should have noticeable transition");
+}
+
+#[test]
+fn test_signature_glow_has_subtle_presence() {
+    // Signature glow should be subtle but present
+    let glow = SIGNATURE_GLOW;
+    assert!(glow.a > 0.0, "Signature glow should have alpha > 0");
+    assert!(glow.a < 0.5, "Signature glow should be subtle (alpha < 0.5)");
+}
+
+#[test]
+fn test_dark_signature_glow_has_enhanced_brightness() {
+    // Dark theme glow should be more visible
+    let glow = dark_theme::SIGNATURE_GLOW;
+    assert!(glow.a > 0.0, "Dark signature glow should have alpha > 0");
+    assert!(glow.a > SIGNATURE_GLOW.a, "Dark glow should be more visible than light glow");
+}
+
+#[test]
+fn test_signature_tint_has_subtle_presence() {
+    // Signature tint should be very subtle
+    let tint = SIGNATURE_TINT;
+    assert!(tint.a > 0.0, "Signature tint should have alpha > 0");
+    assert!(tint.a < 0.15, "Signature tint should be very subtle (alpha < 0.15)");
+}
+
+#[test]
+fn test_signature_gradient_colors_are_warm_rose() {
+    // Signature gradient should have warm rose character
+    let start = SIGNATURE_GRADIENT_START;
+    let end = SIGNATURE_GRADIENT_END;
+
+    // Red channel should be dominant (warm rose)
+    assert!(start.r > start.g, "Start should be warm (more red than green)");
+    assert!(start.r > start.b, "Start should be warm (more red than blue)");
+    assert!(end.r > end.g, "End should be warm (more red than green)");
+    assert!(end.r > end.b, "End should be warm (more red than blue)");
+}

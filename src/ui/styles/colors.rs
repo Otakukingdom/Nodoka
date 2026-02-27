@@ -58,6 +58,8 @@ pub enum ColorType {
     FocusRing,
     /// Selection background
     SelectionBg,
+    /// Signature brand gradient
+    SignatureGradient,
     /// Selection text
     SelectionText,
     /// Default border color
@@ -136,6 +138,8 @@ pub const fn get_color(theme: crate::ui::state::ThemeMode, color_type: ColorType
         (ThemeMode::Dark, ColorType::BorderFocus) => dark_theme::BORDER_FOCUS,
         (ThemeMode::Light, ColorType::BorderError) => BORDER_ERROR,
         (ThemeMode::Dark, ColorType::BorderError) => dark_theme::BORDER_ERROR,
+        (ThemeMode::Light, ColorType::SignatureGradient) => SIGNATURE_GRADIENT_START,
+        (ThemeMode::Dark, ColorType::SignatureGradient) => dark_theme::SIGNATURE_GRADIENT_START,
     }
 }
 
@@ -300,6 +304,22 @@ pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.92, 0.68, 0.25);
 
 /// Premium glow for active elements with enhanced rose tint
 pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.45);
+
+/// ===== Signature Brand Gradient =====
+///
+/// Nodoka signature gradient for distinctive brand identity with WCAG AA contrast.
+/// Creates luminous rose-to-coral transition optimized for white text overlay.
+/// Use for: Logo, primary CTAs, brand accents, featured elements.
+pub const SIGNATURE_GRADIENT_START: Color = Color::from_rgb(0.75, 0.09, 0.22);
+pub const SIGNATURE_GRADIENT_END: Color = Color::from_rgb(0.60, 0.06, 0.16);
+
+/// Ambient glow for premium elevation
+/// Creates warm rose glow for subtle brand presence
+pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.75, 0.09, 0.22, 0.25);
+
+/// Subtle brand tint for backgrounds
+/// Creates warm presence without overwhelming
+pub const SIGNATURE_TINT: Color = Color::from_rgba(0.75, 0.09, 0.22, 0.06);
 
 /// Legacy top-bar color – golden yellow `#FEDB53` (superseded by design system colors).
 pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325);
@@ -554,6 +574,15 @@ pub mod dark_theme {
 
     /// Premium glow for active elements in dark theme
     pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.55);
+
+    /// ===== Signature Brand Gradient for Dark Theme =====
+    /// Enhanced with maximum brightness to maintain vibrancy on dark backgrounds
+    /// Optimized for WCAG AA contrast with white text
+    pub const SIGNATURE_GRADIENT_START: Color = Color::from_rgb(0.82, 0.10, 0.25);
+    pub const SIGNATURE_GRADIENT_END: Color = Color::from_rgb(0.68, 0.08, 0.18);
+
+    /// Premium glow for dark theme with enhanced brightness
+    pub const SIGNATURE_GLOW: Color = Color::from_rgba(0.82, 0.10, 0.25, 0.35);
 }
 
 /// WCAG AA minimum contrast ratio for normal text (4.5:1).

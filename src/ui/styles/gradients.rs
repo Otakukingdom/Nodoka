@@ -255,14 +255,22 @@ pub mod utils {
 mod tests {
     use super::*;
 
+    /// Epsilon tolerance for float comparisons in tests
+    const EPSILON: f32 = 1.0e-6;
+
+    /// Helper function for approximate float comparison
+    fn approx_eq(a: f32, b: f32) -> bool {
+        (a - b).abs() < EPSILON
+    }
+
     #[test]
     fn test_lerp_color_at_start_returns_start() {
         let start = Color::from_rgb(1.0, 0.0, 0.0);
         let end = Color::from_rgb(0.0, 0.0, 1.0);
         let result = lerp_color(start, end, 0.0);
-        assert_eq!(result.r, start.r);
-        assert_eq!(result.g, start.g);
-        assert_eq!(result.b, start.b);
+        assert!(approx_eq(result.r, start.r));
+        assert!(approx_eq(result.g, start.g));
+        assert!(approx_eq(result.b, start.b));
     }
 
     #[test]
@@ -270,9 +278,9 @@ mod tests {
         let start = Color::from_rgb(1.0, 0.0, 0.0);
         let end = Color::from_rgb(0.0, 0.0, 1.0);
         let result = lerp_color(start, end, 1.0);
-        assert_eq!(result.r, end.r);
-        assert_eq!(result.g, end.g);
-        assert_eq!(result.b, end.b);
+        assert!(approx_eq(result.r, end.r));
+        assert!(approx_eq(result.g, end.g));
+        assert!(approx_eq(result.b, end.b));
     }
 
     #[test]
@@ -280,19 +288,19 @@ mod tests {
         let start = Color::from_rgb(0.0, 0.0, 0.0);
         let end = Color::from_rgb(1.0, 1.0, 1.0);
         let result = lerp_color(start, end, 0.5);
-        assert_eq!(result.r, 0.5);
-        assert_eq!(result.g, 0.5);
-        assert_eq!(result.b, 0.5);
+        assert!(approx_eq(result.r, 0.5));
+        assert!(approx_eq(result.g, 0.5));
+        assert!(approx_eq(result.b, 0.5));
     }
 
     #[test]
     fn test_gradient_with_alpha_sets_alpha() {
         let color = Color::from_rgb(1.0, 0.5, 0.25);
         let result = gradient_with_alpha(color, 0.75);
-        assert_eq!(result.r, color.r);
-        assert_eq!(result.g, color.g);
-        assert_eq!(result.b, color.b);
-        assert_eq!(result.a, 0.75);
+        assert!(approx_eq(result.r, color.r));
+        assert!(approx_eq(result.g, color.g));
+        assert!(approx_eq(result.b, color.b));
+        assert!(approx_eq(result.a, 0.75));
     }
 
     #[test]
@@ -321,9 +329,9 @@ mod tests {
         let start = Color::from_rgb(0.0, 0.0, 0.0);
         let end = Color::from_rgb(1.0, 1.0, 1.0);
         let result = lerp_color(start, end, -0.5);
-        assert_eq!(result.r, start.r);
-        assert_eq!(result.g, start.g);
-        assert_eq!(result.b, start.b);
+        assert!(approx_eq(result.r, start.r));
+        assert!(approx_eq(result.g, start.g));
+        assert!(approx_eq(result.b, start.b));
     }
 
     #[test]
@@ -331,9 +339,9 @@ mod tests {
         let start = Color::from_rgb(0.0, 0.0, 0.0);
         let end = Color::from_rgb(1.0, 1.0, 1.0);
         let result = lerp_color(start, end, 1.5);
-        assert_eq!(result.r, end.r);
-        assert_eq!(result.g, end.g);
-        assert_eq!(result.b, end.b);
+        assert!(approx_eq(result.r, end.r));
+        assert!(approx_eq(result.g, end.g));
+        assert!(approx_eq(result.b, end.b));
     }
 
     #[test]
@@ -343,8 +351,8 @@ mod tests {
             (1.0, Color::from_rgb(0.0, 0.0, 1.0)),
         ];
         let result = utils::multi_stop_gradient(&stops, 0.5);
-        assert_eq!(result.r, 0.5);
-        assert_eq!(result.b, 0.5);
+        assert!(approx_eq(result.r, 0.5));
+        assert!(approx_eq(result.b, 0.5));
     }
 
     #[test]
@@ -365,8 +373,8 @@ mod tests {
         let base = Color::from_rgb(0.5, 0.5, 0.5);
         let gradient = Color::from_rgb(1.0, 0.0, 0.0);
         let result = utils::overlay_gradient(base, gradient, 0.5);
-        assert_eq!(result.r, 0.75); // 0.5 + (1.0 - 0.5) * 0.5
-        assert_eq!(result.g, 0.25); // 0.5 + (0.0 - 0.5) * 0.5
-        assert_eq!(result.b, 0.25); // 0.5 + (0.0 - 0.5) * 0.5
+        assert!(approx_eq(result.r, 0.75)); // 0.5 + (1.0 - 0.5) * 0.5
+        assert!(approx_eq(result.g, 0.25)); // 0.5 + (0.0 - 0.5) * 0.5
+        assert!(approx_eq(result.b, 0.25)); // 0.5 + (0.0 - 0.5) * 0.5
     }
 }

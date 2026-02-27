@@ -514,4 +514,46 @@ pub mod shadows {
             blur_radius: 16.0 * intensity,
         }
     }
+
+    /// ===== Premium Colored Shadows =====
+    /// These shadows use the brand color instead of pure black for distinctive character
+    /// Rose-tinted extra small shadow for minimal elevation with brand presence
+    #[must_use]
+    pub const fn shadow_xs_brand() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.06),
+            offset: Vector::new(0.0, 0.5),
+            blur_radius: 1.0,
+        }
+    }
+
+    /// Rose-tinted small shadow for buttons and inputs
+    #[must_use]
+    pub const fn shadow_sm_brand() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.09),
+            offset: Vector::new(0.0, 1.0),
+            blur_radius: 2.0,
+        }
+    }
+
+    /// Rose-tinted medium shadow for cards
+    #[must_use]
+    pub const fn shadow_md_brand() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.14),
+            offset: Vector::new(0.0, 2.0),
+            blur_radius: 4.0,
+        }
+    }
+
+    /// Rose-tinted large shadow for modals
+    #[must_use]
+    pub const fn shadow_lg_brand() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
+            offset: Vector::new(0.0, 4.0),
+            blur_radius: 8.0,
+        }
+    }
 }
