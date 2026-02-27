@@ -46,12 +46,13 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
 
 /// Enhanced glass-morphism backdrop with subtle rose tint
 /// Creates premium backdrop effect with refined color treatment
+/// Enhanced with warmer rose tint for distinctive character
 fn improved_glass_backdrop(opacity: f32) -> Color {
     Color {
-        r: 0.12,
-        g: 0.10,
-        b: 0.15,
-        a: (0.65 * opacity).clamp(0.0, 0.85),
+        r: 0.15,
+        g: 0.08,
+        b: 0.12,
+        a: (0.72 * opacity).clamp(0.0, 0.88),
     }
 }
 
@@ -185,7 +186,7 @@ fn shortcut_group(
 ///
 /// Creates a refined modal overlay with:
 /// - Extra extra large shadow (xxl) for premium elevation
-/// - Refined border with rose gradient treatment
+/// - Refined border with sunset gradient treatment
 /// - XL border radius for softer appearance
 /// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
@@ -193,20 +194,21 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    let border_color = with_alpha_gradient_border(colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END, opacity);
+    // Enhanced border with sunset gradient for distinctive branding
+    let border_color = with_alpha_gradient_border(colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
-                width: 2.5,
+                width: 3.0, // Thicker border for prominence
                 radius: border_radius::XL.into(),
             },
             shadow: shadows::shadow_xxl(),
             ..Default::default()
         })
         .padding(spacing::XL) // Increased padding for better content breathing room
-        .max_width(650.0) // Increased width for better content fit
+        .max_width(680.0) // Increased width for better content fit
         .width(Length::Fill) // Fill available space on narrow screens
         .max_height(850.0) // Increased height
         .center_x(Length::Fill)

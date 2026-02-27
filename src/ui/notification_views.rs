@@ -85,8 +85,8 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.3),
-                width: 1.5,
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.4),
+                width: 2.0, // Thicker border for prominence
                 radius: border_radius::MD.into(),
             },
             shadow: shadows::shadow_xxl(),
@@ -95,20 +95,25 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
         .into()
 }
 
-/// Helper function for darker gradient notification colors for better contrast
+/// Helper function for premium gradient notification colors with better contrast
+/// Creates sophisticated gradient-to-solid colors for each notification type
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
-            Color::from_rgb(0.08, 0.65, 0.35)  // Darker green
+            // Premium forest green gradient start
+            Color::from_rgb(0.10, 0.70, 0.40)
         }
         crate::ui::state::NotificationType::Info => {
-            Color::from_rgb(0.0, 0.50, 0.80)  // Darker blue
+            // Premium sky blue gradient start
+            Color::from_rgb(0.05, 0.60, 0.95)
         }
         crate::ui::state::NotificationType::Warning => {
-            Color::from_rgb(0.85, 0.50, 0.10)  // Darker orange
+            // Premium amber gradient start
+            Color::from_rgb(0.92, 0.60, 0.12)
         }
         crate::ui::state::NotificationType::Error => {
-            Color::from_rgb(0.80, 0.10, 0.20)  // Darker red
+            // Premium rose red gradient start
+            Color::from_rgb(0.88, 0.15, 0.30)
         }
     }
 }

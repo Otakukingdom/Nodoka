@@ -175,7 +175,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         container(content_row).width(Length::Fill)
     };
 
-    // Apply hover styling with smooth transitions
+    // Apply hover styling with smooth transitions using premium sunset gradient
     // Includes pressed state for tactile feedback using interactive overlay
     let item_button = button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
@@ -183,21 +183,30 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         .style(move |_theme: &iced::Theme, status| {
             use iced::widget::button;
             match status {
-                button::Status::Hovered if !selected => button::Style {
-                    background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
-                    border: Border {
-                        color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
-                        width: 1.5,
-                        radius: border_radius::SM.into(),
-                    },
-                    shadow: shadows::shadow_md(),
-                    ..button::Style::default()
-                },
+                button::Status::Hovered if !selected => {
+                    // Premium sunset gradient hover with enhanced glow
+                    button::Style {
+                        background: Some(with_alpha_gradient_sunset(
+                            colors::SUNSET_GRADIENT_START,
+                            colors::SUNSET_GRADIENT_END,
+                            0.22,
+                            opacity,
+                        )
+                        .into()),
+                        border: Border {
+                            color: with_alpha(colors::SUNSET_GRADIENT_END, opacity),
+                            width: 2.0,
+                            radius: border_radius::SM.into(),
+                        },
+                        shadow: shadows::glow_sunset(0.35),
+                        ..button::Style::default()
+                    }
+                }
                 button::Status::Pressed if !selected => button::Style {
                     background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
                     border: Border {
                         color: with_alpha(colors::BORDER_PROMINENT, opacity),
-                        width: 1.5,
+                        width: 2.0,
                         radius: border_radius::SM.into(),
                     },
                     shadow: shadows::shadow_sm(),
@@ -516,6 +525,19 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
 /// Enhanced gradient for selection state with configurable blend
 /// Creates smooth gradient transition between two colors with opacity control
 fn with_alpha_gradient_enhanced(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
+    let blend_factor = blend_factor.clamp(0.0, 1.0);
+    let inv_blend = 1.0 - blend_factor;
+    Color {
+        r: start.r.mul_add(blend_factor, end.r * inv_blend) * opacity,
+        g: start.g.mul_add(blend_factor, end.g * inv_blend) * opacity,
+        b: start.b.mul_add(blend_factor, end.b * inv_blend) * opacity,
+        a: opacity,
+    }
+}
+
+/// Premium sunset gradient for hover states with distinctive branding
+/// Creates warm rose-to-coral transition with configurable opacity
+fn with_alpha_gradient_sunset(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
     let blend_factor = blend_factor.clamp(0.0, 1.0);
     let inv_blend = 1.0 - blend_factor;
     Color {

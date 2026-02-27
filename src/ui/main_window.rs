@@ -195,7 +195,7 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 
     container(
         row![
-            // Enhanced logo with distinctive gradient and glow effect
+            // Enhanced logo with distinctive sunset gradient and premium glow effect
             container(
                 text("♪")
                     .size(typography::SIZE_BASE)
@@ -203,20 +203,20 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                         color: Some(colors::TEXT_ON_PRIMARY),
                     }),
             )
-            .width(Length::Fixed(24.0))
-            .height(Length::Fixed(24.0))
+            .width(Length::Fixed(28.0))  // Slightly larger for prominence
+            .height(Length::Fixed(28.0))
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
-                // Enhanced gradient background for premium logo appearance
-                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+                // Premium sunset gradient background for distinctive branding
+                background: Some(colors::SUNSET_GRADIENT_START.into()),
                 border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
+                    color: colors::SUNSET_GRADIENT_END,
+                    width: 1.5,
                     radius: border_radius::SM.into(),
                 },
-                // Enhanced glow effect for prominence
-                shadow: shadows::glow_primary(0.5),
+                // Enhanced premium glow effect for prominence
+                shadow: shadows::glow_premium(0.6),
                 ..Default::default()
             }),
             column![

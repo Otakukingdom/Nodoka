@@ -349,6 +349,60 @@ pub mod preset {
         }
     }
 
+    /// ===== Premium Heading Presets =====
+
+    /// Premium heading preset with distinctive character
+    /// Creates memorable typography with tighter letter-spacing and refined line-height
+    pub struct PremiumHeading {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for PremiumHeading {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl PremiumHeading {
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::H1_SIZE,
+                weight: weight::SEMIBOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.01, // Slightly tighter for distinctive look
+            }
+        }
+
+        #[must_use]
+        pub const fn display() -> Self {
+            Self {
+                size: type_scale::DISPLAY_SIZE,
+                weight: weight::BOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.02,
+            }
+        }
+
+        #[must_use]
+        pub const fn grand() -> Self {
+            Self {
+                size: 56.0, // Larger than display for hero elements
+                weight: weight::BOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.015,
+            }
+        }
+
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::heading(theme)
+        }
+    }
+
     /// Button text preset with slightly heavier weight
     pub struct Button {
         pub size: f32,

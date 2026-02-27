@@ -464,4 +464,54 @@ pub mod shadows {
             blur_radius: 8.0,
         }
     }
+
+    /// ===== Premium Glow Effects =====
+
+    /// Premium sunset glow for distinctive branding
+    /// Creates warm rose glow with sunset gradient colors
+    #[must_use]
+    pub fn glow_sunset(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.45).clamp(0.0, 0.55);
+        Shadow {
+            color: Color::from_rgba(0.98, 0.32, 0.45, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 14.0 * intensity,
+        }
+    }
+
+    /// Premium cool glow for secondary highlights
+    /// Creates calming lavender glow with cool gradient colors
+    #[must_use]
+    pub fn glow_cool(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.40).clamp(0.0, 0.50);
+        Shadow {
+            color: Color::from_rgba(0.70, 0.65, 0.95, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 12.0 * intensity,
+        }
+    }
+
+    /// Premium gold glow for achievements and completion
+    /// Creates sophisticated amber glow for celebratory moments
+    #[must_use]
+    pub fn glow_gold(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.42).clamp(0.0, 0.52);
+        Shadow {
+            color: Color::from_rgba(1.0, 0.82, 0.40, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 13.0 * intensity,
+        }
+    }
+
+    /// Enhanced premium glow with maximum intensity
+    /// Creates strongest glow effect for key interactive elements
+    #[must_use]
+    pub fn glow_premium(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.50).clamp(0.0, 0.60);
+        Shadow {
+            color: Color::from_rgba(0.98, 0.32, 0.45, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 16.0 * intensity,
+        }
+    }
 }

@@ -282,6 +282,25 @@ pub const SHADOW_MD: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.11);
 pub const SHADOW_LG: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.16);
 pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.26);
 
+/// ===== Premium Distinctive Gradients =====
+/// Premium sunset gradient for distinctive brand identity
+/// Creates warm, sophisticated rose-to-coral transition for premium appearance
+pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.98, 0.32, 0.45);
+pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.88, 0.15, 0.30);
+
+/// Cool accent gradient for secondary highlights
+/// Provides calming lavender-to-indigo transition for visual variety
+pub const COOL_GRADIENT_START: Color = Color::from_rgb(0.70, 0.65, 0.95);
+pub const COOL_GRADIENT_END: Color = Color::from_rgb(0.55, 0.45, 0.85);
+
+/// Premium gold gradient for achievements and completion states
+/// Creates sophisticated amber-gold transition for celebratory moments
+pub const GOLD_GRADIENT_START: Color = Color::from_rgb(1.0, 0.82, 0.40);
+pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.92, 0.68, 0.25);
+
+/// Premium glow for active elements with enhanced rose tint
+pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.45);
+
 /// Legacy top-bar color – golden yellow `#FEDB53` (superseded by design system colors).
 pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325);
 /// Legacy player background (alias for [`BG_ELEVATED`]).
@@ -515,6 +534,26 @@ pub mod dark_theme {
     pub const SHADOW_MD: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.22);
     pub const SHADOW_LG: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.32);
     pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.42);
+
+    /// ===== Premium Distinctive Gradients for Dark Theme =====
+
+    /// Premium sunset gradient for dark theme with enhanced brightness
+    /// Creates warm, sophisticated rose-to-coral transition optimized for dark backgrounds
+    pub const SUNSET_GRADIENT_START: Color = Color::from_rgb(0.99, 0.35, 0.50);
+    pub const SUNSET_GRADIENT_END: Color = Color::from_rgb(0.90, 0.18, 0.35);
+
+    /// Cool accent gradient for dark theme with enhanced luminosity
+    /// Provides calming lavender-to-indigo transition with better contrast
+    pub const COOL_GRADIENT_START: Color = Color::from_rgb(0.75, 0.70, 0.98);
+    pub const COOL_GRADIENT_END: Color = Color::from_rgb(0.60, 0.50, 0.88);
+
+    /// Premium gold gradient for dark theme with maximum brightness
+    /// Creates sophisticated amber-gold transition optimized for visibility on dark
+    pub const GOLD_GRADIENT_START: Color = Color::from_rgb(1.0, 0.86, 0.48);
+    pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.94, 0.72, 0.32);
+
+    /// Premium glow for active elements in dark theme
+    pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.55);
 }
 
 /// WCAG AA minimum contrast ratio for normal text (4.5:1).

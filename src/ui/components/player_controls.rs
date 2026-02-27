@@ -75,37 +75,41 @@ pub fn view(state: &State) -> Element<'_, Message> {
         widget_slider(0.0..=max_duration, current_time, Message::SeekTo)
             .height(24.0)
             .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
-                let alpha = if is_active { 0.98 } else { 0.85 };
+                let alpha = if is_active { 0.98 } else { 0.88 };
                 iced::widget::slider::Style {
                     rail: iced::widget::slider::Rail {
                         backgrounds: (
                             iced::Background::Color(colors::BG_SECONDARY),
-                            // Enhanced two-tone gradient for fill (rose-to-crimson transition)
+                            // Premium sunset gradient for fill with vibrant rose-to-coral transition
                             iced::Background::Color(Color::from_rgba(
-                                colors::PROGRESS_GRADIENT_START.r,
-                                colors::PROGRESS_GRADIENT_START.g,
-                                colors::PROGRESS_GRADIENT_START.b,
+                                colors::SUNSET_GRADIENT_START.r,
+                                colors::SUNSET_GRADIENT_START.g,
+                                colors::SUNSET_GRADIENT_START.b,
                                 alpha,
                             )),
                         ),
-                        width: 6.0,
+                        width: 8.0, // Thicker for better visibility
                         border: iced::Border {
                             // Inset shadow for carved/recessed appearance
-                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.12),
+                            color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
                             width: 1.5,
-                            radius: 3.0.into(),
+                            radius: 4.0.into(),
                         },
                     },
                     handle: iced::widget::slider::Handle {
-                        shape: iced::widget::slider::HandleShape::Circle { radius: 10.0 },
-                        // Two-tone gradient for handle
+                        shape: iced::widget::slider::HandleShape::Circle { radius: 11.0 },
+                        // Premium sunset gradient for active handle
                         background: if is_active {
-                            iced::Background::Color(colors::PROGRESS_GRADIENT_START)
+                            iced::Background::Color(colors::SUNSET_GRADIENT_START)
                         } else {
                             iced::Background::Color(Color::WHITE)
                         },
                         border_width: 2.5,
-                        border_color: Color::WHITE,
+                        border_color: if is_active {
+                            colors::SUNSET_GRADIENT_END
+                        } else {
+                            Color::WHITE
+                        },
                     },
                 }
             })
