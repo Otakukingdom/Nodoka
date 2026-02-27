@@ -52,8 +52,8 @@ fn test_button_styles_have_distinct_appearances() {
     // Secondary should have a border (width > 0)
     assert!(secondary.border.width > 0.0);
 
-    // Primary has a subtle border (1.0px) for definition
-    assert!((primary.border.width - 1.0).abs() < f32::EPSILON);
+    // Primary has a subtle border (1.5px) for definition
+    assert!((primary.border.width - 1.5).abs() < f32::EPSILON);
 }
 
 #[test]

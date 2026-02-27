@@ -52,6 +52,16 @@ pub enum Scenario {
     ScrollbarVisible,
     /// Many audiobooks for scrolling demonstration.
     ManyItems,
+    /// Bookmark selected with highlight styling.
+    BookmarkSelected,
+    /// File selected with active styling.
+    FileSelected,
+    /// Playback speed changed to non-1.0 value.
+    SpeedChanged,
+    /// Volume muted at 0%.
+    VolumeMuted,
+    /// Sleep timer active with countdown.
+    SleepTimerActive,
 }
 
 impl Scenario {
@@ -78,6 +88,11 @@ impl Scenario {
             Self::LoadingState,
             Self::ScrollbarVisible,
             Self::ManyItems,
+            Self::BookmarkSelected,
+            Self::FileSelected,
+            Self::SpeedChanged,
+            Self::VolumeMuted,
+            Self::SleepTimerActive,
         ]
     }
 
@@ -104,6 +119,11 @@ impl Scenario {
             Self::LoadingState => "17-loading-state.png",
             Self::ScrollbarVisible => "18-scrollbar-visible.png",
             Self::ManyItems => "19-many-items.png",
+            Self::BookmarkSelected => "20-bookmark-selected.png",
+            Self::FileSelected => "21-file-selected.png",
+            Self::SpeedChanged => "22-speed-changed.png",
+            Self::VolumeMuted => "23-volume-muted.png",
+            Self::SleepTimerActive => "24-sleep-timer-active.png",
         }
     }
 
@@ -549,6 +569,46 @@ impl Scenario {
 
                 state.audiobooks = many_audiobooks;
             }
+            Self::BookmarkSelected => {
+                // Bookmark selected scenario - show bookmark list with focused element
+                if let Some(id) = setup_with_selected_audiobook(state, db) {
+                    state.bookmarks = create_fixture_bookmarks(id);
+                    // Set focused element to simulate selection on bookmark list
+                    state.focused_element = nodoka::ui::FocusedElement::BookmarkList;
+                }
+            }
+            Self::FileSelected => {
+                // File selected with active styling
+                if let Some(_id) = setup_with_selected_audiobook(state, db) {
+                    // Set selected_file to the second file path
+                    state.selected_file = Some("/audiobooks/Foundation/chapter2.mp3".to_string());
+                }
+            }
+            Self::SpeedChanged => {
+                // Playback speed set to non-1.0 value
+                if setup_with_selected_audiobook(state, db).is_some() {
+                    state.playback = PlaybackStatus::Playing;
+                    state.current_time = 60_000.0;
+                    state.total_duration = 300_000.0;
+                    state.speed = 1.5; // Non-standard speed
+                }
+            }
+            Self::VolumeMuted => {
+                // Volume at 0% with mute indicator
+                if setup_with_selected_audiobook(state, db).is_some() {
+                    state.volume = 0;
+                    state.volume_expanded = true;
+                }
+            }
+            Self::SleepTimerActive => {
+                // Sleep timer active with 30 minute countdown
+                if setup_with_selected_audiobook(state, db).is_some() {
+                    state.playback = PlaybackStatus::Playing;
+                    // Create a 30-minute sleep timer with 10-second fade
+                    use nodoka::models::{SleepTimer, SleepTimerMode};
+                    state.sleep_timer = Some(SleepTimer::new(SleepTimerMode::Duration(1800), 10));
+                }
+            }
         }
     }
 }
@@ -756,7 +816,7 @@ mod tests {
                 scenario.filename()
             );
         }
-        assert_eq!(filenames.len(), 19); // Updated to 19 scenarios
+        assert_eq!(filenames.len(), 24); // Updated to 24 scenarios
     }
 
     #[test]

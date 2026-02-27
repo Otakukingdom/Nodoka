@@ -208,19 +208,19 @@ fn top_bar(state: &State) -> Element<'static, Message> {
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
-                // Premium multi-gradient background for distinctive branding
-                // Uses enhanced 4-color blend for maximum brand recognition
+                // Enhanced premium multi-gradient background for distinctive branding
+                // Uses enhanced 4-color blend with Aurora Rose for maximum brand recognition
                 background: Some(logo_gradient_premium().into()),
                 border: Border {
-                    color: Color::from_rgba(1.0, 1.0, 1.0, 0.6),
-                    width: 2.0,
+                    color: colors::AURORA_ROSE_GRADIENT_END,  // Enhanced border color
+                    width: 2.5,  // Increased for more definition
                     radius: border_radius::SM.into(),
                 },
-                // Enhanced multi-layer glow with stronger rose tint
+                // Enhanced multi-layer glow with stronger rose tint for brand presence
                 shadow: Shadow {
-                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.55),
+                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.60),  // Increased glow
                     offset: Vector::new(0.0, 0.0),
-                    blur_radius: 12.0,
+                    blur_radius: 14.0,  // Increased blur
                 },
                 ..Default::default()
             }),
@@ -248,10 +248,10 @@ fn top_bar(state: &State) -> Element<'static, Message> {
         background: Some(colors::BG_FLOATING.into()),
         border: Border {
             color: colors::BORDER_SUBTLE,
-            width: 1.5,
+            width: 2.0,  // Increased for more definition
             radius: border_radius::MD.into(),
         },
-        shadow: shadows::shadow_lg(),
+        shadow: shadows::shadow_lg(),  // Large shadow for elevation
         ..Default::default()
     })
     .into()
@@ -437,17 +437,18 @@ fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
 }
 
 /// Creates premium gradient color for application logo
-/// Enhanced with 4-color blend for distinctive brand identity
+/// Enhanced with 5-color blend including Aurora Rose for distinctive brand identity
 fn logo_gradient_premium() -> Color {
-    // Enhanced 4-color blend for distinctive brand identity
+    // Enhanced 5-color blend for distinctive brand identity with Aurora Rose
     let start = colors::SIGNATURE_GRADIENT_START;
     let mid1 = colors::PRIMARY_GRADIENT_START;
     let mid2 = colors::SUNSET_GRADIENT_START;
+    let aurora = colors::AURORA_ROSE_GRADIENT_START;
     let end = colors::SIGNATURE_GRADIENT_END;
     Color {
-        r: end.r.mul_add(0.30, mid2.r.mul_add(0.20, mid1.r.mul_add(0.20, start.r * 0.30))),
-        g: end.g.mul_add(0.30, mid2.g.mul_add(0.20, mid1.g.mul_add(0.20, start.g * 0.30))),
-        b: end.b.mul_add(0.30, mid2.b.mul_add(0.20, mid1.b.mul_add(0.20, start.b * 0.30))),
+        r: end.r.mul_add(0.25, aurora.r.mul_add(0.20, mid2.r.mul_add(0.18, mid1.r.mul_add(0.18, start.r * 0.19)))),
+        g: end.g.mul_add(0.25, aurora.g.mul_add(0.20, mid2.g.mul_add(0.18, mid1.g.mul_add(0.18, start.g * 0.19)))),
+        b: end.b.mul_add(0.25, aurora.b.mul_add(0.20, mid2.b.mul_add(0.18, mid1.b.mul_add(0.18, start.b * 0.19)))),
         a: 1.0,
     }
 }

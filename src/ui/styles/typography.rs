@@ -273,7 +273,7 @@ pub mod preset {
             Self {
                 size: type_scale::BODY_SIZE,
                 weight: type_scale::BODY_WEIGHT,
-                line_height_ratio: line_height::NORMAL,
+                line_height_ratio: line_height::RELAXED,
                 letter_spacing: super::letter_spacing::NONE,
             }
         }
@@ -532,7 +532,7 @@ pub mod preset {
         pub const fn new() -> Self {
             Self {
                 size: type_scale::BUTTON_SIZE,
-                weight: type_scale::BUTTON_WEIGHT,
+                weight: weight::SEMIBOLD,
                 line_height_ratio: line_height::DENSE,
                 letter_spacing: super::letter_spacing::NONE,
             }

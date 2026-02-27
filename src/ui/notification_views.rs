@@ -85,15 +85,15 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.5),
-                width: 3.0,
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.6),  // Increased opacity
+                width: 3.5,  // Increased width for more definition
                 radius: border_radius::MD.into(),
             },
             // Enhanced multi-layer shadow for dramatic elevation
             shadow: iced::Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
-                offset: iced::Vector::new(0.0, 4.0),
-                blur_radius: 20.0,
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),  // Increased opacity
+                offset: iced::Vector::new(0.0, 6.0),  // Increased offset
+                blur_radius: 24.0,  // Increased blur
             },
             ..Default::default()
         })
@@ -106,17 +106,20 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
-            Color::from_rgb(0.05, 0.75, 0.40)  // Increased saturation
+            // Enhanced emerald with increased saturation for better contrast
+            Color::from_rgb(0.04, 0.80, 0.42)
         }
         crate::ui::state::NotificationType::Info => {
-            // Aurora Rose gradient for distinctive brand identity
-            Color::from_rgb(0.92, 0.46, 0.64)
+            // Aurora Rose gradient for distinctive brand identity (enhanced)
+            Color::from_rgb(0.94, 0.48, 0.68)
         }
         crate::ui::state::NotificationType::Warning => {
-            Color::from_rgb(0.92, 0.58, 0.08)  // Increased saturation
+            // Enhanced amber with increased saturation
+            Color::from_rgb(0.95, 0.62, 0.12)
         }
         crate::ui::state::NotificationType::Error => {
-            Color::from_rgb(0.92, 0.20, 0.35)  // Rose-tinted for brand consistency
+            // Rose-tinted for brand consistency with increased saturation
+            Color::from_rgb(0.94, 0.18, 0.38)
         }
     }
 }

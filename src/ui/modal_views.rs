@@ -47,20 +47,20 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
 /// Enhanced glass-morphism backdrop with multi-color tint
 /// Creates premium backdrop with sophisticated color layering for depth and richness
 fn improved_glass_backdrop(opacity: f32) -> Color {
-    // Enhanced multi-layer color for premium feel
-    // Combines warm rose base with cool blue-gray overlay for depth
-    let base_r = 0.12;
-    let base_g = 0.06;
-    let base_b = 0.10;
-    let overlay_r = 0.08;
-    let overlay_g = 0.12;
-    let overlay_b = 0.18;
+    // Premium multi-layer color for enhanced depth
+    // Combines warm rose base with cool blue-gray overlay for dramatic depth
+    let base_r = 0.15;  // Enhanced rose base for warmth
+    let base_g = 0.08;
+    let base_b = 0.12;
+    let overlay_r = 0.06;  // Cool overlay for depth
+    let overlay_g = 0.10;
+    let overlay_b = 0.20;
 
     Color {
-        r: (base_r + overlay_r * 0.3),
-        g: (base_g + overlay_g * 0.3),
-        b: (base_b + overlay_b * 0.3),
-        a: (0.78 * opacity).clamp(0.0, 0.92),
+        r: (base_r + overlay_r * 0.25),
+        g: (base_g + overlay_g * 0.25),
+        b: (base_b + overlay_b * 0.25),
+        a: (0.85 * opacity).clamp(0.0, 0.94),  // Increased opacity for better focus
     }
 }
 
@@ -138,9 +138,9 @@ pub(super) fn keyboard_help_view(
 /// Renders a grouped section of keyboard shortcuts with premium styled keys
 ///
 /// Creates refined key badges with:
-/// - Subtle background gradient
-/// - Enhanced border with primary color tint
-/// - Small shadow for depth
+/// - Premium multi-gradient background with distinctive character
+/// - Enhanced border with Aurora Rose gradient for brand identity
+/// - Multi-layer shadow for depth
 fn shortcut_group(
     title: &'static str,
     shortcuts: Vec<(String, String)>,
@@ -159,16 +159,16 @@ fn shortcut_group(
                     text(key)
                         .size(typography::SIZE_SM)
                         .style(|_theme: &iced::Theme| iced::widget::text::Style {
-                            color: Some(colors::TEXT_PRIMARY),
+                            color: Some(colors::TEXT_ON_PRIMARY),
                         }),
                 )
                 .padding(iced::Padding::from([spacing::XS, spacing::SM]))
                 .style(|_theme: &iced::Theme| iced::widget::container::Style {
-                    // Use signature gradient for brand consistency
-                    background: Some(colors::SIGNATURE_GRADIENT_START.into()),
+                    // Premium Aurora Rose gradient for distinctive brand identity
+                    background: Some(shortcut_badge_gradient_premium().into()),
                     border: Border {
-                        color: colors::ACCENT_GRADIENT_END,
-                        width: 2.0,
+                        color: colors::AURORA_ROSE_GRADIENT_END,
+                        width: 2.5,
                         radius: border_radius::SM.into(),
                     },
                     shadow: shadows::shadow_md(),
@@ -203,21 +203,21 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with Velvet gradient for premium dark theme treatment
-    let border_color = with_alpha(colors::VELVET_GRADIENT_END, opacity);
+    // Enhanced border with multi-gradient for premium treatment
+    let border_color = with_alpha_gradient_border_premium(opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
-                width: 4.0,
+                width: 4.5,  // Increased for more definition
                 radius: border_radius::XL.into(),
             },
             // Enhanced multi-layer shadow with rose tint for dramatic elevation
             shadow: Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.18),
-                offset: Vector::new(0.0, 8.0),
-                blur_radius: 32.0,
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.22),  // Increased opacity
+                offset: Vector::new(0.0, 12.0),  // Increased offset
+                blur_radius: 40.0,  // Increased blur
             },
             ..Default::default()
         })
@@ -330,5 +330,33 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
+    }
+}
+
+/// Creates premium multi-gradient border color for modal cards
+/// Blends Velvet and Aurora gradients for distinctive premium appearance
+fn with_alpha_gradient_border_premium(opacity: f32) -> Color {
+    let velvet = colors::VELVET_GRADIENT_END;
+    let aurora = colors::AURORA_ROSE_GRADIENT_END;
+    let primary = colors::PRIMARY;
+    Color {
+        r: primary.r.mul_add(0.25, velvet.r.mul_add(0.4, aurora.r * 0.35)) * opacity,
+        g: primary.g.mul_add(0.25, velvet.g.mul_add(0.4, aurora.g * 0.35)) * opacity,
+        b: primary.b.mul_add(0.25, velvet.b.mul_add(0.4, aurora.b * 0.35)) * opacity,
+        a: opacity,
+    }
+}
+
+/// Creates premium gradient color for keyboard shortcut badges
+/// Blends Aurora Rose with primary gradient for distinctive brand identity
+fn shortcut_badge_gradient_premium() -> Color {
+    let aurora = colors::AURORA_ROSE_GRADIENT_START;
+    let aurora_end = colors::AURORA_ROSE_GRADIENT_END;
+    let primary = colors::PRIMARY_GRADIENT_START;
+    Color {
+        r: aurora_end.r.mul_add(0.35, primary.r.mul_add(0.30, aurora.r * 0.35)),
+        g: aurora_end.g.mul_add(0.35, primary.g.mul_add(0.30, aurora.g * 0.35)),
+        b: aurora_end.b.mul_add(0.35, primary.b.mul_add(0.30, aurora.b * 0.35)),
+        a: 1.0,
     }
 }

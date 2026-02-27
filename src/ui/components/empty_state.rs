@@ -4,11 +4,11 @@
 //! visual hierarchy, premium button styling, and micro-interactions.
 
 use crate::ui::styles::{
-    border_radius, button_styles, colors, shadows, spacing, typography,
+    button_styles, colors, shadows, spacing, typography,
 };
 use crate::ui::Message;
 use iced::widget::{button, column, container, text, Space};
-use iced::{Border, Color, Element, Length, Shadow, Vector};
+use iced::{Border, Color, Element, Length};
 
 /// Empty state context - determines the visual variant
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -61,16 +61,17 @@ pub fn view(
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
     let icon_size = typography::type_scale::DISPLAY_SIZE * 1.5;
-    // Enhanced icon with signature gradient for brand consistency
-    // Combines signature, primary, and accent gradients for distinctive appearance
+    // Enhanced icon with 4-color signature gradient for brand consistency
+    // Combines signature, primary, sunset, and accent gradients for distinctive appearance
     let icon_gradient = {
         let start = colors::SIGNATURE_GRADIENT_START;
-        let mid = colors::PRIMARY_GRADIENT_START;
+        let mid1 = colors::PRIMARY_GRADIENT_START;
+        let mid2 = colors::SUNSET_GRADIENT_START;
         let end = colors::ACCENT_GRADIENT_END;
         Color {
-            r: end.r.mul_add(0.35, mid.r.mul_add(0.35, start.r * 0.30)),
-            g: end.g.mul_add(0.35, mid.g.mul_add(0.35, start.g * 0.30)),
-            b: end.b.mul_add(0.35, mid.b.mul_add(0.35, start.b * 0.30)),
+            r: end.r.mul_add(0.30, mid2.r.mul_add(0.25, mid1.r.mul_add(0.25, start.r * 0.20))),
+            g: end.g.mul_add(0.30, mid2.g.mul_add(0.25, mid1.g.mul_add(0.25, start.g * 0.20))),
+            b: end.b.mul_add(0.30, mid2.b.mul_add(0.25, mid1.b.mul_add(0.25, start.b * 0.20))),
             a: 1.0,
         }
     };
@@ -83,15 +84,11 @@ pub fn view(
             background: Some(icon_gradient.into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
-                width: 3.0,
-                radius: (icon_size * 1.6 / 2.0).into(),
+                width: 3.5,
+                radius: 24.0.into(), // XXL border radius for softer appearance
             },
             // Enhanced shadow with increased blur for premium depth
-            shadow: Shadow {
-                color: Color::from_rgba(0.95, 0.85, 0.90, 0.08),
-                offset: Vector::new(0.0, 1.0),
-                blur_radius: 6.0,
-            },
+            shadow: shadows::shadow_xxl(),
             text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
         });
@@ -145,8 +142,8 @@ pub fn view(
             background: Some(colors::BG_ELEVATED.into()),
             border: Border {
                 color: colors::BORDER_PROMINENT,
-                width: 1.5,
-                radius: border_radius::XL.into(),
+                width: 2.0,
+                radius: 24.0.into(), // XXL border radius for softer card appearance
             },
             shadow: shadows::shadow_xxl(),
             ..Default::default()

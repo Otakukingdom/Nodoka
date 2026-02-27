@@ -143,12 +143,12 @@ pub const fn get_color(theme: crate::ui::state::ThemeMode, color_type: ColorType
     }
 }
 
-/// Primary brand color – vibrant rose `#E11D48`.
-pub const PRIMARY: Color = Color::from_rgb(0.882, 0.114, 0.282);
+/// Primary brand color – vibrant rose with enhanced saturation for brand prominence.
+pub const PRIMARY: Color = Color::from_rgb(0.90, 0.12, 0.30);
 /// Primary brand color on hover – slightly darker rose.
-pub const PRIMARY_HOVER: Color = Color::from_rgb(0.753, 0.098, 0.239);
+pub const PRIMARY_HOVER: Color = Color::from_rgb(0.78, 0.10, 0.25);
 /// Primary brand color when pressed/active – darkest rose.
-pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.639, 0.082, 0.200);
+pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.66, 0.085, 0.21);
 /// Secondary accent – soft rose `#FB7185`.
 pub const SECONDARY: Color = Color::from_rgb(0.984, 0.443, 0.522);
 /// Call-to-action accent – engagement blue `#2563EB`.
@@ -169,8 +169,8 @@ pub const INFO: Color = Color::from_rgb(0.149, 0.388, 0.922);
 
 /// Primary page background – pure white for neutral base.
 pub const BG_PRIMARY: Color = Color::from_rgb(1.0, 1.0, 1.0);
-/// Secondary content background – very light neutral gray.
-pub const BG_SECONDARY: Color = Color::from_rgb(0.98, 0.98, 0.98);
+/// Secondary content background – warm neutral with rose tint for inviting appearance.
+pub const BG_SECONDARY: Color = Color::from_rgb(0.975, 0.970, 0.978);
 /// Elevated surface background – white with subtle shadow for depth.
 pub const BG_ELEVATED: Color = Color::from_rgb(1.0, 1.0, 1.0);
 /// Background color on hover.
@@ -230,8 +230,8 @@ pub const SURFACE_ACTIVE: Color = Color::from_rgb(0.95, 0.94, 0.96);
 
 /// Primary gradient colors for visual depth on special elements.
 /// Enhanced with ultra-smooth rose-to-crimson transition for premium appearance.
-pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.99, 0.28, 0.42);
-pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.86, 0.13, 0.28);
+pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.30, 0.44);
+pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.88, 0.14, 0.29);
 
 /// Accent gradient colors for CTAs and highlights.
 /// Enhanced with vibrant rose-to-magenta transition for distinctive appeal.
@@ -312,8 +312,8 @@ pub const COOL_GRADIENT_END: Color = Color::from_rgb(0.55, 0.45, 0.85);
 pub const GOLD_GRADIENT_START: Color = Color::from_rgb(1.0, 0.82, 0.40);
 pub const GOLD_GRADIENT_END: Color = Color::from_rgb(0.92, 0.68, 0.25);
 
-/// Premium glow for active elements with enhanced rose tint
-pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.50);
+/// Premium glow for active elements with enhanced rose tint and increased visibility
+pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.58);
 
 /// ===== Premium Gradients for Special Use Cases =====
 /// Subtle gradient for backgrounds - very low contrast for premium depth
@@ -467,12 +467,12 @@ pub mod dark_theme {
     use iced::Color;
 
     // Primary colors (keep rose from light theme for brand consistency)
-    /// Primary brand color – vibrant rose `#E11D48`.
-    pub const PRIMARY: Color = Color::from_rgb(0.882, 0.114, 0.282);
+    /// Primary brand color – vibrant rose with enhanced saturation.
+    pub const PRIMARY: Color = Color::from_rgb(0.90, 0.12, 0.30);
     /// Primary brand color on hover – slightly darker rose.
-    pub const PRIMARY_HOVER: Color = Color::from_rgb(0.753, 0.098, 0.239);
+    pub const PRIMARY_HOVER: Color = Color::from_rgb(0.78, 0.10, 0.25);
     /// Primary brand color when pressed/active – darkest rose.
-    pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.639, 0.082, 0.200);
+    pub const PRIMARY_ACTIVE: Color = Color::from_rgb(0.66, 0.085, 0.21);
     /// Secondary accent – soft rose `#FB7185`.
     pub const SECONDARY: Color = Color::from_rgb(0.984, 0.443, 0.522);
     /// Call-to-action accent – engagement blue `#2563EB`.
@@ -495,8 +495,8 @@ pub mod dark_theme {
     // Dark backgrounds
     /// Primary background – dark gray `#1A1A1A`
     pub const BG_PRIMARY: Color = Color::from_rgb(0.1, 0.1, 0.1);
-    /// Secondary background – slightly lighter `#262626`
-    pub const BG_SECONDARY: Color = Color::from_rgb(0.15, 0.15, 0.15);
+    /// Secondary background – slightly lighter with subtle warmth `#262526`
+    pub const BG_SECONDARY: Color = Color::from_rgb(0.15, 0.145, 0.15);
     /// Elevated surface background – lighter than secondary `#333333`
     pub const BG_ELEVATED: Color = Color::from_rgb(0.2, 0.2, 0.2);
     /// Background color on hover – lighter still `#404040`
@@ -559,8 +559,8 @@ pub mod dark_theme {
 
     /// Primary gradient colors for dark theme.
     /// Enhanced with optimized brightness and smoother interpolation for visibility.
-    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.32, 0.48);
-    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.90, 0.17, 0.35);
+    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(1.0, 0.34, 0.50);
+    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.92, 0.18, 0.36);
 
     /// Accent gradient colors for dark theme.
     /// Enhanced with vibrant rose-to-magenta transition for maximum visibility.
@@ -632,8 +632,8 @@ pub mod dark_theme {
     pub const EMERALD_GRADIENT_START: Color = Color::from_rgb(0.18, 0.82, 0.62);
     pub const EMERALD_GRADIENT_END: Color = Color::from_rgb(0.12, 0.72, 0.55);
 
-    /// Premium glow for active elements in dark theme
-    pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.55);
+    /// Premium glow for active elements in dark theme with enhanced visibility
+    pub const GLOW_PREMIUM: Color = Color::from_rgba(0.98, 0.32, 0.45, 0.62);
 
     /// ===== Signature Brand Gradient for Dark Theme =====
     /// Enhanced with maximum brightness to maintain vibrancy on dark backgrounds
