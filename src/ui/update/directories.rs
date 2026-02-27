@@ -439,14 +439,14 @@ fn start_directory_scan(path: String) -> Task<Message> {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)] // Test assertions use unwrap for clarity
 mod tests {
     use super::*;
 
     #[test]
-    fn test_update_audiobook_total_duration_calculates_sum() {
-        let db = crate::db::Database::new_in_memory().unwrap();
-        crate::db::initialize(db.connection()).unwrap();
+    fn test_update_audiobook_total_duration_calculates_sum(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let db = crate::db::Database::new_in_memory()?;
+        crate::db::initialize(db.connection())?;
 
         // Create an audiobook
         let audiobook = crate::models::Audiobook::new(
@@ -455,8 +455,7 @@ mod tests {
             "/test/book".to_string(),
             0,
         );
-        let audiobook_id =
-            crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
 
         // Insert some files with durations
         let file1 = crate::models::AudiobookFile {
@@ -471,7 +470,7 @@ mod tests {
             file_exists: true,
             created_at: chrono::Utc::now(),
         };
-        crate::db::queries::insert_audiobook_file(db.connection(), &file1).unwrap();
+        crate::db::queries::insert_audiobook_file(db.connection(), &file1)?;
 
         let file2 = crate::models::AudiobookFile {
             audiobook_id,
@@ -485,22 +484,24 @@ mod tests {
             file_exists: true,
             created_at: chrono::Utc::now(),
         };
-        crate::db::queries::insert_audiobook_file(db.connection(), &file2).unwrap();
+        crate::db::queries::insert_audiobook_file(db.connection(), &file2)?;
 
         // Calculate total duration
         update_audiobook_total_duration(&db, audiobook_id);
 
         // Verify total duration was stored correctly
-        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
-            .unwrap()
-            .unwrap();
+        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+            .ok_or_else(|| std::io::Error::other("expected audiobook to exist after insertion"))?;
         assert_eq!(updated.total_duration_ms, Some(10_800_000)); // 3 hours total
+
+        Ok(())
     }
 
     #[test]
-    fn test_update_audiobook_total_duration_handles_missing_durations() {
-        let db = crate::db::Database::new_in_memory().unwrap();
-        crate::db::initialize(db.connection()).unwrap();
+    fn test_update_audiobook_total_duration_handles_missing_durations(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let db = crate::db::Database::new_in_memory()?;
+        crate::db::initialize(db.connection())?;
 
         let audiobook = crate::models::Audiobook::new(
             "/test".to_string(),
@@ -508,8 +509,7 @@ mod tests {
             "/test/book".to_string(),
             0,
         );
-        let audiobook_id =
-            crate::db::queries::insert_audiobook(db.connection(), &audiobook).unwrap();
+        let audiobook_id = crate::db::queries::insert_audiobook(db.connection(), &audiobook)?;
 
         // Insert file without duration
         let file = crate::models::AudiobookFile {
@@ -524,14 +524,15 @@ mod tests {
             file_exists: true,
             created_at: chrono::Utc::now(),
         };
-        crate::db::queries::insert_audiobook_file(db.connection(), &file).unwrap();
+        crate::db::queries::insert_audiobook_file(db.connection(), &file)?;
 
         update_audiobook_total_duration(&db, audiobook_id);
 
         // Should be None when no files have durations
-        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)
-            .unwrap()
-            .unwrap();
+        let updated = crate::db::queries::get_audiobook_by_id(db.connection(), audiobook_id)?
+            .ok_or_else(|| std::io::Error::other("expected audiobook to exist after insertion"))?;
         assert_eq!(updated.total_duration_ms, None);
+
+        Ok(())
     }
 }

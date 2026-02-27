@@ -2,9 +2,6 @@
 //!
 //! Tests playback position saving, restoration across restarts, and crash recovery.
 
-#![allow(clippy::indexing_slicing)] // Test assertions use indexing for clarity
-#![allow(clippy::unwrap_used)] // Test assertions use unwrap for clarity
-
 mod acceptance_support;
 use acceptance_support::*;
 
@@ -413,7 +410,10 @@ fn test_last_listened_timestamp_updates_on_playback() -> Result<(), Box<dyn Erro
     queries::update_audiobook_last_listened(db.connection(), id, second_play)?;
 
     let loaded = queries::get_all_audiobooks(db.connection())?;
-    let found = loaded.iter().find(|a| a.id == Some(id)).unwrap();
+    let found = loaded
+        .iter()
+        .find(|a| a.id == Some(id))
+        .ok_or("audiobook not found")?;
 
     // Should have the more recent timestamp
     assert!(found.last_listened.is_some());
@@ -444,9 +444,12 @@ fn test_sort_by_recently_played_order() -> Result<(), Box<dyn Error>> {
     let mut all = queries::get_all_audiobooks(db.connection())?;
     all.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
 
-    assert_eq!(all[0].name, "Recent Book");
-    assert_eq!(all[1].name, "Middle Book");
-    assert_eq!(all[2].name, "Old Book");
+    let first = all.first().ok_or("missing first audiobook")?;
+    let second = all.get(1).ok_or("missing second audiobook")?;
+    let third = all.get(2).ok_or("missing third audiobook")?;
+    assert_eq!(first.name, "Recent Book");
+    assert_eq!(second.name, "Middle Book");
+    assert_eq!(third.name, "Old Book");
     Ok(())
 }
 
@@ -464,7 +467,9 @@ fn test_last_listened_none_sorts_to_end() -> Result<(), Box<dyn Error>> {
     all.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
 
     // Recently played should be first
-    assert_eq!(all[0].name, "Recently Played");
-    assert_eq!(all[1].name, "Never Played");
+    let first = all.first().ok_or("missing first audiobook")?;
+    let second = all.get(1).ok_or("missing second audiobook")?;
+    assert_eq!(first.name, "Recently Played");
+    assert_eq!(second.name, "Never Played");
     Ok(())
 }

@@ -401,7 +401,7 @@ fn build_wide_layout(state: &State) -> Element<'_, Message> {
     );
 
     let (left_portion, right_portion, show_left_panel) =
-        if state.focus_mode && state.playback == crate::ui::PlaybackStatus::Playing {
+        if state.focus_mode.is_enabled() && state.playback == crate::ui::PlaybackStatus::Playing {
             (0_u16, 10_u16, false)
         } else {
             let left_portion = portion_from_ratio(state.panel_ratio).max(1);

@@ -204,7 +204,7 @@ fn handle_shortcut_message(state: &mut State, message: &Message, db: &Database) 
             handle_layout_message(state, &Message::ThemeChanged(new_theme), db)
         }
         Message::ToggleVolumeExpanded => {
-            state.volume_expanded = !state.volume_expanded;
+            state.volume_expanded.toggle();
             Task::none()
         }
         Message::DecreasePanelRatio => {
@@ -442,10 +442,10 @@ fn handle_layout_message(state: &mut State, message: &Message, db: &Database) ->
             Task::none()
         }
         Message::ToggleFocusMode => {
-            state.focus_mode = !state.focus_mode;
+            state.focus_mode.toggle();
             // Persist to database
-            if let Err(e) =
-                crate::settings::Settings::new(db.connection()).set_focus_mode(state.focus_mode)
+            if let Err(e) = crate::settings::Settings::new(db.connection())
+                .set_focus_mode(bool::from(state.focus_mode))
             {
                 tracing::error!("Failed to save focus mode: {e}");
             }

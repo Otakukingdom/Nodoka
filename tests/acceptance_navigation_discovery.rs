@@ -1,7 +1,5 @@
 //! Acceptance tests for Navigation & Discovery features.
 
-#![allow(clippy::indexing_slicing)] // Test assertions use indexing for clarity
-
 mod acceptance_support;
 use acceptance_support::*;
 
@@ -24,7 +22,8 @@ fn test_search_filters_by_title() -> Result<(), Box<dyn Error>> {
         .collect();
 
     assert_eq!(filtered.len(), 1);
-    assert_eq!(filtered[0].name, "Harry Potter");
+    let first = filtered.first().ok_or("missing filtered result")?;
+    assert_eq!(first.name, "Harry Potter");
     Ok(())
 }
 
@@ -42,7 +41,8 @@ fn test_search_case_insensitive() -> Result<(), Box<dyn Error>> {
         .collect();
 
     assert_eq!(filtered.len(), 1);
-    assert_eq!(filtered[0].name, "Harry Potter");
+    let first = filtered.first().ok_or("missing filtered result")?;
+    assert_eq!(first.name, "Harry Potter");
     Ok(())
 }
 
@@ -87,8 +87,10 @@ fn test_sort_by_title() -> Result<(), Box<dyn Error>> {
     let mut all = queries::get_all_audiobooks(db.connection())?;
     all.sort_by(|a, b| a.name.cmp(&b.name));
 
-    assert_eq!(all[0].name, "Apple Book");
-    assert_eq!(all[1].name, "Zebra Book");
+    let first = all.first().ok_or("missing first audiobook")?;
+    let second = all.get(1).ok_or("missing second audiobook")?;
+    assert_eq!(first.name, "Apple Book");
+    assert_eq!(second.name, "Zebra Book");
     Ok(())
 }
 
@@ -111,8 +113,10 @@ fn test_sort_by_recently_played() -> Result<(), Box<dyn Error>> {
     let mut all = queries::get_all_audiobooks(db.connection())?;
     all.sort_by(|a, b| b.last_listened.cmp(&a.last_listened));
 
-    assert_eq!(all[0].name, "Book 2");
-    assert_eq!(all[1].name, "Book 1");
+    let first = all.first().ok_or("missing first audiobook")?;
+    let second = all.get(1).ok_or("missing second audiobook")?;
+    assert_eq!(first.name, "Book 2");
+    assert_eq!(second.name, "Book 1");
     Ok(())
 }
 
@@ -135,7 +139,8 @@ fn test_filter_in_progress() -> Result<(), Box<dyn Error>> {
         .collect();
 
     assert_eq!(filtered.len(), 1);
-    assert_eq!(filtered[0].name, "In Progress");
+    let first = filtered.first().ok_or("missing filtered result")?;
+    assert_eq!(first.name, "In Progress");
     Ok(())
 }
 
@@ -153,7 +158,8 @@ fn test_filter_complete() -> Result<(), Box<dyn Error>> {
     let filtered: Vec<_> = all.iter().filter(|ab| ab.completeness >= 100).collect();
 
     assert_eq!(filtered.len(), 1);
-    assert_eq!(filtered[0].name, "Complete");
+    let first = filtered.first().ok_or("missing filtered result")?;
+    assert_eq!(first.name, "Complete");
     Ok(())
 }
 
@@ -171,7 +177,8 @@ fn test_filter_not_started() -> Result<(), Box<dyn Error>> {
     let filtered: Vec<_> = all.iter().filter(|ab| ab.completeness == 0).collect();
 
     assert_eq!(filtered.len(), 1);
-    assert_eq!(filtered[0].name, "Not Started");
+    let first = filtered.first().ok_or("missing filtered result")?;
+    assert_eq!(first.name, "Not Started");
     Ok(())
 }
 

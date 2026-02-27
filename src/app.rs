@@ -182,149 +182,18 @@ impl iced::Program for App {
         None // Window settings are provided via Settings in run()
     }
 
-    #[allow(clippy::too_many_lines)]
     fn boot(&self) -> (Self::State, Task<Self::Message>) {
-        let flags = &self.db; // Access db from self
+        let db = &self.db;
         let mut state = State::default();
-
-        // Load directories from database
-        match crate::db::queries::get_all_directories(flags.connection()) {
-            Ok(directories) => {
-                state.directories = directories;
-            }
-            Err(e) => {
-                tracing::error!("Failed to load directories: {e}");
-            }
-        }
-
-        // Load all audiobooks
-        match crate::db::queries::get_all_audiobooks(flags.connection()) {
-            Ok(audiobooks) => {
-                state.audiobooks = audiobooks;
-            }
-            Err(e) => {
-                tracing::error!("Failed to load audiobooks: {e}");
-            }
-        }
         state.ui_time_ms = crate::ui::state::current_time_ms();
-        if !state.audiobooks.is_empty() {
-            state.audiobook_list_animation_start_ms = Some(state.ui_time_ms);
-        }
 
-        // Load settings
-        if let Ok(Some(volume_str)) = crate::db::queries::get_metadata(flags.connection(), "volume")
-        {
-            if let Ok(volume) = volume_str.parse::<i32>() {
-                let sanitized = sanitize_volume(volume);
-                state.volume = sanitized;
-                if sanitized != volume {
-                    if let Err(e) = crate::db::queries::set_metadata(
-                        flags.connection(),
-                        "volume",
-                        &sanitized.to_string(),
-                    ) {
-                        tracing::warn!("Failed to persist sanitized volume: {e}");
-                    }
-                }
-            }
-        }
-
-        if let Ok(Some(speed_str)) = crate::db::queries::get_metadata(flags.connection(), "speed") {
-            if let Ok(speed) = speed_str.parse::<f32>() {
-                let sanitized = sanitize_speed_for_restore(speed);
-                state.speed = sanitized;
-                if (sanitized - speed).abs() > f32::EPSILON {
-                    if let Err(e) = crate::db::queries::set_metadata(
-                        flags.connection(),
-                        "speed",
-                        &sanitized.to_string(),
-                    ) {
-                        tracing::warn!("Failed to persist sanitized speed: {e}");
-                    }
-                }
-            }
-        }
-
-        if let Ok(Some(pref_str)) =
-            crate::db::queries::get_metadata(flags.connection(), "prefers_reduced_motion")
-        {
-            if let Some(prefers_reduced_motion) = parse_bool_metadata(&pref_str) {
-                state.prefers_reduced_motion = prefers_reduced_motion;
-            } else {
-                tracing::warn!("Invalid prefers_reduced_motion metadata: {pref_str}");
-            }
-        }
-
-        // Load user preferences using migration-aware settings getters.
-        let settings = crate::settings::Settings::new(flags.connection());
-
-        match settings.get_theme() {
-            Ok(theme) => {
-                state.theme = match theme.as_str() {
-                    "Dark" => crate::ui::state::ThemeMode::Dark,
-                    _ => crate::ui::state::ThemeMode::Light,
-                };
-            }
-            Err(e) => {
-                tracing::warn!("Failed to load theme preference: {e}");
-            }
-        }
-
-        match settings.get_panel_ratio() {
-            Ok(ratio) => {
-                state.panel_ratio = ratio.clamp(0.2, 0.8);
-            }
-            Err(e) => {
-                tracing::warn!("Failed to load panel ratio preference: {e}");
-            }
-        }
-
-        match settings.get_focus_mode() {
-            Ok(enabled) => {
-                state.focus_mode = enabled;
-            }
-            Err(e) => {
-                tracing::warn!("Failed to load focus mode preference: {e}");
-            }
-        }
-
-        // Load current audiobook if set
-        if let Ok(Some(id_str)) =
-            crate::db::queries::get_metadata(flags.connection(), "current_audiobook_id")
-        {
-            if let Ok(id) = id_str.parse::<i64>() {
-                state.selected_audiobook = Some(id);
-
-                // Load files for current audiobook
-                if let Ok(files) = crate::db::queries::get_audiobook_files(flags.connection(), id) {
-                    state.current_files = files;
-                    if !state.current_files.is_empty() {
-                        state.file_list_animation_start_ms = Some(state.ui_time_ms);
-                    }
-                }
-
-                // Load bookmarks for current audiobook
-                if let Ok(bookmarks) =
-                    crate::db::queries::get_bookmarks_for_audiobook(flags.connection(), id)
-                {
-                    state.bookmarks = bookmarks;
-                    if !state.bookmarks.is_empty() {
-                        state.bookmark_list_animation_start_ms = Some(state.ui_time_ms);
-                    }
-                }
-            }
-        }
-
-        // Initialize player with loaded settings
+        load_directories(db, &mut state);
+        load_audiobooks(db, &mut state);
+        load_legacy_metadata_settings(db, &mut state);
+        load_user_preferences(db, &mut state);
+        load_persisted_selection(db, &mut state);
         let mut player_ref = self.player.borrow_mut();
-        if let Some(player) = player_ref.as_mut() {
-            if let Err(e) = player.set_volume(state.volume) {
-                tracing::error!("Failed to set initial volume: {e}");
-            }
-            if let Err(e) = player.set_rate(state.speed) {
-                tracing::error!("Failed to set initial speed: {e}");
-            }
-        }
+        initialize_player_from_state(player_ref.as_mut(), &state);
 
         (state, Task::done(Message::InitialLoadComplete))
     }
@@ -388,6 +257,149 @@ impl iced::Program for App {
 
     fn theme(&self, state: &Self::State, _window: window::Id) -> Option<Self::Theme> {
         Some(crate::ui::styles::nodoka_theme_for_mode(state.theme))
+    }
+}
+
+fn load_directories(db: &Database, state: &mut State) {
+    match crate::db::queries::get_all_directories(db.connection()) {
+        Ok(directories) => {
+            state.directories = directories;
+        }
+        Err(e) => {
+            tracing::error!("Failed to load directories: {e}");
+        }
+    }
+}
+
+fn load_audiobooks(db: &Database, state: &mut State) {
+    match crate::db::queries::get_all_audiobooks(db.connection()) {
+        Ok(audiobooks) => {
+            state.audiobooks = audiobooks;
+        }
+        Err(e) => {
+            tracing::error!("Failed to load audiobooks: {e}");
+        }
+    }
+
+    if !state.audiobooks.is_empty() {
+        state.audiobook_list_animation_start_ms = Some(state.ui_time_ms);
+    }
+}
+
+fn load_legacy_metadata_settings(db: &Database, state: &mut State) {
+    if let Ok(Some(volume_str)) = crate::db::queries::get_metadata(db.connection(), "volume") {
+        if let Ok(volume) = volume_str.parse::<i32>() {
+            let sanitized = sanitize_volume(volume);
+            state.volume = sanitized;
+            if sanitized != volume {
+                if let Err(e) = crate::db::queries::set_metadata(
+                    db.connection(),
+                    "volume",
+                    &sanitized.to_string(),
+                ) {
+                    tracing::warn!("Failed to persist sanitized volume: {e}");
+                }
+            }
+        }
+    }
+
+    if let Ok(Some(speed_str)) = crate::db::queries::get_metadata(db.connection(), "speed") {
+        if let Ok(speed) = speed_str.parse::<f32>() {
+            let sanitized = sanitize_speed_for_restore(speed);
+            state.speed = sanitized;
+            if (sanitized - speed).abs() > f32::EPSILON {
+                if let Err(e) = crate::db::queries::set_metadata(
+                    db.connection(),
+                    "speed",
+                    &sanitized.to_string(),
+                ) {
+                    tracing::warn!("Failed to persist sanitized speed: {e}");
+                }
+            }
+        }
+    }
+
+    if let Ok(Some(pref_str)) =
+        crate::db::queries::get_metadata(db.connection(), "prefers_reduced_motion")
+    {
+        if let Some(prefers_reduced_motion) = parse_bool_metadata(&pref_str) {
+            state.prefers_reduced_motion = prefers_reduced_motion;
+        } else {
+            tracing::warn!("Invalid prefers_reduced_motion metadata: {pref_str}");
+        }
+    }
+}
+
+fn load_user_preferences(db: &Database, state: &mut State) {
+    let settings = crate::settings::Settings::new(db.connection());
+
+    match settings.get_theme() {
+        Ok(theme) => {
+            state.theme = match theme.as_str() {
+                "Dark" => crate::ui::state::ThemeMode::Dark,
+                _ => crate::ui::state::ThemeMode::Light,
+            };
+        }
+        Err(e) => {
+            tracing::warn!("Failed to load theme preference: {e}");
+        }
+    }
+
+    match settings.get_panel_ratio() {
+        Ok(ratio) => {
+            state.panel_ratio = ratio.clamp(0.2, 0.8);
+        }
+        Err(e) => {
+            tracing::warn!("Failed to load panel ratio preference: {e}");
+        }
+    }
+
+    match settings.get_focus_mode() {
+        Ok(enabled) => {
+            state.focus_mode = crate::ui::state::FocusMode::from(enabled);
+        }
+        Err(e) => {
+            tracing::warn!("Failed to load focus mode preference: {e}");
+        }
+    }
+}
+
+fn load_persisted_selection(db: &Database, state: &mut State) {
+    if let Ok(Some(id_str)) =
+        crate::db::queries::get_metadata(db.connection(), "current_audiobook_id")
+    {
+        if let Ok(id) = id_str.parse::<i64>() {
+            state.selected_audiobook = Some(id);
+
+            if let Ok(files) = crate::db::queries::get_audiobook_files(db.connection(), id) {
+                state.current_files = files;
+                if !state.current_files.is_empty() {
+                    state.file_list_animation_start_ms = Some(state.ui_time_ms);
+                }
+            }
+
+            if let Ok(bookmarks) =
+                crate::db::queries::get_bookmarks_for_audiobook(db.connection(), id)
+            {
+                state.bookmarks = bookmarks;
+                if !state.bookmarks.is_empty() {
+                    state.bookmark_list_animation_start_ms = Some(state.ui_time_ms);
+                }
+            }
+        }
+    }
+}
+
+fn initialize_player_from_state(player: Option<&mut Vlc>, state: &State) {
+    let Some(player) = player else {
+        return;
+    };
+
+    if let Err(e) = player.set_volume(state.volume) {
+        tracing::error!("Failed to set initial volume: {e}");
+    }
+    if let Err(e) = player.set_rate(state.speed) {
+        tracing::error!("Failed to set initial speed: {e}");
     }
 }
 
@@ -545,7 +557,7 @@ mod tests {
 
         assert_eq!(state.theme, crate::ui::state::ThemeMode::Dark);
         assert!((state.panel_ratio - 0.7).abs() < 0.0001);
-        assert!(state.focus_mode);
+        assert!(state.focus_mode.is_enabled());
         Ok(())
     }
 }

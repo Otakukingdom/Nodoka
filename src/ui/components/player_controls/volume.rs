@@ -18,7 +18,7 @@ pub fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> 
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
         .style(button_styles::premium_control);
 
-    let slider_row: Element<'_, Message> = if state.volume_expanded {
+    let slider_row: Element<'_, Message> = if state.volume_expanded.is_expanded() {
         row![
             widget_slider(0..=200, state.volume, Message::VolumeChanged)
                 .width(iced::Length::Fixed(120.0))

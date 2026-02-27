@@ -484,6 +484,90 @@ pub enum ThemeMode {
     Dark,
 }
 
+/// Whether focus mode is enabled.
+///
+/// Clippy discourages having many `bool` flags in a single struct. Representing
+/// focus mode as an enum keeps the intent clear while avoiding excessive `bool`
+/// fields on [`State`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FocusMode {
+    /// Focus mode is disabled.
+    #[default]
+    Disabled,
+    /// Focus mode is enabled.
+    Enabled,
+}
+
+impl FocusMode {
+    #[must_use]
+    pub const fn is_enabled(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+
+    pub const fn toggle(&mut self) {
+        *self = match *self {
+            Self::Disabled => Self::Enabled,
+            Self::Enabled => Self::Disabled,
+        };
+    }
+}
+
+impl From<bool> for FocusMode {
+    fn from(value: bool) -> Self {
+        if value {
+            Self::Enabled
+        } else {
+            Self::Disabled
+        }
+    }
+}
+
+impl From<FocusMode> for bool {
+    fn from(value: FocusMode) -> Self {
+        value.is_enabled()
+    }
+}
+
+/// Whether the volume slider in player controls is expanded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum VolumeExpansion {
+    /// Only the volume button/percentage is visible.
+    #[default]
+    Collapsed,
+    /// The slider is visible.
+    Expanded,
+}
+
+impl VolumeExpansion {
+    #[must_use]
+    pub const fn is_expanded(self) -> bool {
+        matches!(self, Self::Expanded)
+    }
+
+    pub const fn toggle(&mut self) {
+        *self = match *self {
+            Self::Collapsed => Self::Expanded,
+            Self::Expanded => Self::Collapsed,
+        };
+    }
+}
+
+impl From<bool> for VolumeExpansion {
+    fn from(value: bool) -> Self {
+        if value {
+            Self::Expanded
+        } else {
+            Self::Collapsed
+        }
+    }
+}
+
+impl From<VolumeExpansion> for bool {
+    fn from(value: VolumeExpansion) -> Self {
+        value.is_expanded()
+    }
+}
+
 /// Active modal overlay state
 ///
 /// Tracks which modal (if any) is currently displayed. Only one modal
@@ -575,7 +659,6 @@ pub enum ScanState {
 /// audiobook list is fetched asynchronously at startup; all view functions must
 /// handle this case gracefully.
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct State {
     /// Full list of audiobooks loaded from the database.
     pub audiobooks: Vec<Audiobook>,
@@ -603,8 +686,8 @@ pub struct State {
     pub panel_divider_dragging: bool,
     /// Last known cursor X position while dragging the panel divider.
     pub panel_divider_last_cursor_x: Option<f32>,
-    /// Whether focus mode is active (hides library panel during playback)
-    pub focus_mode: bool,
+    /// Focus mode preference (hides library panel during playback)
+    pub focus_mode: FocusMode,
     /// Current theme (light or dark mode)
     pub theme: ThemeMode,
     /// Window width in pixels for responsive layout
@@ -626,7 +709,7 @@ pub struct State {
     /// Current volume level in the range [0, 200] (100 = unity gain).
     pub volume: i32,
     /// Whether the volume slider is expanded in the player controls.
-    pub volume_expanded: bool,
+    pub volume_expanded: VolumeExpansion,
     /// Current playback speed (1.0 = normal speed).
     pub speed: f32,
 
@@ -671,8 +754,6 @@ pub struct State {
 
     /// Lifecycle state of the currently open (or closing) modal overlay.
     pub modal_state: ModalState,
-    /// `true` while the modal is playing its close animation before being hidden.
-    pub modal_pending_close: bool,
 
     /// Milliseconds since the UNIX epoch, updated on every [`crate::ui::Message::UiTick`].
     pub ui_time_ms: u64,
@@ -702,7 +783,7 @@ impl Default for State {
             panel_ratio: 0.4, // 40% left panel, 60% right panel (2:3 ratio)
             panel_divider_dragging: false,
             panel_divider_last_cursor_x: None,
-            focus_mode: false,
+            focus_mode: FocusMode::Disabled,
             theme: ThemeMode::default(),
             window_width: 1280, // Default window width
             window_height: 800, // Default window height
@@ -712,7 +793,7 @@ impl Default for State {
             current_time: 0.0,
             total_duration: 0.0,
             volume: 100,
-            volume_expanded: false,
+            volume_expanded: VolumeExpansion::Collapsed,
             speed: 1.0,
             sleep_timer: None,
             sleep_timer_base_volume: None,
@@ -730,7 +811,6 @@ impl Default for State {
             ripple_animations: HashMap::new(),
             ripple_origins: HashMap::new(),
             modal_state: ModalState::Closed,
-            modal_pending_close: false,
             ui_time_ms: 0,
             audiobook_list_animation_start_ms: None,
             file_list_animation_start_ms: None,

@@ -31,7 +31,6 @@ pub(super) fn handle_hide_keyboard_help(state: &mut State) -> Task<Message> {
 }
 
 pub(super) const fn open_modal(state: &mut State) {
-    state.modal_pending_close = false;
     if state.prefers_reduced_motion {
         state.modal_state = ModalState::Open;
     } else {
@@ -42,33 +41,29 @@ pub(super) const fn open_modal(state: &mut State) {
 pub(super) fn request_modal_close(state: &mut State) {
     if state.bookmark_editor.is_some() && state.active_modal != ActiveModal::None {
         state.bookmark_editor = None;
-        state.modal_pending_close = false;
         state.modal_state = ModalState::Open;
         state.focused_element = FocusedElement::None;
         return;
     }
 
     state.bookmark_editor = None;
-    state.active_modal = ActiveModal::None;
     state.focused_element = FocusedElement::None;
     if state.prefers_reduced_motion {
+        state.active_modal = ActiveModal::None;
         state.modal_state = ModalState::Closed;
-        state.modal_pending_close = false;
     } else {
-        state.modal_pending_close = true;
         state.modal_state.close();
     }
 }
 
 pub(super) fn update_modal_animation(state: &mut State, delta_ms: u64) {
     state.modal_state.update(delta_ms);
-    if state.modal_pending_close && matches!(state.modal_state, ModalState::Closed) {
-        if state.bookmark_editor.is_some() {
-            state.bookmark_editor = None;
-        } else {
-            state.active_modal = ActiveModal::None;
-        }
+
+    if matches!(state.modal_state, ModalState::Closed)
+        && (state.bookmark_editor.is_some() || state.active_modal != ActiveModal::None)
+    {
+        state.bookmark_editor = None;
+        state.active_modal = ActiveModal::None;
         state.focused_element = FocusedElement::None;
-        state.modal_pending_close = false;
     }
 }

@@ -451,110 +451,117 @@ pub mod button_styles {
     #[must_use]
     pub fn premium_control(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
-            button::Status::Active => button::Style {
-                // Simplified 2-color Signature gradient
-                background: Some(
-                    {
-                        Color::from_rgb(
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_START.r,
-                                colors::PRIMARY_GRADIENT_START.r,
-                            ),
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_START.g,
-                                colors::PRIMARY_GRADIENT_START.g,
-                            ),
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_START.b,
-                                colors::PRIMARY_GRADIENT_START.b,
-                            ),
-                        )
-                    }
-                    .into(),
-                ),
-                text_color: colors::TEXT_ON_PRIMARY,
-                border: Border {
-                    color: colors::SIGNATURE_GRADIENT_END,
-                    width: border_width::REGULAR,
-                    radius: border_radius::MD.into(),
-                },
-                shadow: shadows::shadow_md(),
-                ..Default::default()
+            button::Status::Active => premium_control_active(),
+            button::Status::Hovered => premium_control_hovered(),
+            button::Status::Pressed => premium_control_pressed(),
+            button::Status::Disabled => premium_control_disabled(),
+        }
+    }
+
+    fn premium_control_active() -> button::Style {
+        button::Style {
+            background: Some(
+                Color::from_rgb(
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_START.r,
+                        colors::PRIMARY_GRADIENT_START.r,
+                    ),
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_START.g,
+                        colors::PRIMARY_GRADIENT_START.g,
+                    ),
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_START.b,
+                        colors::PRIMARY_GRADIENT_START.b,
+                    ),
+                )
+                .into(),
+            ),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                color: colors::SIGNATURE_GRADIENT_END,
+                width: border_width::REGULAR,
+                radius: border_radius::MD.into(),
             },
-            button::Status::Hovered => button::Style {
-                // Brightened gradient for hover
-                background: Some(
-                    {
-                        Color::from_rgb(
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_END.r,
-                                colors::ACCENT_GRADIENT_START.r,
-                            ),
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_END.g,
-                                colors::ACCENT_GRADIENT_START.g,
-                            ),
-                            f32::midpoint(
-                                colors::SIGNATURE_GRADIENT_END.b,
-                                colors::ACCENT_GRADIENT_START.b,
-                            ),
-                        )
-                    }
-                    .into(),
-                ),
-                text_color: colors::TEXT_ON_PRIMARY,
-                border: Border {
-                    color: colors::ACCENT_GRADIENT_END,
-                    width: border_width::REGULAR,
-                    radius: border_radius::MD.into(),
-                },
-                shadow: shadows::shadow_lg(),
-                ..Default::default()
+            shadow: shadows::shadow_md(),
+            ..Default::default()
+        }
+    }
+
+    fn premium_control_hovered() -> button::Style {
+        button::Style {
+            background: Some(
+                Color::from_rgb(
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_END.r,
+                        colors::ACCENT_GRADIENT_START.r,
+                    ),
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_END.g,
+                        colors::ACCENT_GRADIENT_START.g,
+                    ),
+                    f32::midpoint(
+                        colors::SIGNATURE_GRADIENT_END.b,
+                        colors::ACCENT_GRADIENT_START.b,
+                    ),
+                )
+                .into(),
+            ),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                color: colors::ACCENT_GRADIENT_END,
+                width: border_width::REGULAR,
+                radius: border_radius::MD.into(),
             },
-            button::Status::Pressed => button::Style {
-                // Darkened gradient for pressed feedback
-                background: Some(
-                    {
-                        Color::from_rgb(
-                            colors::PRIMARY.r * 0.90,
-                            colors::PRIMARY.g * 0.90,
-                            colors::PRIMARY.b * 0.90,
-                        )
-                    }
-                    .into(),
-                ),
-                text_color: colors::TEXT_ON_PRIMARY,
-                border: Border {
-                    color: colors::SIGNATURE_GRADIENT_END,
-                    width: border_width::THICK,
-                    radius: border_radius::MD.into(),
-                },
-                shadow: shadows::shadow_sm(),
-                ..Default::default()
+            shadow: shadows::shadow_lg(),
+            ..Default::default()
+        }
+    }
+
+    fn premium_control_pressed() -> button::Style {
+        button::Style {
+            background: Some(
+                Color::from_rgb(
+                    colors::PRIMARY.r * 0.90,
+                    colors::PRIMARY.g * 0.90,
+                    colors::PRIMARY.b * 0.90,
+                )
+                .into(),
+            ),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                color: colors::SIGNATURE_GRADIENT_END,
+                width: border_width::THICK,
+                radius: border_radius::MD.into(),
             },
-            button::Status::Disabled => button::Style {
-                background: Some(
-                    Color {
-                        r: colors::SIGNATURE_GRADIENT_START.r * 0.5,
-                        g: colors::SIGNATURE_GRADIENT_START.g * 0.5,
-                        b: colors::SIGNATURE_GRADIENT_START.b * 0.5,
-                        a: 0.5,
-                    }
-                    .into(),
-                ),
-                text_color: Color {
-                    r: colors::TEXT_ON_PRIMARY.r,
-                    g: colors::TEXT_ON_PRIMARY.g,
-                    b: colors::TEXT_ON_PRIMARY.b,
+            shadow: shadows::shadow_sm(),
+            ..Default::default()
+        }
+    }
+
+    fn premium_control_disabled() -> button::Style {
+        button::Style {
+            background: Some(
+                Color {
+                    r: colors::SIGNATURE_GRADIENT_START.r * 0.5,
+                    g: colors::SIGNATURE_GRADIENT_START.g * 0.5,
+                    b: colors::SIGNATURE_GRADIENT_START.b * 0.5,
                     a: 0.5,
-                },
-                border: Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
-                    radius: border_radius::MD.into(),
-                },
-                ..Default::default()
+                }
+                .into(),
+            ),
+            text_color: Color {
+                r: colors::TEXT_ON_PRIMARY.r,
+                g: colors::TEXT_ON_PRIMARY.g,
+                b: colors::TEXT_ON_PRIMARY.b,
+                a: 0.5,
             },
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: border_radius::MD.into(),
+            },
+            ..Default::default()
         }
     }
 

@@ -33,7 +33,6 @@ fn test_state_default_values() {
         state.modal_state,
         crate::ui::styles::animations::modal::ModalState::Closed
     );
-    assert!(!state.modal_pending_close);
     assert_eq!(state.ui_time_ms, 0);
     assert!(state.audiobook_list_animation_start_ms.is_none());
     assert!(state.file_list_animation_start_ms.is_none());

@@ -63,117 +63,49 @@ pub enum ShortcutKey {
 /// - Tab: Cycle focus forward
 /// - Shift+Tab: Cycle focus backward
 #[must_use]
-#[allow(clippy::too_many_lines)]
 pub fn message_for_key_chord(key: ShortcutKey, modifiers: Modifiers) -> Option<Message> {
     match key {
-        ShortcutKey::Space => {
-            if modifiers == Modifiers::default() {
-                Some(Message::PlayPause)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::B => {
-            if is_bookmark_modifier(modifiers) {
-                Some(Message::CreateBookmark)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::F => {
-            if is_command_modifier(modifiers) {
-                Some(Message::FocusSearch)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::L => {
-            if is_command_modifier(modifiers) {
-                Some(Message::ToggleFocusMode)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::T => {
-            if is_command_modifier(modifiers) {
-                // Toggle theme - we need to know current theme, so this will be handled in update
-                Some(Message::ToggleTheme)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::R => {
-            if is_command_modifier(modifiers) {
-                Some(Message::PlayLastListened)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::LeftBracket => {
-            if is_command_modifier(modifiers) {
-                Some(Message::DecreasePanelRatio)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::RightBracket => {
-            if is_command_modifier(modifiers) {
-                Some(Message::IncreasePanelRatio)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::ArrowLeft => {
-            if modifiers == Modifiers::default() {
-                Some(Message::SeekBackward(5)) // 5 seconds back
-            } else {
-                None
-            }
-        }
-        ShortcutKey::ArrowRight => {
-            if modifiers == Modifiers::default() {
-                Some(Message::SeekForward(5)) // 5 seconds forward
-            } else {
-                None
-            }
-        }
-        ShortcutKey::ArrowUp => {
-            if modifiers == Modifiers::default() {
-                Some(Message::PreviousFile)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::ArrowDown => {
-            if modifiers == Modifiers::default() {
-                Some(Message::NextFile)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::Escape => {
-            if modifiers == Modifiers::default() {
-                Some(Message::CloseModal)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::F1 => {
-            if modifiers == Modifiers::default() {
-                Some(Message::ShowKeyboardHelp)
-            } else {
-                None
-            }
-        }
-        ShortcutKey::Tab => {
-            if modifiers == Modifiers::default() {
-                Some(Message::FocusNext)
-            } else if modifiers == Modifiers::SHIFT {
-                Some(Message::FocusPrevious)
-            } else {
-                None
-            }
-        }
+        ShortcutKey::Space => plain_message(modifiers, Message::PlayPause),
+        ShortcutKey::B => command_message(modifiers, Message::CreateBookmark),
+        ShortcutKey::F => command_message(modifiers, Message::FocusSearch),
+        ShortcutKey::L => command_message(modifiers, Message::ToggleFocusMode),
+        ShortcutKey::T => command_message(modifiers, Message::ToggleTheme),
+        ShortcutKey::R => command_message(modifiers, Message::PlayLastListened),
+        ShortcutKey::LeftBracket => command_message(modifiers, Message::DecreasePanelRatio),
+        ShortcutKey::RightBracket => command_message(modifiers, Message::IncreasePanelRatio),
+        ShortcutKey::ArrowLeft => plain_message(modifiers, Message::SeekBackward(5)),
+        ShortcutKey::ArrowRight => plain_message(modifiers, Message::SeekForward(5)),
+        ShortcutKey::ArrowUp => plain_message(modifiers, Message::PreviousFile),
+        ShortcutKey::ArrowDown => plain_message(modifiers, Message::NextFile),
+        ShortcutKey::Escape => plain_message(modifiers, Message::CloseModal),
+        ShortcutKey::F1 => plain_message(modifiers, Message::ShowKeyboardHelp),
+        ShortcutKey::Tab => tab_message(modifiers),
+    }
+}
+
+fn plain_message(modifiers: Modifiers, message: Message) -> Option<Message> {
+    if modifiers == Modifiers::default() {
+        Some(message)
+    } else {
+        None
+    }
+}
+
+fn command_message(modifiers: Modifiers, message: Message) -> Option<Message> {
+    if is_command_modifier(modifiers) {
+        Some(message)
+    } else {
+        None
+    }
+}
+
+fn tab_message(modifiers: Modifiers) -> Option<Message> {
+    if modifiers == Modifiers::default() {
+        Some(Message::FocusNext)
+    } else if modifiers == Modifiers::SHIFT {
+        Some(Message::FocusPrevious)
+    } else {
+        None
     }
 }
 
