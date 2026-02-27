@@ -38,6 +38,12 @@ fn test_escape_close_modal_closes_topmost_first(
     assert!(state.active_modal == nodoka::ui::ActiveModal::Settings);
 
     let _ = update::update(&mut state, Message::CloseModal, &mut player, &db);
+
+    // Modal closures are animated by default; advance the UI tick so the modal state
+    // machine reaches `Closed` and clears `active_modal`.
+    state.ui_time_ms = 1;
+    let _ = update::update(&mut state, Message::UiTick, &mut player, &db);
+
     assert!(state.active_modal != nodoka::ui::ActiveModal::Settings);
     Ok(())
 }
