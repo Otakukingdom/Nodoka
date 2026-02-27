@@ -197,11 +197,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(spacing::SM)
         } else {
             // Build cover art thumbnail (100x100px for better visibility)
+            // Enhanced with border and elevation for premium feel
             let cover_element: Element<'_, Message> = audiobook_id
                 .and_then(|id| state.cover_thumbnails.get(&id))
                 .map_or_else(
                     || {
-                        // No cover available - show placeholder
+                        // No cover available - show placeholder with enhanced styling
                         container(text("♪").size(typography::SIZE_XXL).style(
                             |_theme: &iced::Theme| iced::widget::text::Style {
                                 color: Some(colors::TEXT_SECONDARY),
@@ -214,15 +215,17 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .style(|_theme: &iced::Theme| container::Style {
                             background: Some(colors::BG_ELEVATED.into()),
                             border: Border {
+                                color: colors::BORDER_SUBTLE,
+                                width: 1.0,
                                 radius: border_radius::MD.into(),
-                                ..Default::default()
                             },
+                            shadow: shadows::shadow_md(),
                             ..Default::default()
                         })
                         .into()
                     },
                     |path| {
-                        // Show cover thumbnail
+                        // Show cover thumbnail with enhanced border
                         container(
                             image(iced::widget::image::Handle::from_path(path.clone()))
                                 .width(Length::Fixed(100.0))
@@ -230,8 +233,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         )
                         .style(|_theme: &iced::Theme| container::Style {
                             border: Border {
+                                color: colors::BORDER_SUBTLE,
+                                width: 1.0,
                                 radius: border_radius::MD.into(),
-                                ..Default::default()
                             },
                             shadow: shadows::shadow_md(),
                             ..Default::default()
@@ -268,6 +272,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .align_y(iced::Alignment::Center),
             )
             .padding(spacing::MD)
+            .style(|_theme: &iced::Theme| container::Style {
+                background: Some(colors::BG_ELEVATED.into()),
+                border: Border {
+                    color: colors::BORDER_SUBTLE,
+                    width: 1.0,
+                    radius: border_radius::LG.into(),
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            })
         },
         // Progress slider with larger touch target for accessibility
         // BUG FIX #001: Ensure slider range and value are consistent to prevent invalid seeks

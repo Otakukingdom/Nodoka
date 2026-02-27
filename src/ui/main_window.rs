@@ -9,6 +9,7 @@ use crate::ui::components::{
 };
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
+    typography::type_scale,
 };
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
@@ -149,6 +150,12 @@ fn scan_status_banner(state: &State) -> Element<'_, Message> {
     .style(|_theme: &iced::Theme| container::Style {
         background: Some(colors::INFO.into()),
         text_color: Some(colors::TEXT_ON_PRIMARY),
+        border: Border {
+            color: colors::BORDER_SUBTLE,
+            width: 1.0,
+            radius: border_radius::SM.into(),
+        },
+        shadow: shadows::shadow_xs(),
         ..Default::default()
     })
     .width(Length::Fill)
@@ -174,12 +181,23 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 
     container(
         row![
-            text("Nodoka Audiobook Reader").size(typography::SIZE_XXL),
+            text("Nodoka Audiobook Reader")
+                .size(type_scale::H1_SIZE),
             Space::new().width(Length::Fill),
             settings_button,
         ]
-        .padding(spacing::LG), // LG padding (24px) for prominent top bar
+        .padding(spacing::LG),
     )
+    .style(|_theme: &iced::Theme| container::Style {
+        background: Some(colors::BG_FLOATING.into()),
+        border: Border {
+            color: colors::BORDER_SUBTLE,
+            width: 1.0,
+            radius: border_radius::MD.into(),
+        },
+        shadow: shadows::shadow_sm(),
+        ..Default::default()
+    })
     .into()
 }
 
@@ -236,7 +254,7 @@ fn build_detail_panel(state: &State) -> Element<'_, Message> {
     column![file_list, bookmarks].spacing(spacing::SM).into()
 }
 
-/// Creates a draggable divider between panels.
+/// Creates a draggable divider between panels with enhanced visual treatment.
 fn panel_divider(width: f32) -> Element<'static, Message> {
     use iced::widget::mouse_area;
 
@@ -244,7 +262,7 @@ fn panel_divider(width: f32) -> Element<'static, Message> {
         .width(Length::Fixed(width))
         .height(Length::Fill)
         .style(|_theme: &iced::Theme| container::Style {
-            background: Some(colors::BORDER_DEFAULT.into()),
+            background: Some(colors::BORDER_SUBTLE.into()),
             ..Default::default()
         });
 

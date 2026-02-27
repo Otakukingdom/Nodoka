@@ -14,7 +14,7 @@ use iced::{Border, Color, Element, Length};
 /// Creates a premium semi-transparent overlay using glass-morphism design.
 /// The backdrop dims the background content while maintaining visual context.
 pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
-    let glass_opacity = (opacity * 0.85).clamp(0.0, 1.0);
+    let glass_opacity = (opacity * 0.88).clamp(0.0, 1.0);
     button(container(text("")).width(Length::Fill).height(Length::Fill))
         .style(
             move |_theme: &iced::Theme, _status| iced::widget::button::Style {
@@ -193,7 +193,7 @@ where
             shadow: shadows::shadow_xl(),
             ..Default::default()
         })
-        .padding(spacing::MD)
+        .padding(spacing::XL) // Increased padding for better content breathing room
         .max_width(600.0) // Maximum width for readability
         .width(Length::Fill) // Fill available space on narrow screens
         .max_height(800.0) // Maximum height

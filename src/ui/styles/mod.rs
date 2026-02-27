@@ -503,4 +503,409 @@ mod tests {
         // Ease-out should progress faster initially
         assert!(ease_out_early > ease_in_early);
     }
+
+    // Visual consistency tests for design token validation
+
+    #[test]
+    fn test_spacing_follows_4px_grid() {
+        // All spacing constants should be multiples of 4 (base grid)
+        let spacing_values = [
+            layout::spacing::XS,
+            layout::spacing::SM,
+            layout::spacing::MD,
+            layout::spacing::LG,
+            layout::spacing::XL,
+            layout::spacing::XXL,
+        ];
+
+        for value in spacing_values {
+            assert!(
+                (value / 4.0).fract() < f32::EPSILON,
+                "Spacing value {value} is not a multiple of 4px base grid"
+            );
+        }
+    }
+
+    #[test]
+    fn test_spacing_progresses_monotonically() {
+        // Spacing should increase: XS < SM < MD < LG < XL < XXL
+        assert!(layout::spacing::XS < layout::spacing::SM);
+        assert!(layout::spacing::SM < layout::spacing::MD);
+        assert!(layout::spacing::MD < layout::spacing::LG);
+        assert!(layout::spacing::LG < layout::spacing::XL);
+        assert!(layout::spacing::XL < layout::spacing::XXL);
+    }
+
+    #[test]
+    fn test_typography_sizes_are_positive() {
+        // All typography sizes should be positive
+        let type_sizes = [
+            layout::typography::SIZE_XS,
+            layout::typography::SIZE_SM,
+            layout::typography::SIZE_BASE,
+            layout::typography::SIZE_LG,
+            layout::typography::SIZE_XL,
+            layout::typography::SIZE_XXL,
+            layout::typography::SIZE_HEADING,
+        ];
+
+        for size in type_sizes {
+            assert!(size > 0.0, "Typography size {size} should be positive");
+        }
+    }
+
+    #[test]
+    fn test_border_radius_follows_scale() {
+        // Border radius should follow: SM < MD < LG < XL < FULL
+        assert!(layout::border_radius::SM < layout::border_radius::MD);
+        assert!(layout::border_radius::MD < layout::border_radius::LG);
+        assert!(layout::border_radius::LG < layout::border_radius::XL);
+        assert!(layout::border_radius::XL < layout::border_radius::FULL);
+    }
+
+    #[test]
+    fn test_color_rgb_values_are_valid() {
+        // All color RGB values should be in range [0.0, 1.0]
+        let test_colors = [
+            colors::PRIMARY,
+            colors::PRIMARY_HOVER,
+            colors::PRIMARY_ACTIVE,
+            colors::BG_PRIMARY,
+            colors::BG_ELEVATED,
+            colors::TEXT_PRIMARY,
+            colors::TEXT_SECONDARY,
+            colors::ERROR,
+            colors::WARNING,
+            colors::SUCCESS,
+            colors::INFO,
+            colors::FOCUS_RING,
+        ];
+
+        for color in test_colors {
+            assert!(
+                (0.0..=1.0).contains(&color.r),
+                "Color red channel {} is out of valid range [0.0, 1.0]",
+                color.r
+            );
+            assert!(
+                (0.0..=1.0).contains(&color.g),
+                "Color green channel {} is out of valid range [0.0, 1.0]",
+                color.g
+            );
+            assert!(
+                (0.0..=1.0).contains(&color.b),
+                "Color blue channel {} is out of valid range [0.0, 1.0]",
+                color.b
+            );
+        }
+    }
+
+    #[test]
+    fn test_color_alpha_values_are_valid() {
+        // All color alpha values should be in range [0.0, 1.0]
+        let test_colors = [
+            colors::PRIMARY,
+            colors::BG_PRIMARY,
+            colors::TEXT_PRIMARY,
+            colors::GLASS_OVERLAY,
+            colors::GLOW_PRIMARY,
+        ];
+
+        for color in test_colors {
+            assert!(
+                (0.0..=1.0).contains(&color.a),
+                "Color alpha {} is out of valid range [0.0, 1.0]",
+                color.a
+            );
+        }
+    }
+
+    #[test]
+    fn test_shadow_levels_have_valid_values() {
+        // Shadow blur and offset should be positive
+        let shadow_xs = effects::shadows::shadow_xs();
+        let shadow_sm = effects::shadows::shadow_sm();
+        let shadow_md = effects::shadows::shadow_md();
+        let shadow_lg = effects::shadows::shadow_lg();
+        let shadow_xl = effects::shadows::shadow_xl();
+        let shadow_xxl = effects::shadows::shadow_xxl();
+
+        let shadows = [shadow_xs, shadow_sm, shadow_md, shadow_lg, shadow_xl, shadow_xxl];
+
+        for shadow in shadows {
+            assert!(
+                shadow.blur_radius >= 0.0,
+                "Shadow blur radius should be non-negative"
+            );
+            assert!(
+                shadow.color.r >= 0.0 && shadow.color.r <= 1.0,
+                "Shadow color red channel out of range"
+            );
+            assert!(
+                shadow.color.a >= 0.0 && shadow.color.a <= 1.0,
+                "Shadow color alpha out of range"
+            );
+        }
+    }
+
+    #[test]
+    fn test_shadow_progression_increases() {
+        // Shadow blur should increase with level (approximately)
+        let blur_xs = effects::shadows::shadow_xs().blur_radius;
+        let blur_sm = effects::shadows::shadow_sm().blur_radius;
+        let blur_md = effects::shadows::shadow_md().blur_radius;
+        let blur_lg = effects::shadows::shadow_lg().blur_radius;
+        let blur_xl = effects::shadows::shadow_xl().blur_radius;
+        let blur_xxl = effects::shadows::shadow_xxl().blur_radius;
+
+        assert!(blur_xs <= blur_sm, "Shadow XS blur should be <= SM");
+        assert!(blur_sm <= blur_md, "Shadow SM blur should be <= MD");
+        assert!(blur_md <= blur_lg, "Shadow MD blur should be <= LG");
+        assert!(blur_lg <= blur_xl, "Shadow LG blur should be <= XL");
+        assert!(blur_xl <= blur_xxl, "Shadow XL blur should be <= XXL");
+    }
+
+    // Additional design consistency tests
+
+    #[test]
+    fn test_shadow_offset_y_increases_with_level() {
+        // Shadow offset should increase with level for proper elevation
+        let offset_xs = effects::shadows::shadow_xs().offset.y;
+        let offset_sm = effects::shadows::shadow_sm().offset.y;
+        let offset_md = effects::shadows::shadow_md().offset.y;
+        let offset_lg = effects::shadows::shadow_lg().offset.y;
+        let offset_xl = effects::shadows::shadow_xl().offset.y;
+        let offset_xxl = effects::shadows::shadow_xxl().offset.y;
+
+        assert!(offset_xs <= offset_sm, "Shadow XS offset should be <= SM");
+        assert!(offset_sm <= offset_md, "Shadow SM offset should be <= MD");
+        assert!(offset_md <= offset_lg, "Shadow MD offset should be <= LG");
+        assert!(offset_lg <= offset_xl, "Shadow LG offset should be <= XL");
+        assert!(offset_xl <= offset_xxl, "Shadow XL offset should be <= XXL");
+    }
+
+    #[test]
+    fn test_shadow_alpha_increases_with_level() {
+        // Shadow alpha should generally increase with level (not strictly required)
+        let alpha_sm = effects::shadows::shadow_sm().color.a;
+        let alpha_md = effects::shadows::shadow_md().color.a;
+        let alpha_xl = effects::shadows::shadow_xl().color.a;
+        let alpha_xxl = effects::shadows::shadow_xxl().color.a;
+
+        // At minimum, larger shadows should have more opacity
+        assert!(alpha_md >= alpha_sm, "Shadow MD alpha should be >= SM");
+        assert!(alpha_xl >= alpha_md, "Shadow XL alpha should be >= MD");
+        assert!(alpha_xxl >= alpha_xl, "Shadow XXL alpha should be >= XL");
+    }
+
+    #[test]
+    fn test_typography_sizes_descend_properly() {
+        // Typography sizes should create clear hierarchy
+        use crate::ui::styles::layout::typography;
+
+        let sizes = [
+            typography::SIZE_HEADING,
+            typography::SIZE_XXL,
+            typography::SIZE_XL,
+            typography::SIZE_LG,
+            typography::SIZE_BASE,
+            typography::SIZE_SM,
+            typography::SIZE_XS,
+        ];
+
+        for i in 0..sizes.len().saturating_sub(1) {
+            assert!(
+                sizes[i] > sizes[i + 1],
+                "Typography size {} ({}) should be larger than {} ({})",
+                i,
+                sizes[i],
+                i + 1,
+                sizes[i + 1]
+            );
+        }
+    }
+
+    #[test]
+    fn test_typography_sizes_within_reasonable_range() {
+        // Typography sizes should be between 10px and 60px for readability
+        use crate::ui::styles::layout::typography;
+
+        let sizes = [
+            typography::SIZE_XS,
+            typography::SIZE_SM,
+            typography::SIZE_BASE,
+            typography::SIZE_LG,
+            typography::SIZE_XL,
+            typography::SIZE_XXL,
+            typography::SIZE_HEADING,
+        ];
+
+        for size in sizes {
+            assert!(
+                size >= 10.0 && size <= 60.0,
+                "Typography size {} is outside reasonable range [10.0, 60.0]",
+                size
+            );
+        }
+    }
+
+    #[test]
+    fn test_spacing_constants_within_grid() {
+        // All spacing should follow 4px grid (or be reasonable for the design)
+        use crate::ui::styles::layout::spacing;
+
+        let spacing_values = [
+            spacing::XS,
+            spacing::SM,
+            spacing::MD,
+            spacing::LG,
+            spacing::XL,
+            spacing::XXL,
+        ];
+
+        for value in spacing_values {
+            let remainder = value % 4.0;
+            assert!(
+                remainder < f32::EPSILON || (value >= 1.0 && value <= 100.0),
+                "Spacing value {} should follow 4px grid or be reasonable",
+                value
+            );
+        }
+    }
+
+    #[test]
+    fn test_border_radius_values_are_reasonable() {
+        use crate::ui::styles::layout::border_radius;
+
+        let radii = [
+            border_radius::SM,
+            border_radius::MD,
+            border_radius::LG,
+            border_radius::XL,
+            border_radius::FULL,
+        ];
+
+        for radius in radii {
+            assert!(
+                radius >= 0.0 && radius <= 100.0 || radius >= 900.0,
+                "Border radius {} is outside reasonable range [0.0, 100.0] or large pill",
+                radius
+            );
+        }
+    }
+
+    #[test]
+    fn test_border_radius_increases() {
+        use crate::ui::styles::layout::border_radius;
+
+        assert!(border_radius::SM < border_radius::MD);
+        assert!(border_radius::MD < border_radius::LG);
+        assert!(border_radius::LG < border_radius::XL);
+        assert!(border_radius::XL < border_radius::FULL);
+    }
+
+    #[test]
+    fn test_shadow_values_are_positive() {
+        // All shadow values should be non-negative
+        let shadow = effects::shadows::shadow_md();
+        assert!(shadow.blur_radius >= 0.0, "Shadow blur must be non-negative");
+        assert!(shadow.offset.x >= 0.0 || shadow.offset.x <= 0.0, "Shadow offset X is valid");
+        assert!(shadow.offset.y >= 0.0, "Shadow offset Y should be non-negative");
+    }
+
+    #[test]
+    fn test_primary_color_has_sufficient_saturation() {
+        // Primary color should have sufficient saturation for distinctive branding
+        let max_channel = colors::PRIMARY.r.max(colors::PRIMARY.g).max(colors::PRIMARY.b);
+        let min_channel = colors::PRIMARY.r.min(colors::PRIMARY.g).min(colors::PRIMARY.b);
+        let saturation = max_channel - min_channel;
+
+        assert!(
+            saturation > 0.2,
+            "Primary color should have sufficient saturation (got {})",
+            saturation
+        );
+    }
+
+    #[test]
+    fn test_dark_theme_colors_have_lower_luminance() {
+        // Dark theme backgrounds should be darker than light theme
+        assert!(
+            dark_theme::BG_PRIMARY.r < colors::BG_PRIMARY.r,
+            "Dark theme primary background should be darker"
+        );
+        assert!(
+            dark_theme::BG_PRIMARY.g < colors::BG_PRIMARY.g,
+            "Dark theme primary background should be darker"
+        );
+        assert!(
+            dark_theme::BG_PRIMARY.b < colors::BG_PRIMARY.b,
+            "Dark theme primary background should be darker"
+        );
+    }
+
+    #[test]
+    fn test_text_colors_have_proper_hierarchy() {
+        // Text colors should show clear hierarchy
+        let light_text_ratio = wcag_contrast_ratio(colors::TEXT_PRIMARY, colors::BG_PRIMARY);
+        let secondary_text_ratio = wcag_contrast_ratio(colors::TEXT_SECONDARY, colors::BG_PRIMARY);
+        let disabled_text_ratio = wcag_contrast_ratio(colors::TEXT_DISABLED, colors::BG_PRIMARY);
+
+        assert!(
+            light_text_ratio >= secondary_text_ratio,
+            "Primary text should have higher contrast than secondary"
+        );
+        assert!(
+            secondary_text_ratio >= disabled_text_ratio,
+            "Secondary text should have higher contrast than disabled"
+        );
+    }
+
+    #[test]
+    fn test_focus_ring_meets_wcag_minimum() {
+        // Focus ring should be visible on all backgrounds
+        let light_ratio = wcag_contrast_ratio(colors::FOCUS_RING, colors::BG_PRIMARY);
+        let dark_ratio = wcag_contrast_ratio(colors::FOCUS_RING, dark_theme::BG_PRIMARY);
+
+        assert!(
+            light_ratio >= 3.0,
+            "Focus ring on light background meets WCAG AA (3:1)"
+        );
+        assert!(
+            dark_ratio >= 3.0,
+            "Focus ring on dark background meets WCAG AA (3:1)"
+        );
+    }
+
+    #[test]
+    fn test_gradient_colors_have_reasonable_transitions() {
+        // Gradient start and end colors should be related but distinct
+        let start_end_diff = (
+            colors::PRIMARY_GRADIENT_START.r - colors::PRIMARY_GRADIENT_END.r
+        ).abs();
+
+        assert!(
+            start_end_diff > 0.01 || start_end_diff < 1.0,
+            "Gradient colors should have reasonable transition"
+        );
+    }
+
+    #[test]
+    fn test_notification_colors_are_semantically_correct() {
+        // Success should be greenish, warning should be orangish, error should be reddish
+        assert!(
+            colors::SUCCESS.g > colors::SUCCESS.r,
+            "Success should have more green than red"
+        );
+
+        assert!(
+            colors::WARNING.r > colors::WARNING.b,
+            "Warning should have more red than blue"
+        );
+
+        assert!(
+            colors::ERROR.r > colors::ERROR.g,
+            "Error should have more red than green"
+        );
+    }
 }

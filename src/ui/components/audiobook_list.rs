@@ -155,18 +155,19 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let cover = build_cover(ab.id, cover_thumbnails, opacity);
     let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
-    // Apply selection styling with left border accent
+    // Apply selection styling with left border accent and subtle gradient
     // Left border (4px PRIMARY color) provides clear visual indicator for selected item
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha(colors::SELECTION_BG, opacity).into()),
+                background: Some(with_alpha_gradient(colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END, opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
-                    color: with_alpha(colors::PRIMARY, opacity),
+                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
                     width: 4.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             })
             .width(Length::Fill)
@@ -180,23 +181,23 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
         .style(move |_theme: &iced::Theme, status| {
-            use crate::ui::styles::interactive;
             use iced::widget::button;
             match status {
                 button::Status::Hovered if !selected => button::Style {
-                    background: Some(with_alpha(colors::BG_HOVER, opacity).into()),
+                    background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
                     border: Border {
-                        color: with_alpha(colors::BORDER_DEFAULT, opacity),
+                        color: with_alpha(colors::BORDER_SUBTLE, opacity),
                         width: 1.0,
                         radius: border_radius::SM.into(),
                     },
+                    shadow: shadows::shadow_xs(),
                     ..button::Style::default()
                 },
                 button::Status::Pressed if !selected => button::Style {
-                    background: Some(interactive::apply_active_overlay(colors::BG_HOVER).into()),
+                    background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
                     border: Border {
-                        color: with_alpha(colors::BORDER_FOCUS, opacity),
-                        width: 2.0,
+                        color: with_alpha(colors::BORDER_PROMINENT, opacity),
+                        width: 1.5,
                         radius: border_radius::SM.into(),
                     },
                     ..button::Style::default()
@@ -230,6 +231,7 @@ fn build_cover<S: BuildHasher>(
     use crate::ui::styles::{border_radius, colors};
 
     // Larger cover thumbnail (120x120px) for better visibility
+    // Enhanced shadow (md) for better depth perception on covers
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
             container(text("No cover").size(typography::SIZE_XS).style(
@@ -240,11 +242,13 @@ fn build_cover<S: BuildHasher>(
             .width(Length::Fixed(120.0))
             .height(Length::Fixed(120.0))
             .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::BG_ELEVATED, opacity).into()),
                 border: Border {
+                    color: with_alpha(colors::BORDER_SUBTLE, opacity),
+                    width: 1.0,
                     radius: border_radius::MD.into(),
-                    ..Default::default()
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             })
             .into()
@@ -257,10 +261,11 @@ fn build_cover<S: BuildHasher>(
             )
             .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
+                    color: with_alpha(colors::BORDER_SUBTLE, opacity),
+                    width: 1.0,
                     radius: border_radius::MD.into(),
-                    ..Default::default()
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             })
             .into()
@@ -471,6 +476,18 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
+/// Creates a gradient color by blending two colors
+///
+/// Used for subtle gradient backgrounds on elevated surfaces.
+fn with_alpha_gradient(start: Color, end: Color, opacity: f32) -> Color {
+    Color {
+        r: f32::midpoint(start.r, end.r) * opacity,
+        g: f32::midpoint(start.g, end.g) * opacity,
+        b: f32::midpoint(start.b, end.b) * opacity,
+        a: opacity,
+    }
+}
+
 /// Skeleton UI for audiobook list during scanning
 ///
 /// Shows 5 placeholder items to indicate loading activity.
@@ -504,6 +521,7 @@ fn skeleton_audiobook_list() -> Element<'static, Message> {
 /// Skeleton dimensions should match real content exactly.
 fn skeleton_audiobook_item() -> Element<'static, Message> {
     // Skeleton cover placeholder (120x120px) - matches real thumbnail size
+    // Enhanced shadow (md) to match real cover elevation
     let skeleton_cover = container(Space::new())
         .width(Length::Fixed(120.0))
         .height(Length::Fixed(120.0))
@@ -513,7 +531,7 @@ fn skeleton_audiobook_item() -> Element<'static, Message> {
                 radius: border_radius::MD.into(),
                 ..Default::default()
             },
-            shadow: shadows::shadow_sm(),
+            shadow: shadows::shadow_md(),
             ..Default::default()
         });
 

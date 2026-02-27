@@ -170,7 +170,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
             semantic_color::heading(theme)
         }
     }
@@ -221,7 +221,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
             semantic_color::heading(theme)
         }
     }
@@ -252,7 +252,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn medium() -> Self {
+        pub const fn medium() -> Self {
             Self {
                 size: type_scale::BODY_SIZE,
                 weight: weight::MEDIUM,
@@ -262,7 +262,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
             semantic_color::body(theme)
         }
     }
@@ -293,7 +293,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn semibold() -> Self {
+        pub const fn semibold() -> Self {
             Self {
                 size: type_scale::SMALL_SIZE,
                 weight: weight::SEMIBOLD,
@@ -303,7 +303,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
             semantic_color::metadata(theme)
         }
     }
@@ -334,7 +334,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn uppercase() -> Self {
+        pub const fn uppercase() -> Self {
             Self {
                 size: type_scale::CAPTION_SIZE,
                 weight: weight::MEDIUM,
@@ -344,7 +344,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
             semantic_color::metadata(theme)
         }
     }
@@ -375,7 +375,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn semibold() -> Self {
+        pub const fn semibold() -> Self {
             Self {
                 size: type_scale::BUTTON_SIZE,
                 weight: weight::SEMIBOLD,
@@ -385,7 +385,7 @@ pub mod preset {
         }
 
         #[must_use]
-        pub fn color(self, _theme: ThemeMode) -> iced::Color {
+        pub const fn color(self, _theme: ThemeMode) -> iced::Color {
             // Button text color is typically handled by button styles
             iced::Color::WHITE
         }

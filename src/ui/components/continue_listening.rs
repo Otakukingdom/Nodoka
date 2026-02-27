@@ -96,8 +96,9 @@ pub fn view<'a, S: BuildHasher>(
         .style(|_theme: &iced::Theme| container::Style {
             background: Some(colors::BG_ELEVATED.into()),
             border: Border {
+                color: colors::BORDER_SUBTLE,
+                width: 1.5,
                 radius: border_radius::LG.into(),
-                ..Default::default()
             },
             shadow: shadows::shadow_xxl(),
             ..Default::default()
@@ -131,7 +132,7 @@ fn build_large_cover<S: BuildHasher>(
             .style(|_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_SECONDARY.into()),
                 border: Border {
-                    color: colors::BORDER_DEFAULT,
+                    color: colors::BORDER_SUBTLE,
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
@@ -167,7 +168,7 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
     .style(|_theme: &iced::Theme| container::Style {
         background: Some(colors::BG_SECONDARY.into()),
         border: Border {
-            color: colors::BORDER_DEFAULT,
+            color: colors::BORDER_SUBTLE,
             width: 1.0,
             radius: border_radius::MD.into(),
         },

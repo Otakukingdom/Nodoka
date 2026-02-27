@@ -4,7 +4,7 @@
 //! with consistent visual design.
 
 use iced::widget::button;
-use iced::{Border, Color, Shadow};
+use iced::{Border, Color};
 
 use super::{border_radius, colors, shadows};
 
@@ -44,11 +44,11 @@ pub mod loading {
 ///     .style(button_styles::primary)
 /// ```
 pub mod button_styles {
-    use super::{border_radius, button, colors, shadows, Border, Color, Shadow};
+    use super::{border_radius, button, colors, shadows, Border, Color};
 
     /// Primary action button style (e.g., Play, Save, Add)
     /// Uses primary brand color with white text
-    /// Provides hover/pressed/focus states
+    /// Provides hover/pressed/focus states with micro-interactions
     #[must_use]
     pub fn primary(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
@@ -60,6 +60,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
@@ -70,7 +71,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
@@ -81,11 +82,22 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(colors::PRIMARY.into()),
-                text_color: colors::TEXT_DISABLED,
+                background: Some(Color {
+                    r: colors::PRIMARY.r * 0.6,
+                    g: colors::PRIMARY.g * 0.6,
+                    b: colors::PRIMARY.b * 0.6,
+                    a: 0.6,
+                }.into()),
+                text_color: Color {
+                    r: colors::TEXT_ON_PRIMARY.r,
+                    g: colors::TEXT_ON_PRIMARY.g,
+                    b: colors::TEXT_ON_PRIMARY.b,
+                    a: 0.6,
+                },
                 border: Border {
                     color: Color::TRANSPARENT,
                     width: 0.0,
@@ -98,6 +110,7 @@ pub mod button_styles {
 
     /// Secondary action button style (e.g., Cancel, Close, Stop)
     /// Uses elevated background with primary text color and border
+    /// Enhanced with micro-interactions for premium feel
     #[must_use]
     pub fn secondary(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
@@ -109,6 +122,7 @@ pub mod button_styles {
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
@@ -123,7 +137,7 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
-                background: Some(colors::BG_ELEVATED.into()),
+                background: Some(colors::SURFACE_ACTIVE.into()),
                 text_color: colors::TEXT_PRIMARY,
                 border: Border {
                     color: colors::BORDER_FOCUS,
@@ -133,11 +147,83 @@ pub mod button_styles {
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(colors::BG_ELEVATED.into()),
+                background: Some(Color {
+                    r: colors::BG_ELEVATED.r,
+                    g: colors::BG_ELEVATED.g,
+                    b: colors::BG_ELEVATED.b,
+                    a: 0.7,
+                }.into()),
                 text_color: colors::TEXT_DISABLED,
                 border: Border {
-                    color: colors::BORDER_DEFAULT,
+                    color: Color {
+                        r: colors::BORDER_DEFAULT.r,
+                        g: colors::BORDER_DEFAULT.g,
+                        b: colors::BORDER_DEFAULT.b,
+                        a: 0.5,
+                    },
                     width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                ..Default::default()
+            },
+        }
+    }
+
+    /// Elevated action button style (e.g., Primary CTAs, prominent actions)
+    /// Uses shadow elevation with gradient background for prominence
+    /// Enhanced with premium micro-interactions
+    #[must_use]
+    pub fn elevated(_theme: &iced::Theme, status: button::Status) -> button::Style {
+        match status {
+            button::Status::Active => button::Style {
+                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_md(),
+                ..Default::default()
+            },
+            button::Status::Hovered => button::Style {
+                background: Some(colors::PRIMARY_GRADIENT_END.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_lg(),
+                ..Default::default()
+            },
+            button::Status::Pressed => button::Style {
+                background: Some(colors::PRIMARY.into()),
+                text_color: colors::TEXT_ON_PRIMARY,
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: border_radius::MD.into(),
+                },
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            },
+            button::Status::Disabled => button::Style {
+                background: Some(Color {
+                    r: colors::PRIMARY_GRADIENT_START.r * 0.5,
+                    g: colors::PRIMARY_GRADIENT_START.g * 0.5,
+                    b: colors::PRIMARY_GRADIENT_START.b * 0.5,
+                    a: 0.5,
+                }.into()),
+                text_color: Color {
+                    r: colors::TEXT_ON_PRIMARY.r,
+                    g: colors::TEXT_ON_PRIMARY.g,
+                    b: colors::TEXT_ON_PRIMARY.b,
+                    a: 0.5,
+                },
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
                     radius: border_radius::MD.into(),
                 },
                 ..Default::default()
@@ -147,6 +233,7 @@ pub mod button_styles {
 
     /// Danger action button style (e.g., Delete, Remove)
     /// Uses error/danger color with white text
+    /// Enhanced with red gradient for better visual feedback
     #[must_use]
     pub fn danger(_theme: &iced::Theme, status: button::Status) -> button::Style {
         match status {
@@ -158,6 +245,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             },
             button::Status::Hovered => button::Style {
@@ -168,7 +256,7 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_sm(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
@@ -179,11 +267,22 @@ pub mod button_styles {
                     width: 0.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_xs(),
                 ..Default::default()
             },
             button::Status::Disabled => button::Style {
-                background: Some(colors::ERROR.into()),
-                text_color: colors::TEXT_DISABLED,
+                background: Some(Color {
+                    r: colors::ERROR.r * 0.5,
+                    g: colors::ERROR.g * 0.5,
+                    b: colors::ERROR.b * 0.5,
+                    a: 0.5,
+                }.into()),
+                text_color: Color {
+                    r: colors::TEXT_ON_PRIMARY.r,
+                    g: colors::TEXT_ON_PRIMARY.g,
+                    b: colors::TEXT_ON_PRIMARY.b,
+                    a: 0.5,
+                },
                 border: Border {
                     color: Color::TRANSPARENT,
                     width: 0.0,
@@ -196,14 +295,11 @@ pub mod button_styles {
 
     /// Primary button style with focus indicator
     /// Adds a blue shadow/ring for WCAG 2.1 AA compliance (3px minimum)
+    /// Enhanced with glow effect for better visibility
     #[must_use]
     pub fn primary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = primary(theme, status);
-        style.shadow = Shadow {
-            color: colors::FOCUS_RING,
-            offset: iced::Vector::ZERO,
-            blur_radius: 0.0,
-        };
+        style.shadow = shadows::glow_primary(0.6);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,
@@ -213,9 +309,25 @@ pub mod button_styles {
     }
 
     /// Secondary button style with focus indicator
+    /// Enhanced with glow effect for visibility
     #[must_use]
     pub fn secondary_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = secondary(theme, status);
+        style.shadow = shadows::glow_primary(0.3);
+        style.border = Border {
+            color: colors::FOCUS_RING,
+            width: 3.0,
+            radius: border_radius::MD.into(),
+        };
+        style
+    }
+
+    /// Elevated button style with focus indicator
+    /// Enhanced with strong glow effect for prominence
+    #[must_use]
+    pub fn elevated_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
+        let mut style = elevated(theme, status);
+        style.shadow = shadows::glow_primary(0.8);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,
@@ -225,14 +337,11 @@ pub mod button_styles {
     }
 
     /// Danger button style with focus indicator
+    /// Enhanced with red glow for danger indication
     #[must_use]
     pub fn danger_focused(theme: &iced::Theme, status: button::Status) -> button::Style {
         let mut style = danger(theme, status);
-        style.shadow = Shadow {
-            color: colors::FOCUS_RING,
-            offset: iced::Vector::ZERO,
-            blur_radius: 0.0,
-        };
+        style.shadow = shadows::glow_error(0.5);
         style.border = Border {
             color: colors::FOCUS_RING,
             width: 3.0,

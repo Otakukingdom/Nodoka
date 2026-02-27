@@ -109,16 +109,16 @@ fn build_file_item(
         animation.offset_y,
     );
 
-    // Apply selection styling using container background
+    // Apply selection styling with enhanced gradient background
     let content_container = if selected {
         container(content_column)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha(colors::SELECTION_BG, opacity).into()),
+                background: Some(with_alpha_gradient(colors::SUBTLE_GRADIENT_START, colors::SUBTLE_GRADIENT_END, opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
-                    color: with_alpha(colors::BORDER_FOCUS, opacity),
+                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
                     width: 2.0,
-                    radius: 0.0.into(),
+                    radius: border_radius::SM.into(),
                 },
                 ..Default::default()
             })
@@ -133,12 +133,11 @@ fn build_file_item(
         item_button = item_button.on_press(Message::FileSelected(path));
     }
 
-    // Apply hover styling with smooth transitions
+    // Apply hover styling with enhanced surface colors
     // Disabled files (missing) show no hover effect
     // Includes pressed state for tactile feedback using interactive overlay
     item_button
         .style(move |_theme: &iced::Theme, status| {
-            use crate::ui::styles::interactive;
             use iced::widget::button;
             if is_missing {
                 // Missing files: no hover effect, default cursor handled by lack of on_press
@@ -155,21 +154,19 @@ fn build_file_item(
             } else {
                 match status {
                     button::Status::Hovered if !selected => button::Style {
-                        background: Some(with_alpha(colors::BG_HOVER, opacity).into()),
+                        background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
                         border: Border {
-                            color: with_alpha(colors::BORDER_DEFAULT, opacity),
+                            color: with_alpha(colors::BORDER_SUBTLE, opacity),
                             width: 1.0,
                             radius: border_radius::SM.into(),
                         },
                         ..button::Style::default()
                     },
                     button::Status::Pressed if !selected => button::Style {
-                        background: Some(
-                            interactive::apply_active_overlay(colors::BG_HOVER).into(),
-                        ),
+                        background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
                         border: Border {
-                            color: with_alpha(colors::BORDER_FOCUS, opacity),
-                            width: 2.0,
+                            color: with_alpha(colors::BORDER_PROMINENT, opacity),
+                            width: 1.5,
                             radius: border_radius::SM.into(),
                         },
                         ..button::Style::default()
@@ -391,6 +388,16 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
+    }
+}
+
+/// Creates a gradient color by blending two colors
+fn with_alpha_gradient(start: Color, end: Color, opacity: f32) -> Color {
+    Color {
+        r: f32::midpoint(start.r, end.r) * opacity,
+        g: f32::midpoint(start.g, end.g) * opacity,
+        b: f32::midpoint(start.b, end.b) * opacity,
+        a: opacity,
     }
 }
 

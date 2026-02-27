@@ -361,11 +361,53 @@ pub mod shadows {
     /// Use for active playback indicators, focused elements, or highlights.
     #[must_use]
     pub fn glow_primary(intensity: f32) -> Shadow {
-        let alpha = (intensity.clamp(0.0, 1.0) * 0.3).clamp(0.0, 0.5);
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.35).clamp(0.0, 0.5);
         Shadow {
             color: Color::from_rgba(0.882, 0.114, 0.282, alpha),
             offset: Vector::new(0.0, 0.0),
             blur_radius: 8.0 * intensity,
+        }
+    }
+
+    /// Success glow for positive feedback
+    ///
+    /// Creates a green glow for success states, completed actions, and
+    /// positive feedback indicators.
+    #[must_use]
+    pub fn glow_success(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.3).clamp(0.0, 0.45);
+        Shadow {
+            color: Color::from_rgba(0.13, 0.77, 0.38, alpha), // #22c762 green
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 8.0 * intensity,
+        }
+    }
+
+    /// Warning glow for caution states
+    ///
+    /// Creates an amber glow for warning states, pending actions, and
+    /// caution indicators.
+    #[must_use]
+    pub fn glow_warning(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.3).clamp(0.0, 0.45);
+        Shadow {
+            color: Color::from_rgba(0.95, 0.71, 0.13, alpha), // #f2b521 amber
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 8.0 * intensity,
+        }
+    }
+
+    /// Error glow for negative feedback
+    ///
+    /// Creates a red glow for error states, failed actions, and
+    /// negative feedback indicators.
+    #[must_use]
+    pub fn glow_error(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.35).clamp(0.0, 0.5);
+        Shadow {
+            color: Color::from_rgba(0.92, 0.11, 0.34, alpha), // #eb1c57 red
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 10.0 * intensity,
         }
     }
 

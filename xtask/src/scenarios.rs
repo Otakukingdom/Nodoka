@@ -43,6 +43,12 @@ pub enum Scenario {
     MultipleBookmarks,
     /// Long title handling for text overflow.
     LongTitle,
+    /// Loading state with skeleton UI.
+    LoadingState,
+    /// Scrollbar visible with many files.
+    ScrollbarVisible,
+    /// Many audiobooks for scrolling demonstration.
+    ManyItems,
 }
 
 impl Scenario {
@@ -66,6 +72,9 @@ impl Scenario {
             Self::ErrorState,
             Self::MultipleBookmarks,
             Self::LongTitle,
+            Self::LoadingState,
+            Self::ScrollbarVisible,
+            Self::ManyItems,
         ]
     }
 
@@ -89,6 +98,9 @@ impl Scenario {
             Self::ErrorState => "14-error-state.png",
             Self::MultipleBookmarks => "15-multiple-bookmarks.png",
             Self::LongTitle => "16-long-title.png",
+            Self::LoadingState => "17-loading-state.png",
+            Self::ScrollbarVisible => "18-scrollbar-visible.png",
+            Self::ManyItems => "19-many-items.png",
         }
     }
 
@@ -325,6 +337,212 @@ impl Scenario {
                     ];
                 }
             }
+            Self::LoadingState => {
+                // Set loading state to demonstrate skeleton UI
+                state.load_state = LoadState::Loading;
+                state.audiobooks = vec![]; // Empty during loading
+            }
+            Self::ScrollbarVisible => {
+                // Create enough files to show scrollbar in file list
+                if let Some(id) = setup_with_selected_audiobook(state, db) {
+                    // Create 20+ files to ensure scrollbar is visible
+                    let mut many_files = Vec::new();
+                    for i in 0..25 {
+                        many_files.push(AudiobookFile {
+                            audiobook_id: id,
+                            name: format!("Chapter {} - {}", i + 1, &["The Beginning", "The Journey", "The Discovery", "The Challenge", "The Resolution"][i % 5]),
+                            full_path: format!("/audiobooks/Foundation/chapter{}.mp3", i + 1),
+                            length_of_file: Some(300_000 + (i as i64 * 10_000)),
+                            seek_position: if i == 0 { Some(45_000) } else { Some(0) },
+                            checksum: Some(format!("checksum{}", i)),
+                            position: i as i32,
+                            completeness: if i == 0 { 15 } else { 0 },
+                            file_exists: true,
+                            created_at: Utc::now(),
+                        });
+                    }
+                    state.current_files = many_files;
+                }
+            }
+            Self::ManyItems => {
+                // Create 12+ audiobooks to demonstrate scrolling
+                let many_audiobooks = vec![
+                    Audiobook {
+                        id: Some(1),
+                        directory: "/audiobooks".to_string(),
+                        name: "Foundation".to_string(),
+                        author: Some("Isaac Asimov".to_string()),
+                        full_path: "/audiobooks/Foundation".to_string(),
+                        completeness: 35,
+                        default_order: 0,
+                        selected_file: Some("/audiobooks/Foundation/chapter1.mp3".to_string()),
+                        total_duration_ms: Some(18_000_000),
+                        remaining_duration_ms: Some(11_700_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(2),
+                        directory: "/audiobooks".to_string(),
+                        name: "Dune".to_string(),
+                        author: Some("Frank Herbert".to_string()),
+                        full_path: "/audiobooks/Dune".to_string(),
+                        completeness: 0,
+                        default_order: 1,
+                        selected_file: None,
+                        total_duration_ms: Some(21_600_000),
+                        remaining_duration_ms: Some(21_600_000),
+                        created_at: Utc::now(),
+                        last_listened: None,
+                    },
+                    Audiobook {
+                        id: Some(3),
+                        directory: "/audiobooks".to_string(),
+                        name: "The Hobbit".to_string(),
+                        author: Some("J.R.R. Tolkien".to_string()),
+                        full_path: "/audiobooks/The Hobbit".to_string(),
+                        completeness: 100,
+                        default_order: 2,
+                        selected_file: None,
+                        total_duration_ms: Some(10_800_000),
+                        remaining_duration_ms: Some(0),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(4),
+                        directory: "/audiobooks".to_string(),
+                        name: "1984".to_string(),
+                        author: Some("George Orwell".to_string()),
+                        full_path: "/audiobooks/1984".to_string(),
+                        completeness: 62,
+                        default_order: 3,
+                        selected_file: None,
+                        total_duration_ms: Some(12_600_000),
+                        remaining_duration_ms: Some(4_788_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(5),
+                        directory: "/audiobooks".to_string(),
+                        name: "Brave New World".to_string(),
+                        author: Some("Aldous Huxley".to_string()),
+                        full_path: "/audiobooks/Brave New World".to_string(),
+                        completeness: 20,
+                        default_order: 4,
+                        selected_file: None,
+                        total_duration_ms: Some(14_400_000),
+                        remaining_duration_ms: Some(11_520_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(6),
+                        directory: "/audiobooks".to_string(),
+                        name: "Fahrenheit 451".to_string(),
+                        author: Some("Ray Bradbury".to_string()),
+                        full_path: "/audiobooks/Fahrenheit 451".to_string(),
+                        completeness: 85,
+                        default_order: 5,
+                        selected_file: None,
+                        total_duration_ms: Some(9_600_000),
+                        remaining_duration_ms: Some(1_440_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(7),
+                        directory: "/audiobooks".to_string(),
+                        name: "The Catcher in the Rye".to_string(),
+                        author: Some("J.D. Salinger".to_string()),
+                        full_path: "/audiobooks/The Catcher in the Rye".to_string(),
+                        completeness: 0,
+                        default_order: 6,
+                        selected_file: None,
+                        total_duration_ms: Some(11_400_000),
+                        remaining_duration_ms: Some(11_400_000),
+                        created_at: Utc::now(),
+                        last_listened: None,
+                    },
+                    Audiobook {
+                        id: Some(8),
+                        directory: "/audiobooks".to_string(),
+                        name: "To Kill a Mockingbird".to_string(),
+                        author: Some("Harper Lee".to_string()),
+                        full_path: "/audiobooks/To Kill a Mockingbird".to_string(),
+                        completeness: 45,
+                        default_order: 7,
+                        selected_file: None,
+                        total_duration_ms: Some(16_200_000),
+                        remaining_duration_ms: Some(8_910_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(9),
+                        directory: "/audiobooks".to_string(),
+                        name: "The Great Gatsby".to_string(),
+                        author: Some("F. Scott Fitzgerald".to_string()),
+                        full_path: "/audiobooks/The Great Gatsby".to_string(),
+                        completeness: 100,
+                        default_order: 8,
+                        selected_file: None,
+                        total_duration_ms: Some(7_800_000),
+                        remaining_duration_ms: Some(0),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(10),
+                        directory: "/audiobooks".to_string(),
+                        name: "Animal Farm".to_string(),
+                        author: Some("George Orwell".to_string()),
+                        full_path: "/audiobooks/Animal Farm".to_string(),
+                        completeness: 10,
+                        default_order: 9,
+                        selected_file: None,
+                        total_duration_ms: Some(8_400_000),
+                        remaining_duration_ms: Some(7_560_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(11),
+                        directory: "/audiobooks".to_string(),
+                        name: "Lord of the Flies".to_string(),
+                        author: Some("William Golding".to_string()),
+                        full_path: "/audiobooks/Lord of the Flies".to_string(),
+                        completeness: 0,
+                        default_order: 10,
+                        selected_file: None,
+                        total_duration_ms: Some(9_000_000),
+                        remaining_duration_ms: Some(9_000_000),
+                        created_at: Utc::now(),
+                        last_listened: None,
+                    },
+                    Audiobook {
+                        id: Some(12),
+                        directory: "/audiobooks".to_string(),
+                        name: "Pride and Prejudice".to_string(),
+                        author: Some("Jane Austen".to_string()),
+                        full_path: "/audiobooks/Pride and Prejudice".to_string(),
+                        completeness: 55,
+                        default_order: 11,
+                        selected_file: None,
+                        total_duration_ms: Some(19_200_000),
+                        remaining_duration_ms: Some(8_640_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                ];
+
+                for audiobook in &many_audiobooks {
+                    let _result = nodoka::db::queries::insert_audiobook(db.connection(), audiobook);
+                }
+
+                state.audiobooks = many_audiobooks;
+            }
         }
     }
 }
@@ -532,7 +750,7 @@ mod tests {
                 scenario.filename()
             );
         }
-        assert_eq!(filenames.len(), 16); // Updated to 16 scenarios
+        assert_eq!(filenames.len(), 19); // Updated to 19 scenarios
     }
 
     #[test]

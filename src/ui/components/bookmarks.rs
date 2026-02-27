@@ -167,8 +167,9 @@ fn bookmark_row(
         background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
         text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
+            color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
+            width: 1.0,
             radius: border_radius::SM.into(),
-            ..Default::default()
         },
         shadow: shadows::shadow_xs(),
         ..Default::default()
@@ -188,8 +189,9 @@ fn bookmark_row(
             background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
+                color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
+                width: 1.0,
                 radius: border_radius::SM.into(),
-                ..Default::default()
             },
             shadow: shadows::shadow_xs(),
             ..Default::default()

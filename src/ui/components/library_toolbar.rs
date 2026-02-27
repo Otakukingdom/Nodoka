@@ -71,9 +71,9 @@ fn search_bar_style(
     use iced::widget::text_input;
     match status {
         text_input::Status::Focused { .. } => text_input::Style {
-            background: iced::Background::Color(colors::BG_SECONDARY),
+            background: iced::Background::Color(colors::BG_ELEVATED),
             border: Border {
-                color: colors::BORDER_FOCUS,
+                color: colors::PRIMARY_GRADIENT_START,
                 width: 2.0,
                 radius: border_radius::MD.into(),
             },
@@ -83,9 +83,9 @@ fn search_bar_style(
             selection: colors::SELECTION_BG,
         },
         _ => text_input::Style {
-            background: iced::Background::Color(colors::BG_SECONDARY),
+            background: iced::Background::Color(colors::BG_ELEVATED),
             border: Border {
-                color: colors::BORDER_DEFAULT,
+                color: colors::BORDER_SUBTLE,
                 width: 1.0,
                 radius: border_radius::MD.into(),
             },
@@ -202,7 +202,7 @@ fn sort_button(
             // Secondary style - outlined button with refined treatment
             match status {
                 button::Status::Hovered => button::Style {
-                    background: Some(colors::BG_HOVER.into()),
+                    background: Some(colors::SURFACE_HOVER.into()),
                     border: Border {
                         color: colors::PRIMARY,
                         width: 1.0,
@@ -212,7 +212,7 @@ fn sort_button(
                     ..Default::default()
                 },
                 button::Status::Pressed => button::Style {
-                    background: Some(colors::PRIMARY_HOVER.into()),
+                    background: Some(colors::SURFACE_ACTIVE.into()),
                     border: Border {
                         color: colors::PRIMARY_ACTIVE,
                         width: 1.0,
@@ -224,7 +224,7 @@ fn sort_button(
                 _ => button::Style {
                     background: Some(iced::Color::TRANSPARENT.into()),
                     border: Border {
-                        color: colors::BORDER_DEFAULT,
+                        color: colors::BORDER_SUBTLE,
                         width: 1.0,
                         radius: border_radius::MD.into(),
                     },
@@ -275,9 +275,9 @@ fn filter_chip(
             // Chip style - rounded button with subtle background
             match status_arg {
                 button::Status::Hovered => button::Style {
-                    background: Some(colors::BG_HOVER.into()),
+                    background: Some(colors::SURFACE_HOVER.into()),
                     border: Border {
-                        color: colors::BORDER_DEFAULT,
+                        color: colors::BORDER_PROMINENT,
                         width: 1.0,
                         radius: border_radius::LG.into(),
                     },
@@ -285,7 +285,7 @@ fn filter_chip(
                     ..Default::default()
                 },
                 button::Status::Pressed => button::Style {
-                    background: Some(colors::PRIMARY_HOVER.into()),
+                    background: Some(colors::SURFACE_ACTIVE.into()),
                     border: Border {
                         color: colors::PRIMARY_ACTIVE,
                         width: 1.0,
@@ -297,7 +297,7 @@ fn filter_chip(
                 _ => button::Style {
                     background: Some(colors::BG_SECONDARY.into()),
                     border: Border {
-                        color: colors::BORDER_DEFAULT,
+                        color: colors::BORDER_SUBTLE,
                         width: 1.0,
                         radius: border_radius::LG.into(),
                     },

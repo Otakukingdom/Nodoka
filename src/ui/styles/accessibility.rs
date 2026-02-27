@@ -238,7 +238,9 @@ pub fn skip_link_style(
 /// are not required to meet text contrast ratios, but must meet non-text
 /// component contrast requirements (3:1).
 pub mod gradient {
-    use super::*;
+    use super::{
+        verify_contrast_aa, colors, verify_contrast_non_text, Color, wcag_contrast_ratio,
+    };
 
     /// Verifies gradient start color meets WCAG AA for text on primary background
     ///
