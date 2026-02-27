@@ -2,7 +2,7 @@
 //!
 //! These functions render the notification overlay and its individual toasts.
 
-use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
+use crate::ui::styles::{border_radius, colors, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -85,11 +85,16 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.4),
-                width: 2.0, // Thicker border for prominence
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.5),
+                width: 2.5, // Slightly thicker for more prominence
                 radius: border_radius::MD.into(),
             },
-            shadow: shadows::shadow_xxl(),
+            // Enhanced multi-layer shadow for dramatic elevation
+            shadow: iced::Shadow {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
+                offset: iced::Vector::new(0.0, 4.0),
+                blur_radius: 12.0,
+            },
             ..Default::default()
         })
         .into()
@@ -100,19 +105,19 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
 const fn notification_gradient_color(kind: &crate::ui::state::NotificationType) -> Color {
     match kind {
         crate::ui::state::NotificationType::Success => {
-            // Premium forest green gradient start
-            Color::from_rgb(0.10, 0.70, 0.40)
+            // Enhanced forest green with depth gradient
+            Color::from_rgb(0.08, 0.68, 0.32)
         }
         crate::ui::state::NotificationType::Info => {
-            // Premium sky blue gradient start
-            Color::from_rgb(0.05, 0.60, 0.95)
+            // Enhanced royal blue gradient
+            Color::from_rgb(0.05, 0.62, 0.92)
         }
         crate::ui::state::NotificationType::Warning => {
-            // Premium amber gradient start
-            Color::from_rgb(0.92, 0.60, 0.12)
+            // Enhanced rich amber with warmth
+            Color::from_rgb(0.88, 0.52, 0.08)
         }
         crate::ui::state::NotificationType::Error => {
-            // Premium rose red gradient start
+            // Enhanced premium rose-red for brand consistency
             Color::from_rgb(0.88, 0.15, 0.30)
         }
     }

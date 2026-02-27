@@ -244,18 +244,26 @@ fn build_cover<S: BuildHasher>(
     // Enhanced shadow (md) for better depth perception on covers
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
-            container(text("No cover").size(typography::SIZE_XS).style(
-                move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
-                },
-            ))
+            // Premium gradient color for cover placeholder
+            let placeholder_bg = with_alpha_gradient_cover(colors::BG_ELEVATED, colors::BG_RAISED, opacity);
+            container(
+                text("♪")
+                    .size(typography::SIZE_XL)
+                    .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                        color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                    }),
+            )
             .width(Length::Fixed(120.0))
             .height(Length::Fixed(120.0))
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
             .style(move |_theme: &iced::Theme| container::Style {
-                background: Some(with_alpha(colors::BG_ELEVATED, opacity).into()),
+                // Premium gradient pattern for cover placeholder instead of plain color
+                // Uses subtle gradient for sophisticated appearance when no cover is available
+                background: Some(placeholder_bg.into()),
                 border: Border {
-                    color: with_alpha(colors::BORDER_SUBTLE, opacity),
-                    width: 1.0,
+                    color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
+                    width: 1.5,
                     radius: border_radius::MD.into(),
                 },
                 shadow: shadows::shadow_md(),
@@ -281,6 +289,16 @@ fn build_cover<S: BuildHasher>(
             .into()
         },
     )
+}
+
+/// Creates gradient color for cover placeholder background
+fn with_alpha_gradient_cover(start: Color, end: Color, opacity: f32) -> Color {
+    Color {
+        r: f32::midpoint(start.r, end.r) * opacity,
+        g: f32::midpoint(start.g, end.g) * opacity,
+        b: f32::midpoint(start.b, end.b) * opacity,
+        a: opacity,
+    }
 }
 
 fn build_content_row<'a>(

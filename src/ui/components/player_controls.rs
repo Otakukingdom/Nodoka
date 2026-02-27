@@ -138,7 +138,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .and_then(|id| state.cover_thumbnails.get(&id))
                 .map_or_else(
                     || {
-                        // No cover available - show placeholder with enhanced styling
+                        // No cover available - show placeholder with enhanced gradient pattern
                         container(text("♪").size(typography::SIZE_XXL).style(
                             |_theme: &iced::Theme| iced::widget::text::Style {
                                 color: Some(colors::TEXT_SECONDARY),
@@ -149,10 +149,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .center_x(Length::Fill)
                         .center_y(Length::Fill)
                         .style(|_theme: &iced::Theme| container::Style {
-                            background: Some(colors::BG_ELEVATED.into()),
+                            // Subtle gradient pattern for premium placeholder
+                            background: Some(Color::from_rgba(
+                                f32::midpoint(colors::BG_ELEVATED.r, colors::BG_RAISED.r),
+                                f32::midpoint(colors::BG_ELEVATED.g, colors::BG_RAISED.g),
+                                f32::midpoint(colors::BG_ELEVATED.b, colors::BG_RAISED.b),
+                                1.0,
+                            ).into()),
                             border: Border {
-                                color: colors::BORDER_SUBTLE,
-                                width: 1.0,
+                                color: colors::PRIMARY_GRADIENT_START,
+                                width: 1.5,
                                 radius: border_radius::MD.into(),
                             },
                             shadow: shadows::shadow_md(),
@@ -209,14 +215,25 @@ pub fn view(state: &State) -> Element<'_, Message> {
             )
             .padding(spacing::MD)
             .style(|_theme: &iced::Theme| container::Style {
-                // Enhanced gradient with more vibrant transition
-                background: Some(colors::CONTINUE_GRADIENT_START.into()),
+                // Multi-layer gradient effect for depth - using blended color
+                background: Some(Color::from_rgba(
+                    f32::midpoint(colors::CONTINUE_GRADIENT_START.r, colors::CONTINUE_GRADIENT_END.r),
+                    f32::midpoint(colors::CONTINUE_GRADIENT_START.g, colors::CONTINUE_GRADIENT_END.g),
+                    f32::midpoint(colors::CONTINUE_GRADIENT_START.b, colors::CONTINUE_GRADIENT_END.b),
+                    1.0,
+                ).into()),
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
-                    width: 2.0,
+                    color: colors::ACCENT_GRADIENT_END,
+                    width: 2.5,
                     radius: border_radius::LG.into(),
                 },
-                shadow: shadows::shadow_xxl(),
+                // Multi-layer shadow for dramatic elevation
+                shadow: iced::Shadow {
+                    color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
+                    offset: iced::Vector::new(0.0, 8.0),
+                    blur_radius: 24.0,
+                },
+                text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()
             })
         },

@@ -12,7 +12,7 @@ use crate::ui::styles::{
 };
 use crate::ui::{settings_form, FocusedElement, LoadState, Message, ScanState, State};
 use iced::widget::{button, column, container, mouse_area, row, stack, text, Space};
-use iced::{Border, Color, Element, Length, Shadow};
+use iced::{Border, Color, Element, Length, Shadow, Vector};
 
 use super::{modal_views, notification_views};
 
@@ -195,7 +195,7 @@ fn top_bar(state: &State) -> Element<'static, Message> {
 
     container(
         row![
-            // Enhanced logo with distinctive sunset gradient and premium glow effect
+            // Enhanced logo with premium multi-gradient and multi-layer glow
             container(
                 text("♪")
                     .size(typography::SIZE_BASE)
@@ -203,20 +203,26 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                         color: Some(colors::TEXT_ON_PRIMARY),
                     }),
             )
-            .width(Length::Fixed(28.0))  // Slightly larger for prominence
-            .height(Length::Fixed(28.0))
+            .width(Length::Fixed(32.0))  // Slightly larger for prominence
+            .height(Length::Fixed(32.0))
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
-                // Premium sunset gradient background for distinctive branding
-                background: Some(colors::SUNSET_GRADIENT_START.into()),
+                // Premium multi-gradient background for distinctive branding
+                // Combines sunset rose with primary and accent for sophisticated look
+                // Uses solid color with gradient blend for compatibility
+                background: Some(logo_gradient_premium().into()),
                 border: Border {
-                    color: colors::SUNSET_GRADIENT_END,
+                    color: Color::from_rgba(1.0, 1.0, 1.0, 0.6),
                     width: 1.5,
                     radius: border_radius::SM.into(),
                 },
-                // Enhanced premium glow effect for prominence
-                shadow: shadows::glow_premium(0.6),
+                // Multi-layer glow with enhanced rose tint
+                shadow: Shadow {
+                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.5),
+                    offset: Vector::new(0.0, 0.0),
+                    blur_radius: 8.0,
+                },
                 ..Default::default()
             }),
             column![
@@ -429,6 +435,21 @@ fn library_panels(state: &State) -> Element<'_, Message> {
 
 fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
     start_ms.map_or(0, |start| now_ms.saturating_sub(start))
+}
+
+/// Creates premium gradient color for application logo
+/// Blends sunset rose with primary and accent for distinctive branding
+fn logo_gradient_premium() -> Color {
+    // Blend three colors for sophisticated multi-layer appearance
+    let start = colors::SUNSET_GRADIENT_START;
+    let mid = colors::PRIMARY;
+    let end = colors::SUNSET_GRADIENT_END;
+    Color {
+        r: end.r.mul_add(0.35, start.r.mul_add(0.35, mid.r * 0.30)),
+        g: end.g.mul_add(0.35, start.g.mul_add(0.35, mid.g * 0.30)),
+        b: end.b.mul_add(0.35, start.b.mul_add(0.35, mid.b * 0.30)),
+        a: 1.0,
+    }
 }
 
 #[cfg(test)]

@@ -180,7 +180,28 @@ pub mod subtle {
 
 /// Gradient utility functions for common operations
 pub mod utils {
-    use super::Color;
+    use super::{Color, lerp_color};
+    use crate::ui::styles::colors;
+
+    /// Creates a premium multi-stop gradient color for special elements
+    /// Returns blended color with multiple color stops for dramatic effect
+    #[must_use]
+    pub const fn premium_gradient_color(t: f32) -> Color {
+        let t = t.clamp(0.0, 1.0);
+        // Blend between sunset and primary colors
+        if t < 0.5 {
+            lerp_color(colors::SUNSET_GRADIENT_START, colors::PRIMARY_GRADIENT_START, t * 2.0)
+        } else {
+            lerp_color(colors::PRIMARY_GRADIENT_START, colors::SUNSET_GRADIENT_END, (t - 0.5) * 2.0)
+        }
+    }
+
+    /// Creates a diagonal premium gradient color for dynamic elements
+    /// Returns blended color with warm color transition
+    #[must_use]
+    pub const fn diagonal_premium_gradient_color(t: f32) -> Color {
+        lerp_color(colors::ACCENT_GRADIENT_START, colors::PRIMARY_GRADIENT_END, t.clamp(0.0, 1.0))
+    }
 
     /// Creates a multi-step gradient color by interpolating between multiple stops
     ///

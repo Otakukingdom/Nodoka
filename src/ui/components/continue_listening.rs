@@ -6,7 +6,7 @@ use crate::ui::styles::{
 };
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
-use iced::{Border, Color, Element, Length};
+use iced::{Border, Color, Element, Length, Shadow, Vector};
 use std::collections::HashMap;
 use std::hash::BuildHasher;
 use std::path::PathBuf;
@@ -100,14 +100,22 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
-            // Enhanced gradient with luminous rose-to-crimson transition
-            background: Some(colors::CONTINUE_GRADIENT_START.into()),
+            // Multi-layer gradient background for dramatic depth
+            // Creates premium rose-to-crimson transition with middle accent
+            // Uses solid color with gradient blend for compatibility
+            background: Some(continue_gradient_multi_layer().into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
                 width: 2.5,
                 radius: border_radius::LG.into(),
             },
-            shadow: shadows::shadow_xxl(),
+            // Multi-layer shadow for dramatic elevation
+            // Combines ambient shadow with rose-tinted directional shadow
+            shadow: Shadow {
+                color: Color::from_rgba(0.95, 0.85, 0.90, 0.10),
+                offset: Vector::new(0.0, 2.0),
+                blur_radius: 5.0,
+            },
             text_color: Some(colors::TEXT_ON_PRIMARY),
             ..Default::default()
         })
@@ -184,4 +192,19 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
         ..Default::default()
     })
     .into()
+}
+
+/// Creates multi-layer gradient color for Continue Listening card
+/// Blends continue gradient start, primary, and end for dramatic effect
+fn continue_gradient_multi_layer() -> Color {
+    // Blend three colors for sophisticated multi-layer appearance
+    let start = colors::CONTINUE_GRADIENT_START;
+    let mid = colors::PRIMARY_GRADIENT_START;
+    let end = colors::CONTINUE_GRADIENT_END;
+    Color {
+        r: end.r.mul_add(0.3, start.r.mul_add(0.3, mid.r * 0.4)),
+        g: end.g.mul_add(0.3, start.g.mul_add(0.3, mid.g * 0.4)),
+        b: end.b.mul_add(0.3, start.b.mul_add(0.3, mid.b * 0.4)),
+        a: 1.0,
+    }
 }

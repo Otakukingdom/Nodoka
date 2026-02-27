@@ -556,4 +556,99 @@ pub mod shadows {
             blur_radius: 8.0,
         }
     }
+
+    /// ===== Multi-Layer Shadow Utilities =====
+    ///
+    /// Multi-layer shadows create sophisticated depth by combining
+    /// ambient and directional shadows for premium elevation.
+    /// Returns a vector of shadows for premium layered elevation
+    /// Combines ambient shadow for subtle lift with directional rose-tinted shadow for definition
+    #[must_use]
+    pub fn shadow_premium_layered() -> Vec<Shadow> {
+        vec![
+            // Ambient shadow for subtle lift
+            Shadow {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.04),
+                offset: Vector::new(0.0, 1.0),
+                blur_radius: 3.0,
+            },
+            // Directional rose-tinted shadow for definition
+            Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.08),
+                offset: Vector::new(0.0, 2.0),
+                blur_radius: 6.0,
+            },
+        ]
+    }
+
+    /// Premium multi-layer shadow for cards
+    /// Creates sophisticated elevation with warm rose-tinted shadow
+    #[must_use]
+    pub fn shadow_card_premium() -> Vec<Shadow> {
+        vec![
+            Shadow {
+                color: Color::from_rgba(0.95, 0.85, 0.90, 0.08),
+                offset: Vector::new(0.0, 1.0),
+                blur_radius: 2.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.12),
+                offset: Vector::new(0.0, 2.5),
+                blur_radius: 5.0,
+            },
+        ]
+    }
+
+    /// Multi-layer shadow for modal cards
+    /// Creates dramatic elevation with stronger rose tint
+    #[must_use]
+    pub fn shadow_modal_premium() -> Vec<Shadow> {
+        vec![
+            Shadow {
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.05),
+                offset: Vector::new(0.0, 2.0),
+                blur_radius: 4.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.15),
+                offset: Vector::new(0.0, 4.0),
+                blur_radius: 8.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.98, 0.32, 0.45, 0.08),
+                offset: Vector::new(0.0, 8.0),
+                blur_radius: 16.0,
+            },
+        ]
+    }
+
+    /// Enhanced premium glow with maximum intensity
+    /// Creates strongest glow effect for key interactive elements
+    #[must_use]
+    pub fn glow_premium_max(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.6).clamp(0.0, 0.7);
+        Shadow {
+            color: Color::from_rgba(0.98, 0.32, 0.45, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 20.0 * intensity,
+        }
+    }
+
+    /// Multi-layer glow for active playback indicators
+    /// Combines inner glow with outer glow for dramatic effect
+    #[must_use]
+    pub fn glow_playback_active() -> Vec<Shadow> {
+        vec![
+            Shadow {
+                color: Color::from_rgba(0.98, 0.32, 0.45, 0.3),
+                offset: Vector::new(0.0, 0.0),
+                blur_radius: 6.0,
+            },
+            Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.2),
+                offset: Vector::new(0.0, 0.0),
+                blur_radius: 12.0,
+            },
+        ]
+    }
 }

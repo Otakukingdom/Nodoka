@@ -7,7 +7,7 @@ use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, 
 use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, text, Space};
-use iced::{Border, Color, Element, Length};
+use iced::{Border, Color, Element, Length, Shadow, Vector};
 
 /// Modal backdrop with glass-morphism effect and click-to-dismiss
 ///
@@ -44,15 +44,23 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
         .into()
 }
 
-/// Enhanced glass-morphism backdrop with subtle rose tint
-/// Creates premium backdrop effect with refined color treatment
-/// Enhanced with warmer rose tint for distinctive character
+/// Enhanced glass-morphism backdrop with multi-color tint
+/// Creates premium backdrop with sophisticated color layering for depth and richness
 fn improved_glass_backdrop(opacity: f32) -> Color {
+    // Enhanced multi-layer color for premium feel
+    // Combines warm rose base with cool blue-gray overlay for depth
+    let base_r = 0.12;
+    let base_g = 0.06;
+    let base_b = 0.10;
+    let overlay_r = 0.08;
+    let overlay_g = 0.12;
+    let overlay_b = 0.18;
+
     Color {
-        r: 0.15,
-        g: 0.08,
-        b: 0.12,
-        a: (0.72 * opacity).clamp(0.0, 0.88),
+        r: (base_r + overlay_r * 0.3),
+        g: (base_g + overlay_g * 0.3),
+        b: (base_b + overlay_b * 0.3),
+        a: (0.78 * opacity).clamp(0.0, 0.92),
     }
 }
 
@@ -185,8 +193,8 @@ fn shortcut_group(
 /// Premium modal card with glass-morphism backdrop and elevated shadow
 ///
 /// Creates a refined modal overlay with:
-/// - Extra extra large shadow (xxl) for premium elevation
-/// - Refined border with sunset gradient treatment
+/// - Multi-layer shadow for dramatic elevation
+/// - Enhanced border with premium gradient treatment
 /// - XL border radius for softer appearance
 /// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
@@ -194,17 +202,27 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with sunset gradient for distinctive branding
-    let border_color = with_alpha_gradient_border(colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END, opacity);
+    // Enhanced border with animated gradient effect for premium feel
+    let border_color = with_alpha_gradient_border_enhanced(
+        colors::SUNSET_GRADIENT_START,
+        colors::PRIMARY_GRADIENT_START,
+        colors::SUNSET_GRADIENT_END,
+        opacity,
+    );
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
                 color: border_color,
-                width: 3.0, // Thicker border for prominence
+                width: 3.5, // Slightly thicker for more prominence
                 radius: border_radius::XL.into(),
             },
-            shadow: shadows::shadow_xxl(),
+            // Multi-layer shadow for premium elevation
+            shadow: Shadow {
+                color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
+                offset: Vector::new(0.0, 8.0),
+                blur_radius: 24.0,
+            },
             ..Default::default()
         })
         .padding(spacing::XL) // Increased padding for better content breathing room
@@ -319,12 +337,13 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Helper function for gradient border color
-fn with_alpha_gradient_border(start: Color, end: Color, opacity: f32) -> Color {
+/// Enhanced helper function for gradient border with three-color blend
+/// Creates sophisticated border color by blending three gradient colors
+fn with_alpha_gradient_border_enhanced(start: Color, mid: Color, end: Color, opacity: f32) -> Color {
     Color {
-        r: f32::midpoint(start.r, end.r) * opacity,
-        g: f32::midpoint(start.g, end.g) * opacity,
-        b: f32::midpoint(start.b, end.b) * opacity,
+        r: f32::midpoint(start.r, end.r).mul_add(0.4, mid.r * 0.6).clamp(0.0, 1.0) * opacity,
+        g: f32::midpoint(start.g, end.g).mul_add(0.4, mid.g * 0.6).clamp(0.0, 1.0) * opacity,
+        b: f32::midpoint(start.b, end.b).mul_add(0.4, mid.b * 0.6).clamp(0.0, 1.0) * opacity,
         a: opacity,
     }
 }

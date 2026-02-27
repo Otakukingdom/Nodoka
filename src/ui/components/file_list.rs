@@ -3,8 +3,8 @@
 use crate::models::AudiobookFile;
 use crate::ui::styles::{animations, spacing, typography};
 use crate::ui::Message;
-use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
-use iced::{Color, Element, Length};
+use iced::widget::{button, column, container, row, scrollable, text, Space};
+use iced::{Border, Color, Element, Length, Shadow};
 
 /// Renders the file list with improved UX patterns
 ///
@@ -255,11 +255,38 @@ fn build_progress_element(
     is_missing: bool,
     completeness: i32,
 ) -> iced::widget::Container<'static, Message> {
+    use crate::ui::styles::{border_radius, colors, shadows};
+
     if has_progress && !is_complete && !is_missing {
         let completeness_u8 = u8::try_from(completeness.clamp(0, 100)).unwrap_or(0);
-        container(progress_bar(0.0..=100.0, f32::from(completeness_u8)))
-            .width(Length::Fill)
-            .height(Length::Fixed(6.0)) // Reserve 6px height for consistency
+        container(
+            container(Space::new())
+                .width(Length::FillPortion(u16::from(completeness_u8)))
+                .height(Length::Fixed(6.0))
+                .style(|_theme: &iced::Theme| container::Style {
+                    // Enhanced gradient fill for progress bar
+                    // Uses premium rose gradient for distinctive visual appeal
+                    background: Some(colors::PROGRESS_GRADIENT_START.into()),
+                    border: Border {
+                        color: Color::TRANSPARENT,
+                        width: 0.0,
+                        radius: border_radius::FULL.into(),
+                    },
+                    shadow: shadows::shadow_xs(),
+                    ..Default::default()
+                }),
+        )
+        .width(Length::Fill)
+        .height(Length::Fixed(6.0))
+        .style(|_theme: &iced::Theme| container::Style {
+            background: Some(colors::BG_SECONDARY.into()),
+            border: Border {
+                color: colors::BORDER_SUBTLE,
+                width: 1.0,
+                radius: border_radius::FULL.into(),
+            },
+            ..Default::default()
+        })
     } else {
         container(Space::new())
             .width(Length::Fill)
@@ -271,8 +298,15 @@ fn build_file_number_badge(
     file_number: usize,
     opacity: f32,
 ) -> iced::widget::Container<'static, Message> {
-    use crate::ui::styles::{border_radius, colors, shadows};
+    use crate::ui::styles::{border_radius, colors};
     use iced::Border;
+
+    // Premium gradient color for badge background
+    let badge_gradient = with_alpha_gradient_badge(
+        colors::ACCENT_GRADIENT_START,
+        colors::PRIMARY_GRADIENT_END,
+        opacity,
+    );
 
     container(
         text(format!("#{file_number}"))
@@ -283,15 +317,32 @@ fn build_file_number_badge(
     )
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
+        // Premium gradient background for distinctive badge appearance
+        // Uses diagonal gradient blend from accent to primary for sophisticated look
+        background: Some(badge_gradient.into()),
         border: Border {
             color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-            width: 1.0,
+            width: 1.2,
             radius: border_radius::SM.into(),
         },
-        shadow: shadows::shadow_xs(),
+        // Multi-layer shadow for premium depth
+        shadow: Shadow {
+            color: with_alpha(colors::ACCENT_GRADIENT_START, 0.15),
+            offset: iced::Vector::new(0.0, 1.0),
+            blur_radius: 3.0,
+        },
         ..Default::default()
     })
+}
+
+/// Creates gradient color for file number badge background
+fn with_alpha_gradient_badge(start: Color, end: Color, opacity: f32) -> Color {
+    Color {
+        r: f32::midpoint(start.r, end.r) * opacity,
+        g: f32::midpoint(start.g, end.g) * opacity,
+        b: f32::midpoint(start.b, end.b) * opacity,
+        a: opacity,
+    }
 }
 
 #[allow(clippy::too_many_arguments, clippy::needless_pass_by_value)]
