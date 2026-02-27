@@ -1,0 +1,33 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.93.1"
+publish = false
+
+[dependencies]
+nodoka = { path = ".." }
+iced = { version = "0.14.0", features = ["tokio", "advanced", "image"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+image = "0.24"
+rusqlite = { version = "0.31", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.35", features = ["time"] }
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = { level = "deny", priority = 0 }
+expect_used = { level = "deny", priority = 0 }
+panic = { level = "deny", priority = 0 }
+indexing_slicing = { level = "deny", priority = 0 }
+missing_errors_doc = { level = "deny", priority = 0 }
+missing_panics_doc = { level = "deny", priority = 0 }
+
+[lints.rust]
+unsafe_code = { level = "deny", priority = -1 }
+dead_code = { level = "deny", priority = -1 }
+unused_imports = { level = "deny", priority = -1 }
+unused_variables = { level = "deny", priority = -1 }
