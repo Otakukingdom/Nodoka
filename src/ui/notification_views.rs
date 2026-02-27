@@ -3,6 +3,7 @@
 //! These functions render the notification overlay and its individual toasts.
 
 use crate::ui::styles::{border_radius, colors, spacing, typography};
+use crate::ui::styles::components::border_width;
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -85,15 +86,15 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
             background: Some(bg_color.into()),
             text_color: Some(notification_styles::TEXT_COLOR),
             border: Border {
-                color: Color::from_rgba(1.0, 1.0, 1.0, 0.6),  // Increased opacity
-                width: 3.5,  // Increased width for more definition
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.5),
+                width: border_width::REGULAR,
                 radius: border_radius::MD.into(),
             },
-            // Enhanced multi-layer shadow for dramatic elevation
+            // Refined shadow for elevation
             shadow: iced::Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),  // Increased opacity
-                offset: iced::Vector::new(0.0, 6.0),  // Increased offset
-                blur_radius: 24.0,  // Increased blur
+                color: Color::from_rgba(0.0, 0.0, 0.0, 0.18),
+                offset: iced::Vector::new(0.0, 4.0),
+                blur_radius: 16.0,
             },
             ..Default::default()
         })

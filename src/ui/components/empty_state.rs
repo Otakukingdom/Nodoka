@@ -6,6 +6,7 @@
 use crate::ui::styles::{
     button_styles, colors, shadows, spacing, typography,
 };
+use crate::ui::styles::components::border_width;
 use crate::ui::Message;
 use iced::widget::{button, column, container, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -61,20 +62,14 @@ pub fn view(
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
     let icon_size = typography::type_scale::DISPLAY_SIZE * 1.5;
-    // Enhanced icon with 4-color signature gradient for brand consistency
-    // Combines signature, primary, sunset, and accent gradients for distinctive appearance
+    // Simplified 2-color gradient for icon background
     let icon_gradient = {
-        // Enhanced 5-color signature gradient for distinctive brand identity
-        let signature = colors::SIGNATURE_GRADIENT_START;
-        let aurora = colors::AURORA_ROSE_GRADIENT_START;
-        let sunset = colors::SUNSET_GRADIENT_START;
         let primary = colors::PRIMARY_GRADIENT_START;
         let accent = colors::ACCENT_GRADIENT_END;
-
         Color {
-            r: accent.r.mul_add(0.25, sunset.r.mul_add(0.20, primary.r.mul_add(0.20, aurora.r.mul_add(0.15, signature.r * 0.20)))),
-            g: accent.g.mul_add(0.25, sunset.g.mul_add(0.20, primary.g.mul_add(0.20, aurora.g.mul_add(0.15, signature.g * 0.20)))),
-            b: accent.b.mul_add(0.25, sunset.b.mul_add(0.20, primary.b.mul_add(0.20, aurora.b.mul_add(0.15, signature.b * 0.20)))),
+            r: f32::midpoint(primary.r, accent.r),
+            g: f32::midpoint(primary.g, accent.g),
+            b: f32::midpoint(primary.b, accent.b),
             a: 1.0,
         }
     };
@@ -87,7 +82,7 @@ pub fn view(
             background: Some(icon_gradient.into()),
             border: Border {
                 color: colors::ACCENT_GRADIENT_END,
-                width: 3.5,
+                width: border_width::THICK,
                 radius: 24.0.into(), // XXL border radius for softer appearance
             },
             // Enhanced shadow with increased blur for premium depth
@@ -145,7 +140,7 @@ pub fn view(
             background: Some(colors::BG_ELEVATED.into()),
             border: Border {
                 color: colors::BORDER_PROMINENT,
-                width: 2.0,
+                width: border_width::REGULAR,
                 radius: 24.0.into(), // XXL border radius for softer card appearance
             },
             shadow: shadows::shadow_xxl(),

@@ -2,6 +2,7 @@
 
 use crate::models::AudiobookFile;
 use crate::ui::styles::{animations, colors, spacing, typography};
+use crate::ui::styles::components::border_width;
 use crate::ui::Message;
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length, Shadow};
@@ -113,11 +114,11 @@ fn build_file_item(
     let content_container = if selected {
         container(content_column)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(selection_gradient_enhanced(opacity).into()),
+                background: Some(selection_gradient_simplified(opacity).into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
-                    width: 2.0,
+                    width: border_width::REGULAR,
                     radius: border_radius::SM.into(),
                 },
                 ..Default::default()
@@ -157,7 +158,7 @@ fn build_file_item(
                         background: Some(with_alpha(colors::SURFACE_HOVER, opacity).into()),
                         border: Border {
                             color: with_alpha(colors::BORDER_SUBTLE, opacity),
-                            width: 1.0,
+                            width: border_width::XS,
                             radius: border_radius::SM.into(),
                         },
                         ..button::Style::default()
@@ -166,7 +167,7 @@ fn build_file_item(
                         background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
                         border: Border {
                             color: with_alpha(colors::BORDER_PROMINENT, opacity),
-                            width: 1.5,
+                            width: border_width::THIN,
                             radius: border_radius::SM.into(),
                         },
                         ..button::Style::default()
@@ -214,7 +215,7 @@ fn build_status_indicator(
                 background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
                 border: Border {
                     color: with_alpha(colors::SUCCESS_LIGHT, opacity),
-                    width: 1.0,
+                    width: border_width::XS,
                     radius: border_radius::SM.into(),
                 },
                 shadow: shadows::shadow_sm(),
@@ -229,7 +230,7 @@ fn build_status_indicator(
                 background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
-                    width: 1.0,
+                    width: border_width::XS,
                     radius: border_radius::SM.into(),
                 },
                 shadow: shadows::shadow_sm(),
@@ -281,7 +282,7 @@ fn build_progress_element(
             background: Some(colors::BG_SECONDARY.into()),
             border: Border {
                 color: colors::BORDER_SUBTLE,
-                width: 1.0,
+                width: border_width::XS,
                 radius: border_radius::FULL.into(),
             },
             ..Default::default()
@@ -300,12 +301,8 @@ fn build_file_number_badge(
     use crate::ui::styles::{border_radius, colors};
     use iced::Border;
 
-    // Premium gradient color for badge background
-    let badge_gradient = with_alpha_gradient_badge(
-        colors::ACCENT_GRADIENT_START,
-        colors::PRIMARY_GRADIENT_END,
-        opacity,
-    );
+    // Simplified 2-color gradient for badge background
+    let badge_gradient = with_alpha_gradient_badge(opacity);
 
     container(
         text(format!("#{file_number}"))
@@ -320,7 +317,7 @@ fn build_file_number_badge(
         background: Some(badge_gradient.into()),
         border: Border {
             color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-            width: 1.5,
+            width: border_width::THIN,
             radius: border_radius::SM.into(),
         },
         // Enhanced shadow with increased blur for premium depth
@@ -333,19 +330,15 @@ fn build_file_number_badge(
     })
 }
 
-/// Creates premium gradient color for file number badge background
-/// Enhanced with 4-color blend for sophisticated brand appearance
-fn with_alpha_gradient_badge(_start: Color, _end: Color, opacity: f32) -> Color {
-    // Enhanced 4-color blend for premium badge appearance
-    let signature = colors::SIGNATURE_GRADIENT_START;
-    let aurora = colors::AURORA_ROSE_GRADIENT_START;
-    let accent = colors::ACCENT_GRADIENT_START;
-    let end = colors::ACCENT_GRADIENT_END;
+/// Creates simplified 2-color gradient for file number badge background
+fn with_alpha_gradient_badge(opacity: f32) -> Color {
+    let primary = colors::PRIMARY_GRADIENT_START;
+    let accent = colors::ACCENT_GRADIENT_END;
 
     Color {
-        r: end.r.mul_add(0.25, aurora.r.mul_add(0.25, accent.r.mul_add(0.25, signature.r * 0.25))) * opacity,
-        g: end.g.mul_add(0.25, aurora.g.mul_add(0.25, accent.g.mul_add(0.25, signature.g * 0.25))) * opacity,
-        b: end.b.mul_add(0.25, aurora.b.mul_add(0.25, accent.b.mul_add(0.25, signature.b * 0.25))) * opacity,
+        r: f32::midpoint(primary.r, accent.r) * opacity,
+        g: f32::midpoint(primary.g, accent.g) * opacity,
+        b: f32::midpoint(primary.b, accent.b) * opacity,
         a: opacity,
     }
 }
@@ -449,18 +442,15 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
     }
 }
 
-/// Enhanced multi-layer gradient for selection
-/// Blends signature, primary, sunset, and accent gradients for distinctive selection appearance
-fn selection_gradient_enhanced(opacity: f32) -> Color {
-    let signature = colors::SIGNATURE_GRADIENT_START;
+/// Simplified 2-color gradient for selection
+fn selection_gradient_simplified(opacity: f32) -> Color {
     let primary = colors::PRIMARY_GRADIENT_START;
-    let sunset = colors::SUNSET_GRADIENT_START;
-    let accent = colors::ACCENT_GRADIENT_START;
+    let accent = colors::ACCENT_GRADIENT_END;
 
     Color {
-        r: accent.r.mul_add(0.20, sunset.r.mul_add(0.25, primary.r.mul_add(0.30, signature.r * 0.15))) * opacity,
-        g: accent.g.mul_add(0.20, sunset.g.mul_add(0.25, primary.g.mul_add(0.30, signature.g * 0.15))) * opacity,
-        b: accent.b.mul_add(0.20, sunset.b.mul_add(0.25, primary.b.mul_add(0.30, signature.b * 0.15))) * opacity,
+        r: f32::midpoint(primary.r, accent.r) * opacity,
+        g: f32::midpoint(primary.g, accent.g) * opacity,
+        b: f32::midpoint(primary.b, accent.b) * opacity,
         a: 0.98 * opacity,
     }
 }

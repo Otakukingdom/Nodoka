@@ -2,7 +2,8 @@
 
 use crate::models::Audiobook;
 use crate::ui::state::ScanState;
-use crate::ui::styles::{animations, border_radius, colors, loading, shadows, spacing, typography};
+use crate::ui::styles::{animations, border_radius, loading, shadows, spacing, typography};
+use crate::ui::styles::components::border_width;
 use crate::ui::Message;
 use iced::widget::{
     button, column, container, image, mouse_area, row, scrollable, text, Space,
@@ -155,25 +156,24 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let cover = build_cover(ab.id, cover_thumbnails, opacity);
     let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
-    // Apply selection styling with enhanced multi-layer gradient
-    // Multi-color gradient: blend sunset, primary, and accent for distinctive appearance
+    // Apply selection styling with simplified 2-color gradient
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                // Enhanced multi-layer gradient for selection with increased saturation
+                // Simplified 2-color gradient for cleaner selection appearance
                 background: Some(Color {
-                    r: colors::ACCENT_GRADIENT_START.r.mul_add(0.25, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35, colors::SUNSET_GRADIENT_START.r * 0.40)),
-                    g: colors::ACCENT_GRADIENT_START.g.mul_add(0.25, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35, colors::SUNSET_GRADIENT_START.g * 0.40)),
-                    b: colors::ACCENT_GRADIENT_START.b.mul_add(0.25, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35, colors::SUNSET_GRADIENT_START.b * 0.40)),
+                    r: f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::ACCENT_GRADIENT_START.r) * opacity,
+                    g: f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::ACCENT_GRADIENT_START.g) * opacity,
+                    b: f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::ACCENT_GRADIENT_START.b) * opacity,
                     a: 0.98 * opacity,
                 }.into()),
                 text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
                 border: Border {
                     color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
-                    width: 5.5,
+                    width: 3.0,  // Consistent selection border width
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_lg(),
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             })
             .width(Length::Fill)
@@ -181,8 +181,7 @@ fn build_audiobook_item<'a, S: BuildHasher>(
         container(content_row).width(Length::Fill)
     };
 
-    // Apply hover styling with smooth transitions using premium sunset gradient
-    // Includes pressed state for tactile feedback using interactive overlay
+    // Apply hover styling with simplified gradient
     let item_button = button(content_container)
         .on_press_maybe(id.map(Message::AudiobookSelected))
         .width(Length::Fill)
@@ -190,21 +189,24 @@ fn build_audiobook_item<'a, S: BuildHasher>(
             use iced::widget::button;
             match status {
                 button::Status::Hovered if !selected => {
-                    // Enhanced premium sunset gradient hover with more prominent appearance
+                    // Simplified 2-color sunset gradient for hover
                     button::Style {
-                        background: Some(with_alpha_gradient_sunset(
-                            colors::SUNSET_GRADIENT_START,
-                            colors::SUNSET_GRADIENT_END,
-                            0.30,
-                            opacity,
-                        )
-                        .into()),
+                        background: Some({
+                            let start = colors::SUNSET_GRADIENT_START;
+                            let end = colors::SUNSET_GRADIENT_END;
+                            Color {
+                                r: f32::midpoint(start.r, end.r) * 0.30 * opacity,
+                                g: f32::midpoint(start.g, end.g) * 0.30 * opacity,
+                                b: f32::midpoint(start.b, end.b) * 0.30 * opacity,
+                                a: 0.30 * opacity,
+                            }
+                        }.into()),
                         border: Border {
                             color: with_alpha(colors::SUNSET_GRADIENT_END, opacity),
-                            width: 2.5,
+                            width: border_width::THIN,
                             radius: border_radius::SM.into(),
                         },
-                        shadow: shadows::glow_sunset(0.50),
+                        shadow: shadows::shadow_sm(),
                         ..button::Style::default()
                     }
                 }
@@ -212,10 +214,10 @@ fn build_audiobook_item<'a, S: BuildHasher>(
                     background: Some(with_alpha(colors::SURFACE_ACTIVE, opacity).into()),
                     border: Border {
                         color: with_alpha(colors::BORDER_PROMINENT, opacity),
-                        width: 2.0,
+                        width: border_width::THIN,
                         radius: border_radius::SM.into(),
                     },
-                    shadow: shadows::shadow_sm(),
+                    shadow: shadows::shadow_xs(),
                     ..button::Style::default()
                 },
                 // Default transparent style for all other states
@@ -246,14 +248,13 @@ fn build_cover<S: BuildHasher>(
 ) -> Element<'_, Message> {
     use crate::ui::styles::{border_radius, colors};
 
-    // Premium cover thumbnail (120x120px) with enhanced shadow and gradient treatments
+    // Premium cover thumbnail (120x120px) with refined shadow and gradient treatments
     id.and_then(|id| cover_thumbnails.get(&id)).map_or_else(
         move || {
-            // Multi-layer premium gradient for cover placeholder
-            let placeholder_bg = with_alpha_gradient_cover_premium(
+            // Simplified 2-color gradient for cover placeholder
+            let placeholder_bg = with_alpha_gradient_cover(
                 colors::BG_ELEVATED,
                 colors::PRIMARY_GRADIENT_START,
-                colors::SUNSET_GRADIENT_START,
                 opacity,
             );
             container(
@@ -268,14 +269,14 @@ fn build_cover<S: BuildHasher>(
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(move |_theme: &iced::Theme| container::Style {
-                // Multi-layer gradient for premium placeholder appearance
+                // Simplified gradient for premium placeholder appearance
                 background: Some(placeholder_bg.into()),
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_END, opacity),
-                    width: 2.0,
+                    width: border_width::REGULAR,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             })
             .into()
@@ -289,10 +290,10 @@ fn build_cover<S: BuildHasher>(
             .style(move |_theme: &iced::Theme| container::Style {
                 border: Border {
                     color: with_alpha(colors::PRIMARY_GRADIENT_START, opacity),
-                    width: 1.5,
+                    width: border_width::THIN,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             })
             .into()
@@ -300,13 +301,12 @@ fn build_cover<S: BuildHasher>(
     )
 }
 
-/// Creates multi-layer premium gradient for cover placeholder background
-/// Blends three colors for sophisticated appearance
-fn with_alpha_gradient_cover_premium(base: Color, primary: Color, accent: Color, opacity: f32) -> Color {
+/// Creates simplified 2-color gradient for cover placeholder background
+fn with_alpha_gradient_cover(base: Color, primary: Color, opacity: f32) -> Color {
     Color {
-        r: accent.r.mul_add(0.1, primary.r.mul_add(0.2, base.r * 0.7)) * opacity,
-        g: accent.g.mul_add(0.1, primary.g.mul_add(0.2, base.g * 0.7)) * opacity,
-        b: accent.b.mul_add(0.1, primary.b.mul_add(0.2, base.b * 0.7)) * opacity,
+        r: f32::midpoint(base.r, primary.r) * opacity,
+        g: f32::midpoint(base.g, primary.g) * opacity,
+        b: f32::midpoint(base.b, primary.b) * opacity,
         a: opacity,
     }
 }
@@ -547,21 +547,6 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
-    }
-}
-
-/// Enhanced premium sunset gradient for hover with multi-layer blend
-/// Creates warm rose-to-coral transition with distinctive brand identity
-fn with_alpha_gradient_sunset(start: Color, end: Color, blend: f32, opacity: f32) -> Color {
-    // Enhanced premium sunset gradient for hover with multi-layer blend
-    let mid1 = colors::PRIMARY_GRADIENT_START;
-    let mid2 = colors::ACCENT_GRADIENT_START;
-
-    Color {
-        r: end.r.mul_add(blend * 0.3, start.r.mul_add(blend * 0.25, mid1.r.mul_add(0.20, mid2.r * 0.15))) * opacity,
-        g: end.g.mul_add(blend * 0.3, start.g.mul_add(blend * 0.25, mid1.g.mul_add(0.20, mid2.g * 0.15))) * opacity,
-        b: end.b.mul_add(blend * 0.3, start.b.mul_add(blend * 0.25, mid1.b.mul_add(0.20, mid2.b * 0.15))) * opacity,
-        a: opacity,
     }
 }
 

@@ -208,19 +208,18 @@ fn top_bar(state: &State) -> Element<'static, Message> {
             .center_x(Length::Fill)
             .center_y(Length::Fill)
             .style(|_theme: &iced::Theme| container::Style {
-                // Enhanced premium multi-gradient background for distinctive branding
-                // Uses enhanced 4-color blend with Aurora Rose for maximum brand recognition
+                // Clean 2-color gradient for distinctive branding
                 background: Some(logo_gradient_premium().into()),
                 border: Border {
-                    color: colors::AURORA_ROSE_GRADIENT_END,  // Enhanced border color
-                    width: 2.5,  // Increased for more definition
+                    color: colors::AURORA_ROSE_GRADIENT_END,
+                    width: 2.0,  // Consistent border width
                     radius: border_radius::SM.into(),
                 },
-                // Enhanced multi-layer glow with stronger rose tint for brand presence
+                // Refined rose-tinted glow for brand presence
                 shadow: Shadow {
-                    color: Color::from_rgba(0.98, 0.32, 0.45, 0.60),  // Increased glow
+                    color: Color::from_rgba(0.96, 0.81, 1.0, 0.45),  // Aurora glow
                     offset: Vector::new(0.0, 0.0),
-                    blur_radius: 14.0,  // Increased blur
+                    blur_radius: 12.0,
                 },
                 ..Default::default()
             }),
@@ -229,9 +228,10 @@ fn top_bar(state: &State) -> Element<'static, Message> {
                     .size(typography::SIZE_XXL)
                     .style(|_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(colors::TEXT_PRIMARY),
-                    }),
+                    })
+                    .width(Length::Shrink),
                 text("Audiobook Reader")
-                    .size(typography::SIZE_XS)
+                    .size(typography::SIZE_SM)
                     .style(|_theme: &iced::Theme| iced::widget::text::Style {
                         color: Some(colors::TEXT_SECONDARY),
                     }),
@@ -445,18 +445,17 @@ fn list_animation_elapsed_ms(start_ms: Option<u64>, now_ms: u64) -> u64 {
 }
 
 /// Creates premium gradient color for application logo
-/// Enhanced with 5-color blend including Aurora Rose for distinctive brand identity
-fn logo_gradient_premium() -> Color {
-    // Enhanced 5-color blend for distinctive brand identity with Aurora Rose
-    let start = colors::SIGNATURE_GRADIENT_START;
-    let mid1 = colors::PRIMARY_GRADIENT_START;
-    let mid2 = colors::SUNSET_GRADIENT_START;
-    let aurora = colors::AURORA_ROSE_GRADIENT_START;
-    let end = colors::SIGNATURE_GRADIENT_END;
+/// Simplified to 2-color blend for cleaner, more distinctive appearance
+#[allow(clippy::manual_midpoint)] // f32::midpoint is not const
+const fn logo_gradient_premium() -> Color {
+    // Clean 2-color rose-to-coral gradient for distinctive branding
+    // Note: Manual midpoint used since f32::midpoint is not const
+    let start = colors::PRIMARY_GRADIENT_START;
+    let end = colors::AURORA_ROSE_GRADIENT_END;
     Color {
-        r: end.r.mul_add(0.25, aurora.r.mul_add(0.20, mid2.r.mul_add(0.18, mid1.r.mul_add(0.18, start.r * 0.19)))),
-        g: end.g.mul_add(0.25, aurora.g.mul_add(0.20, mid2.g.mul_add(0.18, mid1.g.mul_add(0.18, start.g * 0.19)))),
-        b: end.b.mul_add(0.25, aurora.b.mul_add(0.20, mid2.b.mul_add(0.18, mid1.b.mul_add(0.18, start.b * 0.19)))),
+        r: (start.r + end.r) / 2.0,
+        g: (start.g + end.g) / 2.0,
+        b: (start.b + end.b) / 2.0,
         a: 1.0,
     }
 }

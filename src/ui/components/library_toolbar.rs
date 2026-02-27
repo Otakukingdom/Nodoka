@@ -2,7 +2,7 @@
 
 use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
 use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
-use crate::ui::styles::components::text_input_styles;
+use crate::ui::styles::components::{border_width, text_input_styles};
 use crate::ui::Message;
 use iced::widget::{button, column, row, text, text_input, Space};
 use iced::{Border, Element, Length};
@@ -66,11 +66,11 @@ fn build_search_bar(search_query: &str) -> Element<'_, Message> {
 }
 
 fn search_bar_style(
-    _theme: &iced::Theme,
+    theme: &iced::Theme,
     status: iced::widget::text_input::Status,
 ) -> iced::widget::text_input::Style {
     // Use premium styling with enhanced gradient border on focus
-    text_input_styles::premium(_theme, status)
+    text_input_styles::premium(theme, status)
 }
 
 fn build_sort_buttons(sort_order: AudiobookSortOrder) -> Element<'static, Message> {
@@ -121,8 +121,8 @@ fn build_clear_button(
         button(
             text("Clear Filters")
                 .size(typography::SIZE_SM)
-                .style(|theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(text_on_primary_color(theme)),
+                .style(|_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(text_on_primary_color()),
                 }),
         )
         .on_press(Message::ClearFilters)
@@ -132,7 +132,7 @@ fn build_clear_button(
     }
 }
 
-const fn text_on_primary_color(_theme: &iced::Theme) -> iced::Color {
+const fn text_on_primary_color() -> iced::Color {
     colors::TEXT_ON_PRIMARY
 }
 
@@ -163,7 +163,7 @@ fn sort_button(
                 background: Some(colors::PRIMARY_GRADIENT_START.into()),
                 border: Border {
                     color: colors::PRIMARY_GRADIENT_END,
-                    width: 1.0,
+                    width: border_width::XS,
                     radius: border_radius::MD.into(),
                 },
                 text_color: colors::TEXT_ON_PRIMARY,
@@ -177,7 +177,7 @@ fn sort_button(
                     background: Some(colors::SURFACE_HOVER.into()),
                     border: Border {
                         color: colors::PRIMARY,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::MD.into(),
                     },
                     text_color: colors::PRIMARY,
@@ -187,7 +187,7 @@ fn sort_button(
                     background: Some(colors::SURFACE_ACTIVE.into()),
                     border: Border {
                         color: colors::PRIMARY_ACTIVE,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::MD.into(),
                     },
                     text_color: colors::TEXT_ON_PRIMARY,
@@ -197,7 +197,7 @@ fn sort_button(
                     background: Some(iced::Color::TRANSPARENT.into()),
                     border: Border {
                         color: colors::BORDER_SUBTLE,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::MD.into(),
                     },
                     text_color: colors::TEXT_PRIMARY,
@@ -236,7 +236,7 @@ fn filter_chip(
                 background: Some(colors::ACCENT_GRADIENT_START.into()),
                 border: Border {
                     color: colors::ACCENT_GRADIENT_END,
-                    width: 1.0,
+                    width: border_width::XS,
                     radius: border_radius::LG.into(),
                 },
                 text_color: colors::TEXT_ON_PRIMARY,
@@ -250,7 +250,7 @@ fn filter_chip(
                     background: Some(colors::SURFACE_HOVER.into()),
                     border: Border {
                         color: colors::BORDER_PROMINENT,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::LG.into(),
                     },
                     text_color: colors::TEXT_PRIMARY,
@@ -260,7 +260,7 @@ fn filter_chip(
                     background: Some(colors::SURFACE_ACTIVE.into()),
                     border: Border {
                         color: colors::PRIMARY_ACTIVE,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::LG.into(),
                     },
                     text_color: colors::TEXT_ON_PRIMARY,
@@ -270,7 +270,7 @@ fn filter_chip(
                     background: Some(colors::BG_SECONDARY.into()),
                     border: Border {
                         color: colors::BORDER_SUBTLE,
-                        width: 1.0,
+                        width: border_width::XS,
                         radius: border_radius::LG.into(),
                     },
                     text_color: colors::TEXT_PRIMARY,

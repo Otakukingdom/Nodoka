@@ -3,6 +3,7 @@
 //! Renders the settings form shown inside the settings modal overlay.
 
 use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
+use crate::ui::styles::components::border_width;
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -45,7 +46,7 @@ fn build_directory_list(state: &State) -> Element<'static, Message> {
                         background: Some(colors::BG_RAISED.into()),
                         border: iced::Border {
                             color: colors::BORDER_SUBTLE,
-                            width: 1.0,
+                            width: border_width::XS,
                             radius: border_radius::MD.into(),
                         },
                         // Enhanced shadow for better depth
@@ -207,8 +208,9 @@ fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
 fn section_header(title: &'static str) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors, shadows};
 
-    let gradient_start = colors::SIGNATURE_GRADIENT_START;
-    let gradient_end = colors::AURORA_ROSE_GRADIENT_END;
+    // Simplified 2-color gradient for section divider
+    let gradient_start = colors::PRIMARY_GRADIENT_START;
+    let gradient_end = colors::ACCENT_GRADIENT_END;
 
     column![
         container(text(title).size(typography::SIZE_LG))
@@ -224,9 +226,9 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
             }),
         container(Space::new())
             .width(Length::Fill)
-            .height(Length::Fixed(3.5))
+            .height(Length::Fixed(3.0))
             .style(move |_theme: &iced::Theme| container::Style {
-                // Enhanced gradient background for section divider
+                // Simplified 2-color gradient for section divider
                 background: Some(Color::from_rgb(
                     f32::midpoint(gradient_start.r, gradient_end.r),
                     f32::midpoint(gradient_start.g, gradient_end.g),
@@ -246,13 +248,14 @@ fn section_header(title: &'static str) -> Element<'static, Message> {
 fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'static, Message> {
     use crate::ui::styles::{border_radius, colors};
 
+    // Simplified 2-color gradient for shortcut badge
     let badge_gradient = {
-        let signature = colors::SIGNATURE_GRADIENT_START;
-        let aurora = colors::AURORA_ROSE_GRADIENT_START;
+        let primary = colors::PRIMARY_GRADIENT_START;
+        let accent = colors::ACCENT_GRADIENT_END;
         Color::from_rgb(
-            f32::midpoint(signature.r, aurora.r),
-            f32::midpoint(signature.g, aurora.g),
-            f32::midpoint(signature.b, aurora.b),
+            f32::midpoint(primary.r, accent.r),
+            f32::midpoint(primary.g, accent.g),
+            f32::midpoint(primary.b, accent.b),
         )
     };
 
@@ -262,9 +265,8 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
             .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(badge_gradient.into()),
                 border: Border {
-                    // Enhanced gradient border for distinctive appearance
-                    color: colors::AURORA_ROSE_GRADIENT_END,
-                    width: 2.0,
+                    color: colors::ACCENT_GRADIENT_END,
+                    width: border_width::THIN,
                     radius: border_radius::SM.into(),
                 },
                 shadow: shadows::shadow_sm(),

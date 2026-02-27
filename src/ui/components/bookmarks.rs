@@ -4,6 +4,7 @@ use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
 use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
 use crate::ui::styles::colors;
+use crate::ui::styles::components::border_width;
 use crate::ui::styles::components::text_input_styles;
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
@@ -151,9 +152,6 @@ fn bookmark_row(
     files: &[AudiobookFile],
     animation: ListItemAnimation,
 ) -> Element<'static, Message> {
-    use crate::ui::styles::{border_radius, colors};
-    use iced::Border;
-
     let is_missing = files
         .iter()
         .find(|f| f.full_path == bm.file_path)
@@ -161,31 +159,51 @@ fn bookmark_row(
 
     let max_offset = animations::STAGGER_TRANSLATE_Y_PX;
     let offset_y = animation.offset_y.clamp(0.0, max_offset);
+    let opacity = animation.opacity;
 
     let label_text = if is_missing {
         format!("[MISSING] {}", bm.label)
     } else {
         bm.label.clone()
     };
-    let opacity = animation.opacity;
 
     let pos = format_position(bm.position_ms);
     let id = bm.id;
 
-    // Compute badge colors before creating containers
+    let timestamp_badge = build_timestamp_badge(pos, opacity);
+    let note_badge = build_note_badge(bm, opacity);
+
+    row![
+        timestamp_badge,
+        note_badge,
+        build_jump_button(label_text, id, opacity),
+        Space::new().width(Length::Fill),
+        build_edit_button(id, opacity),
+        build_delete_button(id, opacity),
+    ]
+    .spacing(spacing::SM)
+    .padding(iced::Padding {
+        top: spacing::SM + offset_y,
+        bottom: spacing::SM + (max_offset - offset_y),
+        left: spacing::SM,
+        right: spacing::SM,
+    })
+    .align_y(iced::Alignment::Center)
+    .into()
+}
+
+/// Builds the timestamp badge for a bookmark row
+fn build_timestamp_badge(pos: String, opacity: f32) -> Element<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
+    use iced::Border;
+
     let timestamp_badge_color = Color::from_rgb(
-        f32::midpoint(colors::SIGNATURE_GRADIENT_START.r, colors::AURORA_ROSE_GRADIENT_END.r),
-        f32::midpoint(colors::SIGNATURE_GRADIENT_START.g, colors::AURORA_ROSE_GRADIENT_END.g),
-        f32::midpoint(colors::SIGNATURE_GRADIENT_START.b, colors::AURORA_ROSE_GRADIENT_END.b),
-    );
-    let note_badge_color = Color::from_rgb(
-        f32::midpoint(colors::CELESTIAL_GRADIENT_START.r, colors::CELESTIAL_GRADIENT_END.r),
-        f32::midpoint(colors::CELESTIAL_GRADIENT_START.g, colors::CELESTIAL_GRADIENT_END.g),
-        f32::midpoint(colors::CELESTIAL_GRADIENT_START.b, colors::CELESTIAL_GRADIENT_END.b),
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::ACCENT_GRADIENT_END.r),
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::ACCENT_GRADIENT_END.g),
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::ACCENT_GRADIENT_END.b),
     );
 
-    // Timestamp badge with enhanced signature gradient for brand consistency
-    let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
+    container(text(pos).size(typography::SIZE_SM).style(
         move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         },
@@ -195,16 +213,28 @@ fn bookmark_row(
         background: Some(with_alpha(timestamp_badge_color, opacity).into()),
         text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
-            color: with_alpha(colors::SIGNATURE_GRADIENT_END, opacity),
-            width: 1.5,
+            color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
+            width: border_width::THIN,
             radius: border_radius::SM.into(),
         },
         shadow: shadows::aurora_shadow_tinted(0.15),
         ..Default::default()
-    });
+    })
+    .into()
+}
 
-    // Note indicator badge with celestial gradient for distinct appearance
-    let note_badge = if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
+/// Builds the note badge for a bookmark row
+fn build_note_badge(bm: &Bookmark, opacity: f32) -> Element<'static, Message> {
+    use crate::ui::styles::{border_radius, colors};
+    use iced::Border;
+
+    let note_badge_color = Color::from_rgb(
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::CELESTIAL_GRADIENT_END.r),
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::CELESTIAL_GRADIENT_END.g),
+        f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::CELESTIAL_GRADIENT_END.b),
+    );
+
+    if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
         container(
             text("NOTE")
                 .size(typography::SIZE_XS)
@@ -218,58 +248,59 @@ fn bookmark_row(
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
                 color: with_alpha(colors::CELESTIAL_GRADIENT_END, opacity),
-                width: 1.0,
+                width: border_width::XS,
                 radius: border_radius::SM.into(),
             },
             shadow: shadows::celestial_shadow(),
             ..Default::default()
         })
+        .into()
     } else {
-        container(text(""))
-    };
+        container(text("")).into()
+    }
+}
 
-    row![
-        timestamp_badge,
-        note_badge,
-        button(
-            text(label_text)
-                .size(typography::SIZE_SM)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
-        )
-        .on_press_maybe(id.map(Message::BookmarkJump))
-        .padding(spacing::SM),
-        Space::new().width(Length::Fill),
-        button(
-            text("Edit (E)")
-                .size(typography::SIZE_XS)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
-        )
-        .on_press_maybe(id.map(Message::BookmarkEdit))
-        .padding(spacing::SM)
-        .style(button_styles::secondary),
-        button(
-            text("Delete")
-                .size(typography::SIZE_XS)
-                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
-                }),
-        )
-        .on_press_maybe(id.map(Message::BookmarkDelete))
-        .padding(spacing::SM)
-        .style(button_styles::danger),
-    ]
-    .spacing(spacing::SM)
-    .padding(iced::Padding {
-        top: spacing::SM + offset_y,
-        bottom: spacing::SM + (max_offset - offset_y),
-        left: spacing::SM,
-        right: spacing::SM,
-    })
-    .align_y(iced::Alignment::Center)
+/// Builds the jump-to-position button for a bookmark row
+fn build_jump_button(label_text: String, id: Option<i64>, opacity: f32) -> Element<'static, Message> {
+    button(
+        text(label_text)
+            .size(typography::SIZE_SM)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+            }),
+    )
+    .on_press_maybe(id.map(Message::BookmarkJump))
+    .padding(spacing::SM)
+    .into()
+}
+
+/// Builds the edit button for a bookmark row
+fn build_edit_button(id: Option<i64>, opacity: f32) -> Element<'static, Message> {
+    button(
+        text("Edit (E)")
+            .size(typography::SIZE_XS)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+            }),
+    )
+    .on_press_maybe(id.map(Message::BookmarkEdit))
+    .padding(spacing::SM)
+    .style(button_styles::secondary)
+    .into()
+}
+
+/// Builds the delete button for a bookmark row
+fn build_delete_button(id: Option<i64>, opacity: f32) -> Element<'static, Message> {
+    button(
+        text("Delete")
+            .size(typography::SIZE_XS)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(with_alpha(colors::TEXT_PRIMARY, opacity)),
+            }),
+    )
+    .on_press_maybe(id.map(Message::BookmarkDelete))
+    .padding(spacing::SM)
+    .style(button_styles::danger)
     .into()
 }
 

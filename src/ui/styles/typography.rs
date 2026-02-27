@@ -9,6 +9,15 @@ pub use crate::ui::styles::layout::typography::{
     SIZE_BASE, SIZE_HEADING, SIZE_LG, SIZE_SM, SIZE_XL, SIZE_XS, SIZE_XXL,
 };
 
+/// Additional size constant for premium headings (28px)
+pub const SIZE_PREMIUM: f32 = 28.0;
+/// Extra large heading size for brand-critical text (36px)
+pub const SIZE_DISPLAY_PREMIUM: f32 = 36.0;
+
+// Re-export preset and helper modules from parent module
+pub use crate::ui::styles::typography_presets::*;
+pub use crate::ui::styles::typography_helpers::*;
+
 /// Font weight constants for distinctive typography
 pub mod weight {
     /// Extra light font weight (200)
@@ -163,611 +172,6 @@ pub mod semantic_color {
     }
 }
 
-/// Text style presets combining size, weight, and color for consistent typography
-///
-/// These presets provide a simplified API for common text styling needs
-/// while maintaining the full typography system underneath.
-pub mod preset {
-    use super::{line_height, semantic_color, type_scale, weight};
-    use crate::ui::state::ThemeMode;
-
-    /// Display text preset for hero sections
-    pub struct Display {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Display {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Display {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::DISPLAY_SIZE,
-                weight: type_scale::DISPLAY_WEIGHT,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: super::letter_spacing::SLIGHT,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::heading(theme)
-        }
-    }
-
-    /// Heading preset for titles
-    pub struct Heading {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Heading {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Heading {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::H1_SIZE,
-                weight: type_scale::H1_WEIGHT,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: super::letter_spacing::SLIGHT,
-            }
-        }
-
-        #[must_use]
-        pub const fn level_2() -> Self {
-            Self {
-                size: type_scale::H2_SIZE,
-                weight: type_scale::H2_WEIGHT,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: super::letter_spacing::SLIGHT,
-            }
-        }
-
-        #[must_use]
-        pub const fn level_3() -> Self {
-            Self {
-                size: type_scale::H3_SIZE,
-                weight: type_scale::H3_WEIGHT,
-                line_height_ratio: line_height::NORMAL,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::heading(theme)
-        }
-    }
-
-    /// Body text preset for content
-    pub struct Body {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Body {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Body {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::BODY_SIZE,
-                weight: type_scale::BODY_WEIGHT,
-                line_height_ratio: line_height::RELAXED,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn medium() -> Self {
-            Self {
-                size: type_scale::BODY_SIZE,
-                weight: weight::MEDIUM,
-                line_height_ratio: line_height::NORMAL,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::body(theme)
-        }
-    }
-
-    /// Small text preset for metadata
-    pub struct Small {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Small {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Small {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::SMALL_SIZE,
-                weight: type_scale::SMALL_WEIGHT,
-                line_height_ratio: line_height::NORMAL,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn semibold() -> Self {
-            Self {
-                size: type_scale::SMALL_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::NORMAL,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::metadata(theme)
-        }
-    }
-
-    /// Caption text preset for tiny labels
-    pub struct Caption {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Caption {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Caption {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::CAPTION_SIZE,
-                weight: type_scale::CAPTION_WEIGHT,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn uppercase() -> Self {
-            Self {
-                size: type_scale::CAPTION_SIZE,
-                weight: weight::MEDIUM,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::WIDE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::metadata(theme)
-        }
-    }
-
-    /// ===== Premium Heading Presets =====
-    ///
-    /// Premium heading preset with distinctive character
-    /// Creates memorable typography with tighter letter-spacing and refined line-height
-    pub struct PremiumHeading {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for PremiumHeading {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl PremiumHeading {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::H1_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.01, // Slightly tighter for distinctive look
-            }
-        }
-
-        #[must_use]
-        pub const fn display() -> Self {
-            Self {
-                size: type_scale::DISPLAY_SIZE,
-                weight: weight::BOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.02,
-            }
-        }
-
-        #[must_use]
-        pub const fn grand() -> Self {
-            Self {
-                size: 56.0, // Larger than display for hero elements
-                weight: weight::BOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.015,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::heading(theme)
-        }
-    }
-
-    /// ===== Distinctive Heading Presets =====
-    ///
-    /// Distinctive heading preset with unique character for premium branding.
-    /// Creates memorable typography through tighter letter-spacing for a refined,
-    /// sophisticated appearance that sets the design apart from generic applications.
-    ///
-    /// The negative letter-spacing creates a distinctive premium character commonly
-    /// found in high-end editorial design and luxury brand typography.
-    pub struct DistinctiveHeading {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for DistinctiveHeading {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl DistinctiveHeading {
-        /// Creates a new distinctive heading with standard H1 size
-        ///
-        /// Uses tighter letter-spacing (-0.02em) for distinctive premium character.
-        /// This creates a more refined, condensed appearance compared to standard headings.
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::H1_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.02, // Tighter for distinctive look
-            }
-        }
-
-        /// Compact variant for secondary headings
-        ///
-        /// Slightly smaller with proportionally adjusted letter-spacing.
-        #[must_use]
-        pub const fn compact() -> Self {
-            Self {
-                size: type_scale::H2_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.015,
-            }
-        }
-
-        /// Small variant for tertiary headings
-        ///
-        /// Maintains distinctive character at smaller sizes.
-        #[must_use]
-        pub const fn small() -> Self {
-            Self {
-                size: type_scale::H3_SIZE,
-                weight: weight::MEDIUM,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.01,
-            }
-        }
-
-        /// Extra tight variant for maximum distinctive character
-        ///
-        /// Uses the tightest letter-spacing for dramatic, editorial-style headings.
-        /// Best reserved for hero sections and feature titles.
-        #[must_use]
-        pub const fn extra_tight() -> Self {
-            Self {
-                size: type_scale::H1_SIZE,
-                weight: weight::BOLD,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: -0.03,
-            }
-        }
-
-        /// Returns the appropriate text color for this heading based on theme
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::heading(theme)
-        }
-    }
-
-    /// Button text preset with slightly heavier weight
-    pub struct Button {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Button {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Button {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::BUTTON_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn semibold() -> Self {
-            Self {
-                size: type_scale::BUTTON_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, _theme: ThemeMode) -> iced::Color {
-            // Button text color is typically handled by button styles
-            iced::Color::WHITE
-        }
-    }
-    /// Body large text preset for emphasized content
-    pub struct BodyLarge {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for BodyLarge {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl BodyLarge {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::BODY_LARGE_SIZE,
-                weight: type_scale::BODY_LARGE_WEIGHT,
-                line_height_ratio: line_height::RELAXED,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn medium() -> Self {
-            Self {
-                size: type_scale::BODY_LARGE_SIZE,
-                weight: weight::MEDIUM,
-                line_height_ratio: line_height::RELAXED,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::body(theme)
-        }
-    }
-
-    /// Compact text preset for dense UI elements
-    pub struct Compact {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Compact {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Compact {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::SMALL_SIZE,
-                weight: weight::MEDIUM,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::NONE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::body(theme)
-        }
-    }
-
-    /// Label text preset for form labels and UI labels
-    pub struct Label {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Label {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Label {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::SMALL_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::SLIGHT,
-            }
-        }
-
-        #[must_use]
-        pub const fn uppercase() -> Self {
-            Self {
-                size: type_scale::CAPTION_SIZE,
-                weight: weight::SEMIBOLD,
-                line_height_ratio: line_height::DENSE,
-                letter_spacing: super::letter_spacing::WIDE,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::metadata(theme)
-        }
-    }
-
-    /// Subheading text preset for content sections
-    pub struct Subheading {
-        pub size: f32,
-        pub weight: u16,
-        pub line_height_ratio: f32,
-        pub letter_spacing: f32,
-    }
-
-    impl Default for Subheading {
-        fn default() -> Self {
-            Self::new()
-        }
-    }
-
-    impl Subheading {
-        #[must_use]
-        pub const fn new() -> Self {
-            Self {
-                size: type_scale::H4_SIZE,
-                weight: type_scale::H4_WEIGHT,
-                line_height_ratio: line_height::TIGHT,
-                letter_spacing: super::letter_spacing::SLIGHT_TIGHT,
-            }
-        }
-
-        #[must_use]
-        pub const fn color(self, theme: ThemeMode) -> iced::Color {
-            semantic_color::heading(theme)
-        }
-    }
-}
-
-/// Convenience wrapper functions for consistent typography application.
-///
-/// These helpers combine typography presets with theme colors for easy
-/// application throughout the UI, ensuring consistent visual hierarchy.
-pub mod helpers {
-    use crate::ui::styles::colors;
-    use iced::widget::text;
-
-    /// Creates a styled text element with distinctive heading preset.
-    ///
-    /// Applies tighter letter-spacing for premium brand appearance.
-    /// Uses primary text color for high contrast and readability.
-    #[must_use]
-    pub fn heading_distinctive<'a, Message>(
-        content: &'a str,
-    ) -> iced::Element<'a, Message> {
-        let preset = super::preset::DistinctiveHeading::new();
-        text(content)
-            .size(preset.size)
-            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_PRIMARY),
-            })
-            .into()
-    }
-
-    /// Creates a styled text element with body preset and secondary color.
-    ///
-    /// Uses standard body text sizing with semantic secondary coloring
-    /// for metadata and supporting content.
-    #[must_use]
-    pub fn body_secondary<'a, Message>(content: &'a str) -> iced::Element<'a, Message> {
-        let preset = super::preset::Body::new();
-        text(content)
-            .size(preset.size)
-            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_SECONDARY),
-            })
-            .into()
-    }
-
-    /// Creates a styled text element with heading preset and primary color.
-    ///
-    /// Standard heading styling with proper visual hierarchy.
-    #[must_use]
-    pub fn heading_primary<'a, Message>(content: &'a str) -> iced::Element<'a, Message> {
-        let preset = super::preset::Heading::new();
-        text(content)
-            .size(preset.size)
-            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_PRIMARY),
-            })
-            .into()
-    }
-
-    /// Creates a styled text element with caption preset and secondary color.
-    ///
-    /// Small, subtle text for metadata, timestamps, and hints.
-    #[must_use]
-    pub fn caption_metadata<'a, Message>(content: &'a str) -> iced::Element<'a, Message> {
-        let preset = super::preset::Caption::new();
-        text(content)
-            .size(preset.size)
-            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(colors::TEXT_SECONDARY),
-            })
-            .into()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -836,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_preset_display_returns_valid_values() {
-        let display = preset::Display::new();
+        let display = crate::ui::styles::typography_presets::Display::new();
         assert!(display.size > 0.0);
         assert!(display.weight >= 100 && display.weight <= 900);
         assert!(display.line_height_ratio > 0.0);
@@ -844,7 +248,7 @@ mod tests {
 
     #[test]
     fn test_preset_heading_returns_valid_values() {
-        let heading = preset::Heading::new();
+        let heading = crate::ui::styles::typography_presets::Heading::new();
         assert!(heading.size > 0.0);
         assert!(heading.weight >= 100 && heading.weight <= 900);
         assert!(heading.line_height_ratio > 0.0);
@@ -852,16 +256,16 @@ mod tests {
 
     #[test]
     fn test_preset_heading_levels_descend() {
-        let h1 = preset::Heading::new();
-        let h2 = preset::Heading::level_2();
-        let h3 = preset::Heading::level_3();
+        let h1 = crate::ui::styles::typography_presets::Heading::new();
+        let h2 = crate::ui::styles::typography_presets::Heading::level_2();
+        let h3 = crate::ui::styles::typography_presets::Heading::level_3();
         assert!(h1.size > h2.size);
         assert!(h2.size > h3.size);
     }
 
     #[test]
     fn test_preset_body_returns_valid_values() {
-        let body = preset::Body::new();
+        let body = crate::ui::styles::typography_presets::Body::new();
         assert!(body.size > 0.0);
         assert!(body.weight >= 100 && body.weight <= 900);
         assert!(body.line_height_ratio > 0.0);
@@ -869,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_preset_small_returns_valid_values() {
-        let small = preset::Small::new();
+        let small = crate::ui::styles::typography_presets::Small::new();
         assert!(small.size > 0.0);
         assert!(small.weight >= 100 && small.weight <= 900);
         assert!(small.line_height_ratio > 0.0);
@@ -877,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_preset_caption_returns_valid_values() {
-        let caption = preset::Caption::new();
+        let caption = crate::ui::styles::typography_presets::Caption::new();
         assert!(caption.size > 0.0);
         assert!(caption.weight >= 100 && caption.weight <= 900);
         assert!(caption.line_height_ratio > 0.0);
@@ -885,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_preset_button_returns_valid_values() {
-        let button = preset::Button::new();
+        let button = crate::ui::styles::typography_presets::Button::new();
         assert!(button.size > 0.0);
         assert!(button.weight >= 100 && button.weight <= 900);
         assert!(button.line_height_ratio > 0.0);
@@ -893,7 +297,7 @@ mod tests {
 
     #[test]
     fn test_preset_body_large_returns_valid_values() {
-        let body_large = preset::BodyLarge::new();
+        let body_large = crate::ui::styles::typography_presets::BodyLarge::new();
         assert!(body_large.size > 0.0);
         assert!(body_large.weight >= 100 && body_large.weight <= 900);
         assert!(body_large.line_height_ratio > 0.0);
@@ -901,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_preset_compact_returns_valid_values() {
-        let compact = preset::Compact::new();
+        let compact = crate::ui::styles::typography_presets::Compact::new();
         assert!(compact.size > 0.0);
         assert!(compact.weight >= 100 && compact.weight <= 900);
         assert!(compact.line_height_ratio > 0.0);
@@ -909,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_preset_label_returns_valid_values() {
-        let label = preset::Label::new();
+        let label = crate::ui::styles::typography_presets::Label::new();
         assert!(label.size > 0.0);
         assert!(label.weight >= 100 && label.weight <= 900);
         assert!(label.line_height_ratio > 0.0);
@@ -917,7 +321,7 @@ mod tests {
 
     #[test]
     fn test_preset_subheading_returns_valid_values() {
-        let subheading = preset::Subheading::new();
+        let subheading = crate::ui::styles::typography_presets::Subheading::new();
         assert!(subheading.size > 0.0);
         assert!(subheading.weight >= 100 && subheading.weight <= 900);
         assert!(subheading.line_height_ratio > 0.0);
@@ -946,22 +350,22 @@ mod tests {
     fn test_preset_color_methods_work() {
         use crate::ui::state::ThemeMode;
 
-        let display = preset::Display::new();
+        let display = crate::ui::styles::typography_presets::Display::new();
         let _color = display.color(ThemeMode::Light);
 
-        let heading = preset::Heading::new();
+        let heading = crate::ui::styles::typography_presets::Heading::new();
         let _color = heading.color(ThemeMode::Dark);
 
-        let body = preset::Body::new();
+        let body = crate::ui::styles::typography_presets::Body::new();
         let _color = body.color(ThemeMode::Light);
 
-        let small = preset::Small::new();
+        let small = crate::ui::styles::typography_presets::Small::new();
         let _color = small.color(ThemeMode::Dark);
 
-        let caption = preset::Caption::new();
+        let caption = crate::ui::styles::typography_presets::Caption::new();
         let _color = caption.color(ThemeMode::Light);
 
-        let button = preset::Button::new();
+        let button = crate::ui::styles::typography_presets::Button::new();
         let _color = button.color(ThemeMode::Dark);
     }
 }

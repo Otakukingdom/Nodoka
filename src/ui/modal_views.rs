@@ -4,6 +4,7 @@
 //! out of the main window view orchestration.
 
 use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
+use crate::ui::styles::components::border_width;
 use crate::ui::tooltip::{TooltipAnchor, TooltipPosition};
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, text, Space};
@@ -44,20 +45,18 @@ pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Mes
         .into()
 }
 
-/// Enhanced glass-morphism backdrop with multi-color tint
-/// Creates premium backdrop with sophisticated color layering for depth and richness
+/// Simplified glass-morphism backdrop with 2-color tint
+/// Creates premium backdrop with cleaner color layering
 fn improved_glass_backdrop(opacity: f32) -> Color {
-    // Enhanced multi-layer glass-morphism for premium modal feel
-    // Combines warm rose base with cool overlay and brand gradient tint
+    // Simplified 2-color glass-morphism for cleaner modal feel
     let base = Color::from_rgb(0.12, 0.08, 0.15);  // Deep rose base
     let overlay = Color::from_rgb(0.08, 0.12, 0.25);  // Cool overlay
-    let tint = colors::SIGNATURE_GRADIENT_START;  // Brand tint
 
     Color {
-        r: (base.r.mul_add(0.3, overlay.r.mul_add(0.25, tint.r * 0.15))),
-        g: (base.g.mul_add(0.3, overlay.g.mul_add(0.25, tint.g * 0.15))),
-        b: (base.b.mul_add(0.3, overlay.b.mul_add(0.25, tint.b * 0.15))),
-        a: (0.90 * opacity).clamp(0.0, 0.96),  // Increased opacity for better focus
+        r: f32::midpoint(base.r, overlay.r),
+        g: f32::midpoint(base.g, overlay.g),
+        b: f32::midpoint(base.b, overlay.b),
+        a: (0.88 * opacity).clamp(0.0, 0.94),
     }
 }
 
@@ -161,14 +160,22 @@ fn shortcut_group(
                 )
                 .padding(iced::Padding::from([spacing::XS, spacing::SM]))
                 .style(|_theme: &iced::Theme| iced::widget::container::Style {
-                    // Premium Aurora Rose gradient for distinctive brand identity
-                    background: Some(shortcut_badge_gradient_premium().into()),
+                    // Simplified 2-color Aurora Rose gradient
+                    background: Some({
+                        let start = colors::AURORA_ROSE_GRADIENT_START;
+                        let end = colors::AURORA_ROSE_GRADIENT_END;
+                        Color::from_rgb(
+                            f32::midpoint(start.r, end.r),
+                            f32::midpoint(start.g, end.g),
+                            f32::midpoint(start.b, end.b),
+                        ).into()
+                    }),
                     border: Border {
                         color: colors::AURORA_ROSE_GRADIENT_END,
-                        width: 2.5,
+                        width: border_width::THIN,
                         radius: border_radius::SM.into(),
                     },
-                    shadow: shadows::shadow_md(),
+                    shadow: shadows::shadow_sm(),
                     ..Default::default()
                 }),
                 Space::new().width(Length::Fixed(spacing::MD)),
@@ -191,8 +198,8 @@ fn shortcut_group(
 /// Premium modal card with glass-morphism backdrop and elevated shadow
 ///
 /// Creates a refined modal overlay with:
-/// - Multi-layer shadow combining ambient lift with rose-tinted definition
-/// - Enhanced border with premium gradient treatment
+/// - Simplified shadow with rose tint for elevation
+/// - Consistent border width for clean appearance
 /// - XL border radius for softer appearance
 /// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
@@ -200,21 +207,19 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with multi-gradient for premium treatment
-    let border_color = with_alpha_gradient_border_premium(opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
             border: Border {
-                color: border_color,
-                width: 4.5,  // Increased for more definition
+                color: colors::AURORA_ROSE_GRADIENT_END,
+                width: border_width::REGULAR,
                 radius: border_radius::XL.into(),
             },
-            // Enhanced multi-layer shadow with rose tint for dramatic elevation
+            // Simplified rose-tinted shadow for elevation
             shadow: Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.22),  // Increased opacity
-                offset: Vector::new(0.0, 12.0),  // Increased offset
-                blur_radius: 40.0,  // Increased blur
+                color: Color::from_rgba(0.96, 0.81, 1.0, 0.22),
+                offset: Vector::new(0.0, 12.0),
+                blur_radius: 32.0,
             },
             ..Default::default()
         })
@@ -327,35 +332,5 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
-    }
-}
-
-/// Creates premium multi-gradient border color for modal cards
-/// Enhanced with Aurora Rose gradient for distinctive brand identity
-fn with_alpha_gradient_border_premium(opacity: f32) -> Color {
-    // Enhanced Aurora Rose gradient for distinctive brand identity
-    let aurora = colors::AURORA_ROSE_GRADIENT_START;
-    let sunset = colors::SUNSET_GRADIENT_END;
-    let primary = colors::PRIMARY;
-
-    Color {
-        r: aurora.r.mul_add(0.35, sunset.r.mul_add(0.30, primary.r * 0.25)) * opacity,
-        g: aurora.g.mul_add(0.35, sunset.g.mul_add(0.30, primary.g * 0.25)) * opacity,
-        b: aurora.b.mul_add(0.35, sunset.b.mul_add(0.30, primary.b * 0.25)) * opacity,
-        a: opacity,
-    }
-}
-
-/// Creates premium gradient color for keyboard shortcut badges
-/// Blends Aurora Rose with primary gradient for distinctive brand identity
-fn shortcut_badge_gradient_premium() -> Color {
-    let aurora = colors::AURORA_ROSE_GRADIENT_START;
-    let aurora_end = colors::AURORA_ROSE_GRADIENT_END;
-    let primary = colors::PRIMARY_GRADIENT_START;
-    Color {
-        r: aurora_end.r.mul_add(0.35, primary.r.mul_add(0.30, aurora.r * 0.35)),
-        g: aurora_end.g.mul_add(0.35, primary.g.mul_add(0.30, aurora.g * 0.35)),
-        b: aurora_end.b.mul_add(0.35, primary.b.mul_add(0.30, aurora.b * 0.35)),
-        a: 1.0,
     }
 }

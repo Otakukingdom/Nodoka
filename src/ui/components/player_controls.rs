@@ -16,6 +16,7 @@ pub mod helpers;
 use crate::ui::styles::{
     border_radius, colors, focus_indicator, shadows, spacing, typography,
 };
+use crate::ui::styles::components::border_width;
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{
     column, container, image, mouse_area, row, slider as widget_slider, text, Space,
@@ -80,34 +81,34 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     rail: iced::widget::slider::Rail {
                         backgrounds: (
                             iced::Background::Color(colors::BG_SECONDARY),
-                            // Enhanced multi-layer gradient for premium fill with increased saturation
+                            // Simplified 2-color gradient for premium fill
                             iced::Background::Color(Color::from_rgba(
-                                colors::ACCENT_GRADIENT_START.r.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.r.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.r * 0.40 * alpha)),
-                                colors::ACCENT_GRADIENT_START.g.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.g.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.g * 0.40 * alpha)),
-                                colors::ACCENT_GRADIENT_START.b.mul_add(0.25 * alpha, colors::PRIMARY_GRADIENT_START.b.mul_add(0.35 * alpha, colors::SUNSET_GRADIENT_START.b * 0.40 * alpha)),
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::PROGRESS_GRADIENT_END.r) * alpha,
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::PROGRESS_GRADIENT_END.g) * alpha,
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::PROGRESS_GRADIENT_END.b) * alpha,
                                 alpha,
                             )),
                         ),
                         width: 10.0,
                         border: iced::Border {
                             color: Color::from_rgba(0.0, 0.0, 0.0, 0.20),
-                            width: 1.5,
+                            width: border_width::THIN,
                             radius: 5.0.into(),
                         },
                     },
                     handle: iced::widget::slider::Handle {
                         shape: iced::widget::slider::HandleShape::Circle { radius: 12.0 },
-                        // Premium multi-layer gradient for active handle
+                        // Simplified gradient for active handle
                         background: if is_active {
                             iced::Background::Color(Color::from_rgb(
-                                colors::PRIMARY_GRADIENT_START.r.mul_add(0.4, colors::SUNSET_GRADIENT_START.r * 0.6),
-                                colors::PRIMARY_GRADIENT_START.g.mul_add(0.4, colors::SUNSET_GRADIENT_START.g * 0.6),
-                                colors::PRIMARY_GRADIENT_START.b.mul_add(0.4, colors::SUNSET_GRADIENT_START.b * 0.6),
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.r, colors::SUNSET_GRADIENT_START.r),
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.g, colors::SUNSET_GRADIENT_START.g),
+                                f32::midpoint(colors::PRIMARY_GRADIENT_START.b, colors::SUNSET_GRADIENT_START.b),
                             ))
                         } else {
                             iced::Background::Color(colors::BG_ELEVATED)
                         },
-                        border_width: 2.5,
+                        border_width: border_width::THICK,
                         border_color: if is_active {
                             colors::ACCENT_GRADIENT_END
                         } else {
@@ -116,7 +117,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     },
                 }
             })
-        // Enhanced height for better grab affordance
     })
     .style(focus_indicator(
         state.focused_element == FocusedElement::ProgressSlider,
@@ -136,12 +136,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(spacing::SM)
         } else {
             // Build cover art thumbnail (100x100px for better visibility)
-            // Enhanced with multi-layer gradient and elevation for premium feel
             let cover_element: Element<'_, Message> = audiobook_id
                 .and_then(|id| state.cover_thumbnails.get(&id))
                 .map_or_else(
                     || {
-                        // No cover available - show placeholder with premium multi-layer gradient
+                        // No cover available - show placeholder with simplified 2-color gradient
                         container(text("♪").size(typography::SIZE_XXL).style(
                             |_theme: &iced::Theme| iced::widget::text::Style {
                                 color: Some(colors::TEXT_SECONDARY),
@@ -152,24 +151,28 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .center_x(Length::Fill)
                         .center_y(Length::Fill)
                         .style(|_theme: &iced::Theme| container::Style {
-                            // Enhanced 4-color gradient for cover placeholder
-                            background: Some(Color::from_rgb(
-                                colors::ACCENT_GRADIENT_START.r.mul_add(0.15, colors::PRIMARY_GRADIENT_START.r.mul_add(0.25, colors::BG_ELEVATED.r.mul_add(0.30, colors::SUNSET_GRADIENT_START.r * 0.30))),
-                                colors::ACCENT_GRADIENT_START.g.mul_add(0.15, colors::PRIMARY_GRADIENT_START.g.mul_add(0.25, colors::BG_ELEVATED.g.mul_add(0.30, colors::SUNSET_GRADIENT_START.g * 0.30))),
-                                colors::ACCENT_GRADIENT_START.b.mul_add(0.15, colors::PRIMARY_GRADIENT_START.b.mul_add(0.25, colors::BG_ELEVATED.b.mul_add(0.30, colors::SUNSET_GRADIENT_START.b * 0.30))),
-                            ).into()),
+                            // Simplified 2-color gradient for cover placeholder
+                            background: Some({
+                                let base = colors::BG_ELEVATED;
+                                let accent = colors::PRIMARY_GRADIENT_START;
+                                Color::from_rgb(
+                                    f32::midpoint(base.r, accent.r),
+                                    f32::midpoint(base.g, accent.g),
+                                    f32::midpoint(base.b, accent.b),
+                                ).into()
+                            }),
                             border: Border {
                                 color: colors::PRIMARY_GRADIENT_END,
-                                width: 2.0,
+                                width: border_width::REGULAR,
                                 radius: border_radius::MD.into(),
                             },
-                            shadow: shadows::shadow_md(),
+                            shadow: shadows::shadow_sm(),
                             ..Default::default()
                         })
                         .into()
                     },
                     |path| {
-                        // Show cover thumbnail with enhanced gradient border
+                        // Show cover thumbnail with clean border
                         container(
                             image(iced::widget::image::Handle::from_path(path.clone()))
                                 .width(Length::Fixed(100.0))
@@ -178,10 +181,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .style(|_theme: &iced::Theme| container::Style {
                             border: Border {
                                 color: colors::PRIMARY_GRADIENT_START,
-                                width: 1.5,
+                                width: border_width::THIN,
                                 radius: border_radius::MD.into(),
                             },
-                            shadow: shadows::shadow_md(),
+                            shadow: shadows::shadow_sm(),
                             ..Default::default()
                         })
                         .into()
@@ -217,23 +220,26 @@ pub fn view(state: &State) -> Element<'_, Message> {
             )
             .padding(spacing::MD)
             .style(|_theme: &iced::Theme| container::Style {
-                // Multi-layer gradient effect for depth
-                background: Some(Color::from_rgba(
-                    f32::midpoint(colors::CONTINUE_GRADIENT_START.r, colors::CONTINUE_GRADIENT_END.r),
-                    f32::midpoint(colors::CONTINUE_GRADIENT_START.g, colors::CONTINUE_GRADIENT_END.g),
-                    f32::midpoint(colors::CONTINUE_GRADIENT_START.b, colors::CONTINUE_GRADIENT_END.b),
-                    1.0,
-                ).into()),
+                // Simplified 2-color gradient for cleaner appearance
+                background: Some({
+                    let start = colors::CONTINUE_GRADIENT_START;
+                    let end = colors::CONTINUE_GRADIENT_END;
+                    Color::from_rgb(
+                        f32::midpoint(start.r, end.r),
+                        f32::midpoint(start.g, end.g),
+                        f32::midpoint(start.b, end.b),
+                    ).into()
+                }),
                 border: Border {
-                    color: colors::ACCENT_GRADIENT_END,
-                    width: 3.5,
+                    color: colors::CONTINUE_GRADIENT_END,
+                    width: border_width::REGULAR,
                     radius: border_radius::LG.into(),
                 },
-                // Enhanced multi-layer shadow for dramatic elevation
+                // Refined rose-tinted shadow for elevation
                 shadow: iced::Shadow {
-                    color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
-                    offset: iced::Vector::new(0.0, 8.0),
-                    blur_radius: 32.0,
+                    color: Color::from_rgba(0.96, 0.81, 1.0, 0.18),
+                    offset: iced::Vector::new(0.0, 6.0),
+                    blur_radius: 20.0,
                 },
                 text_color: Some(colors::TEXT_ON_PRIMARY),
                 ..Default::default()

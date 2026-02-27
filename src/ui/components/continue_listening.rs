@@ -4,6 +4,7 @@ use crate::models::Audiobook;
 use crate::ui::styles::{
     border_radius, button_styles, colors, shadows, spacing, typography,
 };
+use crate::ui::styles::components::border_width;
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
 use iced::{Border, Color, Element, Length, Shadow, Vector};
@@ -100,17 +101,17 @@ pub fn view<'a, S: BuildHasher>(
 
     container(content)
         .style(|_theme: &iced::Theme| container::Style {
-            // Enhanced multi-layer gradient background for dramatic depth
-            background: Some(continue_gradient_multi_layer().into()),
+            // Simplified 2-color gradient for cleaner appearance
+            background: Some(continue_gradient().into()),
             border: Border {
-                color: colors::ACCENT_GRADIENT_END,
-                width: 3.0,
+                color: colors::CONTINUE_GRADIENT_END,
+                width: border_width::REGULAR,
                 radius: border_radius::LG.into(),
             },
-            // Enhanced multi-layer shadow with increased blur for dramatic elevation
+            // Refined warm-tinted shadow for elevation
             shadow: Shadow {
-                color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
-                offset: Vector::new(0.0, 4.0),
+                color: Color::from_rgba(0.96, 0.81, 1.0, 0.18),
+                offset: Vector::new(0.0, 6.0),
                 blur_radius: 16.0,
             },
             text_color: Some(colors::TEXT_ON_PRIMARY),
@@ -146,10 +147,10 @@ fn build_large_cover<S: BuildHasher>(
                 background: Some(colors::BG_SECONDARY.into()),
                 border: Border {
                     color: colors::PRIMARY_GRADIENT_START,
-                    width: 1.5,
+                    width: border_width::THIN,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
             })
             .into()
@@ -179,37 +180,38 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
     .width(Length::Fixed(size))
     .height(Length::Fixed(size))
     .style(|_theme: &iced::Theme| container::Style {
-        // Premium gradient placeholder for sophisticated appearance
-        background: Some(Color::from_rgb(
-            colors::SUNSET_GRADIENT_START.r.mul_add(0.1, colors::PRIMARY_GRADIENT_START.r.mul_add(0.2, colors::BG_SECONDARY.r * 0.7)),
-            colors::SUNSET_GRADIENT_START.g.mul_add(0.1, colors::PRIMARY_GRADIENT_START.g.mul_add(0.2, colors::BG_SECONDARY.g * 0.7)),
-            colors::SUNSET_GRADIENT_START.b.mul_add(0.1, colors::PRIMARY_GRADIENT_START.b.mul_add(0.2, colors::BG_SECONDARY.b * 0.7)),
-        ).into()),
+        // Simplified 2-color gradient placeholder
+        background: Some({
+            let base = colors::BG_SECONDARY;
+            let accent = colors::PRIMARY_GRADIENT_START;
+            Color::from_rgb(
+                f32::midpoint(base.r, accent.r),
+                f32::midpoint(base.g, accent.g),
+                f32::midpoint(base.b, accent.b),
+            ).into()
+        }),
         border: Border {
             color: colors::PRIMARY_GRADIENT_START,
-            width: 1.5,
+            width: border_width::THIN,
             radius: border_radius::MD.into(),
         },
-        shadow: shadows::shadow_md(),
+        shadow: shadows::shadow_sm(),
         ..Default::default()
     })
     .into()
 }
 
-/// Creates multi-layer gradient color for Continue Listening card
-/// Enhanced 5-color signature gradient for distinctive premium appearance
-fn continue_gradient_multi_layer() -> Color {
-    // Enhanced 5-color gradient with signature brand identity
-    let signature = colors::SIGNATURE_GRADIENT_START;
-    let aurora = colors::AURORA_ROSE_GRADIENT_START;
-    let sunset = colors::SUNSET_GRADIENT_START;
-    let primary = colors::PRIMARY_GRADIENT_START;
-    let continue_gradient = colors::CONTINUE_GRADIENT_START;
-
+/// Creates simplified 2-color gradient for Continue Listening card
+#[allow(clippy::manual_midpoint)] // f32::midpoint is not const
+const fn continue_gradient() -> Color {
+    // Clean 2-color rose-to-coral gradient
+    // Note: Manual midpoint used since f32::midpoint is not const
+    let start = colors::CONTINUE_GRADIENT_START;
+    let end = colors::CONTINUE_GRADIENT_END;
     Color {
-        r: continue_gradient.r.mul_add(0.25, aurora.r.mul_add(0.20, sunset.r.mul_add(0.20, primary.r.mul_add(0.15, signature.r * 0.10)))),
-        g: continue_gradient.g.mul_add(0.25, aurora.g.mul_add(0.20, sunset.g.mul_add(0.20, primary.g.mul_add(0.15, signature.g * 0.10)))),
-        b: continue_gradient.b.mul_add(0.25, aurora.b.mul_add(0.20, sunset.b.mul_add(0.20, primary.b.mul_add(0.15, signature.b * 0.10)))),
+        r: (start.r + end.r) / 2.0,
+        g: (start.g + end.g) / 2.0,
+        b: (start.b + end.b) / 2.0,
         a: 1.0,
     }
 }
