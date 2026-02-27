@@ -403,6 +403,89 @@ pub mod preset {
         }
     }
 
+    /// ===== Distinctive Heading Presets =====
+    ///
+    /// Distinctive heading preset with unique character for premium branding.
+    /// Creates memorable typography through tighter letter-spacing for a refined,
+    /// sophisticated appearance that sets the design apart from generic applications.
+    ///
+    /// The negative letter-spacing creates a distinctive premium character commonly
+    /// found in high-end editorial design and luxury brand typography.
+    pub struct DistinctiveHeading {
+        pub size: f32,
+        pub weight: u16,
+        pub line_height_ratio: f32,
+        pub letter_spacing: f32,
+    }
+
+    impl Default for DistinctiveHeading {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl DistinctiveHeading {
+        /// Creates a new distinctive heading with standard H1 size
+        ///
+        /// Uses tighter letter-spacing (-0.02em) for distinctive premium character.
+        /// This creates a more refined, condensed appearance compared to standard headings.
+        #[must_use]
+        pub const fn new() -> Self {
+            Self {
+                size: type_scale::H1_SIZE,
+                weight: weight::SEMIBOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.02, // Tighter for distinctive look
+            }
+        }
+
+        /// Compact variant for secondary headings
+        ///
+        /// Slightly smaller with proportionally adjusted letter-spacing.
+        #[must_use]
+        pub const fn compact() -> Self {
+            Self {
+                size: type_scale::H2_SIZE,
+                weight: weight::SEMIBOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.015,
+            }
+        }
+
+        /// Small variant for tertiary headings
+        ///
+        /// Maintains distinctive character at smaller sizes.
+        #[must_use]
+        pub const fn small() -> Self {
+            Self {
+                size: type_scale::H3_SIZE,
+                weight: weight::MEDIUM,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.01,
+            }
+        }
+
+        /// Extra tight variant for maximum distinctive character
+        ///
+        /// Uses the tightest letter-spacing for dramatic, editorial-style headings.
+        /// Best reserved for hero sections and feature titles.
+        #[must_use]
+        pub const fn extra_tight() -> Self {
+            Self {
+                size: type_scale::H1_SIZE,
+                weight: weight::BOLD,
+                line_height_ratio: line_height::TIGHT,
+                letter_spacing: -0.03,
+            }
+        }
+
+        /// Returns the appropriate text color for this heading based on theme
+        #[must_use]
+        pub const fn color(self, theme: ThemeMode) -> iced::Color {
+            semantic_color::heading(theme)
+        }
+    }
+
     /// Button text preset with slightly heavier weight
     pub struct Button {
         pub size: f32,

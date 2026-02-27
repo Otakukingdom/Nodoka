@@ -195,16 +195,17 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
 }
 
 /// Creates multi-layer gradient color for Continue Listening card
-/// Blends continue gradient start, primary, and end for dramatic effect
+/// Blends four colors for sophisticated multi-layer appearance with dramatic effect
 fn continue_gradient_multi_layer() -> Color {
-    // Blend three colors for sophisticated multi-layer appearance
+    // Blend four colors for sophisticated multi-layer appearance
     let start = colors::CONTINUE_GRADIENT_START;
-    let mid = colors::PRIMARY_GRADIENT_START;
+    let mid1 = colors::PRIMARY_GRADIENT_START;
+    let mid2 = colors::SUNSET_GRADIENT_START;
     let end = colors::CONTINUE_GRADIENT_END;
     Color {
-        r: end.r.mul_add(0.3, start.r.mul_add(0.3, mid.r * 0.4)),
-        g: end.g.mul_add(0.3, start.g.mul_add(0.3, mid.g * 0.4)),
-        b: end.b.mul_add(0.3, start.b.mul_add(0.3, mid.b * 0.4)),
+        r: end.r * 0.25 + start.r * 0.25 + mid1.r * 0.3 + mid2.r * 0.2,
+        g: end.g * 0.25 + start.g * 0.25 + mid1.g * 0.3 + mid2.g * 0.2,
+        b: end.b * 0.25 + start.b * 0.25 + mid1.b * 0.3 + mid2.b * 0.2,
         a: 1.0,
     }
 }

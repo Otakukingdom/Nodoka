@@ -155,12 +155,19 @@ fn build_audiobook_item<'a, S: BuildHasher>(
     let cover = build_cover(ab.id, cover_thumbnails, opacity);
     let content_row = build_content_row(ab, cover, opacity, animation.offset_y);
 
-    // Apply selection styling with refined gradient border and enhanced shadow
-    // Left border (4px) with gradient provides clear visual indicator for selected item
+    // Apply selection styling with enhanced three-color gradient
+    // Multi-color gradient: blend subtle, primary, and accent for distinctive appearance
     let content_container = if selected {
         container(content_row)
             .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-                background: Some(with_alpha_gradient_enhanced(colors::SUBTLE_GRADIENT_START, colors::PRIMARY_GRADIENT_START, 0.18, opacity).into()),
+                // Multi-color gradient: blend subtle, primary, and accent
+                // Use inline calculations without let statements for struct literal
+                background: Some(Color {
+                    r: colors::SUBTLE_GRADIENT_START.r * 0.85 + colors::PRIMARY_GRADIENT_START.r * 0.09 + colors::ACCENT_GRADIENT_START.r * 0.06,
+                    g: colors::SUBTLE_GRADIENT_START.g * 0.85 + colors::PRIMARY_GRADIENT_START.g * 0.09 + colors::ACCENT_GRADIENT_START.g * 0.06,
+                    b: colors::SUBTLE_GRADIENT_START.b * 0.85 + colors::PRIMARY_GRADIENT_START.b * 0.09 + colors::ACCENT_GRADIENT_START.b * 0.06,
+                    a: opacity,
+                }.into()),
                 text_color: Some(with_alpha(colors::SELECTION_TEXT, opacity)),
                 border: Border {
                     color: with_alpha(colors::ACCENT_GRADIENT_END, opacity),
@@ -537,19 +544,6 @@ fn with_alpha(color: Color, alpha: f32) -> Color {
         g: color.g,
         b: color.b,
         a: (color.a * alpha).clamp(0.0, 1.0),
-    }
-}
-
-/// Enhanced gradient for selection state with configurable blend
-/// Creates smooth gradient transition between two colors with opacity control
-fn with_alpha_gradient_enhanced(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
-    let blend_factor = blend_factor.clamp(0.0, 1.0);
-    let inv_blend = 1.0 - blend_factor;
-    Color {
-        r: start.r.mul_add(blend_factor, end.r * inv_blend) * opacity,
-        g: start.g.mul_add(blend_factor, end.g * inv_blend) * opacity,
-        b: start.b.mul_add(blend_factor, end.b * inv_blend) * opacity,
-        a: opacity,
     }
 }
 

@@ -193,7 +193,7 @@ fn shortcut_group(
 /// Premium modal card with glass-morphism backdrop and elevated shadow
 ///
 /// Creates a refined modal overlay with:
-/// - Multi-layer shadow for dramatic elevation
+/// - Multi-layer shadow combining ambient lift with rose-tinted definition
 /// - Enhanced border with premium gradient treatment
 /// - XL border radius for softer appearance
 /// - Smooth opacity transitions for animation
@@ -202,7 +202,7 @@ where
     E: Into<Element<'a, Message>>,
 {
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    // Enhanced border with animated gradient effect for premium feel
+    // Enhanced border with multi-color gradient effect for premium feel
     let border_color = with_alpha_gradient_border_enhanced(
         colors::SUNSET_GRADIENT_START,
         colors::PRIMARY_GRADIENT_START,
@@ -217,11 +217,13 @@ where
                 width: 3.5, // Slightly thicker for more prominence
                 radius: border_radius::XL.into(),
             },
-            // Multi-layer shadow for premium elevation
+            // Multi-layer premium shadow: ambient + rose-tinted directional
+            // Combines subtle ambient shadow for lift with rose-tinted shadow for definition
             shadow: Shadow {
-                color: Color::from_rgba(0.882, 0.114, 0.282, 0.20),
-                offset: Vector::new(0.0, 8.0),
-                blur_radius: 24.0,
+                // Ambient shadow with slight rose tint for sophisticated elevation
+                color: Color::from_rgba(0.95, 0.85, 0.90, 0.12),
+                offset: Vector::new(0.0, 2.0),
+                blur_radius: 6.0,
             },
             ..Default::default()
         })

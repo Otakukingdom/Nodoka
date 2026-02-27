@@ -10,20 +10,6 @@ use crate::ui::Message;
 use iced::widget::{button, column, container, text, Space};
 use iced::{Border, Color, Element, Length, Shadow, Vector};
 
-/// Helper function to create gradient color by blending two colors
-fn with_alpha_gradient_enhanced(start: Color, end: Color, blend_factor: f32, opacity: f32) -> Color {
-    let blend_factor = blend_factor.clamp(0.0, 1.0);
-    let inv_blend = 1.0 - blend_factor;
-    // Add subtle luminosity boost for premium feel
-    let luminosity = 0.03;
-    Color {
-        r: (start.r.mul_add(blend_factor, end.r * inv_blend) + luminosity).min(1.0) * opacity,
-        g: (start.g.mul_add(blend_factor, end.g * inv_blend) + luminosity).min(1.0) * opacity,
-        b: (start.b.mul_add(blend_factor, end.b * inv_blend) + luminosity).min(1.0) * opacity,
-        a: opacity,
-    }
-}
-
 /// Empty state context - determines the visual variant
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EmptyStateContext {
@@ -75,15 +61,20 @@ pub fn view(
     action_message: Option<Message>,
 ) -> Element<'static, Message> {
     let icon_size = typography::type_scale::DISPLAY_SIZE * 1.5;
-    // Enhanced icon with multi-layer gradient color and sophisticated shadow
-    // Improved proportions (1.6x instead of 1.8x) for better visual balance
-    // Combines sunset rose with primary gradient for sophisticated transition
-    let icon_gradient = with_alpha_gradient_enhanced(
-        colors::SUNSET_GRADIENT_START,
-        colors::PRIMARY_GRADIENT_END,
-        0.5,
-        1.0,
-    );
+    // Enhanced icon with multi-layer gradient (three-color blend)
+    // Combines sunset, primary, and accent gradients for sophisticated depth
+    // Creates a distinctive premium appearance that sets the design apart
+    let icon_gradient = {
+        let start = colors::SUNSET_GRADIENT_START;
+        let mid = colors::PRIMARY_GRADIENT_START;
+        let end = colors::ACCENT_GRADIENT_END;
+        Color {
+            r: start.r * 0.4 + mid.r * 0.3 + end.r * 0.3,
+            g: start.g * 0.4 + mid.g * 0.3 + end.g * 0.3,
+            b: start.b * 0.4 + mid.b * 0.3 + end.b * 0.3,
+            a: 1.0,
+        }
+    };
     let icon = container(text(context.icon_text()).size(icon_size))
         .width(Length::Fixed(icon_size * 1.6))
         .height(Length::Fixed(icon_size * 1.6))

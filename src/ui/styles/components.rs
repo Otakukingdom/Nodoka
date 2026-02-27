@@ -67,11 +67,11 @@ pub mod button_styles {
                 background: Some(colors::PRIMARY_GRADIENT_START.into()),
                 text_color: colors::TEXT_ON_PRIMARY,
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_END,
+                    color: colors::ACCENT_GRADIENT_END,
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
-                shadow: shadows::shadow_md(),
+                shadow: shadows::glow_sunset(0.4), // Enhanced glow
                 ..Default::default()
             },
             button::Status::Pressed => button::Style {
@@ -403,15 +403,19 @@ pub mod notification_styles {
 
     /// Returns background color for notification variant
     ///
-    /// Use semantic colors with sufficient contrast for WCAG AA compliance
-    /// (4.5:1 minimum).
+    /// Enhanced with darker, premium colors for WCAG AA compliance (4.5:1 minimum)
+    /// while maintaining distinctive character.
     #[must_use]
     pub const fn background_color(kind: &NotificationType) -> Color {
         match kind {
-            NotificationType::Success => Color::from_rgb(0.11, 0.50, 0.11), // Darker green for WCAG AA (4.5:1)
-            NotificationType::Info => Color::from_rgb(0.0, 0.46, 0.78), // Darker blue for WCAG AA (4.5:1)
-            NotificationType::Warning => Color::from_rgb(0.70, 0.38, 0.0), // Much darker orange for WCAG AA (4.5:1)
-            NotificationType::Error => Color::from_rgb(0.75, 0.0, 0.0), // Darker red for WCAG AA (4.5:1)
+            // Success with darker emerald for WCAG AA compliance (4.5:1)
+            NotificationType::Success => Color::from_rgb(0.02, 0.48, 0.26),
+            // Info with deeper cool blue for WCAG AA compliance
+            NotificationType::Info => Color::from_rgb(0.0, 0.35, 0.62),
+            // Warning with deeper amber for WCAG AA compliance
+            NotificationType::Warning => Color::from_rgb(0.58, 0.28, 0.0),
+            // Error with deeper sunset red for WCAG AA compliance
+            NotificationType::Error => Color::from_rgb(0.80, 0.10, 0.25),
         }
     }
 
@@ -549,8 +553,8 @@ pub mod input_styles {
             iced::widget::text_input::Status::Focused { .. } => iced::widget::text_input::Style {
                 background: iced::Background::Color(colors::BG_ELEVATED),
                 border: Border {
-                    color: colors::PRIMARY_GRADIENT_START,
-                    width: 2.0,
+                    color: colors::PRIMARY_GRADIENT_START, // Premium gradient border
+                    width: 2.5, // Slightly thicker for emphasis
                     radius: border_radius::MD.into(),
                 },
                 icon: colors::TEXT_SECONDARY,
@@ -586,6 +590,8 @@ pub mod input_styles {
 /// - `card_elevated()` - Prominent card with stronger shadow
 /// - `card_interactive()` - Card with hover state support
 /// - `card_selected()` - Card with active/selected styling
+/// - `card_premium()` - Card with rose-tinted shadow for brand presence
+/// - `card_featured()` - Card with maximum elevation and accent border
 ///
 /// # Card Style Hierarchy
 ///
@@ -594,6 +600,8 @@ pub mod input_styles {
 /// - **Elevated**: Medium shadow (2px offset, 4px blur)
 /// - **Interactive**: Medium shadow with hover transition
 /// - **Selected**: Large shadow (4px offset, 8px blur) with accent border
+/// - **Premium**: Rose-tinted shadow for distinctive brand presence
+/// - **Featured**: Maximum elevation with gold-tinted shadow
 pub mod card_styles {
     use super::{border_radius, colors, shadows, Border};
 
@@ -717,6 +725,249 @@ pub mod card_styles {
             },
             shadow: shadows::shadow_lg(),
             ..Default::default()
+        }
+    }
+
+    /// Premium card with rose-tinted shadow for distinctive brand presence
+    ///
+    /// Use for branded content that needs subtle brand color integration.
+    /// Provides rose-tinted shadow for distinctive character while maintaining elegance.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(branded_content)
+    ///     .style(move |_theme| card_styles::card_premium()(_theme))
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_premium() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_RAISED.into()),
+            border: Border {
+                color: colors::PRIMARY_GRADIENT_START,
+                width: 1.5,
+                radius: border_radius::MD.into(),
+            },
+            shadow: shadows::shadow_md_brand(),
+            ..Default::default()
+        }
+    }
+
+    /// Featured card with maximum elevation and accent border
+    ///
+    /// Use for hero content, featured items, or elements requiring maximum prominence.
+    /// Provides strongest elevation with extra-large shadow and accent color border.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(featured_hero_content)
+    ///     .style(move |_theme| card_styles::card_featured()(_theme))
+    /// ```
+    #[must_use = "card style must be applied to a container"]
+    pub fn card_featured() -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(colors::BG_ELEVATED.into()),
+            border: Border {
+                color: colors::ACCENT_GRADIENT_END,
+                width: 2.0,
+                radius: border_radius::LG.into(),
+            },
+            shadow: shadows::shadow_xl(),
+            ..Default::default()
+        }
+    }
+}
+
+/// Premium badge styling system for distinctive visual accents
+///
+/// Provides badge variants with gradient backgrounds for status indicators,
+/// metadata tags, and featured content labels.
+///
+/// # Badge Variants
+///
+/// - **Primary**: Brand rose gradient for primary badges
+/// - **Accent**: Vibrant rose-to-magenta for CTAs
+/// - **Success**: Emerald green for positive indicators
+/// - **Warning**: Gold amber for caution states
+/// - **Error**: Sunset red for negative feedback
+///
+/// # Badge Sizes
+///
+/// - **Compact**: Smaller padding for tight spaces
+/// - **Default**: Standard padding for general use
+/// - **Prominent**: Larger padding for emphasis
+pub mod badge_styles {
+    use super::{border_radius, colors, shadows, Border, Color};
+
+    /// Badge kind variants with distinct gradient treatments
+    #[derive(Copy, Clone)]
+    pub enum BadgeKind {
+        /// Primary brand gradient (rose-to-crimson)
+        Primary,
+        /// Accent gradient (rose-to-magenta)
+        Accent,
+        /// Success gradient (emerald green)
+        Success,
+        /// Warning gradient (gold amber)
+        Warning,
+        /// Error gradient (sunset red)
+        Error,
+    }
+
+    /// Badge size variants for different contexts
+    #[derive(Copy, Clone)]
+    pub enum BadgeSize {
+        /// Compact badge with minimal padding
+        Compact,
+        /// Default badge with standard padding
+        Default,
+        /// Prominent badge with extra padding
+        Prominent,
+    }
+
+    /// Creates a premium gradient badge with subtle shadow
+    ///
+    /// Combines gradient background with refined border and shadow treatment
+    /// for distinctive visual appearance.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(text("New"))
+    ///     .style(badge_styles::badge_gradient(BadgeKind::Primary))
+    /// ```
+    pub fn badge_gradient(kind: BadgeKind) -> impl Fn(&iced::Theme) -> iced::widget::container::Style {
+        move |_theme: &iced::Theme| {
+            let (bg, border) = match kind {
+                BadgeKind::Primary => (colors::PRIMARY_GRADIENT_START, colors::PRIMARY_GRADIENT_END),
+                BadgeKind::Accent => (colors::ACCENT_GRADIENT_START, colors::ACCENT_GRADIENT_END),
+                BadgeKind::Success => (colors::EMERALD_GRADIENT_START, colors::EMERALD_GRADIENT_END),
+                BadgeKind::Warning => (colors::GOLD_GRADIENT_START, colors::GOLD_GRADIENT_END),
+                BadgeKind::Error => (colors::SUNSET_GRADIENT_START, colors::SUNSET_GRADIENT_END),
+            };
+            iced::widget::container::Style {
+                background: Some(bg.into()),
+                border: Border {
+                    color: border,
+                    width: 1.0,
+                    radius: border_radius::FULL.into(),
+                },
+                shadow: shadows::shadow_xs(),
+                ..Default::default()
+            }
+        }
+    }
+
+    /// Creates a badge with specified size variant
+    ///
+    /// Returns padding values for consistent badge sizing across the application.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let padding = badge_styles::badge_padding(BadgeSize::Default);
+    /// container(text("Premium")).padding(padding)
+    /// ```
+    #[must_use]
+    pub const fn badge_padding(size: BadgeSize) -> iced::Padding {
+        match size {
+            BadgeSize::Compact => iced::Padding {
+                top: 2.0,
+                bottom: 2.0,
+                left: 6.0,
+                right: 6.0,
+            },
+            BadgeSize::Default => iced::Padding {
+                top: 4.0,
+                bottom: 4.0,
+                left: 10.0,
+                right: 10.0,
+            },
+            BadgeSize::Prominent => iced::Padding {
+                top: 6.0,
+                bottom: 6.0,
+                left: 14.0,
+                right: 14.0,
+            },
+        }
+    }
+
+    /// Returns text color for badge (always white for contrast)
+    ///
+    /// All badge gradients use vibrant colors that require white text for
+    /// WCAG AA compliance.
+    pub const TEXT_COLOR: Color = Color::WHITE;
+}
+
+/// Divider/separator styling utilities
+///
+/// Provides consistent styling for visual separators between content sections.
+///
+/// # Divider Types
+///
+/// - **Subtle**: Minimal divider with default border color
+/// - **Prominent**: More visible divider with thicker border
+/// - **Gradient**: Distinctive divider with brand color gradient
+pub mod divider_styles {
+    use super::colors;
+
+    /// Returns border style for subtle horizontal divider
+    ///
+    /// Use for standard content separation where visual hierarchy should be minimal.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// container(Space::new())
+    ///     .height(1.0)
+    ///     .style(|_theme| container::Style {
+    ///         border: divider_styles::horizontal(),
+    ///         ..Default::default()
+    ///     })
+    /// ```
+    #[must_use]
+    pub fn horizontal() -> iced::Border {
+        iced::Border {
+            color: colors::BORDER_SUBTLE,
+            width: 1.0,
+            radius: 0.0.into(),
+        }
+    }
+
+    /// Returns border style for prominent divider
+    ///
+    /// Use for major section separation where stronger visual hierarchy is needed.
+    #[must_use]
+    pub fn prominent() -> iced::Border {
+        iced::Border {
+            color: colors::BORDER_PROMINENT,
+            width: 1.5,
+            radius: 0.0.into(),
+        }
+    }
+
+    /// Returns gradient border for distinctive divider
+    ///
+    /// Use for brand-accented dividers that need distinctive character.
+    #[must_use]
+    pub fn gradient() -> iced::Border {
+        iced::Border {
+            color: colors::PRIMARY_GRADIENT_START,
+            width: 1.0,
+            radius: 0.0.into(),
+        }
+    }
+
+    /// Returns vertical divider border
+    ///
+    /// Use for horizontal content separation in side-by-side layouts.
+    #[must_use]
+    pub fn vertical() -> iced::Border {
+        iced::Border {
+            color: colors::BORDER_SUBTLE,
+            width: 1.0,
+            radius: 0.0.into(),
         }
     }
 }
