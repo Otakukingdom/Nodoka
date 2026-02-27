@@ -28,9 +28,9 @@ pub fn view(
         search_bar,
         row![
             text("Sort:")
-                .size(typography::SIZE_SM)
-                .style(|theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(text_secondary_color(theme)),
+                .size(typography::SIZE_BASE)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_PRIMARY),
                 }),
             sort_buttons,
         ]
@@ -38,9 +38,9 @@ pub fn view(
         .align_y(iced::Alignment::Center),
         row![
             text("Filter:")
-                .size(typography::SIZE_SM)
-                .style(|theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(text_secondary_color(theme)),
+                .size(typography::SIZE_BASE)
+                .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                    color: Some(colors::TEXT_PRIMARY),
                 }),
             filter_chips,
             Space::new().width(Length::Fill),
@@ -154,10 +154,6 @@ fn build_clear_button(
         .style(button_styles::primary)
         .into()
     }
-}
-
-const fn text_secondary_color(_theme: &iced::Theme) -> iced::Color {
-    colors::TEXT_SECONDARY
 }
 
 const fn text_on_primary_color(_theme: &iced::Theme) -> iced::Color {

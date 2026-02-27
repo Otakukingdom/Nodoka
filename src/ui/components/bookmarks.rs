@@ -3,6 +3,7 @@
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
 use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
+use crate::ui::styles::colors;
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Color, Element, Length};
@@ -25,14 +26,23 @@ pub fn view<'a>(
     prefers_reduced_motion: bool,
 ) -> Element<'a, Message> {
     let header = row![
-        text("Bookmarks").size(typography::SIZE_LG),
+        text("Bookmarks")
+            .size(typography::SIZE_XL)
+            .style(move |_theme: &iced::Theme| iced::widget::text::Style {
+                color: Some(colors::TEXT_PRIMARY),
+            }),
         Space::new().width(Length::Fill),
         button(text("Add Bookmark").size(typography::SIZE_SM))
             .on_press(Message::CreateBookmark)
-            .padding(spacing::SM)
+            .padding([spacing::XS, spacing::SM])
             .style(button_styles::primary)
     ]
-    .padding(spacing::MD);
+    .padding(iced::Padding {
+        top: spacing::MD,
+        bottom: spacing::SM,
+        left: spacing::MD,
+        right: spacing::MD,
+    });
 
     let items: Element<_> = if bookmarks.is_empty() {
         super::empty_state(

@@ -6,7 +6,10 @@
 use chrono::Utc;
 use nodoka::db::Database;
 use nodoka::models::{Audiobook, AudiobookFile, Bookmark, Directory};
-use nodoka::ui::{ActiveModal, BookmarkEditor, LoadState, PlaybackStatus, State};
+use nodoka::ui::{
+ ActiveModal, BookmarkEditor, LoadState, PlaybackStatus, State,
+};
+use nodoka::ui::animations::modal::ModalState;
 
 /// All screenshot scenarios to capture.
 #[derive(Debug, Clone, Copy)]
@@ -143,11 +146,13 @@ impl Scenario {
                 state.audiobooks = create_fixture_audiobooks(db);
                 state.directories = create_fixture_directories();
                 state.active_modal = ActiveModal::Settings;
+                state.modal_state = ModalState::Open;
             }
             Self::BookmarkEditorOpen => {
                 if let Some(id) = setup_with_selected_audiobook(state, db) {
                     state.bookmarks = create_fixture_bookmarks(id);
                     state.active_modal = ActiveModal::BookmarkEditor;
+                    state.modal_state = ModalState::Open;
                     state.bookmark_editor = Some(BookmarkEditor {
                         id: None,
                         audiobook_id: id,
@@ -161,6 +166,7 @@ impl Scenario {
             Self::KeyboardHelpOverlay => {
                 state.audiobooks = create_fixture_audiobooks(db);
                 state.active_modal = ActiveModal::KeyboardHelp;
+                state.modal_state = ModalState::Open;
             }
             Self::NotificationVisible => {
                 state.audiobooks = create_fixture_audiobooks(db);
