@@ -163,6 +163,7 @@ pub mod colors;
 pub mod components;
 pub mod design_system_tests;
 pub mod effects;
+pub mod gradients;
 pub mod interactive;
 pub mod layout;
 pub mod micro_interactions;
@@ -175,6 +176,7 @@ pub use colors::*;
 pub use components::*;
 pub use components::{card_styles, input_styles};
 pub use effects::{cursor, shadows, transitions};
+pub use gradients::*;
 pub use interactive::*;
 pub use layout::*;
 
