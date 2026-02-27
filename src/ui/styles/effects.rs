@@ -251,6 +251,20 @@ pub mod easing {
 pub mod shadows {
     use super::{Color, Shadow, Vector};
 
+    /// Extra subtle shadow for minimal elevation
+    ///
+    /// Equivalent to: 0 1px 1px rgba(0,0,0,0.03)
+    ///
+    /// Use for very subtle depth on small UI elements.
+    #[must_use]
+    pub const fn shadow_xs() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.03),
+            offset: Vector::new(0.0, 0.5),
+            blur_radius: 1.0,
+        }
+    }
+
     /// Subtle lift shadow for minor elevation (buttons, input fields)
     ///
     /// Equivalent to: 0 1px 2px rgba(0,0,0,0.05)
@@ -308,6 +322,50 @@ pub mod shadows {
             color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
             offset: Vector::new(0.0, 20.0),
             blur_radius: 25.0,
+        }
+    }
+
+    /// Extra large shadow for dramatic elevation
+    ///
+    /// Equivalent to: 0 25px 50px rgba(0,0,0,0.25)
+    ///
+    /// Use for very prominent elements like the continue listening card
+    /// or featured modals.
+    #[must_use]
+    pub const fn shadow_xxl() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.25),
+            offset: Vector::new(0.0, 25.0),
+            blur_radius: 50.0,
+        }
+    }
+
+    /// Inner shadow for inset depth effect
+    ///
+    /// Creates an inset shadow for elements like progress bars to give
+    /// them a carved/recessed appearance.
+    ///
+    /// Equivalent to: inset 0 1px 2px rgba(0,0,0,0.1)
+    #[must_use]
+    pub const fn inner_shadow() -> Shadow {
+        Shadow {
+            color: Color::from_rgba(0.0, 0.0, 0.0, 0.1),
+            offset: Vector::new(0.0, -1.0),
+            blur_radius: 2.0,
+        }
+    }
+
+    /// Glow effect for active state indicators
+    ///
+    /// Creates a colored glow using the primary color with reduced opacity.
+    /// Use for active playback indicators, focused elements, or highlights.
+    #[must_use]
+    pub fn glow_primary(intensity: f32) -> Shadow {
+        let alpha = (intensity.clamp(0.0, 1.0) * 0.3).clamp(0.0, 0.5);
+        Shadow {
+            color: Color::from_rgba(0.882, 0.114, 0.282, alpha),
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 8.0 * intensity,
         }
     }
 

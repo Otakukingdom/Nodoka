@@ -2,7 +2,7 @@
 
 use crate::models::{AudiobookFile, Bookmark};
 use crate::ui::state::BookmarkEditor;
-use crate::ui::styles::{animations, button_styles, spacing, typography};
+use crate::ui::styles::{animations, button_styles, shadows, spacing, typography};
 use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, scrollable, text, text_input, Space};
 use iced::{Color, Element, Length};
@@ -156,7 +156,7 @@ fn bookmark_row(
     let pos = format_position(bm.position_ms);
     let id = bm.id;
 
-    // Timestamp badge with colored background
+    // Timestamp badge with gradient background and premium styling
     let timestamp_badge = container(text(pos).size(typography::SIZE_SM).style(
         move |_theme: &iced::Theme| iced::widget::text::Style {
             color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
@@ -164,16 +164,17 @@ fn bookmark_row(
     ))
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(with_alpha(colors::ACCENT, opacity).into()),
+        background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
         text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
         border: Border {
             radius: border_radius::SM.into(),
             ..Default::default()
         },
+        shadow: shadows::shadow_xs(),
         ..Default::default()
     });
 
-    // Note indicator badge if bookmark has note
+    // Note indicator badge if bookmark has note with premium gradient styling
     let note_badge = if bm.note.as_ref().is_some_and(|n| !n.is_empty()) {
         container(
             text("NOTE")
@@ -184,12 +185,13 @@ fn bookmark_row(
         )
         .padding(iced::Padding::from([spacing::XS, spacing::SM]))
         .style(move |_theme: &iced::Theme| container::Style {
-            background: Some(with_alpha(colors::INFO, opacity).into()),
+            background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
             text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             border: Border {
                 radius: border_radius::SM.into(),
                 ..Default::default()
             },
+            shadow: shadows::shadow_xs(),
             ..Default::default()
         })
     } else {

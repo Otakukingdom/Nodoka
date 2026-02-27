@@ -48,4 +48,6 @@ pub mod border_radius {
     pub const LG: f32 = 12.0;
     /// Extra large radius: 16px
     pub const XL: f32 = 16.0;
+    /// Full radius for pill-shaped elements (999px)
+    pub const FULL: f32 = 999.0;
 }

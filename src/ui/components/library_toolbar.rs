@@ -1,7 +1,7 @@
 //! Library toolbar with search, sort, and filter controls.
 
 use crate::ui::state::{AudiobookFilterStatus, AudiobookSortOrder};
-use crate::ui::styles::{border_radius, button_styles, colors, spacing, typography};
+use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
 use crate::ui::Message;
 use iced::widget::{button, column, row, text, text_input, Space};
 use iced::{Border, Element, Length};
@@ -184,12 +184,22 @@ fn sort_button(
     )
     .on_press(Message::SortOrderChanged(order))
     .padding(iced::Padding::from([spacing::SM, spacing::MD]))
-    .style(move |theme: &iced::Theme, status| {
+    .style(move |_theme: &iced::Theme, status| {
         use iced::widget::button;
         if is_selected {
-            button_styles::primary(theme, status)
+            button::Style {
+                background: Some(colors::PRIMARY_GRADIENT_START.into()),
+                border: Border {
+                    color: colors::PRIMARY_GRADIENT_END,
+                    width: 1.0,
+                    radius: border_radius::MD.into(),
+                },
+                text_color: colors::TEXT_ON_PRIMARY,
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            }
         } else {
-            // Secondary style - outlined button
+            // Secondary style - outlined button with refined treatment
             match status {
                 button::Status::Hovered => button::Style {
                     background: Some(colors::BG_HOVER.into()),
@@ -247,10 +257,20 @@ fn filter_chip(
     )
     .on_press(Message::FilterStatusChanged(status))
     .padding(iced::Padding::from([spacing::SM, spacing::MD]))
-    .style(move |theme: &iced::Theme, status_arg| {
+    .style(move |_theme: &iced::Theme, status_arg| {
         use iced::widget::button;
         if is_selected {
-            button_styles::primary(theme, status_arg)
+            button::Style {
+                background: Some(colors::ACCENT_GRADIENT_START.into()),
+                border: Border {
+                    color: colors::ACCENT_GRADIENT_END,
+                    width: 1.0,
+                    radius: border_radius::LG.into(),
+                },
+                text_color: colors::TEXT_ON_PRIMARY,
+                shadow: shadows::shadow_sm(),
+                ..Default::default()
+            }
         } else {
             // Chip style - rounded button with subtle background
             match status_arg {

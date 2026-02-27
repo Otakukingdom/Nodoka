@@ -199,32 +199,45 @@ fn build_status_indicator(
     completeness: i32,
     opacity: f32,
 ) -> iced::widget::Container<'static, Message> {
-    use crate::ui::styles::colors;
+    use crate::ui::styles::{border_radius, colors, shadows};
+    use iced::Border;
 
-    // Simplified status indicators: checkmark for complete, warning for missing,
-    // play icon for current file with progress, nothing for upcoming
+    // Enhanced status indicators with badge styling
     if is_missing {
         container(text("⚠").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
             container::Style {
-                text_color: Some(with_alpha(colors::WARNING, opacity)),
+                text_color: Some(with_alpha(colors::WARNING_REFINED, opacity)),
                 ..Default::default()
             }
         })
     } else if is_complete {
-        container(text("✓").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
-            container::Style {
-                text_color: Some(with_alpha(colors::SUCCESS, opacity)),
+        container(text("✓").size(typography::SIZE_BASE))
+            .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+            .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
+                border: Border {
+                    radius: border_radius::SM.into(),
+                    ..Default::default()
+                },
                 ..Default::default()
-            }
-        })
+            })
     } else if is_selected && has_progress {
-        // Show play icon for current file with progress (more prominent than percentage)
-        container(text("▶").size(typography::SIZE_BASE)).style(move |_theme: &iced::Theme| {
-            container::Style {
-                text_color: Some(with_alpha(colors::PRIMARY, opacity)),
+        // Show play icon for current file with gradient background (more prominent)
+        container(text("▶").size(typography::SIZE_BASE))
+            .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+            .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::PRIMARY_GRADIENT_START, opacity).into()),
+                border: Border {
+                    radius: border_radius::SM.into(),
+                    ..Default::default()
+                },
+                shadow: shadows::shadow_sm(),
                 ..Default::default()
-            }
-        })
+            })
+            .style(move |_theme: &iced::Theme| container::Style {
+                text_color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
+                ..Default::default()
+            })
     } else if has_progress {
         // Show percentage only for in-progress files that aren't selected
         container(text(format!("{completeness}%")).size(typography::SIZE_SM)).style(
@@ -260,23 +273,24 @@ fn build_file_number_badge(
     file_number: usize,
     opacity: f32,
 ) -> iced::widget::Container<'static, Message> {
-    use crate::ui::styles::{border_radius, colors};
+    use crate::ui::styles::{border_radius, colors, shadows};
     use iced::Border;
 
     container(
         text(format!("#{file_number}"))
             .size(typography::SIZE_XS)
             .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                color: Some(with_alpha(colors::TEXT_SECONDARY, opacity)),
+                color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
             }),
     )
     .padding(iced::Padding::from([spacing::XS, spacing::SM]))
     .style(move |_theme: &iced::Theme| container::Style {
-        background: Some(with_alpha(colors::BG_ELEVATED, opacity).into()),
+        background: Some(with_alpha(colors::ACCENT_GRADIENT_START, opacity).into()),
         border: Border {
             radius: border_radius::SM.into(),
             ..Default::default()
         },
+        shadow: shadows::shadow_xs(),
         ..Default::default()
     })
 }

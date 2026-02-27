@@ -1,7 +1,9 @@
 //! Continue Listening card component for quick resume functionality.
 
 use crate::models::Audiobook;
-use crate::ui::styles::{border_radius, button_styles, colors, shadows, spacing, typography};
+use crate::ui::styles::{
+    border_radius, colors, shadows, spacing, typography,
+};
 use crate::ui::Message;
 use iced::widget::{button, column, container, image, row, text, Space};
 use iced::{Border, Element, Length};
@@ -74,7 +76,17 @@ pub fn view<'a, S: BuildHasher>(
         )
         .on_press(Message::PlayLastListened)
         .padding(spacing::LG)
-        .style(button_styles::primary),
+        .style(move |_theme: &iced::Theme, _status| button::Style {
+            background: Some(colors::CONTINUE_GRADIENT_START.into()),
+            text_color: colors::TEXT_ON_PRIMARY,
+            border: Border {
+                radius: border_radius::FULL.into(),
+                width: 0.0,
+                ..Default::default()
+            },
+            shadow: shadows::shadow_md(),
+            ..Default::default()
+        }),
     ]
     .spacing(spacing::LG)
     .padding(spacing::LG)
@@ -87,7 +99,7 @@ pub fn view<'a, S: BuildHasher>(
                 radius: border_radius::LG.into(),
                 ..Default::default()
             },
-            shadow: shadows::shadow_lg(),
+            shadow: shadows::shadow_xxl(),
             ..Default::default()
         })
         .width(Length::Fill)
@@ -123,6 +135,7 @@ fn build_large_cover<S: BuildHasher>(
                     width: 1.0,
                     radius: border_radius::MD.into(),
                 },
+                shadow: shadows::shadow_md(),
                 ..Default::default()
             })
             .into()
@@ -158,6 +171,7 @@ fn build_placeholder_cover(size: f32) -> Element<'static, Message> {
             width: 1.0,
             radius: border_radius::MD.into(),
         },
+        shadow: shadows::shadow_md(),
         ..Default::default()
     })
     .into()

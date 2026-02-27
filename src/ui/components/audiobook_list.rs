@@ -294,18 +294,27 @@ fn build_content_row<'a>(
     let last_listened_text = format_relative_time(ab.last_listened);
 
     // Build metadata row: remaining time + last listened (no percentage - shown by progress bar)
-    // Show completion checkmark for 100% complete audiobooks
+    // Show completion badge for 100% complete audiobooks
     let mut metadata_items: Vec<Element<'_, Message>> = Vec::new();
 
     if ab.completeness >= 100 {
-        // Completion badge for finished audiobooks
+        // Completion badge for finished audiobooks with enhanced styling
         metadata_items.push(
-            text("✓ Complete")
+            container(text("✓ Complete")
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {
-                    color: Some(with_alpha(colors::SUCCESS, opacity)),
-                })
-                .into(),
+                    color: Some(with_alpha(colors::TEXT_ON_PRIMARY, opacity)),
+                }))
+            .padding(iced::Padding::from([spacing::XS, spacing::SM]))
+            .style(move |_theme: &iced::Theme| container::Style {
+                background: Some(with_alpha(colors::SUCCESS_REFINED, opacity).into()),
+                border: Border {
+                    radius: border_radius::SM.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .into(),
         );
     } else if !remaining_text.is_empty() {
         // Show remaining time for in-progress audiobooks

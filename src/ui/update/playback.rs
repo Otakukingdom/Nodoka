@@ -4,7 +4,7 @@ use crate::player::{PlaybackState, Vlc};
 use crate::tasks::{cleanup_temp_files, parse_zip_virtual_path, zip_temp_dir};
 use crate::ui::state::RippleTarget;
 use crate::ui::styles::interactive::RippleAnimation;
-use crate::ui::styles::{spacing, typography};
+use crate::ui::styles::{layout, spacing};
 use crate::ui::{ActiveModal, FocusedElement, PlaybackStatus, State};
 use iced::Point;
 use iced::Task;
@@ -15,7 +15,7 @@ use super::MediaControl;
 
 const PLAYBACK_RIPPLE_RADIUS: f32 = 80.0;
 const PLAYBACK_BUTTON_WIDTH: f32 = 100.0;
-const PLAYBACK_BUTTON_HEIGHT: f32 = typography::SIZE_BASE + spacing::MD * 2.0;
+const PLAYBACK_BUTTON_HEIGHT: f32 = layout::typography::SIZE_BASE + spacing::MD * 2.0;
 
 fn ripple_center(state: &State, target: RippleTarget) -> Point {
     let fallback = Point::new(PLAYBACK_BUTTON_WIDTH / 2.0, PLAYBACK_BUTTON_HEIGHT / 2.0);

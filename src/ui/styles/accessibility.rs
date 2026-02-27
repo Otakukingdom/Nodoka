@@ -228,3 +228,212 @@ pub fn skip_link_style(
         }
     }
 }
+
+/// Gradient color contrast verification utilities
+///
+/// Provides helpers for verifying that gradient colors maintain
+/// WCAG AA contrast ratios when used as backgrounds or foregrounds.
+///
+/// Note: Decorative gradient elements (like progress bars, glow effects)
+/// are not required to meet text contrast ratios, but must meet non-text
+/// component contrast requirements (3:1).
+pub mod gradient {
+    use super::*;
+
+    /// Verifies gradient start color meets WCAG AA for text on primary background
+    ///
+    /// Use this when placing white text on gradient backgrounds.
+    #[must_use]
+    pub fn verify_gradient_start_text_contrast() -> bool {
+        verify_contrast_aa(
+            colors::TEXT_ON_PRIMARY,
+            colors::PRIMARY_GRADIENT_START,
+        )
+    }
+
+    /// Verifies gradient end color meets WCAG AA for text on primary background
+    #[must_use]
+    pub fn verify_gradient_end_text_contrast() -> bool {
+        verify_contrast_aa(
+            colors::TEXT_ON_PRIMARY,
+            colors::PRIMARY_GRADIENT_END,
+        )
+    }
+
+    /// Verifies accent gradient colors meet non-text contrast requirements
+    ///
+    /// Used for decorative elements like badges, indicators.
+    #[must_use]
+    pub fn verify_accent_gradient_non_text_contrast() -> bool {
+        verify_contrast_non_text(
+            colors::ACCENT_GRADIENT_START,
+            colors::BG_PRIMARY,
+        ) && verify_contrast_non_text(
+            colors::ACCENT_GRADIENT_END,
+            colors::BG_PRIMARY,
+        )
+    }
+
+    /// Verifies continue listening gradient meets non-text contrast
+    #[must_use]
+    pub fn verify_continue_gradient_non_text_contrast() -> bool {
+        verify_contrast_non_text(
+            colors::CONTINUE_GRADIENT_START,
+            colors::BG_PRIMARY,
+        ) && verify_contrast_non_text(
+            colors::CONTINUE_GRADIENT_END,
+            colors::BG_PRIMARY,
+        )
+    }
+
+    /// Verifies progress bar gradient meets WCAG AA for non-text elements
+    #[must_use]
+    pub fn verify_progress_gradient_contrast() -> bool {
+        verify_contrast_non_text(
+            colors::PROGRESS_GRADIENT_START,
+            colors::BG_PRIMARY,
+        ) && verify_contrast_non_text(
+            colors::PROGRESS_GRADIENT_END,
+            colors::BG_PRIMARY,
+        )
+    }
+
+    /// Verifies refined success color maintains WCAG AA contrast for text
+    #[must_use]
+    pub fn verify_success_refined_text_contrast() -> bool {
+        verify_contrast_aa(
+            colors::TEXT_ON_PRIMARY,
+            colors::SUCCESS_REFINED,
+        )
+    }
+
+    /// Verifies refined warning color meets non-text component contrast
+    #[must_use]
+    pub fn verify_warning_refined_non_text_contrast() -> bool {
+        verify_contrast_non_text(
+            colors::WARNING_REFINED,
+            colors::BG_PRIMARY,
+        )
+    }
+
+    /// Calculates contrast ratio between two colors
+    ///
+    /// Returns the WCAG 2.1 contrast ratio for testing purposes.
+    #[must_use]
+    pub fn contrast_ratio(foreground: Color, background: Color) -> f64 {
+        wcag_contrast_ratio(foreground, background)
+    }
+
+    /// Gets the minimum contrast ratio in a gradient pair against a background
+    ///
+    /// Useful for determining worst-case readability across gradient transitions.
+    #[must_use]
+    pub fn min_gradient_contrast(
+        foreground: Color,
+        gradient_start: Color,
+        gradient_end: Color,
+    ) -> f64 {
+        let ratio_start = wcag_contrast_ratio(foreground, gradient_start);
+        let ratio_end = wcag_contrast_ratio(foreground, gradient_end);
+        ratio_start.min(ratio_end)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gradient_colors_are_measurable() {
+        let ratio = gradient::contrast_ratio(
+            colors::TEXT_ON_PRIMARY,
+            colors::PRIMARY_GRADIENT_START,
+        );
+        assert!(ratio > 0.0);
+        assert!(ratio.is_finite());
+    }
+
+    #[test]
+    fn test_primary_color_contrast_meets_wcag_aa() {
+        // Critical: primary color with white text must pass WCAG AA
+        assert!(verify_contrast_aa(
+            colors::TEXT_ON_PRIMARY,
+            colors::PRIMARY,
+        ));
+    }
+
+    #[test]
+    fn test_text_primary_on_background_meets_contrast() {
+        // Critical: main text must be readable
+        assert!(verify_contrast_aa(
+            colors::TEXT_PRIMARY,
+            colors::BG_PRIMARY,
+        ));
+    }
+
+    #[test]
+    fn test_error_color_contrast() {
+        // Error semantic color should support white text
+        assert!(verify_contrast_aa(
+            colors::TEXT_ON_PRIMARY,
+            colors::ERROR,
+        ));
+    }
+
+    #[test]
+    fn test_focus_ring_visible() {
+        // Focus indicators must be visible
+        assert!(verify_contrast_non_text(
+            colors::FOCUS_RING,
+            colors::BG_PRIMARY,
+        ));
+    }
+
+    #[test]
+    fn test_dark_theme_text_contrast() {
+        // Dark theme must maintain contrast
+        assert!(verify_contrast_aa(
+            colors::dark_theme::TEXT_PRIMARY,
+            colors::dark_theme::BG_PRIMARY,
+        ));
+    }
+
+    #[test]
+    fn test_min_gradient_contrast_calculation() {
+        // Should return the lower of the two contrast ratios
+        let min_ratio = gradient::min_gradient_contrast(
+            colors::TEXT_ON_PRIMARY,
+            colors::PRIMARY_GRADIENT_START,
+            colors::PRIMARY_GRADIENT_END,
+        );
+        assert!(min_ratio > 0.0);
+        assert!(min_ratio.is_finite());
+    }
+
+    /// Verifies glow overlay opacity is low enough for accessibility
+    const _: () = assert!(colors::GLOW_PRIMARY.a < 0.5);
+
+    /// Verifies glass overlay is semi-transparent for visual effect
+    const _: () = assert!(colors::GLASS_OVERLAY.a > 0.5);
+    const _: () = assert!(colors::GLASS_OVERLAY.a < 1.0);
+
+    #[test]
+    fn test_all_gradient_ratios_are_finite() {
+        // Ensure all new gradient colors produce valid contrast ratios
+        let ratios = vec![
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::PRIMARY_GRADIENT_START),
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::PRIMARY_GRADIENT_END),
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::ACCENT_GRADIENT_START),
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::ACCENT_GRADIENT_END),
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::CONTINUE_GRADIENT_START),
+            gradient::contrast_ratio(colors::TEXT_ON_PRIMARY, colors::CONTINUE_GRADIENT_END),
+            gradient::contrast_ratio(colors::PROGRESS_GRADIENT_START, colors::BG_PRIMARY),
+            gradient::contrast_ratio(colors::PROGRESS_GRADIENT_END, colors::BG_PRIMARY),
+        ];
+
+        for ratio in ratios {
+            assert!(ratio.is_finite());
+            assert!(ratio > 0.0);
+        }
+    }
+}

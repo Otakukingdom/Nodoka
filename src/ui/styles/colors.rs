@@ -199,6 +199,48 @@ pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922);
 /// Border color when an element is in an error state.
 pub const BORDER_ERROR: Color = ERROR;
 
+/// ===== Enhanced Gradients and Surface Treatments =====
+/// Floating surface background – slightly elevated above `BG_ELEVATED`.
+pub const BG_FLOATING: Color = Color::from_rgb(0.99, 0.99, 0.99);
+
+/// Primary gradient colors for visual depth on special elements.
+pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.95, 0.2, 0.35);
+pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.75, 0.08, 0.22);
+
+/// Accent gradient colors for CTAs and highlights.
+pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(0.984, 0.443, 0.522);
+pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.882, 0.114, 0.282);
+
+/// Continue listening card gradient for premium feel.
+pub const CONTINUE_GRADIENT_START: Color = Color::from_rgb(0.98, 0.5, 0.6);
+pub const CONTINUE_GRADIENT_END: Color = Color::from_rgb(0.88, 0.1, 0.28);
+
+/// Progress bar gradient for visual engagement.
+pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(0.95, 0.25, 0.4);
+pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.85, 0.1, 0.25);
+
+/// Glass-morphism overlay for premium modal feel.
+pub const GLASS_OVERLAY: Color = Color::from_rgba(0.95, 0.95, 0.97, 0.85);
+
+/// Refined semantic colors for more distinctive design.
+pub const SUCCESS_REFINED: Color = Color::from_rgb(0.05, 0.65, 0.35);
+pub const SUCCESS_LIGHT: Color = Color::from_rgb(0.3, 0.85, 0.55);
+pub const WARNING_REFINED: Color = Color::from_rgb(0.85, 0.55, 0.15);
+pub const WARNING_LIGHT: Color = Color::from_rgb(1.0, 0.85, 0.5);
+
+/// Inset shadow color for progress bar depth effect.
+pub const INSET_SHADOW: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
+
+/// Glow effect color for active playback indicators.
+pub const GLOW_PRIMARY: Color = Color::from_rgba(0.882, 0.114, 0.282, 0.3);
+
+/// Enhanced shadow levels for more depth hierarchy.
+pub const SHADOW_XS: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.03);
+pub const SHADOW_SM: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.05);
+pub const SHADOW_MD: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.1);
+pub const SHADOW_LG: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.15);
+pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.25);
+
 /// Legacy top-bar color – golden yellow `#FEDB53` (superseded by design system colors).
 pub const TOP_BAR_COLOR: Color = Color::from_rgb(0.996, 0.855, 0.325);
 /// Legacy player background (alias for [`BG_ELEVATED`]).
@@ -353,4 +395,47 @@ pub mod dark_theme {
     pub const BORDER_FOCUS: Color = Color::from_rgb(0.149, 0.388, 0.922);
     /// Border color when an element is in an error state.
     pub const BORDER_ERROR: Color = ERROR;
+
+    // ===== Enhanced Gradients and Surface Treatments =====
+
+    /// Floating surface background for dark theme.
+    pub const BG_FLOATING: Color = Color::from_rgb(0.22, 0.22, 0.22);
+
+    /// Primary gradient colors for dark theme.
+    pub const PRIMARY_GRADIENT_START: Color = Color::from_rgb(0.95, 0.2, 0.35);
+    pub const PRIMARY_GRADIENT_END: Color = Color::from_rgb(0.75, 0.08, 0.22);
+
+    /// Accent gradient colors for dark theme.
+    pub const ACCENT_GRADIENT_START: Color = Color::from_rgb(0.984, 0.443, 0.522);
+    pub const ACCENT_GRADIENT_END: Color = Color::from_rgb(0.882, 0.114, 0.282);
+
+    /// Continue listening card gradient for dark theme.
+    pub const CONTINUE_GRADIENT_START: Color = Color::from_rgb(0.98, 0.5, 0.6);
+    pub const CONTINUE_GRADIENT_END: Color = Color::from_rgb(0.88, 0.1, 0.28);
+
+    /// Progress bar gradient for dark theme.
+    pub const PROGRESS_GRADIENT_START: Color = Color::from_rgb(0.95, 0.25, 0.4);
+    pub const PROGRESS_GRADIENT_END: Color = Color::from_rgb(0.85, 0.1, 0.25);
+
+    /// Glass-morphism overlay for dark theme.
+    pub const GLASS_OVERLAY: Color = Color::from_rgba(0.15, 0.15, 0.18, 0.85);
+
+    /// Refined semantic colors for dark theme.
+    pub const SUCCESS_REFINED: Color = Color::from_rgb(0.05, 0.65, 0.35);
+    pub const SUCCESS_LIGHT: Color = Color::from_rgb(0.3, 0.85, 0.55);
+    pub const WARNING_REFINED: Color = Color::from_rgb(0.85, 0.55, 0.15);
+    pub const WARNING_LIGHT: Color = Color::from_rgb(1.0, 0.85, 0.5);
+
+    /// Inset shadow color for dark theme.
+    pub const INSET_SHADOW: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.2);
+
+    /// Glow effect color for active playback indicators in dark theme.
+    pub const GLOW_PRIMARY: Color = Color::from_rgba(0.882, 0.114, 0.282, 0.4);
+
+    /// Enhanced shadow levels for dark theme.
+    pub const SHADOW_XS: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.08);
+    pub const SHADOW_SM: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.12);
+    pub const SHADOW_MD: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.2);
+    pub const SHADOW_LG: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.3);
+    pub const SHADOW_XL: Color = Color::from_rgba(0.0, 0.0, 0.0, 0.4);
 }

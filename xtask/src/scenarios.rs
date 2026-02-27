@@ -35,6 +35,14 @@ pub enum Scenario {
     VolumeExpanded,
     /// Search active with query.
     SearchActive,
+    /// Hover states on interactive elements.
+    HoverStates,
+    /// Error state with missing files.
+    ErrorState,
+    /// Multiple bookmarks for comprehensive list view.
+    MultipleBookmarks,
+    /// Long title handling for text overflow.
+    LongTitle,
 }
 
 impl Scenario {
@@ -54,6 +62,10 @@ impl Scenario {
             Self::NotificationVisible,
             Self::VolumeExpanded,
             Self::SearchActive,
+            Self::HoverStates,
+            Self::ErrorState,
+            Self::MultipleBookmarks,
+            Self::LongTitle,
         ]
     }
 
@@ -73,6 +85,10 @@ impl Scenario {
             Self::NotificationVisible => "10-notification-visible.png",
             Self::VolumeExpanded => "11-volume-expanded.png",
             Self::SearchActive => "12-search-active.png",
+            Self::HoverStates => "13-hover-states.png",
+            Self::ErrorState => "14-error-state.png",
+            Self::MultipleBookmarks => "15-multiple-bookmarks.png",
+            Self::LongTitle => "16-long-title.png",
         }
     }
 
@@ -151,6 +167,163 @@ impl Scenario {
             Self::SearchActive => {
                 state.audiobooks = create_fixture_audiobooks(db);
                 state.search_query = "foundation".to_string();
+            }
+            Self::HoverStates => {
+                // Simulate hover states with selected audiobook and active playback
+                if setup_with_selected_audiobook(state, db).is_some() {
+                    state.playback = PlaybackStatus::Playing;
+                    state.current_time = 60_000.0;
+                    state.total_duration = 300_000.0;
+                    // Set focused element to simulate hover state on file list
+                    state.focused_element = nodoka::ui::FocusedElement::FileList;
+                }
+            }
+            Self::ErrorState => {
+                // Create audiobooks with missing files for error state
+                if let Some(id) = setup_with_selected_audiobook(state, db) {
+                    // Mark some files as missing
+                    state.current_files = vec![
+                        AudiobookFile {
+                            audiobook_id: id,
+                            name: "Chapter 1 - The Beginning".to_string(),
+                            full_path: "/audiobooks/Foundation/chapter1.mp3".to_string(),
+                            length_of_file: Some(300_000),
+                            seek_position: Some(45_000),
+                            checksum: Some("abc123".to_string()),
+                            position: 0,
+                            completeness: 15,
+                            file_exists: false, // Missing file
+                            created_at: Utc::now(),
+                        },
+                        AudiobookFile {
+                            audiobook_id: id,
+                            name: "Chapter 2 - The Journey".to_string(),
+                            full_path: "/audiobooks/Foundation/chapter2.mp3".to_string(),
+                            length_of_file: Some(360_000),
+                            seek_position: Some(0),
+                            checksum: Some("def456".to_string()),
+                            position: 1,
+                            completeness: 0,
+                            file_exists: true,
+                            created_at: Utc::now(),
+                        },
+                    ];
+                    // Add error notification
+                    state
+                        .notification_queue
+                        .push(nodoka::ui::Notification::error(
+                            "Some files could not be found".to_string(),
+                        ));
+                }
+            }
+            Self::MultipleBookmarks => {
+                // Create multiple bookmarks to demonstrate list scrolling
+                if let Some(id) = setup_with_selected_audiobook(state, db) {
+                    state.bookmarks = vec![
+                        Bookmark {
+                            id: Some(1),
+                            audiobook_id: id,
+                            file_path: "/audiobooks/Foundation/chapter1.mp3".to_string(),
+                            position_ms: 30_000,
+                            label: "Opening scene".to_string(),
+                            note: Some("Sets the tone for the entire story".to_string()),
+                            created_at: Utc::now(),
+                        },
+                        Bookmark {
+                            id: Some(2),
+                            audiobook_id: id,
+                            file_path: "/audiobooks/Foundation/chapter1.mp3".to_string(),
+                            position_ms: 90_000,
+                            label: "First plot point".to_string(),
+                            note: Some("Where the main conflict is introduced".to_string()),
+                            created_at: Utc::now(),
+                        },
+                        Bookmark {
+                            id: Some(3),
+                            audiobook_id: id,
+                            file_path: "/audiobooks/Foundation/chapter2.mp3".to_string(),
+                            position_ms: 150_000,
+                            label: "Character development".to_string(),
+                            note: Some("Key moment for protagonist growth".to_string()),
+                            created_at: Utc::now(),
+                        },
+                        Bookmark {
+                            id: Some(4),
+                            audiobook_id: id,
+                            file_path: "/audiobooks/Foundation/chapter2.mp3".to_string(),
+                            position_ms: 210_000,
+                            label: "Midpoint twist".to_string(),
+                            note: None,
+                            created_at: Utc::now(),
+                        },
+                        Bookmark {
+                            id: Some(5),
+                            audiobook_id: id,
+                            file_path: "/audiobooks/Foundation/chapter3.mp3".to_string(),
+                            position_ms: 270_000,
+                            label: "Climax buildup".to_string(),
+                            note: Some("Tension reaches its peak here".to_string()),
+                            created_at: Utc::now(),
+                        },
+                    ];
+                }
+            }
+            Self::LongTitle => {
+                // Create audiobooks with very long names to test text handling
+                let long_title_audiobooks = vec![
+                    Audiobook {
+                        id: Some(1),
+                        directory: "/audiobooks".to_string(),
+                        name: "The Extremely Long and Detailed Title of This Audiobook That Continues On and On to Test Text Overflow Handling in the User Interface".to_string(),
+                        author: Some("Author With A Very Long Name That Tests Layout Flexibility".to_string()),
+                        full_path: "/audiobooks/Long Title".to_string(),
+                        completeness: 50,
+                        default_order: 0,
+                        selected_file: None,
+                        total_duration_ms: Some(18_000_000),
+                        remaining_duration_ms: Some(9_000_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                    Audiobook {
+                        id: Some(2),
+                        directory: "/audiobooks".to_string(),
+                        name: "Another Book With An Exceptionally Long Name That Might Cause Text Truncation Issues If Not Handled Properly by the Layout Engine".to_string(),
+                        author: Some("Jane Doe Smith Johnson Williams The Third".to_string()),
+                        full_path: "/audiobooks/Another Long Title".to_string(),
+                        completeness: 25,
+                        default_order: 1,
+                        selected_file: None,
+                        total_duration_ms: Some(21_600_000),
+                        remaining_duration_ms: Some(16_200_000),
+                        created_at: Utc::now(),
+                        last_listened: Some(Utc::now()),
+                    },
+                ];
+
+                for audiobook in &long_title_audiobooks {
+                    let _result = nodoka::db::queries::insert_audiobook(db.connection(), audiobook);
+                }
+
+                state.audiobooks = long_title_audiobooks;
+                let id = state.audiobooks.first().and_then(|ab| ab.id);
+                state.selected_audiobook = id;
+                if let Some(audiobook_id) = id {
+                    state.current_files = vec![
+                        AudiobookFile {
+                            audiobook_id,
+                            name: "Chapter 1: This Chapter Has An Extremely Long Name That Tests The Text Wrapping and Ellipsis Handling Capabilities of the UI Component".to_string(),
+                            full_path: "/audiobooks/Long Title/chapter1.mp3".to_string(),
+                            length_of_file: Some(300_000),
+                            seek_position: Some(45_000),
+                            checksum: Some("abc123".to_string()),
+                            position: 0,
+                            completeness: 15,
+                            file_exists: true,
+                            created_at: Utc::now(),
+                        },
+                    ];
+                }
             }
         }
     }
@@ -359,7 +532,7 @@ mod tests {
                 scenario.filename()
             );
         }
-        assert_eq!(filenames.len(), Scenario::all().len());
+        assert_eq!(filenames.len(), 16); // Updated to 16 scenarios
     }
 
     #[test]

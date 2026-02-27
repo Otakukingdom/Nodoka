@@ -6,10 +6,11 @@ use crate::ui::state::RippleTarget;
 use crate::ui::styles::{
     border_radius, button_styles, colors, focus_indicator, shadows, spacing, typography,
 };
+use crate::ui::styles::slider;
 use crate::ui::{FocusedElement, Message, PlaybackStatus, State};
 use iced::widget::{
-    button, column, container, image, mouse_area, pick_list, row, slider, stack, text, text_input,
-    Space,
+    button, column, container, image, mouse_area, pick_list, row, slider as widget_slider, stack,
+    text, text_input, Space,
 };
 use iced::{Border, Color, Element, Length, Point};
 
@@ -141,8 +142,42 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let progress_container = container({
         let max_duration = state.total_duration.max(1.0);
         let current_time = state.current_time.clamp(0.0, max_duration);
-        slider(0.0..=max_duration, current_time, Message::SeekTo).height(24.0)
-        // Larger height for better grab affordance
+        let is_active = state.playback == PlaybackStatus::Playing;
+        widget_slider(0.0..=max_duration, current_time, Message::SeekTo)
+            .height(24.0)
+            .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
+                let alpha = if is_active { 0.95 } else { 0.8 };
+                iced::widget::slider::Style {
+                    rail: iced::widget::slider::Rail {
+                        backgrounds: (
+                            iced::Background::Color(colors::BG_SECONDARY),
+                            iced::Background::Color(Color::from_rgba(
+                                colors::PROGRESS_GRADIENT_END.r,
+                                colors::PROGRESS_GRADIENT_END.g,
+                                colors::PROGRESS_GRADIENT_END.b,
+                                alpha,
+                            )),
+                        ),
+                        width: 4.0,
+                        border: iced::Border {
+                            color: Color::TRANSPARENT,
+                            width: 0.0,
+                            radius: 2.0.into(),
+                        },
+                    },
+                    handle: iced::widget::slider::Handle {
+                        shape: iced::widget::slider::HandleShape::Circle { radius: 8.0 },
+                        background: if is_active {
+                            iced::Background::Color(colors::PROGRESS_GRADIENT_START)
+                        } else {
+                            iced::Background::Color(Color::WHITE)
+                        },
+                        border_width: 2.0,
+                        border_color: colors::BORDER_DEFAULT,
+                    },
+                }
+            })
+        // Larger height for better grab affordance with custom styling
     })
     .style(focus_indicator(
         state.focused_element == FocusedElement::ProgressSlider,
@@ -406,6 +441,7 @@ fn speed_controls(state: &State, _speed_step: i32, is_focused: bool) -> Element<
 fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
     let volume_level = volume_to_level(state.volume);
     let volume_color = volume_level_color(volume_level);
+    let gradient_color = slider::volume_slider::level_color_gradient_start(volume_level);
 
     let toggle = button(text("Vol").size(typography::SIZE_SM))
         .on_press(Message::ToggleVolumeExpanded)
@@ -414,9 +450,32 @@ fn volume_controls(state: &State, is_focused: bool) -> Element<'_, Message> {
 
     let slider_row: Element<'_, Message> = if state.volume_expanded {
         row![
-            slider(0..=200, state.volume, Message::VolumeChanged)
+            widget_slider(0..=200, state.volume, Message::VolumeChanged)
                 .width(Length::Fixed(120.0))
-                .height(20.0),
+                .height(20.0)
+                .style(move |_theme: &iced::Theme, _status: iced::widget::slider::Status| {
+                    let level_color = slider::volume_slider::level_color(volume_level);
+                    iced::widget::slider::Style {
+                        rail: iced::widget::slider::Rail {
+                            backgrounds: (
+                                iced::Background::Color(colors::BG_SECONDARY),
+                                iced::Background::Color(level_color),
+                            ),
+                            width: 4.0,
+                            border: iced::Border {
+                                color: Color::TRANSPARENT,
+                                width: 0.0,
+                                radius: 2.0.into(),
+                            },
+                        },
+                        handle: iced::widget::slider::Handle {
+                            shape: iced::widget::slider::HandleShape::Circle { radius: 8.0 },
+                            background: iced::Background::Color(gradient_color),
+                            border_width: 2.0,
+                            border_color: colors::BORDER_DEFAULT,
+                        },
+                    }
+                }),
             text(format!("{}%", state.volume))
                 .size(typography::SIZE_SM)
                 .style(move |_theme: &iced::Theme| iced::widget::text::Style {

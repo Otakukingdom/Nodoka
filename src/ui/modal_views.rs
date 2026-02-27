@@ -9,11 +9,16 @@ use crate::ui::{FocusedElement, Message};
 use iced::widget::{button, column, container, row, text, Space};
 use iced::{Border, Color, Element, Length};
 
+/// Modal backdrop with glass-morphism effect and click-to-dismiss
+///
+/// Creates a premium semi-transparent overlay using glass-morphism design.
+/// The backdrop dims the background content while maintaining visual context.
 pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static, Message> {
+    let glass_opacity = (opacity * 0.85).clamp(0.0, 1.0);
     button(container(text("")).width(Length::Fill).height(Length::Fill))
         .style(
             move |_theme: &iced::Theme, _status| iced::widget::button::Style {
-                background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
+                background: Some(with_alpha(colors::GLASS_OVERLAY, glass_opacity).into()),
                 ..Default::default()
             },
         )
@@ -23,10 +28,15 @@ pub(super) fn modal_backdrop(opacity: f32, on_press: Message) -> Element<'static
         .into()
 }
 
+/// Modal backdrop without click interaction for loading states
+///
+/// Uses the same glass-morphism effect as `modal_backdrop` but without
+/// click-to-dismiss functionality for use with loading indicators.
 pub(super) fn modal_backdrop_without_click(opacity: f32) -> Element<'static, Message> {
+    let glass_opacity = (opacity * 0.85).clamp(0.0, 1.0);
     container(text(""))
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-            background: Some(Color::from_rgba(0.0, 0.0, 0.0, opacity).into()),
+            background: Some(with_alpha(colors::GLASS_OVERLAY, glass_opacity).into()),
             ..Default::default()
         })
         .width(Length::Fill)
@@ -105,7 +115,12 @@ pub(super) fn keyboard_help_view(
     container(shortcuts).padding(spacing::XL).into()
 }
 
-/// Renders a grouped section of keyboard shortcuts with styled keys.
+/// Renders a grouped section of keyboard shortcuts with premium styled keys
+///
+/// Creates refined key badges with:
+/// - Subtle background gradient
+/// - Enhanced border with primary color tint
+/// - Small shadow for depth
 fn shortcut_group(
     title: &'static str,
     shortcuts: Vec<(String, String)>,
@@ -131,10 +146,11 @@ fn shortcut_group(
                 .style(|_theme: &iced::Theme| iced::widget::container::Style {
                     background: Some(colors::BG_ELEVATED.into()),
                     border: Border {
-                        color: colors::BORDER_DEFAULT,
+                        color: colors::PRIMARY_GRADIENT_START,
                         width: 1.0,
                         radius: border_radius::SM.into(),
                     },
+                    shadow: shadows::shadow_xs(),
                     ..Default::default()
                 }),
                 Space::new().width(Length::Fixed(spacing::MD)),
@@ -154,15 +170,18 @@ fn shortcut_group(
         .into()
 }
 
-/// Applies design system styling for modal overlays.
+/// Premium modal card with glass-morphism backdrop and elevated shadow
+///
+/// Creates a refined modal overlay with:
+/// - Extra large shadow (xl) for premium elevation
+/// - Refined border with gradient treatment
+/// - Smooth opacity transitions for animation
 pub(super) fn modal_card<'a, E>(content: E, opacity: f32) -> Element<'a, Message>
 where
     E: Into<Element<'a, Message>>,
 {
-    use iced::Shadow;
-
     let background = with_alpha(colors::BG_SECONDARY, opacity);
-    let border_color = with_alpha(shadows::MD_BORDER, opacity);
+    let border_color = with_alpha(colors::PRIMARY_GRADIENT_END, opacity);
     container(content)
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(background.into()),
@@ -171,11 +190,7 @@ where
                 width: 2.0,
                 radius: border_radius::LG.into(),
             },
-            shadow: Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.2 * opacity),
-                offset: iced::Vector::new(0.0, 4.0),
-                blur_radius: 16.0,
-            },
+            shadow: shadows::shadow_xl(),
             ..Default::default()
         })
         .padding(spacing::MD)

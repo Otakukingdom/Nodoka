@@ -80,6 +80,9 @@ pub mod components;
 pub mod effects;
 pub mod interactive;
 pub mod layout;
+pub mod micro_interactions;
+pub mod slider;
+pub mod typography;
 
 // Re-export submodules for backward compatibility
 pub use accessibility::*;

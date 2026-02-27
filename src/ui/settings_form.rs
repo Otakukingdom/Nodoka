@@ -2,12 +2,14 @@
 //!
 //! Renders the settings form shown inside the settings modal overlay.
 
-use crate::ui::styles::{button_styles, spacing, typography};
+use crate::ui::styles::{border_radius, button_styles, shadows, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, scrollable, text, Space};
 use iced::{Element, Length};
 
 fn build_directory_list(state: &State) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+
     if state.directories.is_empty() {
         column![text("No audiobook directories configured").size(typography::SIZE_SM)]
             .padding(spacing::MD)
@@ -21,22 +23,35 @@ fn build_directory_list(state: &State) -> Element<'static, Message> {
                 let rescan_path = path.clone();
                 let remove_path = path.clone();
 
-                col.push(container(
-                    row![
-                        text(path).size(typography::SIZE_SM),
-                        Space::new().width(Length::Fill),
-                        button(text("Rescan").size(typography::SIZE_XS))
-                            .on_press(Message::DirectoryRescan(rescan_path))
-                            .padding(spacing::XS)
-                            .style(button_styles::secondary),
-                        button(text("Remove").size(typography::SIZE_XS))
-                            .on_press(Message::DirectoryRemove(remove_path))
-                            .padding(spacing::XS)
-                            .style(button_styles::danger),
-                    ]
+                col.push(
+                    container(
+                        row![
+                            text(path).size(typography::SIZE_SM),
+                            Space::new().width(Length::Fill),
+                            button(text("Rescan").size(typography::SIZE_XS))
+                                .on_press(Message::DirectoryRescan(rescan_path))
+                                .padding(spacing::XS)
+                                .style(button_styles::secondary),
+                            button(text("Remove").size(typography::SIZE_XS))
+                                .on_press(Message::DirectoryRemove(remove_path))
+                                .padding(spacing::XS)
+                                .style(button_styles::danger),
+                        ]
+                        .padding(spacing::SM)
+                        .spacing(spacing::SM),
+                    )
                     .padding(spacing::SM)
-                    .spacing(spacing::SM),
-                ))
+                    .style(move |_theme: &iced::Theme| container::Style {
+                        background: Some(colors::BG_ELEVATED.into()),
+                        border: iced::Border {
+                            color: colors::BORDER_DEFAULT,
+                            width: 1.0,
+                            radius: border_radius::MD.into(),
+                        },
+                        shadow: shadows::shadow_sm(),
+                        ..Default::default()
+                    }),
+                )
             })
             .into()
     }
@@ -82,27 +97,9 @@ fn build_action_buttons(state: &State) -> Element<'static, Message> {
 
 fn build_appearance_section(state: &State) -> Element<'static, Message> {
     use crate::ui::state::ThemeMode;
-    use crate::ui::styles::colors;
 
     column![
-        container(text("Appearance").size(typography::SIZE_LG))
-            .padding(iced::Padding {
-                top: spacing::LG,
-                right: 0.0,
-                bottom: spacing::SM,
-                left: 0.0,
-            })
-            .style(|_theme: &iced::Theme| container::Style {
-                text_color: Some(colors::PRIMARY),
-                ..Default::default()
-            }),
-        container(Space::new())
-            .width(Length::Fill)
-            .height(Length::Fixed(2.0))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BORDER_DEFAULT.into()),
-                ..Default::default()
-            }),
+        section_header("Appearance"),
         container(
             row![
                 text("Theme:").size(typography::SIZE_SM),
@@ -139,24 +136,7 @@ fn build_playback_section(state: &State) -> Element<'static, Message> {
     use crate::ui::styles::colors;
 
     column![
-        container(text("Playback").size(typography::SIZE_LG))
-            .padding(iced::Padding {
-                top: spacing::LG,
-                right: 0.0,
-                bottom: spacing::SM,
-                left: 0.0,
-            })
-            .style(|_theme: &iced::Theme| container::Style {
-                text_color: Some(colors::PRIMARY),
-                ..Default::default()
-            }),
-        container(Space::new())
-            .width(Length::Fill)
-            .height(Length::Fixed(2.0))
-            .style(|_theme: &iced::Theme| container::Style {
-                background: Some(colors::BORDER_DEFAULT.into()),
-                ..Default::default()
-            }),
+        section_header("Playback"),
         container(
             column![
                 row![
@@ -193,10 +173,41 @@ fn build_playback_section(state: &State) -> Element<'static, Message> {
 }
 
 fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
+    column![
+        section_header("Keyboard Shortcuts"),
+        container(
+            column![
+                shortcut_row("Space", "Play/Pause"),
+                shortcut_row("← →", "Seek backward/forward 5 seconds"),
+                shortcut_row("↑ ↓", "Previous/Next file"),
+                shortcut_row("Ctrl+F", "Focus search bar"),
+                shortcut_row("Ctrl+L", "Toggle focus mode"),
+                shortcut_row("Ctrl+T", "Toggle theme"),
+                shortcut_row("Ctrl+R", "Play last listened audiobook"),
+                shortcut_row("Ctrl+[ ]", "Decrease/Increase panel ratio"),
+                shortcut_row("Ctrl+B", "Create bookmark"),
+                shortcut_row("F1", "Show keyboard help"),
+                shortcut_row("Esc", "Close modal"),
+                shortcut_row("Tab", "Cycle focus forward"),
+                shortcut_row("Shift+Tab", "Cycle focus backward"),
+            ]
+            .spacing(spacing::SM)
+        )
+        .padding(iced::Padding {
+            top: spacing::SM,
+            right: 0.0,
+            bottom: spacing::SM,
+            left: 0.0,
+        }),
+    ]
+    .into()
+}
+
+fn section_header(title: &'static str) -> Element<'static, Message> {
     use crate::ui::styles::colors;
 
     column![
-        container(text("Keyboard Shortcuts").size(typography::SIZE_LG))
+        container(text(title).size(typography::SIZE_LG))
             .padding(iced::Padding {
                 top: spacing::LG,
                 right: 0.0,
@@ -214,30 +225,6 @@ fn build_keyboard_shortcuts_section() -> Element<'static, Message> {
                 background: Some(colors::BORDER_DEFAULT.into()),
                 ..Default::default()
             }),
-        container(
-            column![
-                shortcut_row("Space", "Play/Pause"),
-                shortcut_row("← →", "Seek backward/forward 5 seconds"),
-                shortcut_row("↑ ↓", "Previous/Next file"),
-                shortcut_row("Ctrl+F", "Focus search bar"),
-                shortcut_row("Ctrl+L", "Toggle focus mode"),
-                shortcut_row("Ctrl+T", "Toggle theme"),
-                shortcut_row("Ctrl+R", "Play last listened audiobook"),
-                shortcut_row("Ctrl+[ ]", "Decrease/Increase panel ratio"),
-                shortcut_row("Ctrl+B", "Create bookmark"),
-                shortcut_row("F1", "Show keyboard help"),
-                shortcut_row("Esc", "Close modal"),
-                shortcut_row("Tab", "Cycle focus forward"),
-                shortcut_row("Shift+Tab", "Cycle focus backward"),
-            ]
-            .spacing(spacing::XS)
-        )
-        .padding(iced::Padding {
-            top: spacing::SM,
-            right: 0.0,
-            bottom: spacing::SM,
-            left: 0.0,
-        }),
     ]
     .into()
 }
@@ -248,11 +235,12 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
     row![
         container(text(keys).size(typography::SIZE_SM))
             .padding(iced::Padding::from([spacing::XS, spacing::SM]))
-            .style(|_theme: &iced::Theme| container::Style {
+            .style(move |_theme: &iced::Theme| container::Style {
                 background: Some(colors::BG_ELEVATED.into()),
                 border: iced::Border {
-                    radius: iced::border::Radius::from(4.0),
-                    ..Default::default()
+                    color: colors::BORDER_DEFAULT,
+                    width: 1.0,
+                    radius: border_radius::SM.into(),
                 },
                 ..Default::default()
             })
@@ -269,36 +257,21 @@ fn shortcut_row(keys: &'static str, description: &'static str) -> Element<'stati
 /// Features:
 /// - Clear modal title with proper typography
 /// - Section headers with visual separators (horizontal rules)
-/// - Help text tooltips explaining each setting's purpose
+/// - Card-styled directory list items
 /// - Scrollable directory list with action buttons
 /// - Improved spacing and padding for better scannability
 /// - Visual grouping of primary/secondary actions
 #[must_use]
 pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Message> {
+    use crate::ui::styles::colors;
+
     let directory_list = build_directory_list(state);
     let action_buttons = build_action_buttons(state);
 
     container(
         scrollable(column![
             text("Settings").size(typography::SIZE_XXL),
-            container(text("Audiobook Directories").size(typography::SIZE_LG))
-                .padding(iced::Padding {
-                    top: spacing::LG,
-                    right: 0.0,
-                    bottom: spacing::SM,
-                    left: 0.0,
-                })
-                .style(|_theme: &iced::Theme| container::Style {
-                    text_color: Some(crate::ui::styles::colors::PRIMARY),
-                    ..Default::default()
-                }),
-            container(Space::new())
-                .width(Length::Fill)
-                .height(Length::Fixed(2.0))
-                .style(|_theme: &iced::Theme| container::Style {
-                    background: Some(crate::ui::styles::colors::BORDER_DEFAULT.into()),
-                    ..Default::default()
-                }),
+            section_header("Audiobook Directories"),
             container(
                 text("Add directories containing audiobooks. Nodoka will scan for supported audio files.")
                     .size(typography::SIZE_SM)
@@ -310,7 +283,7 @@ pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Mes
                 left: 0.0,
             })
             .style(|_theme: &iced::Theme| container::Style {
-                text_color: Some(crate::ui::styles::colors::TEXT_SECONDARY),
+                text_color: Some(colors::TEXT_SECONDARY),
                 ..Default::default()
             }),
             container(scrollable(directory_list).height(Length::Fixed(200.0))),
@@ -322,8 +295,8 @@ pub fn build_settings_dialog(state: &State, _scale: f32) -> Element<'static, Mes
         .padding(spacing::XL)
         .spacing(spacing::SM))
     )
-    .width(Length::Fill) // Responsive width, constrained by modal_card max_width
-    .height(Length::Shrink) // Shrink to content, constrained by modal_card max_height
+    .width(Length::Fill)
+    .height(Length::Shrink)
     .into()
 }
 

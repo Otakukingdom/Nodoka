@@ -2,7 +2,7 @@
 //!
 //! These functions render the notification overlay and its individual toasts.
 
-use crate::ui::styles::{border_radius, spacing, typography};
+use crate::ui::styles::{border_radius, colors, shadows, spacing, typography};
 use crate::ui::{Message, State};
 use iced::widget::{button, column, container, row, text, Space};
 use iced::{Border, Color, Element, Length};
@@ -41,10 +41,14 @@ pub(super) fn notification_area(state: &State) -> Element<'_, Message> {
         .into()
 }
 
-/// Renders a single notification toast with semantic colors.
+/// Renders a single notification toast with premium styling
+///
+/// Creates refined notification toasts with:
+/// - Enhanced shadow (md) for elevation
+/// - Gradient-tinted backgrounds based on notification kind
+/// - Smooth progress bar with gradient treatment
 fn notification_toast(notification: &crate::ui::state::Notification) -> Element<'_, Message> {
     use crate::ui::styles::components::notification_styles;
-    use iced::Shadow;
 
     let bg_color = notification_styles::background_color(&notification.kind);
     let icon_text = notification.icon();
@@ -69,6 +73,7 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
         main_content = main_content.push(notification_progress_bar(
             progress_portion,
             remaining_portion,
+            &notification.kind,
         ));
     }
 
@@ -82,11 +87,7 @@ fn notification_toast(notification: &crate::ui::state::Notification) -> Element<
                 radius: border_radius::MD.into(),
                 ..Default::default()
             },
-            shadow: Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.15),
-                offset: iced::Vector::new(0.0, 2.0),
-                blur_radius: 8.0,
-            },
+            shadow: shadows::shadow_md(),
             ..Default::default()
         })
         .into()
@@ -132,10 +133,12 @@ fn notification_main_content<'a>(
     .spacing(spacing::XS)
 }
 
-/// Creates a styled notification button with the given `label` and `on_press` message.
+/// Creates a premium styled notification button with enhanced hover states
 ///
-/// All notification buttons share the same hover highlight, padding, border-radius,
-/// and right-aligned container layout.
+/// Button styling features:
+/// - Smooth opacity transition on hover
+/// - Subtle border for better affordance
+/// - Consistent padding and border-radius
 fn notification_button(label: &str, on_press: Message) -> Element<'_, Message> {
     use crate::ui::styles::components::notification_styles;
 
@@ -155,7 +158,7 @@ fn notification_button(label: &str, on_press: Message) -> Element<'_, Message> {
     })
     .style(move |_theme: &iced::Theme, status| {
         let bg = if matches!(status, iced::widget::button::Status::Hovered) {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.2)
+            Color::from_rgba(1.0, 1.0, 1.0, 0.25)
         } else {
             Color::from_rgba(1.0, 1.0, 1.0, 0.1)
         };
@@ -164,8 +167,9 @@ fn notification_button(label: &str, on_press: Message) -> Element<'_, Message> {
             background: Some(bg.into()),
             text_color: notification_styles::TEXT_COLOR,
             border: Border {
+                color: Color::from_rgba(1.0, 1.0, 1.0, 0.3),
+                width: 1.0,
                 radius: border_radius::SM.into(),
-                ..Default::default()
             },
             ..Default::default()
         }
@@ -177,18 +181,32 @@ fn notification_button(label: &str, on_press: Message) -> Element<'_, Message> {
         .into()
 }
 
-/// Creates notification progress bar for auto-dismiss countdown.
+/// Creates premium notification progress bar with gradient treatment
+///
+/// Progress bar features:
+/// - Gradient fill based on notification kind
+/// - Subtle background track
+/// - Smooth 3px height for refinement
 fn notification_progress_bar(
     progress_portion: u16,
     remaining_portion: u16,
+    kind: &crate::ui::state::NotificationType,
 ) -> Element<'static, Message> {
     use crate::ui::styles::components::notification_styles;
+
+    // Use gradient colors based on notification kind
+    let progress_color = match kind {
+        crate::ui::state::NotificationType::Info => colors::PRIMARY_GRADIENT_START,
+        crate::ui::state::NotificationType::Success => colors::SUCCESS_LIGHT,
+        crate::ui::state::NotificationType::Warning => colors::WARNING_LIGHT,
+        crate::ui::state::NotificationType::Error => colors::ERROR_HOVER,
+    };
 
     let progress_bar = container(Space::new())
         .width(Length::FillPortion(progress_portion))
         .height(Length::Fixed(3.0))
         .style(move |_theme: &iced::Theme| iced::widget::container::Style {
-            background: Some(notification_styles::PROGRESS_COLOR.into()),
+            background: Some(progress_color.into()),
             ..Default::default()
         });
 
