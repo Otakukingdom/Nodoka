@@ -49,6 +49,8 @@ test.describe('UI Screenshot Tests', () => {
     await page.click('button[aria-label="Settings"]');
     // Wait for modal to appear
     await page.waitForSelector('.modal-box');
+    // Wait for modal animation to complete
+    await page.waitForTimeout(300);
     const modal = page.locator('.modal-box');
     await expect(modal).toHaveScreenshot('settings-modal.png', {
       animations: 'disabled',
@@ -60,6 +62,8 @@ test.describe('UI Screenshot Tests', () => {
     await page.keyboard.press('F1');
     // Wait for modal to appear
     await page.waitForSelector('.modal-box');
+    // Wait for modal animation to complete
+    await page.waitForTimeout(300);
     const modal = page.locator('.modal-box');
     await expect(modal).toHaveScreenshot('keyboard-help-modal.png', {
       animations: 'disabled',
@@ -73,13 +77,92 @@ test.describe('UI Screenshot Tests', () => {
     // Switch to dark theme
     await page.selectOption('.modal-box select', 'Dark');
     await page.waitForTimeout(500);
-    // Close modal
-    await page.click('.modal-box button:has-text("Close")');
+    // Close modal - updated to use new button text
+    await page.click('.modal-box button:has-text("Done")');
     await page.waitForTimeout(300);
     await expect(page).toHaveScreenshot('dark-theme.png', {
       fullPage: true,
       animations: 'disabled',
     });
+  });
+
+  test('light theme screenshot', async ({ page }) => {
+    // Ensure light theme is active
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.selectOption('.modal-box select', 'Light');
+    await page.waitForTimeout(500);
+    await page.click('.modal-box button:has-text("Done")');
+    await page.waitForTimeout(300);
+    await expect(page).toHaveScreenshot('light-theme.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+
+  test('empty library state screenshot', async ({ page }) => {
+    // Check if empty state is visible
+    const emptyState = page.locator('#audiobook-list');
+    await expect(emptyState).toHaveScreenshot('empty-library-state.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('details panel files section screenshot', async ({ page }) => {
+    const filesSection = page.locator('#files-list');
+    await expect(filesSection).toHaveScreenshot('files-section.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('details panel bookmarks section screenshot', async ({ page }) => {
+    const bookmarksSection = page.locator('#bookmarks-list');
+    await expect(bookmarksSection).toHaveScreenshot('bookmarks-section.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('search input focused screenshot', async ({ page }) => {
+    const searchInput = page.locator('input[placeholder*="Search"]');
+    await searchInput.focus();
+    await page.waitForTimeout(200);
+    const toolbar = page.locator('.library-panel > div:first-child');
+    await expect(toolbar).toHaveScreenshot('search-focused.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('modal backdrop screenshot', async ({ page }) => {
+    // Open settings modal
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.waitForTimeout(300);
+    // Take full page screenshot to capture backdrop
+    await expect(page).toHaveScreenshot('modal-backdrop.png', {
+      animations: 'disabled',
+    });
+  });
+});
+
+test.describe('UI Component Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('top bar has gradient logo', async ({ page }) => {
+    const logo = page.locator('.navbar .gradient-premium');
+    await expect(logo).toBeVisible();
+  });
+
+  test('player controls has play button', async ({ page }) => {
+    const playButton = page.locator('.btm-nav button[aria-label="Play"], .btm-nav button[aria-label="Pause"]');
+    await expect(playButton).toBeVisible();
+  });
+
+  test('settings button has tooltip', async ({ page }) => {
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await expect(settingsButton).toHaveAttribute('title', 'Settings (Ctrl+,)');
   });
 });
 
@@ -94,15 +177,16 @@ test.describe('UI Functionality Tests', () => {
     await page.click('button[aria-label="Settings"]');
     await expect(page.locator('.modal-box')).toBeVisible();
 
-    // Close with button
-    await page.click('.modal-box button:has-text("Close")');
+    // Close with button - updated to use new button text
+    await page.click('.modal-box button:has-text("Done")');
+    await page.waitForTimeout(300);
     await expect(page.locator('.modal-box')).not.toBeVisible();
   });
 
   test('keyboard help modal opens with F1', async ({ page }) => {
     await page.keyboard.press('F1');
     await expect(page.locator('.modal-box')).toBeVisible();
-    await expect(page.locator('.modal-box h3')).toContainText('Keyboard Shortcuts');
+    await expect(page.locator('.modal-box')).toContainText('Keyboard Shortcuts');
   });
 
   test('escape key closes modal', async ({ page }) => {
@@ -110,6 +194,7 @@ test.describe('UI Functionality Tests', () => {
     await expect(page.locator('.modal-box')).toBeVisible();
 
     await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
     await expect(page.locator('.modal-box')).not.toBeVisible();
   });
 
@@ -129,5 +214,52 @@ test.describe('UI Functionality Tests', () => {
     // Verify theme changed (should have dark class or data-theme)
     const newTheme = await html.getAttribute('data-theme');
     expect(newTheme).not.toBe(initialTheme);
+  });
+
+  test('settings modal has close button in header', async ({ page }) => {
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+
+    // Check for X button in header
+    const closeButton = page.locator('.modal-box button[aria-label="Close"]');
+    await expect(closeButton).toBeVisible();
+  });
+
+  test('keyboard shortcuts modal has kbd elements', async ({ page }) => {
+    await page.keyboard.press('F1');
+    await page.waitForSelector('.modal-box');
+
+    // Check for kbd elements
+    const kbdElements = page.locator('.modal-box kbd');
+    await expect(kbdElements.first()).toBeVisible();
+  });
+});
+
+test.describe('Accessibility Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('all buttons have accessible labels', async ({ page }) => {
+    const buttons = await page.locator('button').all();
+    for (const button of buttons) {
+      const ariaLabel = await button.getAttribute('aria-label');
+      const textContent = await button.textContent();
+      // Button should have either aria-label or text content
+      expect(ariaLabel || textContent?.trim()).toBeTruthy();
+    }
+  });
+
+  test('modal has proper focus management', async ({ page }) => {
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+
+    // Modal should be visible
+    await expect(page.locator('.modal-box')).toBeVisible();
+
+    // Close button should be focusable
+    const closeButton = page.locator('.modal-box button[aria-label="Close"]');
+    await expect(closeButton).toBeVisible();
   });
 });

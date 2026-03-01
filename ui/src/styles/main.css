@@ -30,7 +30,7 @@
     transition-duration: 200ms;
   }
 
-  /* Premium gradient for logo */
+  /* Premium gradient for logo and accents */
   .gradient-premium {
     background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
   }
@@ -61,6 +61,50 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-base-200;
   }
+
+  /* Card hover lift effect */
+  .card-hover-lift {
+    @apply transition-transform duration-200;
+  }
+
+  .card-hover-lift:hover {
+    @apply -translate-y-0.5;
+  }
+
+  /* Seek bar styled for player */
+  .seek-bar-styled {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+
+  .seek-bar-styled::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fallback-p, #E11D48);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+  }
+
+  .seek-bar-styled::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+
+  .seek-bar-styled::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fallback-p, #E11D48);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
 }
 
 @layer utilities {
@@ -70,6 +114,73 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Animation keyframes */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(225, 29, 72, 0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animation utility classes */
+.toast-slide-in {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.pulse-playing {
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Modal animation */
+.modal.modal-open {
+  animation: fade-in 0.15s ease-out;
+}
+
+.modal.modal-open .modal-box {
+  animation: scale-in 0.2s ease-out;
 }
 
 /* Reduced motion support */

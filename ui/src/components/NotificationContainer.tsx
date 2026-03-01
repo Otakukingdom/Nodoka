@@ -16,7 +16,7 @@ export default function NotificationContainer() {
   };
 
   return (
-    <div className="toast toast-top toast-end z-50">
+    <div className="toast toast-top toast-end z-50 gap-3 p-4">
       {notifications.map(notification => (
         <NotificationToast
           key={notification.id}
@@ -38,16 +38,20 @@ function NotificationToast({ notification, onDismiss }: NotificationToastProps) 
   const Icon = getIcon(notification.kind);
 
   return (
-    <div className={`alert ${alertClass} shadow-lg`}>
-      <Icon className="h-5 w-5" />
-      <div className="flex-1">
-        {notification.title && (
-          <div className="font-medium">{notification.title}</div>
-        )}
-        <div className="text-sm">{notification.message}</div>
+    <div
+      className={`alert ${alertClass} shadow-xl border border-base-content/10 toast-slide-in min-w-[300px] max-w-md`}
+    >
+      <div className="flex items-start gap-3">
+        <Icon className="h-5 w-5 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          {notification.title && (
+            <div className="font-semibold text-sm mb-0.5">{notification.title}</div>
+          )}
+          <div className="text-sm opacity-90">{notification.message}</div>
+        </div>
       </div>
       <button
-        className="btn btn-ghost btn-sm btn-circle"
+        className="btn btn-ghost btn-sm btn-circle hover:bg-base-content/10 transition-colors shrink-0"
         onClick={onDismiss}
         aria-label="Dismiss"
       >
@@ -60,15 +64,15 @@ function NotificationToast({ notification, onDismiss }: NotificationToastProps) 
 function getAlertClass(kind: NotificationKind): string {
   switch (kind) {
     case 'Success':
-      return 'alert-success';
+      return 'alert-success bg-success/90';
     case 'Info':
-      return 'alert-info';
+      return 'alert-info bg-info/90';
     case 'Warning':
-      return 'alert-warning';
+      return 'alert-warning bg-warning/90';
     case 'Error':
-      return 'alert-error';
+      return 'alert-error bg-error/90';
     default:
-      return '';
+      return 'bg-base-200';
   }
 }
 

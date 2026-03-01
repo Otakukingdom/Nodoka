@@ -14,7 +14,7 @@ export default function ModalContainer() {
   }
 
   return (
-    <div className="modal modal-open">
+    <div className="modal modal-open backdrop-blur-sm bg-base-content/20">
       {activeModal === 'Settings' && <SettingsModal />}
       {activeModal === 'KeyboardHelp' && <KeyboardHelpModal />}
     </div>
