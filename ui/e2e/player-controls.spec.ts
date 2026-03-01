@@ -22,6 +22,15 @@ test.describe('Player Controls Screenshots', () => {
     await expect(playButton).toHaveScreenshot('play-button.png', screenshotConfig);
   });
 
+  test('play button focus ring screenshot', async ({ page }) => {
+    const playButton = page
+      .locator('.btm-nav button[aria-label="Play"], .btm-nav button[aria-label="Pause"]')
+      .first();
+    await playButton.focus();
+    await page.waitForTimeout(200);
+    await expect(playButton).toHaveScreenshot('play-button-focus.png', screenshotConfig);
+  });
+
   test('speed control button screenshot', async ({ page }) => {
     const speedButton = page.locator('.btm-nav button:has-text("x")');
     await expect(speedButton.first()).toHaveScreenshot('speed-button.png', screenshotConfig);
@@ -44,9 +53,23 @@ test.describe('Player Controls Screenshots', () => {
     await expect(volumeButton).toHaveScreenshot('volume-button.png', screenshotConfig);
   });
 
+  test('volume button focus ring screenshot', async ({ page }) => {
+    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    await volumeButton.focus();
+    await page.waitForTimeout(200);
+    await expect(volumeButton).toHaveScreenshot('volume-button-focus.png', screenshotConfig);
+  });
+
   test('stop button screenshot', async ({ page }) => {
     const stopButton = page.locator('.btm-nav button[aria-label="Stop"]');
     await expect(stopButton).toHaveScreenshot('stop-button.png', screenshotConfig);
+  });
+
+  test('stop button focus ring screenshot', async ({ page }) => {
+    const stopButton = page.locator('.btm-nav button[aria-label="Stop"]');
+    await stopButton.focus();
+    await page.waitForTimeout(200);
+    await expect(stopButton).toHaveScreenshot('stop-button-focus.png', screenshotConfig);
   });
 });
 
@@ -60,5 +83,22 @@ test.describe('Player Controls Component Tests', () => {
       '.btm-nav button[aria-label="Play"], .btm-nav button[aria-label="Pause"]'
     );
     await expect(playButton).toBeVisible();
+  });
+
+  test('play button has tooltip', async ({ page }) => {
+    const playButton = page
+      .locator('.btm-nav button[aria-label="Play"], .btm-nav button[aria-label="Pause"]')
+      .first();
+    await expect(playButton).toHaveAttribute('title');
+  });
+
+  test('stop button has tooltip', async ({ page }) => {
+    const stopButton = page.locator('.btm-nav button[aria-label="Stop"]');
+    await expect(stopButton).toHaveAttribute('title');
+  });
+
+  test('volume button has tooltip', async ({ page }) => {
+    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    await expect(volumeButton).toHaveAttribute('title');
   });
 });

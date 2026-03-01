@@ -58,6 +58,7 @@ export default function PlayerControls() {
           className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
           onClick={handleStop}
           aria-label="Stop"
+          title="Stop playback"
         >
           <Square className="h-4 w-4" />
         </button>
@@ -71,6 +72,7 @@ export default function PlayerControls() {
           }}
           onClick={handlePlayPause}
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
         >
           {isPlaying ? (
             <Pause className="h-5 w-5" />

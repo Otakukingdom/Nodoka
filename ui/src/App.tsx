@@ -12,13 +12,14 @@ import {
   ModalContainer,
   NotificationContainer,
 } from './components';
-import { loadInitialData } from './store/thunks/libraryThunks';
-import { updatePlayerTime, playPause } from './store/thunks/playerThunks';
+import { loadInitialData, selectFile } from './store/thunks/libraryThunks';
+import { updatePlayerTime, playPause, seekForward, seekBackward } from './store/thunks/playerThunks';
 import { openModal, closeModal } from './store/slices/appSlice';
 
 function App() {
   const dispatch = useAppDispatch();
   const { theme, isLoading } = useAppSelector(state => state.app);
+  const { currentFiles, selectedFile } = useAppSelector(state => state.library);
 
   useEffect(() => {
     void dispatch(loadInitialData());
@@ -75,6 +76,32 @@ function App() {
         e.preventDefault();
         dispatch(openModal('KeyboardHelp'));
         break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        void dispatch(seekBackward(30));
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        void dispatch(seekForward(30));
+        break;
+      case 'ArrowUp': {
+        e.preventDefault();
+        const currentIndex = currentFiles.findIndex(f => f.fullPath === selectedFile);
+        const prevFile = currentFiles[currentIndex - 1];
+        if (currentIndex > 0 && prevFile) {
+          void dispatch(selectFile(prevFile.fullPath));
+        }
+        break;
+      }
+      case 'ArrowDown': {
+        e.preventDefault();
+        const currentIndex = currentFiles.findIndex(f => f.fullPath === selectedFile);
+        const nextFile = currentFiles[currentIndex + 1];
+        if (currentIndex < currentFiles.length - 1 && nextFile) {
+          void dispatch(selectFile(nextFile.fullPath));
+        }
+        break;
+      }
     }
 
     // Ctrl/Cmd + B for bookmark
@@ -88,7 +115,7 @@ function App() {
       e.preventDefault();
       dispatch(openModal('Settings'));
     }
-  }, [dispatch]);
+  }, [dispatch, currentFiles, selectedFile]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyboard);
@@ -97,8 +124,14 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
+      <div className="flex items-center justify-center h-screen bg-base-100">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-12 h-12 rounded-full gradient-premium animate-spin"
+            style={{ animationDuration: '1.5s' }}
+          />
+          <span className="text-sm text-base-content/60">Loading...</span>
+        </div>
       </div>
     );
   }
@@ -108,7 +141,7 @@ function App() {
       <TopBar />
       <main className="flex flex-1 overflow-hidden">
         <LibraryPanel />
-        <div className="w-1 bg-base-300 cursor-col-resize hover:bg-primary/50 transition-colors" />
+        <div className="w-1 bg-base-300 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)]" />
         <DetailsPanel />
       </main>
       <PlayerControls />
