@@ -288,6 +288,58 @@ test.describe('Component Screenshot Tests - Mobile', () => {
   });
 });
 
+test.describe('VolumeSlider Component Screenshots', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('VolumeSlider component screenshot', async ({ page }) => {
+    const volumeSlider = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
+    await expect(volumeSlider).toHaveScreenshot('volume-slider-component.png', screenshotConfig);
+  });
+
+  test('VolumeSlider muted state screenshot', async ({ page }) => {
+    // Find the mute/unmute button
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
+    // Get initial state
+    const initialLabel = await volumeButton.getAttribute('aria-label');
+    // If currently unmuted, click to mute
+    if (initialLabel === 'Mute') {
+      await volumeButton.click();
+      await page.waitForTimeout(200);
+    }
+    // Now capture the muted state
+    const mutedButton = page.locator('.btm-nav button[aria-label="Unmute"]').first();
+    await expect(mutedButton).toHaveScreenshot('volume-slider-muted.png', screenshotConfig);
+  });
+
+  test('VolumeSlider container hover state screenshot', async ({ page }) => {
+    const volumeContainer = page.locator('.btm-nav .group\\/volume').first();
+    await volumeContainer.hover();
+    await page.waitForTimeout(300);
+    await expect(volumeContainer).toHaveScreenshot('volume-slider-hover.png', screenshotConfig);
+  });
+
+  test('VolumeSlider button focus state screenshot', async ({ page }) => {
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
+    await volumeButton.focus();
+    await page.waitForTimeout(200);
+    await expect(volumeButton).toHaveScreenshot('volume-slider-focus.png', screenshotConfig);
+  });
+
+  test('VolumeSlider dark theme screenshot', async ({ page }) => {
+    await setTheme(page, 'Dark');
+    const volumeSlider = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
+    await expect(volumeSlider).toHaveScreenshot('volume-slider-dark-theme.png', screenshotConfig);
+  });
+
+  test('VolumeSlider light theme screenshot', async ({ page }) => {
+    await setTheme(page, 'Light');
+    const volumeSlider = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
+    await expect(volumeSlider).toHaveScreenshot('volume-slider-light-theme.png', screenshotConfig);
+  });
+});
+
 test.describe('Full Layout Component Screenshots', () => {
   test.beforeEach(async ({ page }) => {
     await gotoAndWait(page);

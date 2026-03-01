@@ -148,3 +148,34 @@ test.describe('Mobile Viewport Layout Screenshots', () => {
     await expect(page).toHaveScreenshot('mobile-portrait-layout.png', fullPageScreenshotConfig);
   });
 });
+
+test.describe('Complete Application Screenshots', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('Full application - default state', async ({ page }) => {
+    await expect(page).toHaveScreenshot('app-full-default.png', fullPageScreenshotConfig);
+  });
+
+  test('Full application - loading state', async ({ page }) => {
+    // Navigate fresh to capture initial loading state
+    await page.goto('http://localhost:5173');
+    // Wait for DOM but capture before full hydration
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(100);
+    await expect(page).toHaveScreenshot('app-full-loading.png', fullPageScreenshotConfig);
+  });
+
+  test('Full application - all themes comparison', async ({ page }) => {
+    await setTheme(page, 'Light');
+    await expect(page).toHaveScreenshot('app-full-light.png', fullPageScreenshotConfig);
+    await setTheme(page, 'Dark');
+    await expect(page).toHaveScreenshot('app-full-dark.png', fullPageScreenshotConfig);
+  });
+
+  test('Full application - system theme', async ({ page }) => {
+    await setTheme(page, 'System');
+    await expect(page).toHaveScreenshot('app-full-system-theme.png', fullPageScreenshotConfig);
+  });
+});
