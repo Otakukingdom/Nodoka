@@ -1,7 +1,7 @@
 //! Nodoka Audiobook Reader - Main entry point
 //!
-//! A cross-platform audiobook player built with Rust and iced.
-//! Provides automatic progress tracking, VLC-powered playback, and a clean UI.
+//! A cross-platform audiobook player built with Rust and Tauri.
+//! Provides automatic progress tracking, VLC-powered playback, and a web-based UI.
 
 use nodoka::error::Error;
 use nodoka::Database;
@@ -46,11 +46,8 @@ fn main() {
     tracing::info!("Nodoka Audiobook Reader starting...");
     tracing::info!("Database initialized successfully");
 
-    // Run iced application
-    if let Err(e) = nodoka::app::run(db) {
-        eprintln!("Error: Application failed to run: {e}");
-        process::exit(1);
-    }
+    // Run Tauri application
+    nodoka::run_tauri(db);
 }
 
 /// Initialises the `tracing` logging subscriber.

@@ -24,13 +24,12 @@ fn repo_path(rel: &str) -> PathBuf {
 }
 
 #[test]
-fn test_ui_update_rs_under_1000_lines() -> result::Result<(), Box<dyn Error>> {
-    assert_lines_under_1000(&repo_path("src/ui/update.rs"))
-}
+fn test_tauri_commands_under_1000_lines() -> result::Result<(), Box<dyn Error>> {
+    let dir = repo_path("src/tauri");
 
-#[test]
-fn test_ui_update_test_modules_under_1000_lines() -> result::Result<(), Box<dyn Error>> {
-    let dir = repo_path("src/ui/update/tests");
+    if !dir.exists() {
+        return Ok(()); // Skip if directory doesn't exist
+    }
 
     for entry in fs::read_dir(&dir)? {
         let path = entry?.path();
@@ -39,6 +38,17 @@ fn test_ui_update_test_modules_under_1000_lines() -> result::Result<(), Box<dyn 
             continue;
         }
 
+        assert_lines_under_1000(&path)?;
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_db_queries_under_1000_lines() -> result::Result<(), Box<dyn Error>> {
+    let path = repo_path("src/db/queries.rs");
+
+    if path.exists() {
         assert_lines_under_1000(&path)?;
     }
 

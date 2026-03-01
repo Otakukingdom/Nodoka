@@ -4,9 +4,10 @@
 //! for quick navigation to important points or reminders.
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// Represents a bookmark at a specific position in an audiobook
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bookmark {
     /// Database ID (None if not yet persisted)
     pub id: Option<i64>,

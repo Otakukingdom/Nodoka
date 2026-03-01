@@ -1,7 +1,7 @@
 //! # Nodoka Audiobook Reader
 //!
 //! A free and open source cross-platform audiobook player with automatic progress tracking.
-//! Built with the iced UI framework and VLC for media playback.
+//! Built with Tauri for the UI and VLC for media playback.
 //!
 //! ## Features
 //!
@@ -112,9 +112,9 @@
 //!
 //! ### Known Limitations
 //!
-//! - Focus visibility depends on iced's built-in widget focus styling; not all widgets expose rich focus state for customization.
-//! - Screen reader semantics are limited by framework-level accessibility support; Nodoka prioritizes clear text labels and keyboard navigation.
-//! - Modal backdrops are implemented using iced 0.14 stack overlays, including click-outside-to-dismiss behavior.
+//! - Focus visibility depends on the web renderer's focus styling; DaisyUI components provide ARIA labels and focus indicators.
+//! - Screen reader semantics are provided through standard HTML accessibility attributes.
+//! - Modal backdrops are implemented using CSS overlays with click-outside-to-dismiss behavior.
 //!
 //! ## User Experience Enhancements
 //!
@@ -185,59 +185,35 @@
 //!
 //! ### Migration Guide for UI Components
 //!
-//! If you're using Nodoka's UI components as a library:
+//! Nodoka uses a Tauri hybrid architecture with a TypeScript frontend:
 //!
-//! #### New State Fields
-//! ```rust,no_run
-//! use nodoka::ui::State;
+//! #### Frontend State Management
+//! ```typescript
+//! // In TypeScript frontend (ui/src/state/State.ts)
+//! import { appState } from './state/State';
 //!
-//! let state = State::default();
+//! // Subscribe to state changes
+//! appState.subscribe(() => {
+//!   // Re-render UI
+//! });
 //!
-//! // New fields for animations and notifications:
-//! // - notification_queue: Vec<Notification>
-//! // - active_modal: ActiveModal
-//! // - prefers_reduced_motion: bool
-//! // - modal_state: ModalState
+//! // Update state
+//! appState.setVolume(100);
+//! appState.setPlayback('Playing');
 //! ```
 //!
-//! #### Notification System
-//! ```rust,no_run
-//! use nodoka::ui::{Notification, NotificationType};
-//! # let mut state = nodoka::ui::State::default();
+//! #### Event Handling
+//! ```typescript
+//! // In TypeScript frontend (ui/src/events/EventBus.ts)
+//! import { eventBus } from './events/EventBus';
 //!
-//! // Create notifications
-//! let success = Notification::success("Bookmark saved".to_string());
-//! let info = Notification::info("Scanning library...".to_string());
-//! let warning = Notification::warning("File not found".to_string());
-//! let error = Notification::error("Database error".to_string());
+//! // Subscribe to events
+//! eventBus.on('PlayPause', async () => {
+//!   const isPlaying = await invoke('play_pause');
+//! });
 //!
-//! // Add to state
-//! state.notification_queue.push(success);
-//! ```
-//!
-//! #### Animation Utilities
-//! ```rust,no_run
-//! use nodoka::ui::animations::{easing, PulseAnimation};
-//!
-//! // Easing functions for smooth transitions
-//! let t = 0.5; // Progress value 0.0-1.0
-//! let eased = easing::ease_in_out(t); // Returns smoothed value
-//!
-//! // Pulse animations for active indicators
-//! let mut pulse = PulseAnimation::new(1000); // 1 second cycle
-//! pulse.update(16); // Update with frame delta (ms)
-//! let opacity = pulse.opacity(); // Returns 0.5-1.0
-//! ```
-//!
-//! #### Transition States
-//! ```rust,no_run
-//! use nodoka::ui::TransitionState;
-//!
-//! // Create smooth value transitions
-//! let mut transition = TransitionState::new(0.0, 100.0, 300); // from, to, duration_ms
-//! transition.update(150); // Update with delta time
-//! let current = transition.current_value(); // Returns interpolated value
-//! let complete = transition.is_complete(); // Check if finished
+//! // Emit events
+//! eventBus.emit('VolumeChanged', { volume: 75 });
 //! ```
 //!
 //! ### UX Testing & Quality
@@ -253,15 +229,17 @@
 //!
 //! ## Architecture
 //!
-//! Nodoka follows the Elm architecture pattern via the iced framework:
+//! Nodoka uses a Tauri hybrid architecture with Rust backend and TypeScript frontend:
 //!
-//! - **Model**: Application state stored in [`ui::State`]
-//! - **Update**: Message handling in [`ui::update`]
-//! - **View**: UI rendering in [`ui::main_window::view()`]
+//! - **Backend**: Rust business logic exposed via Tauri commands in [`tauri::commands`]
+//! - **Frontend**: TypeScript web UI using TailwindCSS and DaisyUI
+//! - **IPC**: Communication via Tauri's invoke system
 //!
 //! ### Key Components
 //!
-//! - [`app::App`]: Main application entry point
+//! - [`tauri_app`]: Tauri application entry point
+//! - [`tauri::commands`]: Tauri IPC command handlers
+//! - [`tauri::AppState`]: Shared application state for commands
 //! - [`db::Database`]: `SQLite` database wrapper for progress tracking
 //! - [`player::Vlc`]: VLC-based media player
 //! - [`tasks`]: Async operations for directory scanning and file processing
@@ -300,8 +278,8 @@
 //! // Initialize schema
 //! nodoka::db::initialize(db.connection())?;
 //!
-//! // Run application
-//! nodoka::app::run(db)?;
+//! // Run Tauri application
+//! nodoka::run_tauri(db);
 //! # Ok(())
 //! # }
 //! ```
@@ -378,7 +356,6 @@
 //!
 //! MIT License - see LICENSE file for details
 
-pub mod app;
 pub(crate) mod audio_extensions;
 pub mod conversions;
 pub mod cover_art;
@@ -390,7 +367,7 @@ pub mod player;
 pub mod proxy;
 pub mod settings;
 pub mod tasks;
-pub mod ui;
+pub mod tauri;
 
 /// Contribution guidelines.
 ///
@@ -410,6 +387,8 @@ pub mod project_goals {}
 #[cfg(test)]
 pub(crate) mod test_support;
 
-pub use app::App;
 pub use db::Database;
 pub use error::{Error, Result};
+pub use tauri::AppState;
+pub mod tauri_app;
+pub use tauri_app::run as run_tauri;

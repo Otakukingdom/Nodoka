@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles matching Nodoka design system */
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-base-100 text-base-content;
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus indicators for WCAG 2.1 AA compliance */
+  *:focus-visible {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+}
+
+@layer components {
+  /* Smooth transitions */
+  .transition-smooth {
+    transition-property: color, background-color, border-color, opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Premium gradient for logo */
+  .gradient-premium {
+    background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+  }
+
+  /* Panel divider with gradient */
+  .panel-divider {
+    background: linear-gradient(
+      to bottom,
+      rgba(200, 200, 200, 0.3),
+      rgba(200, 200, 200, 0.1)
+    );
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-base-200;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-base-300 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-base-200;
+  }
+}
+
+@layer utilities {
+  /* Text truncate */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

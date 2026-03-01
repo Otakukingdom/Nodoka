@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "xtask"]
+members = ["."]
 
 [package]
 name = "nodoka"
@@ -11,7 +11,8 @@ description = "A free and open source cross-platform audiobook reader"
 license = "MIT"
 
 [dependencies]
-iced = { version = "0.14.0", features = ["tokio", "advanced", "image"] }
+tauri = { version = "2.2", features = ["tracing"] }
+tauri-plugin-shell = "2"
 vlc-rs = "0.3"
 rusqlite = { version = "0.31", features = ["bundled"] }
 tokio = { version = "1.35", features = ["full"] }
@@ -24,7 +25,6 @@ directories = "5.0"
 walkdir = "2.4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-rfd = "0.14"
 image = "0.24"
 parking_lot = "0.12"
 zip = "0.6"
@@ -32,6 +32,13 @@ natord = "1.0"
 
 [dev-dependencies]
 temp-dir = "0.1"
+cucumber = "0.21"
+futures = "0.3"
+
+# Cucumber test configuration - requires harness = false for custom output
+[[test]]
+name = "cucumber_tests"
+harness = false
 
 [build-dependencies]
 pkg-config = "0.3"
