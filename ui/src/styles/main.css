@@ -360,3 +360,223 @@ html {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   Premium Design Enhancements
+   ============================================ */
+
+/* Card entrance animation with stagger effect */
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-animate-in {
+  animation: card-entrance 0.3s ease-out forwards;
+}
+
+/* Staggered card animations - use via style={{ animationDelay: `${index * 50}ms` }} */
+.card-stagger-1 { animation-delay: 50ms; }
+.card-stagger-2 { animation-delay: 100ms; }
+.card-stagger-3 { animation-delay: 150ms; }
+.card-stagger-4 { animation-delay: 200ms; }
+.card-stagger-5 { animation-delay: 250ms; }
+
+/* Enhanced loading skeleton with shimmer */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1.5s ease-in-out infinite;
+}
+
+[data-theme="dark"] .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Enhanced shadow depth hierarchy */
+.shadow-depth-1 {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-depth-2 {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-depth-3 {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .shadow-depth-1 {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .shadow-depth-2 {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .shadow-depth-3 {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Improved typography scale */
+.text-display {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.text-title-lg {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.text-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.text-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: oklch(var(--bc) / 0.7);
+}
+
+.text-body-lg {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.text-body {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: oklch(var(--bc) / 0.6);
+}
+
+/* Micro-interaction enhancements */
+.interaction-scale {
+  transition: transform 0.15s ease;
+}
+
+.interaction-scale:hover {
+  transform: scale(1.02);
+}
+
+.interaction-scale:active {
+  transform: scale(0.98);
+}
+
+/* Button press feedback */
+.btn-press {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Subtle glow on interactive elements */
+.glow-subtle {
+  position: relative;
+}
+
+.glow-subtle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 0 20px rgba(225, 29, 72, 0.15);
+  pointer-events: none;
+}
+
+.glow-subtle:hover::before {
+  opacity: 1;
+}
+
+/* Focus glow enhancement */
+.focus-glow:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px oklch(var(--b1)),
+    0 0 0 4px oklch(var(--p));
+}
+
+/* Panel depth indicator */
+.panel-depth {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b2) / 0.5) 0%,
+    oklch(var(--b1) / 1) 100%
+  );
+}
+
+/* Selection highlight */
+::selection {
+  background: rgba(225, 29, 72, 0.2);
+  color: inherit;
+}
+
+/* Smooth color transitions for theme switching */
+.themed-transition {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}

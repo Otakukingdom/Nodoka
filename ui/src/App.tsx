@@ -4,12 +4,14 @@
 
 import { useEffect, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
-import TopBar from './components/TopBar';
-import LibraryPanel from './components/LibraryPanel';
-import DetailsPanel from './components/DetailsPanel';
-import PlayerControls from './components/PlayerControls';
-import ModalContainer from './components/ModalContainer';
-import NotificationContainer from './components/NotificationContainer';
+import {
+  TopBar,
+  LibraryPanel,
+  DetailsPanel,
+  PlayerControls,
+  ModalContainer,
+  NotificationContainer,
+} from './components';
 import { loadInitialData } from './store/thunks/libraryThunks';
 import { updatePlayerTime, playPause } from './store/thunks/playerThunks';
 import { openModal, closeModal } from './store/slices/appSlice';
