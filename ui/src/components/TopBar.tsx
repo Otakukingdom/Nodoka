@@ -14,7 +14,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="navbar bg-base-200 border-b border-base-300 px-4 shadow-sm">
+    <div className="navbar bg-base-200 border-b border-base-300 px-4 shadow-sm" role="banner">
       <div className="flex items-center gap-3">
         {/* Logo with enhanced gradient and subtle glow */}
         <div

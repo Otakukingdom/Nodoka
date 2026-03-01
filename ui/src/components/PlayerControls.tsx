@@ -51,11 +51,11 @@ export default function PlayerControls() {
   const progress = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
 
   return (
-    <div className="btm-nav bg-base-200 border-t border-base-300 px-4 py-3 gap-4">
+    <div className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4" role="region" aria-label="Audio player controls">
       {/* Left controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <button
-          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary hidden sm:flex"
           onClick={handleStop}
           aria-label="Stop"
           title="Stop playback"
@@ -83,16 +83,16 @@ export default function PlayerControls() {
       </div>
 
       {/* Center - Seek bar */}
-      <div className="flex-1 flex items-center gap-3">
-        <span className="font-mono text-sm w-14 text-right tabular-nums text-base-content/70 select-none">
+      <div className="flex-1 flex items-center gap-1 sm:gap-3">
+        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 text-right tabular-nums text-base-content/70 select-none">
           {formatTime(currentTime)}
         </span>
-        <div className="flex-1 relative group h-6 flex items-center">
+        <div className="flex-1 relative group h-8 sm:h-6 flex items-center">
           {/* Background track */}
-          <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full bg-base-300 transition-all duration-200 group-hover:h-2.5" />
+          <div className="absolute inset-x-0 h-2 sm:h-2 top-1/2 -translate-y-1/2 rounded-full bg-base-300 transition-all duration-200 group-hover:h-2.5 sm:group-hover:h-2.5" />
           {/* Progress track */}
           <div
-            className="absolute left-0 h-2 top-1/2 -translate-y-1/2 rounded-full gradient-premium transition-all duration-100 group-hover:h-2.5"
+            className="absolute left-0 h-2 sm:h-2 top-1/2 -translate-y-1/2 rounded-full gradient-premium transition-all duration-100 group-hover:h-2.5 sm:group-hover:h-2.5"
             style={{ width: `${progress}%` }}
           />
           <input
@@ -106,19 +106,19 @@ export default function PlayerControls() {
           />
           {/* Visible thumb on hover/focus */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-200 pointer-events-none ring-2 ring-white/30"
-            style={{ left: `calc(${progress}% - 8px)` }}
+            className="absolute top-1/2 -translate-y-1/2 w-5 h-5 sm:w-4 sm:h-4 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-200 pointer-events-none ring-2 ring-white/30"
+            style={{ left: `calc(${progress}% - 10px)` }}
           />
         </div>
-        <span className="font-mono text-sm w-14 tabular-nums text-base-content/70 select-none">
+        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 tabular-nums text-base-content/70 select-none">
           {formatTime(totalDuration)}
         </span>
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1">
         <button
-          className="btn btn-ghost btn-sm px-3 font-mono text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary group relative"
+          className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary group relative"
           onClick={handleSpeedClick}
           title="Playback speed (click to cycle)"
         >
@@ -132,7 +132,7 @@ export default function PlayerControls() {
           aria-label="Volume"
           title="Volume controls"
         >
-          <Volume2 className="h-5 w-5" />
+          <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       </div>
     </div>

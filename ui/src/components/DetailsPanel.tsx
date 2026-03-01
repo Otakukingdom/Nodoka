@@ -16,7 +16,7 @@ export default function DetailsPanel() {
   };
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden bg-base-100">
+    <div className="flex flex-col flex-1 overflow-hidden bg-base-100" role="complementary" aria-label="File and bookmark details">
       {/* Files section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
         <div className="flex items-center gap-2 mb-4">
@@ -30,12 +30,15 @@ export default function DetailsPanel() {
         </div>
         <div className="flex flex-col gap-2" id="files-list">
           {currentFiles.length === 0 ? (
-            <div className="text-center py-12 px-4">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner">
-                <FileText className="w-6 h-6 text-base-content/40" />
+            <div className="text-center py-12 px-6">
+              <div className="relative w-16 h-16 mx-auto mb-4">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
+                <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
+                  <FileText className="w-6 h-6 text-base-content/40" />
+                </div>
               </div>
-              <div className="text-base-content/60 font-medium">No files available</div>
-              <div className="text-sm text-base-content/40 mt-1">Select an audiobook to view files</div>
+              <div className="text-base-content/70 font-medium">No files available</div>
+              <div className="text-sm text-base-content/50 mt-1.5 leading-relaxed">Select an audiobook from the library to view its files</div>
             </div>
           ) : (
             currentFiles.map(file => (
@@ -66,12 +69,15 @@ export default function DetailsPanel() {
         </div>
         <div className="flex flex-col gap-2" id="bookmarks-list">
           {bookmarks.length === 0 ? (
-            <div className="text-center py-8 px-4">
-              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner">
-                <Bookmark className="w-5 h-5 text-base-content/40" />
+            <div className="text-center py-8 px-6">
+              <div className="relative w-14 h-14 mx-auto mb-3">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
+                <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
+                  <Bookmark className="w-5 h-5 text-base-content/40" />
+                </div>
               </div>
               <div className="text-sm text-base-content/60 font-medium">No bookmarks yet</div>
-              <div className="text-xs text-base-content/40 mt-1">Press Ctrl+B to create a bookmark</div>
+              <div className="text-xs text-base-content/45 mt-1.5">Press Ctrl+B during playback to save your place</div>
             </div>
           ) : (
             bookmarks.map(bookmark => (

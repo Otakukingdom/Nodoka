@@ -39,6 +39,8 @@ export default function LibraryPanel() {
     <div
       className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100"
       style={{ width: `${panelWidth}%` }}
+      role="navigation"
+      aria-label="Audiobook library"
     >
       {/* Toolbar */}
       <div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/50">
@@ -72,17 +74,20 @@ export default function LibraryPanel() {
             ))}
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner">
-              <BookOpen className="w-8 h-8 text-base-content/40" />
+          <div className="text-center py-16 px-6">
+            <div className="relative w-20 h-20 mx-auto mb-5">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} />
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-2">
+                <BookOpen className="w-8 h-8 text-base-content/40" />
+              </div>
             </div>
-            <div className="text-lg font-semibold mb-2">
+            <div className="text-lg font-semibold mb-2 text-base-content/80">
               {searchQuery ? 'No matches found' : 'No audiobooks yet'}
             </div>
-            <div className="text-sm text-base-content/60 max-w-xs mx-auto">
+            <div className="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
               {searchQuery
-                ? 'Try adjusting your search terms'
-                : 'Add a directory containing audiobook files to start listening'}
+                ? 'Try adjusting your search terms or clear the search'
+                : 'Click "Add Directory" in the menu to import your audiobook collection'}
             </div>
           </div>
         ) : (

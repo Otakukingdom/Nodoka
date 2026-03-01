@@ -139,7 +139,7 @@ function App() {
   return (
     <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`}>
       <TopBar />
-      <main className="flex flex-1 overflow-hidden">
+      <main className="flex flex-1 overflow-hidden" role="main">
         <LibraryPanel />
         <div className="w-1 bg-base-300 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)]" />
         <DetailsPanel />

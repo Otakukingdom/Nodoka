@@ -580,3 +580,42 @@ html {
     color 0.2s ease,
     box-shadow 0.2s ease;
 }
+
+/* ============================================
+   Responsive Utility Enhancements
+   ============================================ */
+
+/* Touch-friendly tap targets (minimum 44x44px) */
+@media (max-width: 640px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Increase spacing for mobile */
+  .mobile-spacing {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Compact mode for small screens */
+  .compact-mobile {
+    gap: 0.5rem;
+  }
+}
+
+/* Ensure readable text on small screens */
+@media (max-width: 480px) {
+  .text-mobile-readable {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+/* Larger touch targets for primary actions on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .btn-touch-lg {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
