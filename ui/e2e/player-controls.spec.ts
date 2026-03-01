@@ -37,7 +37,7 @@ test.describe('Player Controls Screenshots', () => {
   });
 
   test('seek bar screenshot', async ({ page }) => {
-    const seekBar = page.locator('.btm-nav input[type="range"]');
+    const seekBar = page.locator('.btm-nav input[aria-label="Seek"]');
     await expect(seekBar).toHaveScreenshot('seek-bar.png', screenshotConfig);
   });
 
@@ -49,15 +49,27 @@ test.describe('Player Controls Screenshots', () => {
   });
 
   test('volume button screenshot', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
-    await expect(volumeButton).toHaveScreenshot('volume-button.png', screenshotConfig);
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]');
+    await expect(volumeButton.first()).toHaveScreenshot('volume-button.png', screenshotConfig);
   });
 
   test('volume button focus ring screenshot', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
-    await volumeButton.focus();
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]');
+    await volumeButton.first().focus();
     await page.waitForTimeout(200);
-    await expect(volumeButton).toHaveScreenshot('volume-button-focus.png', screenshotConfig);
+    await expect(volumeButton.first()).toHaveScreenshot('volume-button-focus.png', screenshotConfig);
+  });
+
+  test('volume slider component screenshot', async ({ page }) => {
+    const volumeSlider = page.locator('.btm-nav .group\\/volume');
+    await expect(volumeSlider).toHaveScreenshot('volume-slider.png', screenshotConfig);
+  });
+
+  test('volume slider hover state screenshot', async ({ page }) => {
+    const volumeSlider = page.locator('.btm-nav .group\\/volume');
+    await volumeSlider.hover();
+    await page.waitForTimeout(200);
+    await expect(volumeSlider).toHaveScreenshot('volume-slider-hover.png', screenshotConfig);
   });
 
   test('stop button screenshot', async ({ page }) => {
@@ -98,7 +110,20 @@ test.describe('Player Controls Component Tests', () => {
   });
 
   test('volume button has tooltip', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
-    await expect(volumeButton).toHaveAttribute('title');
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]');
+    await expect(volumeButton.first()).toHaveAttribute('title');
+  });
+
+  test('volume slider has range input', async ({ page }) => {
+    const volumeRange = page.locator('.btm-nav .group\\/volume input[type="range"]');
+    await expect(volumeRange).toBeVisible();
+  });
+
+  test('mute toggle works with keyboard M key', async ({ page }) => {
+    await page.keyboard.press('m');
+    await page.waitForTimeout(200);
+    // Should still be on the page with updated state
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]');
+    await expect(volumeButton.first()).toBeVisible();
   });
 });

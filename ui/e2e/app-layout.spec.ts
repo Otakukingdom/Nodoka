@@ -55,6 +55,64 @@ test.describe('App Layout Component Tests', () => {
   });
 });
 
+test.describe('Panel Resize Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('panel divider exists', async ({ page }) => {
+    const divider = page.locator('main [role="separator"]');
+    await expect(divider).toBeVisible();
+    await expect(divider).toHaveAttribute('aria-orientation', 'vertical');
+  });
+
+  test('panel divider hover state screenshot', async ({ page }) => {
+    const divider = page.locator('main [role="separator"]');
+    await divider.hover();
+    await page.waitForTimeout(200);
+    await expect(divider).toHaveScreenshot('panel-divider-hover.png', screenshotConfig);
+  });
+
+  test('panel divider has cursor style', async ({ page }) => {
+    const divider = page.locator('main [role="separator"]');
+    const cursor = await divider.evaluate((el) => {
+      return window.getComputedStyle(el).cursor;
+    });
+    expect(cursor).toBe('col-resize');
+  });
+
+  test('panel divider is keyboard accessible', async ({ page }) => {
+    const divider = page.locator('main [role="separator"]');
+    await expect(divider).toHaveAttribute('tabindex', '0');
+  });
+
+  test('default panel layout screenshot', async ({ page }) => {
+    const mainContent = page.locator('main');
+    await expect(mainContent).toHaveScreenshot('default-panel-layout.png', screenshotConfig);
+  });
+
+  test('double-click resets panel ratio', async ({ page }) => {
+    const divider = page.locator('main [role="separator"]');
+    const mainContent = page.locator('main');
+    const firstChild = mainContent.locator('> div:first-child');
+
+    // Get initial width
+    const initialWidth = await firstChild.evaluate((el) => el.getBoundingClientRect().width);
+
+    // Double-click to reset (should stay at 40% default)
+    await divider.dblclick();
+    await page.waitForTimeout(200);
+
+    // Verify the width is approximately 40% of container
+    const containerWidth = await mainContent.evaluate((el) => el.getBoundingClientRect().width);
+    const newWidth = await firstChild.evaluate((el) => el.getBoundingClientRect().width);
+    const ratio = newWidth / containerWidth;
+
+    // Allow some tolerance for rounding
+    expect(ratio).toBeCloseTo(0.4, 1);
+  });
+});
+
 test.describe('Responsive Layout Screenshots', () => {
   test.use({ viewport: viewports.tablet });
 

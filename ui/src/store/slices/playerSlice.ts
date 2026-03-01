@@ -10,6 +10,7 @@ interface PlayerState {
   currentTime: number;
   totalDuration: number;
   volume: number;
+  isMuted: boolean;
   volumeExpanded: VolumeExpansion;
   speed: number;
 }
@@ -19,6 +20,7 @@ const initialState: PlayerState = {
   currentTime: 0,
   totalDuration: 0,
   volume: 100,
+  isMuted: false,
   volumeExpanded: 'Collapsed',
   speed: 1.0,
 };
@@ -51,6 +53,12 @@ const playerSlice = createSlice({
     cycleSpeed: (state) => {
       state.speed = state.speed >= 2.0 ? 0.5 : state.speed + 0.25;
     },
+    toggleMute: (state) => {
+      state.isMuted = !state.isMuted;
+    },
+    setMuted: (state, action: PayloadAction<boolean>) => {
+      state.isMuted = action.payload;
+    },
     resetPlayer: (state) => {
       state.playback = 'Stopped';
       state.currentTime = 0;
@@ -68,6 +76,8 @@ export const {
   toggleVolumeExpanded,
   setSpeed,
   cycleSpeed,
+  toggleMute,
+  setMuted,
   resetPlayer,
 } = playerSlice.actions;
 

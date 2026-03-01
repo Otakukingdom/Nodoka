@@ -58,14 +58,14 @@ test.describe('Button Interaction States', () => {
   });
 
   test('volume button hover state', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
     await volumeButton.hover();
     await page.waitForTimeout(200);
     await expect(volumeButton).toHaveScreenshot('volume-button-hover.png', screenshotConfig);
   });
 
   test('volume button active state', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
     await volumeButton.hover();
     await page.mouse.down();
     await page.waitForTimeout(100);
@@ -139,7 +139,7 @@ test.describe('Seek Bar Interaction States', () => {
   });
 
   test('seek bar active dragging state', async ({ page }) => {
-    const seekBar = page.locator('.btm-nav input[type="range"]').first();
+    const seekBar = page.locator('.btm-nav input[aria-label="Seek"]');
     const box = await seekBar.boundingBox();
     if (box) {
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);

@@ -93,7 +93,9 @@ export const updateVolume = createAsyncThunk(
 
 export const updateSpeed = createAsyncThunk(
   'player/updateSpeed',
-  async (speed: number, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    const state = getState() as { player: { speed: number } };
+    const speed = state.player.speed;
     try {
       await TauriCommands.setSpeed(speed);
       dispatch(setSpeed(speed));

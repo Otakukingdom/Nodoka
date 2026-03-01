@@ -170,12 +170,12 @@ test.describe('PlayerControls Component Screenshots', () => {
   });
 
   test('PlayerControls volume button screenshot', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
     await expect(volumeButton).toHaveScreenshot('player-controls-volume-button.png', screenshotConfig);
   });
 
   test('PlayerControls volume button focus state screenshot', async ({ page }) => {
-    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    const volumeButton = page.locator('.btm-nav button[aria-label="Mute"], .btm-nav button[aria-label="Unmute"]').first();
     await volumeButton.focus();
     await page.waitForTimeout(200);
     await expect(volumeButton).toHaveScreenshot('player-controls-volume-button-focus.png', screenshotConfig);
@@ -187,7 +187,7 @@ test.describe('PlayerControls Component Screenshots', () => {
   });
 
   test('PlayerControls seek bar screenshot', async ({ page }) => {
-    const seekBar = page.locator('.btm-nav input[type="range"]');
+    const seekBar = page.locator('.btm-nav input[aria-label="Seek"]');
     await expect(seekBar).toHaveScreenshot('player-controls-seek-bar.png', screenshotConfig);
   });
 

@@ -10,6 +10,7 @@ export { default as TopBar } from './TopBar';
 export { default as LibraryPanel } from './LibraryPanel';
 export { default as DetailsPanel } from './DetailsPanel';
 export { default as PlayerControls } from './PlayerControls';
+export { default as VolumeSlider } from './VolumeSlider';
 
 // Container components
 export { default as ModalContainer } from './ModalContainer';

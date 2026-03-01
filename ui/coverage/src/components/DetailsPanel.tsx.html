@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/155</span>
+                <span class='fraction'>0/161</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/155</span>
+                <span class='fraction'>0/161</span>
             </div>
         
             
@@ -218,7 +218,19 @@
 <a name='L153'></a><a href='#L153'>153</a>
 <a name='L154'></a><a href='#L154'>154</a>
 <a name='L155'></a><a href='#L155'>155</a>
-<a name='L156'></a><a href='#L156'>156</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -391,7 +403,7 @@
 <span class="cstat-no" title="statement not covered" >  };</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;div className="flex flex-col flex-1 overflow-hidden bg-base-100"&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div className="flex flex-col flex-1 overflow-hidden bg-base-100" role="complementary" aria-label="File and bookmark details"&gt;</span>
 <span class="cstat-no" title="statement not covered" >      {/* Files section */}</span>
 <span class="cstat-no" title="statement not covered" >      &lt;div className="flex-1 overflow-y-auto custom-scrollbar p-4"&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="flex items-center gap-2 mb-4"&gt;</span>
@@ -405,12 +417,15 @@
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="flex flex-col gap-2" id="files-list"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          {currentFiles.length === 0 ? (</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div className="text-center py-12 px-4"&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;FileText className="w-6 h-6 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;div className="text-center py-12 px-6"&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="relative w-16 h-16 mx-auto mb-4"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                  &lt;FileText className="w-6 h-6 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="text-base-content/60 font-medium"&gt;No files available&lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="text-sm text-base-content/40 mt-1"&gt;Select an audiobook to view files&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="text-base-content/70 font-medium"&gt;No files available&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="text-sm text-base-content/50 mt-1.5 leading-relaxed"&gt;Select an audiobook from the library to view its files&lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >          ) : (</span>
 <span class="cstat-no" title="statement not covered" >            currentFiles.map(file =&gt; (</span>
@@ -441,12 +456,15 @@
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="flex flex-col gap-2" id="bookmarks-list"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          {bookmarks.length === 0 ? (</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div className="text-center py-8 px-4"&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;Bookmark className="w-5 h-5 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;div className="text-center py-8 px-6"&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="relative w-14 h-14 mx-auto mb-3"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                  &lt;Bookmark className="w-5 h-5 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;div className="text-sm text-base-content/60 font-medium"&gt;No bookmarks yet&lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;div className="text-xs text-base-content/40 mt-1"&gt;Press Ctrl+B to create a bookmark&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="text-xs text-base-content/45 mt-1.5"&gt;Press Ctrl+B during playback to save your place&lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >          ) : (</span>
 <span class="cstat-no" title="statement not covered" >            bookmarks.map(bookmark =&gt; (</span>
@@ -535,7 +553,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-01T21:40:42.726Z
+                at 2026-03-01T22:59:36.358Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

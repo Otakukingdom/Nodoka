@@ -123,3 +123,4 @@ ui/e2e-screenshots/
 ui/playwright-report/
 ui/test-results/
 ui/e2e/.auth/
+ui/coverage/

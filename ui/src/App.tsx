@@ -2,7 +2,7 @@
  * Main application component
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import {
   TopBar,
@@ -13,13 +13,21 @@ import {
   NotificationContainer,
 } from './components';
 import { loadInitialData, selectFile } from './store/thunks/libraryThunks';
-import { updatePlayerTime, playPause, seekForward, seekBackward } from './store/thunks/playerThunks';
-import { openModal, closeModal } from './store/slices/appSlice';
+import { updatePlayerTime, playPause, seekForward, seekBackward, updateVolume } from './store/thunks/playerThunks';
+import {
+  openModal,
+  closeModal,
+  setPanelRatio,
+  setPanelDividerDragging,
+} from './store/slices/appSlice';
+import { toggleMute, setVolume } from './store/slices/playerSlice';
 
 function App() {
   const dispatch = useAppDispatch();
-  const { theme, isLoading } = useAppSelector(state => state.app);
+  const { theme, isLoading, panelRatio, panelDividerDragging } = useAppSelector(state => state.app);
   const { currentFiles, selectedFile } = useAppSelector(state => state.library);
+  const { volume } = useAppSelector(state => state.player);
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     void dispatch(loadInitialData());
@@ -56,6 +64,45 @@ function App() {
 
     return () => clearInterval(interval);
   }, [dispatch]);
+
+  // Panel resize handlers
+  const handleDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dispatch(setPanelDividerDragging(true));
+  }, [dispatch]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!panelDividerDragging || !mainRef.current) return;
+    const rect = mainRef.current.getBoundingClientRect();
+    const newRatio = (e.clientX - rect.left) / rect.width;
+    dispatch(setPanelRatio(newRatio));
+  }, [panelDividerDragging, dispatch]);
+
+  const handleMouseUp = useCallback(() => {
+    if (panelDividerDragging) {
+      dispatch(setPanelDividerDragging(false));
+    }
+  }, [panelDividerDragging, dispatch]);
+
+  const handleDividerDoubleClick = useCallback(() => {
+    dispatch(setPanelRatio(0.4)); // Reset to default
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (panelDividerDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+    return undefined;
+  }, [panelDividerDragging, handleMouseMove, handleMouseUp]);
 
   // Keyboard shortcuts
   const handleKeyboard = useCallback((e: KeyboardEvent) => {
@@ -102,6 +149,23 @@ function App() {
         }
         break;
       }
+      case 'm':
+      case 'M':
+        e.preventDefault();
+        dispatch(toggleMute());
+        break;
+      case '+':
+      case '=':
+        e.preventDefault();
+        dispatch(setVolume(Math.min(100, volume + 5)));
+        void dispatch(updateVolume(Math.min(100, volume + 5)));
+        break;
+      case '-':
+      case '_':
+        e.preventDefault();
+        dispatch(setVolume(Math.max(0, volume - 5)));
+        void dispatch(updateVolume(Math.max(0, volume - 5)));
+        break;
     }
 
     // Ctrl/Cmd + B for bookmark
@@ -115,7 +179,7 @@ function App() {
       e.preventDefault();
       dispatch(openModal('Settings'));
     }
-  }, [dispatch, currentFiles, selectedFile]);
+  }, [dispatch, currentFiles, selectedFile, volume]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyboard);
@@ -139,10 +203,22 @@ function App() {
   return (
     <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`}>
       <TopBar />
-      <main className="flex flex-1 overflow-hidden" role="main">
-        <LibraryPanel />
-        <div className="w-1 bg-base-300 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)]" />
-        <DetailsPanel />
+      <main className="flex flex-1 overflow-hidden" role="main" ref={mainRef}>
+        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0">
+          <LibraryPanel />
+        </div>
+        <div
+          className={`w-1 bg-base-300 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 ${panelDividerDragging ? 'bg-primary/60' : ''}`}
+          onMouseDown={handleDividerMouseDown}
+          onDoubleClick={handleDividerDoubleClick}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize panels"
+          tabIndex={0}
+        />
+        <div className="flex-1">
+          <DetailsPanel />
+        </div>
       </main>
       <PlayerControls />
       <ModalContainer />

@@ -2,16 +2,15 @@
  * Player controls component at the bottom of the app
  */
 
-import { Play, Pause, Square, Volume2 } from 'lucide-react';
+import { Play, Pause, Square } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
-import { cycleSpeed } from '../store/slices/playerSlice';
-import { playPause, stop, seek, updateSpeed } from '../store/thunks/playerThunks';
-import { toggleVolumeExpanded } from '../store/slices/playerSlice';
-import { store } from '../store';
+import { cycleSpeed, toggleMute } from '../store/slices/playerSlice';
+import { playPause, stop, seek, updateSpeed, updateVolume } from '../store/thunks/playerThunks';
+import VolumeSlider from './VolumeSlider';
 
 export default function PlayerControls() {
   const dispatch = useAppDispatch();
-  const { playback, currentTime, totalDuration, speed } = useAppSelector(state => state.player);
+  const { playback, currentTime, totalDuration, speed, volume, isMuted } = useAppSelector(state => state.player);
 
   const handlePlayPause = () => {
     void dispatch(playPause());
@@ -27,12 +26,15 @@ export default function PlayerControls() {
 
   const handleSpeedClick = () => {
     dispatch(cycleSpeed());
-    const state = store.getState();
-    void dispatch(updateSpeed(state.player.speed));
+    void dispatch(updateSpeed());
   };
 
-  const handleVolumeClick = () => {
-    dispatch(toggleVolumeExpanded());
+  const handleVolumeChange = (newVolume: number) => {
+    void dispatch(updateVolume(newVolume));
+  };
+
+  const handleMuteToggle = () => {
+    dispatch(toggleMute());
   };
 
   const formatTime = (ms: number): string => {
@@ -127,14 +129,12 @@ export default function PlayerControls() {
             {speed}x
           </span>
         </button>
-        <button
-          className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
-          onClick={handleVolumeClick}
-          aria-label="Volume"
-          title="Volume controls"
-        >
-          <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
-        </button>
+        <VolumeSlider
+          volume={volume}
+          isMuted={isMuted}
+          onVolumeChange={handleVolumeChange}
+          onMuteToggle={handleMuteToggle}
+        />
       </div>
     </div>
   );

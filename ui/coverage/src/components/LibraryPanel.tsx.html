@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/168</span>
+                <span class='fraction'>0/173</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/168</span>
+                <span class='fraction'>0/173</span>
             </div>
         
             
@@ -231,7 +231,17 @@
 <a name='L166'></a><a href='#L166'>166</a>
 <a name='L167'></a><a href='#L167'>167</a>
 <a name='L168'></a><a href='#L168'>168</a>
-<a name='L169'></a><a href='#L169'>169</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -440,6 +450,8 @@
 <span class="cstat-no" title="statement not covered" >    &lt;div</span>
 <span class="cstat-no" title="statement not covered" >      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100"</span>
 <span class="cstat-no" title="statement not covered" >      style={{ width: `${panelWidth}%` }}</span>
+<span class="cstat-no" title="statement not covered" >      role="navigation"</span>
+<span class="cstat-no" title="statement not covered" >      aria-label="Audiobook library"</span>
 <span class="cstat-no" title="statement not covered" >    &gt;</span>
 <span class="cstat-no" title="statement not covered" >      {/* Toolbar */}</span>
 <span class="cstat-no" title="statement not covered" >      &lt;div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/50"&gt;</span>
@@ -473,17 +485,20 @@
 <span class="cstat-no" title="statement not covered" >            ))}</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        ) : filteredBooks.length === 0 ? (</span>
-<span class="cstat-no" title="statement not covered" >          &lt;div className="text-center py-16 px-4"&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-inner"&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;BookOpen className="w-8 h-8 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div className="text-center py-16 px-6"&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;div className="relative w-20 h-20 mx-auto mb-5"&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} /&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-2"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;BookOpen className="w-8 h-8 text-base-content/40" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div className="text-lg font-semibold mb-2"&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;div className="text-lg font-semibold mb-2 text-base-content/80"&gt;</span>
 <span class="cstat-no" title="statement not covered" >              {searchQuery ? 'No matches found' : 'No audiobooks yet'}</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;div className="text-sm text-base-content/60 max-w-xs mx-auto"&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;div className="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed"&gt;</span>
 <span class="cstat-no" title="statement not covered" >              {searchQuery</span>
-<span class="cstat-no" title="statement not covered" >                ? 'Try adjusting your search terms'</span>
-<span class="cstat-no" title="statement not covered" >                : 'Add a directory containing audiobook files to start listening'}</span>
+<span class="cstat-no" title="statement not covered" >                ? 'Try adjusting your search terms or clear the search'</span>
+<span class="cstat-no" title="statement not covered" >                : 'Click "Add Directory" in the menu to import your audiobook collection'}</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        ) : (</span>
@@ -574,7 +589,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-01T21:40:42.726Z
+                at 2026-03-01T22:59:36.358Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

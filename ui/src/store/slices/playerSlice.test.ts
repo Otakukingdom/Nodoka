@@ -12,6 +12,8 @@ import playerReducer, {
   cycleSpeed,
   resetPlayer,
   toggleVolumeExpanded,
+  toggleMute,
+  setMuted,
 } from './playerSlice';
 
 describe('playerSlice', () => {
@@ -20,6 +22,7 @@ describe('playerSlice', () => {
     currentTime: 0,
     totalDuration: 0,
     volume: 100,
+    isMuted: false,
     volumeExpanded: 'Collapsed' as const,
     speed: 1.0,
   };
@@ -127,6 +130,32 @@ describe('playerSlice', () => {
       const expandedState = { ...initialState, volumeExpanded: 'Expanded' as const };
       const state = playerReducer(expandedState, toggleVolumeExpanded());
       expect(state.volumeExpanded).toBe('Collapsed');
+    });
+  });
+
+  describe('toggleMute', () => {
+    it('should toggle isMuted from false to true', () => {
+      const state = playerReducer(initialState, toggleMute());
+      expect(state.isMuted).toBe(true);
+    });
+
+    it('should toggle isMuted from true to false', () => {
+      const mutedState = { ...initialState, isMuted: true };
+      const state = playerReducer(mutedState, toggleMute());
+      expect(state.isMuted).toBe(false);
+    });
+  });
+
+  describe('setMuted', () => {
+    it('should set isMuted to true', () => {
+      const state = playerReducer(initialState, setMuted(true));
+      expect(state.isMuted).toBe(true);
+    });
+
+    it('should set isMuted to false', () => {
+      const mutedState = { ...initialState, isMuted: true };
+      const state = playerReducer(mutedState, setMuted(false));
+      expect(state.isMuted).toBe(false);
     });
   });
 });
