@@ -16,7 +16,13 @@ export default function NotificationContainer() {
   };
 
   return (
-    <div className="toast toast-top toast-end z-50 gap-3 p-4">
+    <div
+      className="toast toast-top toast-end z-50 gap-3 p-4"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
+    >
       {notifications.map(notification => (
         <NotificationToast
           key={notification.id}
