@@ -3,6 +3,7 @@
  */
 
 import { useMemo } from 'react';
+import { Check, BookOpen } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
 import { selectAudiobook } from '../store/thunks/libraryThunks';
@@ -63,7 +64,9 @@ export default function LibraryPanel() {
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3" id="audiobook-list">
         {filteredBooks.length === 0 ? (
           <div className="text-center py-16 px-4">
-            <div className="text-6xl mb-4 opacity-70">📚</div>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+              <BookOpen className="w-8 h-8 text-base-content/50" />
+            </div>
             <div className="text-lg font-semibold mb-2">No audiobooks found</div>
             <div className="text-sm text-base-content/60 max-w-xs mx-auto">
               Add a directory containing audiobook files to start listening
@@ -111,7 +114,7 @@ function AudiobookCard({ book, isSelected, onClick }: AudiobookCardProps) {
             {book.name}
           </h3>
           {book.completeness === 100 && (
-            <span className="text-xs text-success shrink-0">✓</span>
+            <Check className="h-3.5 w-3.5 text-success shrink-0" />
           )}
         </div>
         {book.author && (

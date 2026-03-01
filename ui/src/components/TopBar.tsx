@@ -32,7 +32,7 @@ export default function TopBar() {
       </div>
       <div className="flex-1" />
       <button
-        className="btn btn-ghost btn-circle hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         onClick={handleSettingsClick}
         aria-label="Settings"
         title="Settings (Ctrl+,)"

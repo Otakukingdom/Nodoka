@@ -2,9 +2,10 @@
  * Details panel component showing files and bookmarks
  */
 
+import { FileText, Bookmark } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { selectFile } from '../store/thunks/libraryThunks';
-import type { AudiobookFile, Bookmark } from '../store/types';
+import type { AudiobookFile, Bookmark as BookmarkType } from '../store/types';
 
 export default function DetailsPanel() {
   const { currentFiles, selectedFile, bookmarks } = useAppSelector(state => state.library);
@@ -22,7 +23,9 @@ export default function DetailsPanel() {
         <div className="flex flex-col gap-2" id="files-list">
           {currentFiles.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <div className="text-4xl mb-3 opacity-60">📂</div>
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-base-200 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-base-content/50" />
+              </div>
               <div className="text-base-content/60">No files available</div>
               <div className="text-sm text-base-content/40 mt-1">Select an audiobook to view files</div>
             </div>
@@ -45,7 +48,9 @@ export default function DetailsPanel() {
         <div className="flex flex-col gap-2" id="bookmarks-list">
           {bookmarks.length === 0 ? (
             <div className="text-center py-8 px-4">
-              <div className="text-3xl mb-2 opacity-60">🔖</div>
+              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-base-200 flex items-center justify-center">
+                <Bookmark className="w-5 h-5 text-base-content/50" />
+              </div>
               <div className="text-sm text-base-content/60">No bookmarks yet</div>
               <div className="text-xs text-base-content/40 mt-1">Press Ctrl+B to create a bookmark</div>
             </div>
@@ -97,11 +102,7 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
   );
 }
 
-interface BookmarkCardProps {
-  bookmark: Bookmark;
-}
-
-function BookmarkCard({ bookmark }: BookmarkCardProps) {
+function BookmarkCard({ bookmark }: { bookmark: BookmarkType }) {
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);

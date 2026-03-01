@@ -22,6 +22,11 @@ function App() {
     dispatch(loadInitialData());
   }, [dispatch]);
 
+  // Apply theme to HTML element for DaisyUI
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme.toLowerCase());
+  }, [theme]);
+
   // Player time updates
   useEffect(() => {
     const interval = window.setInterval(() => {

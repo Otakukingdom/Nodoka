@@ -26,6 +26,9 @@ export default defineConfig(async () => {
         }
       }])
     ],
+    define: {
+      'import.meta.env.VITE_PLAYWRIGHT_TEST': JSON.stringify(process.env.PLAYWRIGHT_TEST === 'true'),
+    },
     clearScreen: false,
     server: {
       port: 5173,
