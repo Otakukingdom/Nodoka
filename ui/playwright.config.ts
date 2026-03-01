@@ -10,13 +10,23 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [['html'], ['list']],
   outputDir: './test-results',
   snapshotDir: './e2e-screenshots',
+  expect: {
+    // Allow small pixel differences for cross-platform consistency
+    toHaveScreenshot: {
+      maxDiffPixels: 100,
+      maxDiffPixelRatio: 0.01,
+      animations: 'disabled',
+    },
+  },
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Consistent viewport for screenshot tests
+    viewport: { width: 1280, height: 720 },
   },
   projects: [
     {
@@ -25,7 +35,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'PLAYWRIGHT_TEST=true npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

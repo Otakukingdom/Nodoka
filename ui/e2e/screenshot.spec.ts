@@ -144,6 +144,175 @@ test.describe('UI Screenshot Tests', () => {
   });
 });
 
+// Enhanced screenshot tests for comprehensive visual regression
+test.describe('Enhanced UI Screenshot Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+    await page.waitForFunction(() => {
+      const loading = document.querySelector('.loading-spinner');
+      return loading === null;
+    }, { timeout: 15000 });
+  });
+
+  test('audiobook card hover state screenshot', async ({ page }) => {
+    const firstCard = page.locator('.library-panel .card').first();
+    if (await firstCard.isVisible()) {
+      await firstCard.hover();
+      await page.waitForTimeout(200);
+      await expect(firstCard).toHaveScreenshot('audiobook-card-hover.png', {
+        animations: 'disabled',
+      });
+    }
+  });
+
+  test('settings button hover state screenshot', async ({ page }) => {
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await settingsButton.hover();
+    await page.waitForTimeout(200);
+    await expect(settingsButton).toHaveScreenshot('settings-button-hover.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('play button screenshot', async ({ page }) => {
+    const playButton = page.locator('.btm-nav button[aria-label="Play"], .btm-nav button[aria-label="Pause"]').first();
+    await expect(playButton).toHaveScreenshot('play-button.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('speed control button screenshot', async ({ page }) => {
+    const speedButton = page.locator('.btm-nav button:has-text("x")');
+    await expect(speedButton.first()).toHaveScreenshot('speed-button.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('seek bar screenshot', async ({ page }) => {
+    const seekBar = page.locator('.btm-nav input[type="range"]');
+    await expect(seekBar).toHaveScreenshot('seek-bar.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('details panel screenshot', async ({ page }) => {
+    const detailsPanel = page.locator('.flex-1.overflow-hidden.bg-base-100').last();
+    await expect(detailsPanel).toHaveScreenshot('details-panel.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('dark theme modal screenshot', async ({ page }) => {
+    // Set dark theme first
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.selectOption('.modal-box select', 'Dark');
+    await page.waitForTimeout(300);
+    await page.click('.modal-box button[aria-label="Close"]');
+    await page.waitForTimeout(300);
+
+    // Open modal again for screenshot
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.waitForTimeout(300);
+    const modal = page.locator('.modal-box');
+    await expect(modal).toHaveScreenshot('settings-modal-dark.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('dark theme keyboard help modal screenshot', async ({ page }) => {
+    // Set dark theme first
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.selectOption('.modal-box select', 'Dark');
+    await page.waitForTimeout(300);
+    await page.click('.modal-box button[aria-label="Close"]');
+    await page.waitForTimeout(300);
+
+    // Open keyboard help for screenshot
+    await page.keyboard.press('F1');
+    await page.waitForSelector('.modal-box');
+    await page.waitForTimeout(300);
+    const modal = page.locator('.modal-box');
+    await expect(modal).toHaveScreenshot('keyboard-help-modal-dark.png', {
+      animations: 'disabled',
+    });
+  });
+});
+
+// Responsive screenshot tests
+test.describe('Responsive Screenshot Tests', () => {
+  test.use({ viewport: { width: 1024, height: 768 } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('tablet viewport main layout screenshot', async ({ page }) => {
+    await expect(page).toHaveScreenshot('tablet-layout.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+});
+
+test.describe('Small Viewport Screenshot Tests', () => {
+  test.use({ viewport: { width: 800, height: 600 } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('small viewport main layout screenshot', async ({ page }) => {
+    await expect(page).toHaveScreenshot('small-viewport-layout.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+});
+
+// Focus state screenshot tests
+test.describe('Focus State Screenshot Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('search input focus ring screenshot', async ({ page }) => {
+    const searchInput = page.locator('input[placeholder*="Search"]');
+    await searchInput.focus();
+    await page.waitForTimeout(200);
+    await expect(searchInput).toHaveScreenshot('search-input-focus.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('settings button focus ring screenshot', async ({ page }) => {
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await settingsButton.focus();
+    await page.waitForTimeout(200);
+    await expect(settingsButton).toHaveScreenshot('settings-button-focus.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('modal close button focus ring screenshot', async ({ page }) => {
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+    await page.waitForTimeout(300);
+    const closeButton = page.locator('.modal-box button[aria-label="Close"]');
+    await closeButton.focus();
+    await page.waitForTimeout(200);
+    await expect(closeButton).toHaveScreenshot('modal-close-focus.png', {
+      animations: 'disabled',
+    });
+  });
+});
+
 test.describe('UI Component Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

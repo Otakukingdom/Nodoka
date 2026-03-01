@@ -6,20 +6,25 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+// Check if running in test mode or standalone web mode
+const isTestMode = process.env.VITEST === 'true' || process.env.PLAYWRIGHT_TEST === 'true';
+const isTauriDev = process.env.TAURI_DEV === 'true';
+
 export default defineConfig(async () => {
   return {
     plugins: [
       react(),
-      {
+      // Only start Tauri in dev mode when explicitly requested
+      ...(isTestMode || !isTauriDev ? [] : [{
         name: 'tauri-dev',
-        configureServer(server) {
+        configureServer(server: { httpServer?: { once: (event: string, callback: () => void) => void } }) {
           server.httpServer?.once('listening', () => {
-            execAsync('cargo tauri dev').catch((err) => {
+            execAsync('cargo tauri dev').catch((err: Error) => {
               console.error('Failed to start Tauri dev:', err);
             });
           });
         }
-      }
+      }])
     ],
     clearScreen: false,
     server: {

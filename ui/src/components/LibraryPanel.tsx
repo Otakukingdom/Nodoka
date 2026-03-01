@@ -44,12 +44,12 @@ export default function LibraryPanel() {
         <input
           type="text"
           placeholder="Search audiobooks..."
-          className="input input-bordered input-sm flex-1 bg-base-100 focus:border-primary transition-colors"
+          className="input input-bordered input-sm flex-1 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           value={searchQuery}
           onChange={handleSearchChange}
         />
         <select
-          className="select select-bordered select-sm bg-base-100"
+          className="select select-bordered select-sm bg-base-100 focus:border-primary transition-colors cursor-pointer"
           value={sortOrder}
           onChange={handleSortChange}
         >
@@ -62,10 +62,12 @@ export default function LibraryPanel() {
       {/* Audiobook list */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3" id="audiobook-list">
         {filteredBooks.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <div className="text-5xl mb-3 opacity-80">📚</div>
-            <div className="text-lg font-semibold mb-1">No audiobooks found</div>
-            <div className="text-sm text-base-content/60">Add a directory to get started</div>
+          <div className="text-center py-16 px-4">
+            <div className="text-6xl mb-4 opacity-70">📚</div>
+            <div className="text-lg font-semibold mb-2">No audiobooks found</div>
+            <div className="text-sm text-base-content/60 max-w-xs mx-auto">
+              Add a directory containing audiobook files to start listening
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -93,21 +95,38 @@ interface AudiobookCardProps {
 function AudiobookCard({ book, isSelected, onClick }: AudiobookCardProps) {
   return (
     <div
-      className={`card card-compact bg-base-100 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
-        isSelected ? 'ring-2 ring-primary shadow-md' : 'border border-base-300/50 hover:border-primary/30'
+      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group ${
+        isSelected
+          ? 'ring-2 ring-primary shadow-lg bg-primary/5 scale-[1.01]'
+          : 'shadow-sm border border-base-300/50 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5'
       }`}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
     >
       <div className="card-body p-3">
-        <h3 className="card-title text-sm font-semibold text-truncate leading-tight">{book.name}</h3>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="card-title text-sm font-semibold text-truncate leading-tight group-hover:text-primary transition-colors">
+            {book.name}
+          </h3>
+          {book.completeness === 100 && (
+            <span className="text-xs text-success shrink-0">✓</span>
+          )}
+        </div>
+        {book.author && (
+          <span className="text-xs text-base-content/50 -mt-1 text-truncate">{book.author}</span>
+        )}
+        <div className="flex items-center gap-2 mt-1.5">
           <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden">
             <div
-              className="h-full gradient-premium rounded-full transition-all duration-300"
+              className="h-full gradient-premium rounded-full transition-all duration-500 ease-out"
               style={{ width: `${book.completeness}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-base-content/70 w-8 text-right tabular-nums">{book.completeness}%</span>
+          <span className="text-xs font-medium text-base-content/70 w-9 text-right tabular-nums">
+            {book.completeness}%
+          </span>
         </div>
       </div>
     </div>

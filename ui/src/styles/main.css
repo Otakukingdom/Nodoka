@@ -18,7 +18,10 @@
 
   /* Focus indicators for WCAG 2.1 AA compliance */
   *:focus-visible {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    outline: none;
+    ring: 2px;
+    ring-color: var(--fallback-p, #E11D48);
+    ring-offset: 2px;
   }
 }
 
@@ -33,6 +36,39 @@
   /* Premium gradient for logo and accents */
   .gradient-premium {
     background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+  }
+
+  /* Glassmorphism panel effect */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Dark mode glass panel */
+  [data-theme="dark"] .glass-panel {
+    background: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Premium button with gradient */
+  .btn-premium {
+    background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .btn-premium:hover {
+    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .btn-premium:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
   }
 
   /* Panel divider with gradient */
@@ -105,6 +141,28 @@
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
+
+  /* Skeleton loading animation */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--fallback-b2, #e5e7eb) 0%,
+      var(--fallback-b3, #f3f4f6) 50%,
+      var(--fallback-b2, #e5e7eb) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+
+  [data-theme="dark"] .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--fallback-b2, #374151) 0%,
+      var(--fallback-b3, #4b5563) 50%,
+      var(--fallback-b2, #374151) 100%
+    );
+    background-size: 200% 100%;
+  }
 }
 
 @layer utilities {
@@ -113,6 +171,24 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* Premium text gradient */
+  .text-gradient-premium {
+    background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Enhanced focus ring utility */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+
+  /* Focus ring for dark mode */
+  [data-theme="dark"] .focus-ring {
+    @apply focus-visible:ring-offset-base-100;
   }
 }
 
@@ -154,6 +230,15 @@
   to {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
 
