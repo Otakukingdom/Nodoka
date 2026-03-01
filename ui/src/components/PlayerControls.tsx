@@ -120,6 +120,7 @@ export default function PlayerControls() {
         <button
           className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary group relative"
           onClick={handleSpeedClick}
+          aria-label={`Playback speed: ${speed}x. Click to cycle`}
           title="Playback speed (click to cycle)"
         >
           <span className={`${speed !== 1.0 ? 'text-primary font-semibold' : ''} group-hover:scale-110 inline-block transition-transform`}>

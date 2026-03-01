@@ -11,7 +11,7 @@
 
   body {
     @apply bg-base-100 text-base-content;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
