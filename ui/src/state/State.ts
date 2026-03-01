@@ -23,7 +23,7 @@ import type {
 type Listener = () => void;
 
 export class AppState {
-  private listeners: Set<Listener> = new Set();
+  private listeners: Set<Listener> = new Set<Listener>();
 
   // Audiobook library
   public audiobooks: Audiobook[] = [];

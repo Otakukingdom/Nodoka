@@ -4,7 +4,7 @@
  * Tests component lifecycle: mount, unmount, update, and lifecycle hooks
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Component } from './Component';
 
 // Create a concrete test component
@@ -21,11 +21,11 @@ class TestComponent extends Component {
     return div;
   }
 
-  protected afterMount(): void {
+  protected override afterMount(): void {
     this.afterMountCount++;
   }
 
-  protected beforeUnmount(): void {
+  protected override beforeUnmount(): void {
     this.beforeUnmountCount++;
   }
 

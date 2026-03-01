@@ -8,20 +8,25 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.3",
     "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "autoprefixer": "^10.4.17",
+    "daisyui": "^4.6.0",
+    "eslint": "^9.39.3",
+    "jsdom": "^24.0.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
+    "typescript-eslint": "^8.56.1",
     "vite": "^5.0.12",
     "vite-plugin-static-copy": "^1.0.0",
-    "tailwindcss": "^3.4.1",
-    "daisyui": "^4.6.0",
-    "postcss": "^8.4.33",
-    "autoprefixer": "^10.4.17",
-    "vitest": "^1.2.0",
-    "jsdom": "^24.0.0",
-    "@vitest/coverage-v8": "^1.2.0"
+    "vitest": "^1.2.0"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.2.0",

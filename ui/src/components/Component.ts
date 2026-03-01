@@ -50,8 +50,8 @@ export abstract class Component {
    * Update the component (re-render)
    */
   protected update(): void {
-    if (this.element && this.element.parentNode) {
-      const parent = this.element.parentNode;
+    const parent = this.element?.parentNode;
+    if (this.element !== null && parent !== null && parent !== undefined) {
       this.beforeUnmount();
       this.element.remove();
       this.element = this.render();

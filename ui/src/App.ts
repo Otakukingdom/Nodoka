@@ -7,6 +7,7 @@ import { Component } from './components/Component.js';
 import { appState } from './state/State.js';
 import { eventBus } from './events/EventBus.js';
 import * as TauriCommands from './commands/tauri.js';
+import type { Audiobook, AudiobookFile, Bookmark } from './state/types.js';
 
 export class App extends Component {
   private playerInterval: number | null = null;
@@ -79,7 +80,7 @@ export class App extends Component {
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'btn btn-ghost btn-circle';
     settingsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>';
-    settingsBtn.onclick = () => eventBus.emit('OpenSettings');
+    settingsBtn.onclick = () => { void eventBus.emit('OpenSettings'); };
 
     topBar.append(logo, spacer, settingsBtn);
     return topBar;
@@ -100,7 +101,7 @@ export class App extends Component {
     searchInput.className = 'input input-bordered input-sm flex-1';
     searchInput.value = appState.searchQuery;
     searchInput.oninput = (e) => {
-      eventBus.emit('SearchQueryChanged', {
+      void eventBus.emit('SearchQueryChanged', {
         query: (e.target as HTMLInputElement).value
       });
     };
@@ -113,8 +114,8 @@ export class App extends Component {
       <option value="Progress" ${appState.sortOrder === 'Progress' ? 'selected' : ''}>Progress</option>
     `;
     sortSelect.onchange = (e) => {
-      eventBus.emit('SortOrderChanged', {
-        order: (e.target as HTMLSelectElement).value as any
+      void eventBus.emit('SortOrderChanged', {
+        order: (e.target as HTMLSelectElement).value as import('./state/types.js').AudiobookSortOrder
       });
     };
 
@@ -148,14 +149,14 @@ export class App extends Component {
     return leftPanel;
   }
 
-  private renderAudiobookCard(book: any): HTMLElement {
+  private renderAudiobookCard(book: Audiobook): HTMLElement {
     const card = document.createElement('div');
     const isSelected = appState.selectedAudiobook === book.id;
 
     card.className = `card card-compact bg-base-100 shadow-sm cursor-pointer transition-smooth mb-2 ${isSelected ? 'ring-2 ring-primary' : 'hover:shadow-md'}`;
     card.onclick = () => {
-      if (book.id) {
-        eventBus.emit('AudiobookSelected', { id: book.id });
+      if (book.id !== undefined) {
+        void eventBus.emit('AudiobookSelected', { id: book.id });
       }
     };
 
@@ -246,13 +247,13 @@ export class App extends Component {
     return rightPanel;
   }
 
-  private renderFileCard(file: any): HTMLElement {
+  private renderFileCard(file: AudiobookFile): HTMLElement {
     const card = document.createElement('div');
     const isSelected = appState.selectedFile === file.fullPath;
 
     card.className = `card card-compact bg-base-100 shadow-sm cursor-pointer transition-smooth ${isSelected ? 'ring-1 ring-primary' : 'hover:shadow-md'}`;
     card.onclick = () => {
-      eventBus.emit('FileSelected', { path: file.fullPath });
+      void eventBus.emit('FileSelected', { path: file.fullPath });
     };
 
     const cardBody = document.createElement('div');
@@ -276,7 +277,7 @@ export class App extends Component {
     return card;
   }
 
-  private renderBookmarkCard(bookmark: any): HTMLElement {
+  private renderBookmarkCard(bookmark: Bookmark): HTMLElement {
     const card = document.createElement('div');
     card.className = 'card card-compact bg-base-100 shadow-sm p-2';
 
@@ -294,7 +295,7 @@ export class App extends Component {
     content.append(label, time);
     card.appendChild(content);
 
-    if (bookmark.note) {
+    if (bookmark.note !== undefined) {
       const note = document.createElement('div');
       note.className = 'text-xs text-base-content/60 mt-1';
       note.textContent = bookmark.note;
@@ -315,7 +316,7 @@ export class App extends Component {
     const stopBtn = document.createElement('button');
     stopBtn.className = 'btn btn-circle btn-ghost btn-sm';
     stopBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="6" y="6" width="12" height="12" stroke-width="2"/></svg>';
-    stopBtn.onclick = () => eventBus.emit('Stop');
+    stopBtn.onclick = () => { void eventBus.emit('Stop'); };
 
     // Play/Pause button
     const playPauseBtn = document.createElement('button');
@@ -323,7 +324,7 @@ export class App extends Component {
     playPauseBtn.innerHTML = appState.playback === 'Playing'
       ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" /></svg>'
       : '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>';
-    playPauseBtn.onclick = () => eventBus.emit('PlayPause');
+    playPauseBtn.onclick = () => { void eventBus.emit('PlayPause'); };
 
     // Time display and seek
     const timeContainer = document.createElement('div');
@@ -340,7 +341,7 @@ export class App extends Component {
     progressSlider.value = String(appState.currentTime);
     progressSlider.className = 'range range-primary flex-1';
     progressSlider.oninput = (e) => {
-      eventBus.emit('SeekTo', {
+      void eventBus.emit('SeekTo', {
         positionMs: Number((e.target as HTMLInputElement).value)
       });
     };
@@ -357,14 +358,14 @@ export class App extends Component {
     speedBtn.textContent = `${appState.speed}x`;
     speedBtn.onclick = () => {
       const newSpeed = appState.speed >= 2.0 ? 0.5 : appState.speed + 0.25;
-      eventBus.emit('SpeedChanged', { speed: newSpeed });
+      void eventBus.emit('SpeedChanged', { speed: newSpeed });
     };
 
     // Volume control
     const volumeBtn = document.createElement('button');
     volumeBtn.className = 'btn btn-ghost btn-sm btn-circle';
     volumeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
-    volumeBtn.onclick = () => eventBus.emit('VolumeToggleExpanded');
+    volumeBtn.onclick = () => { void eventBus.emit('VolumeToggleExpanded'); };
 
     leftControls.append(stopBtn, playPauseBtn);
 
@@ -388,11 +389,11 @@ export class App extends Component {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 
-  private getFilteredAudiobooks(): any[] {
+  private getFilteredAudiobooks(): Audiobook[] {
     let filtered = [...appState.audiobooks];
 
     // Apply search filter
-    if (appState.searchQuery) {
+    if (appState.searchQuery.length > 0) {
       const query = appState.searchQuery.toLowerCase();
       filtered = filtered.filter(book =>
         book.name.toLowerCase().includes(query)
@@ -422,8 +423,8 @@ export class App extends Component {
         break;
       case 'RecentlyPlayed':
         filtered.sort((a, b) => {
-          const aTime = a.lastListened ? new Date(a.lastListened).getTime() : 0;
-          const bTime = b.lastListened ? new Date(b.lastListened).getTime() : 0;
+          const aTime = a.lastListened !== undefined ? new Date(a.lastListened).getTime() : 0;
+          const bTime = b.lastListened !== undefined ? new Date(b.lastListened).getTime() : 0;
           return bTime - aTime;
         });
         break;
@@ -432,7 +433,7 @@ export class App extends Component {
     return filtered;
   }
 
-  protected afterMount(): void {
+  protected override afterMount(): void {
     // Subscribe to state changes for reactivity
     this.unsubscribeFunctions.push(
       appState.subscribe(() => this.update())
@@ -442,14 +443,14 @@ export class App extends Component {
     this.registerEventHandlers();
 
     // Load initial data
-    this.loadInitialData();
+    void this.loadInitialData();
 
     // Setup keyboard shortcuts
     document.addEventListener('keydown', this.handleKeyboard);
 
     // Start player time updates
     this.playerInterval = window.setInterval(() => {
-      this.updatePlayerTime();
+      void this.updatePlayerTime();
     }, 1000);
 
     // Initialize modal listener
@@ -458,7 +459,7 @@ export class App extends Component {
     );
   }
 
-  protected beforeUnmount(): void {
+  protected override beforeUnmount(): void {
     // Clean up subscriptions
     this.unsubscribeFunctions.forEach(fn => fn());
     this.unsubscribeFunctions = [];
@@ -594,7 +595,7 @@ export class App extends Component {
 
       appState.setAudiobooks(audiobooks);
       appState.setDirectories(directories);
-      appState.setTheme(theme as any);
+      appState.setTheme(theme as import('./state/types.js').ThemeMode);
       appState.setPanelRatio(panelRatio);
       appState.setVolume(volume);
       appState.setSpeed(speed);
@@ -626,7 +627,7 @@ export class App extends Component {
       } else if (state !== 'Playing' && appState.playback === 'Playing') {
         appState.setPlayback('Paused');
       }
-    } catch (error) {
+    } catch {
       // Player might not be initialized
     }
   }
@@ -682,8 +683,8 @@ export class App extends Component {
       <option value="Dark" ${appState.theme === 'Dark' ? 'selected' : ''}>Dark</option>
     `;
     themeSelect.onchange = (e) => {
-      eventBus.emit('ThemeChanged', {
-        theme: (e.target as HTMLSelectElement).value as any
+      void eventBus.emit('ThemeChanged', {
+        theme: (e.target as HTMLSelectElement).value as import('./state/types.js').ThemeMode
       });
     };
     themeSection.appendChild(themeSelect);
@@ -695,7 +696,7 @@ export class App extends Component {
     const closeButton = document.createElement('button');
     closeButton.className = 'btn';
     closeButton.textContent = 'Close';
-    closeButton.onclick = () => eventBus.emit('CloseModal');
+    closeButton.onclick = () => { void eventBus.emit('CloseModal'); };
     actions.appendChild(closeButton);
 
     modal.append(header, content, actions);
@@ -734,7 +735,7 @@ export class App extends Component {
     const closeButton = document.createElement('button');
     closeButton.className = 'btn';
     closeButton.textContent = 'Close';
-    closeButton.onclick = () => eventBus.emit('CloseModal');
+    closeButton.onclick = () => { void eventBus.emit('CloseModal'); };
     actions.appendChild(closeButton);
 
     modal.append(header, content, actions);
@@ -750,26 +751,26 @@ export class App extends Component {
     switch (e.key) {
       case ' ':
         e.preventDefault();
-        eventBus.emit('PlayPause');
+        void eventBus.emit('PlayPause');
         break;
       case 'Escape':
-        eventBus.emit('CloseModal');
+        void eventBus.emit('CloseModal');
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        eventBus.emit('SeekBackward', { seconds: 30 });
+        void eventBus.emit('SeekBackward', { seconds: 30 });
         break;
       case 'ArrowRight':
         e.preventDefault();
-        eventBus.emit('SeekForward', { seconds: 30 });
+        void eventBus.emit('SeekForward', { seconds: 30 });
         break;
       case 'ArrowUp':
         e.preventDefault();
-        eventBus.emit('PreviousFile');
+        void eventBus.emit('PreviousFile');
         break;
       case 'ArrowDown':
         e.preventDefault();
-        eventBus.emit('NextFile');
+        void eventBus.emit('NextFile');
         break;
       case 'F1':
         e.preventDefault();
@@ -780,13 +781,13 @@ export class App extends Component {
     // Ctrl/Cmd + B for bookmark
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
       e.preventDefault();
-      eventBus.emit('CreateBookmark');
+      void eventBus.emit('CreateBookmark');
     }
 
     // Ctrl/Cmd + , for settings
     if ((e.ctrlKey || e.metaKey) && e.key === ',') {
       e.preventDefault();
-      eventBus.emit('OpenSettings');
+      void eventBus.emit('OpenSettings');
     }
   };
 }

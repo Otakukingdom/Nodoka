@@ -88,18 +88,22 @@ export type Event = {
 
 type EventHandler<E extends EventType> = (payload: EventPayload[E]) => void | Promise<void>;
 
+type AnyEventHandler = EventHandler<EventType>;
+
 export class EventBus {
-  private listeners: Map<EventType, Set<EventHandler<any>>> = new Map();
+  private listeners: Map<EventType, Set<AnyEventHandler>> = new Map<EventType, Set<AnyEventHandler>>();
 
   on<E extends EventType>(event: E, handler: EventHandler<E>): () => void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
+    const existingHandlers = this.listeners.get(event);
+    if (existingHandlers === undefined) {
+      this.listeners.set(event, new Set<AnyEventHandler>([handler as AnyEventHandler]));
+    } else {
+      existingHandlers.add(handler as AnyEventHandler);
     }
-    this.listeners.get(event)!.add(handler);
 
     // Return unsubscribe function
     return () => {
-      this.listeners.get(event)?.delete(handler);
+      this.listeners.get(event)?.delete(handler as AnyEventHandler);
     };
   }
 
@@ -107,7 +111,8 @@ export class EventBus {
     const handlers = this.listeners.get(event);
     if (handlers) {
       for (const handler of handlers) {
-        await handler(payload);
+        // Cast payload to the expected type - events with 'never' payload get undefined
+        await handler(payload as EventPayload[E]);
       }
     }
   }

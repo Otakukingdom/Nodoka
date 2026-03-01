@@ -95,7 +95,7 @@ describe('AppState', () => {
 
       state.addNotification(notification);
       expect(state.notifications).toHaveLength(1);
-      expect(state.notifications[0].id).toBe(1);
+      expect(state.notifications[0]!.id).toBe(1);
     });
 
     it('should remove notifications by id', () => {
@@ -121,7 +121,7 @@ describe('AppState', () => {
 
       state.removeNotification(1);
       expect(state.notifications).toHaveLength(1);
-      expect(state.notifications[0].id).toBe(2);
+      expect(state.notifications[0]!.id).toBe(2);
     });
 
     it('should limit notifications to maximum 3', () => {
