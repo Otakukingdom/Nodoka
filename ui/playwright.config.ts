@@ -19,12 +19,15 @@ export default defineConfig({
       maxDiffPixels: 100,
       maxDiffPixelRatio: 0.01,
       animations: 'disabled',
+      // Use consistent naming for cross-platform compatibility
+      snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{arg}-{platform}{ext}',
     },
   },
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     // Consistent viewport for screenshot tests
     viewport: { width: 1280, height: 720 },
   },
