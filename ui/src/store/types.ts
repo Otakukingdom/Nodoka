@@ -48,7 +48,7 @@ export interface Directory {
 
 export type PlaybackStatus = 'Playing' | 'Paused' | 'Stopped' | 'Ended';
 
-export type ThemeMode = 'Light' | 'Dark';
+export type ThemeMode = 'Light' | 'Dark' | 'System';
 
 export type ActiveModal = 'None' | 'Settings' | 'BookmarkEditor' | 'KeyboardHelp';
 

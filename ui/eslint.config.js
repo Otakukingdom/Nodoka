@@ -14,6 +14,7 @@ export default ts.config(
       'dist/**',
       'node_modules/**',
       'src/**/*.test.ts',
+      'src/**/*.test.tsx',
     ],
   },
   {

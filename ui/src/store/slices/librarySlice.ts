@@ -27,6 +27,9 @@ interface LibraryState {
   searchQuery: string;
   sortOrder: AudiobookSortOrder;
   filterStatus: AudiobookFilterStatus;
+
+  // Loading state
+  isLibraryLoading: boolean;
 }
 
 const initialState: LibraryState = {
@@ -39,6 +42,7 @@ const initialState: LibraryState = {
   searchQuery: '',
   sortOrder: 'RecentlyPlayed',
   filterStatus: 'All',
+  isLibraryLoading: true,
 };
 
 const librarySlice = createSlice({
@@ -84,6 +88,9 @@ const librarySlice = createSlice({
       state.selectedFile = undefined;
       state.bookmarks = [];
     },
+    setLibraryLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLibraryLoading = action.payload;
+    },
   },
 });
 
@@ -100,6 +107,7 @@ export const {
   setSortOrder,
   setFilterStatus,
   clearLibrarySelection,
+  setLibraryLoading,
 } = librarySlice.actions;
 
 export default librarySlice.reducer;

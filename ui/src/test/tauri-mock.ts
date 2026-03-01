@@ -112,20 +112,20 @@ const mockDirectories: Directory[] = [
 ];
 
 // Player state mock
-let mockPlaybackState: string = 'Stopped';
-let mockCurrentTime: number = 0;
-let mockVolume: number = 80;
-let mockSpeed: number = 1.0;
+let mockPlaybackState = 'Stopped';
+let mockCurrentTime = 0;
+let mockVolume = 80;
+let mockSpeed = 1.0;
 
 // Create mock invoke function
 export function createMockInvoke() {
-  return vi.fn(async (cmd: string, args?: Record<string, unknown>) => {
+  return vi.fn((cmd: string, args?: Record<string, unknown>) => {
     switch (cmd) {
       // Database commands
       case 'get_all_audiobooks':
         return mockAudiobooks;
       case 'get_audiobook_by_id':
-        return mockAudiobooks.find((a) => a.id === args?.['id']) || null;
+        return mockAudiobooks.find((a) => a.id === args?.['id']) ?? null;
       case 'get_audiobook_files':
         return mockFiles.filter((f) => f.audiobookId === args?.['audiobookId']);
       case 'get_bookmarks':

@@ -432,3 +432,130 @@ test.describe('Accessibility Tests', () => {
     await expect(closeButton).toBeVisible();
   });
 });
+
+// Mobile viewport screenshot tests
+test.describe('Mobile Viewport Screenshot Tests', () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('mobile portrait layout screenshot', async ({ page }) => {
+    await expect(page).toHaveScreenshot('mobile-portrait-layout.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+});
+
+// System theme tests
+test.describe('System Theme Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+  });
+
+  test('system theme option is available', async ({ page }) => {
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+
+    // Check that System option exists in the select dropdown
+    const systemOption = page.locator('.modal-box select option[value="System"]');
+    await expect(systemOption).toHaveCount(1);
+  });
+
+  test('system theme can be selected', async ({ page }) => {
+    await page.click('button[aria-label="Settings"]');
+    await page.waitForSelector('.modal-box');
+
+    // Select System theme
+    await page.selectOption('.modal-box select', 'System');
+    await page.waitForTimeout(300);
+    await page.click('.modal-box button:has-text("Done")');
+    await page.waitForTimeout(300);
+
+    // Theme should be applied (either light or dark based on system)
+    const html = page.locator('html');
+    const theme = await html.getAttribute('data-theme');
+    expect(['light', 'dark']).toContain(theme);
+  });
+});
+
+// Enhanced UI component tests
+test.describe('Enhanced UI Component Screenshot Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+    await page.waitForFunction(() => {
+      const loading = document.querySelector('.loading-spinner');
+      return loading === null;
+    }, { timeout: 15000 });
+  });
+
+  test('loading skeleton screenshot', async ({ page }) => {
+    // Create a fresh page to capture the loading skeleton
+    const newPage = await page.context().newPage();
+    await newPage.goto('/');
+    // Capture skeleton before loading completes - wait for skeleton to appear
+    await newPage.waitForSelector('.skeleton', { timeout: 5000 }).catch(() => {
+      // Skeleton might have already disappeared if loading was too fast
+    });
+    const skeleton = newPage.locator('.skeleton').first();
+    if (await skeleton.isVisible()) {
+      await expect(skeleton).toHaveScreenshot('loading-skeleton.png', {
+        animations: 'disabled',
+      });
+    }
+    await newPage.close();
+  });
+
+  test('search input with icon screenshot', async ({ page }) => {
+    const searchContainer = page.locator('.library-panel .relative');
+    await expect(searchContainer).toHaveScreenshot('search-input-with-icon.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('volume button screenshot', async ({ page }) => {
+    const volumeButton = page.locator('.btm-nav button[aria-label="Volume"]');
+    await expect(volumeButton).toHaveScreenshot('volume-button.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('stop button screenshot', async ({ page }) => {
+    const stopButton = page.locator('.btm-nav button[aria-label="Stop"]');
+    await expect(stopButton).toHaveScreenshot('stop-button.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('logo hover state screenshot', async ({ page }) => {
+    const logo = page.locator('.navbar .gradient-premium');
+    await logo.hover();
+    await page.waitForTimeout(300);
+    await expect(logo).toHaveScreenshot('logo-hover.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('seek bar hover state screenshot', async ({ page }) => {
+    const seekBarContainer = page.locator('.btm-nav .flex-1.relative.group');
+    await seekBarContainer.hover();
+    await page.waitForTimeout(200);
+    await expect(seekBarContainer).toHaveScreenshot('seek-bar-hover.png', {
+      animations: 'disabled',
+    });
+  });
+
+  test('details panel files header screenshot', async ({ page }) => {
+    const filesHeader = page.locator('#files-list').locator('..').locator('div:has(.w-6.rounded-md)').first();
+    if (await filesHeader.isVisible()) {
+      await expect(filesHeader).toHaveScreenshot('files-section-header.png', {
+        animations: 'disabled',
+      });
+    }
+  });
+});

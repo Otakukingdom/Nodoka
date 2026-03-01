@@ -14,21 +14,21 @@ export default function PlayerControls() {
   const { playback, currentTime, totalDuration, speed } = useAppSelector(state => state.player);
 
   const handlePlayPause = () => {
-    dispatch(playPause());
+    void dispatch(playPause());
   };
 
   const handleStop = () => {
-    dispatch(stop());
+    void dispatch(stop());
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(seek(Number(e.target.value)));
+    void dispatch(seek(Number(e.target.value)));
   };
 
   const handleSpeedClick = () => {
     dispatch(cycleSpeed());
     const state = store.getState();
-    dispatch(updateSpeed(state.player.speed));
+    void dispatch(updateSpeed(state.player.speed));
   };
 
   const handleVolumeClick = () => {
@@ -62,9 +62,13 @@ export default function PlayerControls() {
           <Square className="h-4 w-4" />
         </button>
         <button
-          className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+          className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             isPlaying ? 'pulse-playing' : ''
           }`}
+          style={{
+            background: 'linear-gradient(135deg, #E11D48 0%, #FB7185 100%)',
+            border: 'none',
+          }}
           onClick={handlePlayPause}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
@@ -78,15 +82,15 @@ export default function PlayerControls() {
 
       {/* Center - Seek bar */}
       <div className="flex-1 flex items-center gap-3">
-        <span className="font-mono text-sm w-14 text-right tabular-nums text-base-content/70">
+        <span className="font-mono text-sm w-14 text-right tabular-nums text-base-content/70 select-none">
           {formatTime(currentTime)}
         </span>
-        <div className="flex-1 relative group">
+        <div className="flex-1 relative group h-6 flex items-center">
           {/* Background track */}
-          <div className="absolute inset-0 h-1.5 top-1/2 -translate-y-1/2 rounded-full bg-base-300" />
+          <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full bg-base-300 transition-all duration-200 group-hover:h-2.5" />
           {/* Progress track */}
           <div
-            className="absolute left-0 h-1.5 top-1/2 -translate-y-1/2 rounded-full gradient-premium transition-all duration-100"
+            className="absolute left-0 h-2 top-1/2 -translate-y-1/2 rounded-full gradient-premium transition-all duration-100 group-hover:h-2.5"
             style={{ width: `${progress}%` }}
           />
           <input
@@ -100,11 +104,11 @@ export default function PlayerControls() {
           />
           {/* Visible thumb on hover/focus */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-primary shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-            style={{ left: `calc(${progress}% - 7px)` }}
+            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary shadow-lg opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-200 pointer-events-none ring-2 ring-white/30"
+            style={{ left: `calc(${progress}% - 8px)` }}
           />
         </div>
-        <span className="font-mono text-sm w-14 tabular-nums text-base-content/70">
+        <span className="font-mono text-sm w-14 tabular-nums text-base-content/70 select-none">
           {formatTime(totalDuration)}
         </span>
       </div>
@@ -112,16 +116,19 @@ export default function PlayerControls() {
       {/* Right controls */}
       <div className="flex items-center gap-1">
         <button
-          className="btn btn-ghost btn-sm px-3 font-mono text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+          className="btn btn-ghost btn-sm px-3 font-mono text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary group relative"
           onClick={handleSpeedClick}
           title="Playback speed (click to cycle)"
         >
-          <span className={speed !== 1.0 ? 'text-primary font-semibold' : ''}>{speed}x</span>
+          <span className={`${speed !== 1.0 ? 'text-primary font-semibold' : ''} group-hover:scale-110 inline-block transition-transform`}>
+            {speed}x
+          </span>
         </button>
         <button
           className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
           onClick={handleVolumeClick}
           aria-label="Volume"
+          title="Volume controls"
         >
           <Volume2 className="h-5 w-5" />
         </button>

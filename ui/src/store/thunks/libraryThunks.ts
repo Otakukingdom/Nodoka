@@ -10,6 +10,7 @@ import {
   setBookmarks,
   setSelectedFile,
   setDirectories,
+  setLibraryLoading,
 } from '../slices/librarySlice';
 import { setTheme, setPanelRatio, setLoading, addNotification } from '../slices/appSlice';
 import { setVolume, setSpeed, setPlayback } from '../slices/playerSlice';
@@ -35,9 +36,11 @@ export const loadInitialData = createAsyncThunk(
       dispatch(setPanelRatio(panelRatio));
       dispatch(setVolume(volume));
       dispatch(setSpeed(speed));
+      dispatch(setLibraryLoading(false));
       dispatch(setLoading(false));
     } catch (error) {
       console.error('Failed to load initial data:', error);
+      dispatch(setLibraryLoading(false));
       dispatch(addNotification({
         id: Date.now(),
         kind: 'Error',
@@ -127,11 +130,14 @@ export const removeDirectory = createAsyncThunk(
 export const rescanDirectory = createAsyncThunk(
   'library/rescanDirectory',
   async (path: string, { dispatch }) => {
+    dispatch(setLibraryLoading(true));
     try {
       await TauriCommands.scanDirectory(path);
       const audiobooks = await TauriCommands.getAllAudiobooks();
       dispatch(setAudiobooks(audiobooks));
+      dispatch(setLibraryLoading(false));
     } catch (error) {
+      dispatch(setLibraryLoading(false));
       dispatch(addNotification({
         id: Date.now(),
         kind: 'Error',

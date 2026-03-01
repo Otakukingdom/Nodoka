@@ -19,18 +19,36 @@ function App() {
   const { theme, isLoading } = useAppSelector(state => state.app);
 
   useEffect(() => {
-    dispatch(loadInitialData());
+    void dispatch(loadInitialData());
   }, [dispatch]);
 
   // Apply theme to HTML element for DaisyUI
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme.toLowerCase());
+    const applyTheme = (themeValue: string) => {
+      document.documentElement.setAttribute('data-theme', themeValue.toLowerCase());
+    };
+
+    if (theme === 'System') {
+      // Detect system preference
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      applyTheme(mediaQuery.matches ? 'dark' : 'light');
+
+      // Listen for system theme changes
+      const handler = (e: MediaQueryListEvent) => {
+        applyTheme(e.matches ? 'dark' : 'light');
+      };
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+
+    applyTheme(theme);
+    return undefined;
   }, [theme]);
 
   // Player time updates
   useEffect(() => {
     const interval = window.setInterval(() => {
-      dispatch(updatePlayerTime());
+      void dispatch(updatePlayerTime());
     }, 1000);
 
     return () => clearInterval(interval);
@@ -46,7 +64,7 @@ function App() {
     switch (e.key) {
       case ' ':
         e.preventDefault();
-        dispatch(playPause());
+        void dispatch(playPause());
         break;
       case 'Escape':
         dispatch(closeModal());

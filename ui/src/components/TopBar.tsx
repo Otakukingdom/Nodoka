@@ -18,7 +18,7 @@ export default function TopBar() {
       <div className="flex items-center gap-3">
         {/* Logo with enhanced gradient and subtle glow */}
         <div
-          className="w-9 h-9 rounded-full gradient-premium flex items-center justify-center text-white text-base shadow-lg"
+          className="w-9 h-9 rounded-full gradient-premium flex items-center justify-center text-white text-base shadow-lg logo-hover-pulse cursor-pointer transition-transform duration-200 hover:scale-105"
           style={{
             boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
@@ -26,7 +26,7 @@ export default function TopBar() {
           <span className="drop-shadow-sm">♪</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-bold tracking-tight">Nodoka</span>
+          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Nodoka</span>
           <span className="text-xs text-base-content/60 leading-tight">Audiobook Reader</span>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function SettingsModal() {
   };
 
   const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(updateTheme(e.target.value as ThemeMode));
+    void dispatch(updateTheme(e.target.value as ThemeMode));
   };
 
   return (
@@ -62,6 +62,7 @@ export default function SettingsModal() {
           >
             <option value="Light">Light</option>
             <option value="Dark">Dark</option>
+            <option value="System">System</option>
           </select>
         </div>
       </div>
