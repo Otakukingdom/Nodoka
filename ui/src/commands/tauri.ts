@@ -8,7 +8,7 @@ import type {
   AudiobookFile,
   Bookmark,
   Directory,
-} from '../state/types';
+} from '../store/types';
 
 // Database commands
 export async function getAllAudiobooks(): Promise<Audiobook[]> {

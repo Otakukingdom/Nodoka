@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -8,6 +9,7 @@ const execAsync = promisify(exec);
 export default defineConfig(async () => {
   return {
     plugins: [
+      react(),
       {
         name: 'tauri-dev',
         configureServer(server) {
@@ -36,12 +38,13 @@ export default defineConfig(async () => {
     test: {
       globals: true,
       environment: 'jsdom',
-      include: ['src/**/*.test.ts'],
+      setupFiles: ['./src/test/setup.ts'],
+      include: ['src/**/*.test.{ts,tsx}'],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
-        include: ['src/**/*.ts'],
-        exclude: ['src/**/*.test.ts', 'src/main.ts']
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: ['src/**/*.test.{ts,tsx}', 'src/main.tsx']
       }
     }
   };
