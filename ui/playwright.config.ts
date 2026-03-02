@@ -19,7 +19,10 @@ export default defineConfig({
       maxDiffPixels: 100,
       maxDiffPixelRatio: 0.01,
       animations: 'disabled',
-      // Use consistent naming for cross-platform compatibility
+      // Note: {platform} in snapshot names creates separate screenshots per OS (darwin, linux, win32).
+      // This prevents false failures due to font rendering and UI differences across platforms.
+      // Team members on different OSes will need to generate their own baseline screenshots.
+      // If sharing baselines across platforms is required, remove {platform} and increase maxDiffPixels.
       snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{arg}-{platform}{ext}',
     },
   },

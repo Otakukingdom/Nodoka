@@ -1,10 +1,11 @@
 /**
  * E2E screenshot tests for notification system
  * Captures visual appearance of toast notifications in various states
+ * Uses triggerNotification helper to reliably create notifications for screenshots
  */
 
 import { test, expect } from './fixtures';
-import { screenshotConfig, gotoAndWait, setTheme } from './test-utils';
+import { screenshotConfig, gotoAndWait, setTheme, triggerNotification } from './test-utils';
 
 test.describe('Notification Container Screenshots', () => {
   test.beforeEach(async ({ page }) => {
@@ -29,39 +30,91 @@ test.describe('Notification Toast Screenshots', () => {
 
   test('success notification toast light theme', async ({ page }) => {
     await setTheme(page, 'Light');
-    // Try to find an existing notification or capture the container
+    await triggerNotification(page, {
+      kind: 'Success',
+      title: 'Success',
+      message: 'Operation completed successfully',
+    });
     const notification = page.locator('.alert').first();
-    if (await notification.isVisible()) {
-      await expect(notification).toHaveScreenshot(
-        'notification-success-light.png',
-        screenshotConfig
-      );
-    }
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-success-light.png',
+      screenshotConfig
+    );
   });
 
   test('success notification toast dark theme', async ({ page }) => {
     await setTheme(page, 'Dark');
+    await triggerNotification(page, {
+      kind: 'Success',
+      title: 'Success',
+      message: 'Operation completed successfully',
+    });
     const notification = page.locator('.alert').first();
-    if (await notification.isVisible()) {
-      await expect(notification).toHaveScreenshot(
-        'notification-success-dark.png',
-        screenshotConfig
-      );
-    }
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-success-dark.png',
+      screenshotConfig
+    );
+  });
+
+  test('error notification toast', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Error',
+      title: 'Error',
+      message: 'Something went wrong',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-error.png',
+      screenshotConfig
+    );
+  });
+
+  test('warning notification toast', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Warning',
+      title: 'Warning',
+      message: 'Please review before proceeding',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-warning.png',
+      screenshotConfig
+    );
+  });
+
+  test('info notification toast', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Info',
+      title: 'Info',
+      message: 'New updates are available',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-info.png',
+      screenshotConfig
+    );
   });
 
   test('notification dismiss button', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Success',
+      message: 'Test notification',
+    });
     const notification = page.locator('.alert').first();
-    if (await notification.isVisible()) {
-      const dismissButton = notification.locator('button[aria-label="Dismiss"]');
-      if (await dismissButton.isVisible()) {
-        await dismissButton.hover();
-        await page.waitForTimeout(200);
-        await expect(dismissButton).toHaveScreenshot(
-          'notification-dismiss-hover.png',
-          screenshotConfig
-        );
-      }
+    await expect(notification).toBeVisible();
+    const dismissButton = notification.locator('button[aria-label="Dismiss"]');
+    if (await dismissButton.isVisible()) {
+      await dismissButton.hover();
+      await page.waitForTimeout(200);
+      await expect(dismissButton).toHaveScreenshot(
+        'notification-dismiss-hover.png',
+        screenshotConfig
+      );
     }
   });
 });
@@ -72,16 +125,33 @@ test.describe('Notification Icon Screenshots', () => {
   });
 
   test('notification icon success', async ({ page }) => {
-    const notification = page.locator('.alert.alert-success, .alert-info, .alert-warning, .alert-error').first();
-    if (await notification.isVisible()) {
-      const icon = notification.locator('svg').first();
-      if (await icon.isVisible()) {
-        await expect(icon).toHaveScreenshot(
-          'notification-icon.png',
-          screenshotConfig
-        );
-      }
-    }
+    await triggerNotification(page, {
+      kind: 'Success',
+      message: 'Success message',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    const icon = notification.locator('svg').first();
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveScreenshot(
+      'notification-icon-success.png',
+      screenshotConfig
+    );
+  });
+
+  test('notification icon error', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Error',
+      message: 'Error message',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    const icon = notification.locator('svg').first();
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveScreenshot(
+      'notification-icon-error.png',
+      screenshotConfig
+    );
   });
 });
 
@@ -91,14 +161,16 @@ test.describe('Notification Animation States', () => {
   });
 
   test('notification slide-in animation', async ({ page }) => {
-    // Look for toast with animation class
-    const notification = page.locator('.toast-slide-in, .alert').first();
-    if (await notification.isVisible()) {
-      await expect(notification).toHaveScreenshot(
-        'notification-slide-in.png',
-        { ...screenshotConfig, animations: 'allow' }
-      );
-    }
+    await triggerNotification(page, {
+      kind: 'Info',
+      message: 'Animation test',
+    });
+    const notification = page.locator('.alert').first();
+    await expect(notification).toBeVisible();
+    await expect(notification).toHaveScreenshot(
+      'notification-slide-in.png',
+      { ...screenshotConfig, animations: 'allow' }
+    );
   });
 });
 
@@ -108,14 +180,33 @@ test.describe('Multiple Notifications', () => {
   });
 
   test('multiple notifications stacked', async ({ page }) => {
+    // Trigger multiple notifications
+    await triggerNotification(page, {
+      kind: 'Success',
+      title: 'First',
+      message: 'First notification',
+    });
+    await page.waitForTimeout(100);
+    await triggerNotification(page, {
+      kind: 'Info',
+      title: 'Second',
+      message: 'Second notification',
+    });
+    await page.waitForTimeout(100);
+    await triggerNotification(page, {
+      kind: 'Warning',
+      title: 'Third',
+      message: 'Third notification',
+    });
+
     const toastContainer = page.locator('.toast');
     const notifications = await toastContainer.locator('.alert').all();
-    if (notifications.length > 1) {
-      await expect(toastContainer).toHaveScreenshot(
-        'notifications-stacked.png',
-        screenshotConfig
-      );
-    }
+    // Should have at least 2 notifications visible
+    expect(notifications.length).toBeGreaterThanOrEqual(2);
+    await expect(toastContainer).toHaveScreenshot(
+      'notifications-stacked.png',
+      screenshotConfig
+    );
   });
 });
 
@@ -125,22 +216,28 @@ test.describe('Notification Accessibility', () => {
   });
 
   test('notification dismiss button has aria-label', async ({ page }) => {
-    const dismissButtons = await page.locator('.alert button[aria-label="Dismiss"]').all();
-    for (const button of dismissButtons) {
-      const ariaLabel = await button.getAttribute('aria-label');
-      expect(ariaLabel).toBe('Dismiss');
-    }
+    await triggerNotification(page, {
+      kind: 'Success',
+      message: 'Test notification',
+    });
+    const dismissButton = page.locator('.alert button[aria-label="Dismiss"]').first();
+    await expect(dismissButton).toBeVisible();
+    const ariaLabel = await dismissButton.getAttribute('aria-label');
+    expect(ariaLabel).toBe('Dismiss');
   });
 
   test('notification dismiss button focus state', async ({ page }) => {
+    await triggerNotification(page, {
+      kind: 'Success',
+      message: 'Test notification',
+    });
     const dismissButton = page.locator('.alert button[aria-label="Dismiss"]').first();
-    if (await dismissButton.isVisible()) {
-      await dismissButton.focus();
-      await page.waitForTimeout(200);
-      await expect(dismissButton).toHaveScreenshot(
-        'notification-dismiss-focus.png',
-        screenshotConfig
-      );
-    }
+    await expect(dismissButton).toBeVisible();
+    await dismissButton.focus();
+    await page.waitForTimeout(200);
+    await expect(dismissButton).toHaveScreenshot(
+      'notification-dismiss-focus.png',
+      screenshotConfig
+    );
   });
 });

@@ -48,29 +48,8 @@ test.describe('Empty State Screenshots', () => {
   });
 });
 
-test.describe('Loading State Screenshots', () => {
-  test('skeleton loading animation frame', async ({ page }) => {
-    await page.goto('/');
-    // Try to catch skeleton state before app fully loads
-    const skeleton = page.locator('.skeleton').first();
-    const isVisible = await skeleton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
-      await expect(skeleton).toHaveScreenshot('skeleton-frame.png', screenshotConfig);
-    }
-  });
-
-  test('skeleton with shimmer effect', async ({ page }) => {
-    await page.goto('/');
-    const skeletonShimmer = page.locator('.skeleton-shimmer, .skeleton').first();
-    const isVisible = await skeletonShimmer.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
-      await expect(skeletonShimmer).toHaveScreenshot('skeleton-shimmer.png', {
-        ...screenshotConfig,
-        animations: 'allow',
-      });
-    }
-  });
-});
+// Note: Loading state screenshots are tested in loading-states.spec.ts
+// This file focuses on empty states, theme states, and other UI states
 
 test.describe('Initial App State Screenshots', () => {
   test('initial app load state', async ({ page }) => {

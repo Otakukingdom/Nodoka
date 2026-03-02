@@ -1,25 +1,13 @@
 /**
  * E2E screenshot tests for loading states
  * Captures visual appearance of loading indicators and skeleton screens
+ * Uses forced loading states for reliable screenshot capture
  */
 
 import { test, expect } from './fixtures';
-import { screenshotConfig, gotoAndWait, setTheme } from './test-utils';
+import { screenshotConfig, gotoAndWait, setTheme, forceLoadingState } from './test-utils';
 
 test.describe('Initial Loading Screenshots', () => {
-  test('initial loading spinner', async ({ page }) => {
-    await page.goto('/');
-    // Try to catch the loading spinner before app is ready
-    const spinner = page.locator('.gradient-premium.animate-spin, .loading-spinner, .loading').first();
-    const isVisible = await spinner.isVisible({ timeout: 2000 }).catch(() => false);
-    if (isVisible) {
-      await expect(spinner).toHaveScreenshot(
-        'initial-loading-spinner.png',
-        { ...screenshotConfig, animations: 'allow' }
-      );
-    }
-  });
-
   test('page loading state before ready', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
@@ -31,6 +19,42 @@ test.describe('Initial Loading Screenshots', () => {
   });
 });
 
+test.describe('Forced Loading States', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('forced loading state light theme', async ({ page }) => {
+    await setTheme(page, 'Light');
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
+    // Capture the loading indicator
+    const loadingIndicator = page.locator('.loading, .loading-spinner, .skeleton').first();
+    if (await loadingIndicator.isVisible().catch(() => false)) {
+      await expect(loadingIndicator).toHaveScreenshot(
+        'forced-loading-light.png',
+        { ...screenshotConfig, animations: 'allow' }
+      );
+    }
+    // Reset loading state
+    await forceLoadingState(page, false);
+  });
+
+  test('forced loading state dark theme', async ({ page }) => {
+    await setTheme(page, 'Dark');
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
+    const loadingIndicator = page.locator('.loading, .loading-spinner, .skeleton').first();
+    if (await loadingIndicator.isVisible().catch(() => false)) {
+      await expect(loadingIndicator).toHaveScreenshot(
+        'forced-loading-dark.png',
+        { ...screenshotConfig, animations: 'allow' }
+      );
+    }
+    await forceLoadingState(page, false);
+  });
+});
+
 test.describe('Skeleton Loading Screenshots', () => {
   test.beforeEach(async ({ page }) => {
     await gotoAndWait(page);
@@ -39,7 +63,7 @@ test.describe('Skeleton Loading Screenshots', () => {
   test('audiobook card skeleton light theme', async ({ page }) => {
     await setTheme(page, 'Light');
     const skeleton = page.locator('.skeleton').first();
-    if (await skeleton.isVisible()) {
+    if (await skeleton.isVisible().catch(() => false)) {
       await expect(skeleton).toHaveScreenshot(
         'skeleton-card-light.png',
         screenshotConfig
@@ -50,7 +74,7 @@ test.describe('Skeleton Loading Screenshots', () => {
   test('audiobook card skeleton dark theme', async ({ page }) => {
     await setTheme(page, 'Dark');
     const skeleton = page.locator('.skeleton').first();
-    if (await skeleton.isVisible()) {
+    if (await skeleton.isVisible().catch(() => false)) {
       await expect(skeleton).toHaveScreenshot(
         'skeleton-card-dark.png',
         screenshotConfig
@@ -59,11 +83,8 @@ test.describe('Skeleton Loading Screenshots', () => {
   });
 
   test('skeleton title element', async ({ page }) => {
-    // Navigate and try to catch skeleton state
-    await page.goto('/');
     const titleSkeleton = page.locator('.card-body .skeleton').first();
-    const isVisible = await titleSkeleton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
+    if (await titleSkeleton.isVisible().catch(() => false)) {
       await expect(titleSkeleton).toHaveScreenshot(
         'skeleton-title-element.png',
         screenshotConfig
@@ -72,10 +93,8 @@ test.describe('Skeleton Loading Screenshots', () => {
   });
 
   test('skeleton progress bar', async ({ page }) => {
-    await page.goto('/');
     const progressSkeleton = page.locator('.skeleton.rounded-full').first();
-    const isVisible = await progressSkeleton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
+    if (await progressSkeleton.isVisible().catch(() => false)) {
       await expect(progressSkeleton).toHaveScreenshot(
         'skeleton-progress-bar.png',
         screenshotConfig
@@ -84,10 +103,8 @@ test.describe('Skeleton Loading Screenshots', () => {
   });
 
   test('full skeleton card', async ({ page }) => {
-    await page.goto('/');
     const skeletonCard = page.locator('.card:has(.skeleton)').first();
-    const isVisible = await skeletonCard.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
+    if (await skeletonCard.isVisible().catch(() => false)) {
       await expect(skeletonCard).toHaveScreenshot(
         'skeleton-card-full.png',
         screenshotConfig
@@ -97,11 +114,13 @@ test.describe('Skeleton Loading Screenshots', () => {
 });
 
 test.describe('Skeleton Shimmer Effect', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
   test('skeleton with shimmer animation', async ({ page }) => {
-    await page.goto('/');
     const shimmer = page.locator('.skeleton-shimmer, .skeleton').first();
-    const isVisible = await shimmer.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
+    if (await shimmer.isVisible().catch(() => false)) {
       await expect(shimmer).toHaveScreenshot(
         'skeleton-shimmer-effect.png',
         { ...screenshotConfig, animations: 'allow' }
@@ -110,10 +129,8 @@ test.describe('Skeleton Shimmer Effect', () => {
   });
 
   test('shimmer overlay animation', async ({ page }) => {
-    await page.goto('/');
     const shimmerOverlay = page.locator('.shimmer').first();
-    const isVisible = await shimmerOverlay.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
+    if (await shimmerOverlay.isVisible().catch(() => false)) {
       await expect(shimmerOverlay).toHaveScreenshot(
         'shimmer-overlay-animation.png',
         { ...screenshotConfig, animations: 'allow' }
@@ -123,35 +140,37 @@ test.describe('Skeleton Shimmer Effect', () => {
 });
 
 test.describe('Loading State in Library', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
   test('library loading skeleton state', async ({ page }) => {
-    await page.goto('/');
-    // Wait briefly to catch library loading
-    await page.waitForTimeout(500);
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
     const libraryPanel = page.locator('.library-panel');
-    // Look for loading indicator in library
     const loadingIndicator = libraryPanel.locator('.skeleton, .loading').first();
-    const isVisible = await loadingIndicator.isVisible({ timeout: 2000 }).catch(() => false);
-    if (isVisible) {
+    if (await loadingIndicator.isVisible().catch(() => false)) {
       await expect(libraryPanel).toHaveScreenshot(
         'library-loading-state.png',
         screenshotConfig
       );
     }
+    await forceLoadingState(page, false);
   });
 
   test('multiple skeleton cards', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(500);
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
     const skeletons = page.locator('.skeleton');
     const count = await skeletons.count();
     if (count > 1) {
-      // Capture area with multiple skeletons
       const container = page.locator('.library-panel #audiobook-list');
       await expect(container).toHaveScreenshot(
         'multiple-skeleton-cards.png',
         screenshotConfig
       );
     }
+    await forceLoadingState(page, false);
   });
 });
 
@@ -162,7 +181,7 @@ test.describe('Spinner Loading States', () => {
 
   test('loading spinner with gradient', async ({ page }) => {
     const spinner = page.locator('.gradient-premium.animate-spin').first();
-    if (await spinner.isVisible()) {
+    if (await spinner.isVisible().catch(() => false)) {
       await expect(spinner).toHaveScreenshot(
         'gradient-loading-spinner.png',
         { ...screenshotConfig, animations: 'allow' }
@@ -172,7 +191,7 @@ test.describe('Spinner Loading States', () => {
 
   test('daisyui loading spinner', async ({ page }) => {
     const loading = page.locator('.loading').first();
-    if (await loading.isVisible()) {
+    if (await loading.isVisible().catch(() => false)) {
       await expect(loading).toHaveScreenshot(
         'daisyui-loading-spinner.png',
         { ...screenshotConfig, animations: 'allow' }
@@ -182,12 +201,15 @@ test.describe('Spinner Loading States', () => {
 });
 
 test.describe('Loading State Animations', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
   test('skeleton animation frames', async ({ page }) => {
-    await page.goto('/');
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
     const skeleton = page.locator('.skeleton').first();
-    const isVisible = await skeleton.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isVisible) {
-      // Capture multiple animation frames
+    if (await skeleton.isVisible().catch(() => false)) {
       await expect(skeleton).toHaveScreenshot(
         'skeleton-frame-1.png',
         { ...screenshotConfig, animations: 'allow' }
@@ -198,5 +220,6 @@ test.describe('Loading State Animations', () => {
         { ...screenshotConfig, animations: 'allow' }
       );
     }
+    await forceLoadingState(page, false);
   });
 });
