@@ -184,9 +184,32 @@ Given('a directory has been added', async function (this: NodokaWorld) {
 // ==================== Given Steps - Panel Resize ====================
 
 Given('I have resized the panels to {int}\\/{int}', async function (this: NodokaWorld, left: number, right: number) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-panel-ratio', { detail: 0.6 }));
-  });
+  // Calculate the ratio from left/right values
+  const ratio = left / (left + right);
+
+  // Find the panel divider/resizer and drag it
+  const divider = this.page.locator('.panel-divider, .resize-handle, [data-testid="panel-resizer"]').first();
+
+  if (await divider.isVisible()) {
+    const box = await divider.boundingBox();
+    if (box) {
+      const viewport = this.page.viewportSize();
+      if (viewport) {
+        const targetX = viewport.width * ratio;
+
+        // Drag the divider to the target position
+        await divider.hover();
+        await this.page.mouse.down();
+        await this.page.mouse.move(targetX, box.y + box.height / 2);
+        await this.page.mouse.up();
+        await this.page.waitForTimeout(300);
+      }
+    }
+  } else {
+    // Alternative: navigate with ratio as query param
+    await this.page.goto(`/?test=true&panelRatio=${ratio}`);
+    await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  }
 });
 
 Given('I restart the application', async function (this: NodokaWorld) {
@@ -215,9 +238,14 @@ Given('the application is loading', async function (this: NodokaWorld) {
 });
 
 Given('loading completes', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:loading-complete'));
-  });
+  // Wait for loading to complete by checking for loading spinner to disappear
+  const loadingSpinner = this.page.locator('.loading-spinner, .spinner, [aria-busy="true"]');
+  await loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+
+  // Wait for content to appear
+  const content = this.page.locator('.card, .audiobook-card, #audiobook-list');
+  await content.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
   await this.page.waitForTimeout(500);
 });
 
@@ -291,9 +319,14 @@ Given('an operation fails', async function (this: NodokaWorld) {
 });
 
 Given('a notification is showing', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:show-notification', { detail: { type: 'success', message: 'Test' } }));
-  });
+  // Navigate with query param to trigger a notification
+  await this.page.goto('http://localhost:5173/?test=true&showNotification=success');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Wait for notification to appear
+  const notification = this.page.locator('.toast, .notification, [role="alert"]').first();
+  await notification.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+
   await this.page.waitForTimeout(300);
 });
 
@@ -653,9 +686,26 @@ When('I select the audiobook', async function (this: NodokaWorld) {
 // ==================== When Steps - Notifications ====================
 
 When('a notification is triggered', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:show-notification', { detail: { type: 'success', message: 'Test notification' } }));
-  });
+  // Trigger a notification by performing an action that would show one
+  // For example, completing a scan or saving settings
+
+  // Open settings and save to trigger a notification
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  // Change a setting to trigger save notification
+  const themeOption = this.page.locator('button:has-text("Dark"), input[value="Dark"]').first();
+  if (await themeOption.isVisible()) {
+    await themeOption.click();
+    await this.page.waitForTimeout(300);
+  }
+
+  await settings.close();
+
+  // Wait for notification to appear
+  const notification = this.page.locator('.toast, .notification, [role="alert"]').first();
+  await notification.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+
   await this.page.waitForTimeout(300);
 });
 

@@ -185,4 +185,80 @@ export class SettingsPage extends BasePage {
     const count = await select.count();
     return count > 0 ? select.first() : null;
   }
+
+  /**
+   * Add directory via file picker button click
+   */
+  async clickAddDirectory(): Promise<void> {
+    const addButton = this.modalBox.locator('button:has-text("Add Directory")');
+    await addButton.click();
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Remove directory by index
+   */
+  async removeDirectory(index: number): Promise<void> {
+    const removeButton = this.modalBox.locator('.directory-item button[aria-label="Remove"]').nth(index);
+    if (await removeButton.isVisible()) {
+      await removeButton.click();
+      await this.page.waitForTimeout(300);
+    }
+  }
+
+  /**
+   * Rescan directory by index
+   */
+  async rescanDirectory(index: number): Promise<void> {
+    const rescanButton = this.modalBox.locator('.directory-item button[aria-label="Rescan"]').nth(index);
+    if (await rescanButton.isVisible()) {
+      await rescanButton.click();
+      await this.page.waitForTimeout(500);
+    }
+  }
+
+  /**
+   * Set skip forward duration
+   */
+  async setSkipForwardDuration(seconds: number): Promise<void> {
+    const select = await this.getPreferenceSelect('Skip forward');
+    if (select) {
+      await select.selectOption(seconds.toString());
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Set skip backward duration
+   */
+  async setSkipBackwardDuration(seconds: number): Promise<void> {
+    const select = await this.getPreferenceSelect('Skip backward');
+    if (select) {
+      await select.selectOption(seconds.toString());
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Check if theme option is available
+   */
+  async isThemeOptionAvailable(theme: string): Promise<boolean> {
+    const options = await this.themeSelect.locator('option').allTextContents();
+    return options.some(opt => opt.includes(theme));
+  }
+
+  /**
+   * Get directory count
+   */
+  async getDirectoryCount(): Promise<number> {
+    const directories = this.modalBox.locator('.directory-item');
+    return await directories.count();
+  }
+
+  /**
+   * Get all directories
+   */
+  getDirectories(): Locator {
+    return this.modalBox.locator('.directory-item');
+  }
 }

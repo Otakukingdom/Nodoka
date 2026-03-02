@@ -23,16 +23,26 @@ Given('I have a sleep timer set for {int} seconds', async function (this: Nodoka
   const sleepTimer = new SleepTimerPage(this.page);
   await sleepTimer.open();
 
-  // For testing, set a very short duration
+  // For testing, set duration using the UI
   if (seconds === 0) {
     // Set minimum duration
     const minButton = this.page.locator('.modal-box button:has-text("min")').first();
     await minButton.click();
   } else {
-    // Set specific duration via test event
-    await this.page.evaluate((s) => {
-      window.dispatchEvent(new CustomEvent('test:set-sleep-timer', { detail: { duration: s * 1000 } }));
-    }, seconds);
+    // Convert seconds to minutes for the UI
+    const minutes = Math.ceil(seconds / 60);
+    const durationButton = this.page.locator(`.modal-box button:has-text("${minutes} min"), .modal-box button:has-text("${minutes}min")`).first();
+
+    if (await durationButton.isVisible()) {
+      await durationButton.click();
+    } else {
+      // Use custom duration input if available
+      const customInput = this.page.locator('.modal-box input[type="number"], .modal-box input[placeholder*="minute"]').first();
+      if (await customInput.isVisible()) {
+        await customInput.fill(minutes.toString());
+        await this.page.keyboard.press('Enter');
+      }
+    }
   }
 
   await sleepTimer.close();
@@ -44,9 +54,24 @@ Given('I have an end-of-chapter sleep timer', async function (this: NodokaWorld)
 });
 
 Given('a sleep timer is active with {int} minutes remaining', async function (this: NodokaWorld, minutes: number) {
-  await this.page.evaluate((m) => {
-    window.dispatchEvent(new CustomEvent('test:set-sleep-timer', { detail: { duration: m * 60 * 1000 } }));
-  }, minutes);
+  const sleepTimer = new SleepTimerPage(this.page);
+  await sleepTimer.open();
+
+  // Set duration using the UI
+  const durationButton = this.page.locator(`.modal-box button:has-text("${minutes} min"), .modal-box button:has-text("${minutes}min")`).first();
+
+  if (await durationButton.isVisible()) {
+    await durationButton.click();
+  } else {
+    // Use custom duration input if available
+    const customInput = this.page.locator('.modal-box input[type="number"], .modal-box input[placeholder*="minute"]').first();
+    if (await customInput.isVisible()) {
+      await customInput.fill(minutes.toString());
+      await this.page.keyboard.press('Enter');
+    }
+  }
+
+  await sleepTimer.close();
   await this.page.waitForTimeout(300);
 });
 
@@ -82,18 +107,18 @@ When('I set a sleep timer for {int} minutes with {int} second fade', async funct
 });
 
 When('I check if the timer has expired', async function (this: NodokaWorld) {
-  // Check timer status via test event
-  const result = await this.page.evaluate(() => {
-    return new Promise<boolean>((resolve) => {
-      const handler = (e: CustomEvent) => {
-        window.removeEventListener('test:timer-expired-response', handler as EventListener);
-        resolve(e.detail.expired);
-      };
-      window.addEventListener('test:timer-expired-response', handler as EventListener);
-      window.dispatchEvent(new CustomEvent('test:check-timer-expired'));
-    });
-  });
-  this.lastValue = result;
+  // Check timer status via the UI
+  const sleepTimer = new SleepTimerPage(this.page);
+
+  // Check if timer display shows 00:00 or if timer is no longer active
+  const isActive = await sleepTimer.isTimerActive();
+  if (!isActive) {
+    this.lastValue = true; // Timer has expired
+  } else {
+    // Check remaining time
+    const remainingTime = await sleepTimer.getRemainingTime();
+    this.lastValue = remainingTime === '00:00' || remainingTime === '0:00';
+  }
 });
 
 When('I check the remaining time', async function (this: NodokaWorld) {

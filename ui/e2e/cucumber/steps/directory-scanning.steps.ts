@@ -23,10 +23,40 @@ Given('the audiobook has a file with unknown length', async function (this: Nodo
 // ==================== When Steps ====================
 
 When('I scan the directory', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:scan-directory'));
-  });
-  await this.page.waitForTimeout(500);
+  // Open settings and trigger directory scan
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  // Click the rescan button
+  const rescanButton = this.page.locator('button:has-text("Rescan"), button:has-text("Scan"), button:has-text("Rescan All")').first();
+  if (await rescanButton.isVisible()) {
+    await rescanButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  await settings.close();
+});
+
+When('I rescan the directory', async function (this: NodokaWorld) {
+  // Open settings and click rescan
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  // Click rescan on the first directory
+  const rescanButton = this.page.locator('.directory-item button[aria-label="Rescan"]').first();
+  if (await rescanButton.isVisible()) {
+    await rescanButton.click();
+    await this.page.waitForTimeout(500);
+  } else {
+    // If no rescan button per directory, try general rescan
+    const rescanAllButton = this.page.locator('button:has-text("Rescan")');
+    if (await rescanAllButton.isVisible()) {
+      await rescanAllButton.click();
+      await this.page.waitForTimeout(500);
+    }
+  }
+
+  await settings.close();
 });
 
 When('I retrieve the directory', async function (this: NodokaWorld) {
@@ -36,31 +66,66 @@ When('I retrieve the directory', async function (this: NodokaWorld) {
 });
 
 When('the files exist on disk', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-files-exist', { detail: true }));
-  });
+  // In test mode, files are pre-configured to exist
+  // Navigate with query param to indicate files exist
+  await this.page.goto('http://localhost:5173/?test=true&filesExist=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Verify files are displayed in the library
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
   await this.page.waitForTimeout(300);
 });
 
 When('the files do not exist on disk', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-files-exist', { detail: false }));
-  });
+  // In test mode, navigate with query param to indicate files are missing
+  await this.page.goto('http://localhost:5173/?test=true&filesExist=false');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Select audiobook to see missing file indicators
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
   await this.page.waitForTimeout(300);
 });
 
 When('I rescan and files are missing', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:rescan-missing'));
-  });
-  await this.page.waitForTimeout(500);
+  // Navigate with query param to simulate missing files scenario
+  await this.page.goto('http://localhost:5173/?test=true&filesExist=false&rescan=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Trigger rescan via settings
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  const rescanButton = this.page.locator('button:has-text("Rescan"), button:has-text("Rescan All")').first();
+  if (await rescanButton.isVisible()) {
+    await rescanButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  await settings.close();
 });
 
 When('I scan and determine the file length', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:scan-file-length'));
-  });
-  await this.page.waitForTimeout(500);
+  // Trigger a scan which will determine file lengths
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  const rescanButton = this.page.locator('button:has-text("Rescan"), button:has-text("Scan")').first();
+  if (await rescanButton.isVisible()) {
+    await rescanButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  await settings.close();
+
+  // Verify file durations are displayed
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+
+  const durations = this.page.locator('.file-duration');
+  const count = await durations.count();
+  expect(count).toBeGreaterThan(0);
 });
 
 // ==================== Then Steps ====================

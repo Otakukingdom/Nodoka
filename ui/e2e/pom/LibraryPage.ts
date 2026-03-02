@@ -164,4 +164,85 @@ export class LibraryPage extends BasePage {
     const noMatches = this.page.locator('text=No matches found');
     return await noMatches.isVisible();
   }
+
+  /**
+   * Bulk select audiobooks with Ctrl+Click
+   */
+  async bulkSelectAudiobooks(indices: number[]): Promise<void> {
+    if (indices.length === 0) return;
+
+    // Select first card normally
+    await this.audiobookCards.nth(indices[0]).click();
+    await this.page.waitForTimeout(200);
+
+    // Select remaining cards with Ctrl modifier
+    for (let i = 1; i < indices.length; i++) {
+      await this.audiobookCards.nth(indices[i]).click({ modifiers: ['Control'] });
+      await this.page.waitForTimeout(100);
+    }
+  }
+
+  /**
+   * Delete audiobook via context menu (right-click)
+   */
+  async deleteAudiobookViaContextMenu(index: number): Promise<void> {
+    await this.audiobookCards.nth(index).click({ button: 'right' });
+    await this.page.waitForTimeout(200);
+
+    const deleteOption = this.page.locator('text=Delete');
+    if (await deleteOption.isVisible()) {
+      await deleteOption.click();
+    }
+  }
+
+  /**
+   * Get empty state message
+   */
+  async getEmptyStateMessage(): Promise<string> {
+    const emptyState = this.page.locator('text=No audiobooks, text=empty');
+    if (await emptyState.first().isVisible()) {
+      return await emptyState.first().textContent() ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Sort by last listened
+   */
+  async sortByLastListened(): Promise<void> {
+    await this.sortBy('RecentlyPlayed');
+  }
+
+  /**
+   * Get audiobook author by index
+   */
+  async getAudiobookAuthor(index: number): Promise<string> {
+    const card = this.audiobookCards.nth(index);
+    const authorElement = card.locator('.author, .card-subtitle');
+    if (await authorElement.count() > 0) {
+      return await authorElement.textContent() ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Get all selected audiobook cards
+   */
+  async getSelectedAudiobookCards(): Promise<Locator> {
+    return this.audiobookCards.filter({ has: this.page.locator('.ring-primary, .selected') });
+  }
+
+  /**
+   * Get bulk action bar
+   */
+  getBulkActionBar(): Locator {
+    return this.page.locator('.bulk-action-bar, .selection-bar');
+  }
+
+  /**
+   * Check if bulk action bar is visible
+   */
+  async isBulkActionBarVisible(): Promise<boolean> {
+    return await this.getBulkActionBar().isVisible();
+  }
 }

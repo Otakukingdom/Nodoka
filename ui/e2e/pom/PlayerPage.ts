@@ -217,4 +217,68 @@ export class PlayerPage extends BasePage {
     await this.page.keyboard.press('m');
     await this.page.waitForTimeout(200);
   }
+
+  /**
+   * Drag seek bar to a percentage position
+   */
+  async dragSeekBar(percent: number): Promise<void> {
+    const box = await this.seekBar.boundingBox();
+    if (box) {
+      const targetX = box.x + (box.width * percent / 100);
+      await this.seekBar.hover();
+      await this.page.mouse.down();
+      await this.page.mouse.move(targetX, box.y + box.height / 2);
+      await this.page.mouse.up();
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Get configured skip forward duration from settings
+   */
+  async getSkipForwardDuration(): Promise<number> {
+    // This is typically a setting, try to read from UI or return default
+    const skipButton = this.skipForwardButton;
+    const ariaLabel = await skipButton.getAttribute('aria-label');
+    // Parse from aria-label like "Skip forward 30 seconds"
+    const match = ariaLabel?.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 30;
+  }
+
+  /**
+   * Wait for playback to end
+   */
+  async waitForPlaybackEnd(timeout: number = 60000): Promise<void> {
+    await this.page.waitForFunction(
+      () => {
+        const pauseButton = document.querySelector('button[aria-label="Pause"]');
+        return !pauseButton || pauseButton.getAttribute('hidden') !== null;
+      },
+      { timeout }
+    );
+  }
+
+  /**
+   * Check if play button is visible (not playing)
+   */
+  async isPlayButtonVisible(): Promise<boolean> {
+    return await this.playButton.first().isVisible();
+  }
+
+  /**
+   * Check if pause button is visible (playing)
+   */
+  async isPauseButtonVisible(): Promise<boolean> {
+    return await this.pauseButton.isVisible();
+  }
+
+  /**
+   * Get skip backward duration from settings
+   */
+  async getSkipBackwardDuration(): Promise<number> {
+    const skipButton = this.skipBackwardButton;
+    const ariaLabel = await skipButton.getAttribute('aria-label');
+    const match = ariaLabel?.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 15;
+  }
 }

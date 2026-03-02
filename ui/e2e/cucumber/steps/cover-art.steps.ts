@@ -16,15 +16,15 @@ Given('an audiobook directory without embedded cover art', async function (this:
 });
 
 Given('the directory contains folder.jpg', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-cover-file', { detail: 'folder.jpg' }));
-  });
+  // Navigate with query param to indicate folder.jpg exists
+  await this.page.goto('http://localhost:5173/?test=true&coverFile=folder.jpg');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
 Given('the directory contains cover.jpg', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-cover-file', { detail: 'cover.jpg' }));
-  });
+  // Navigate with query param to indicate cover.jpg exists
+  await this.page.goto('http://localhost:5173/?test=true&coverFile=cover.jpg');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
 Given('the directory contains no folder.jpg', async function (this: NodokaWorld) {
@@ -36,9 +36,9 @@ Given('the directory contains no folder.jpg or cover.jpg', async function (this:
 });
 
 Given('the directory contains cover.png', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-cover-file', { detail: 'cover.png' }));
-  });
+  // Navigate with query param to indicate cover.png exists
+  await this.page.goto('http://localhost:5173/?test=true&coverFile=cover.png');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
 Given('an audiobook directory without any cover art', async function (this: NodokaWorld) {
@@ -52,9 +52,9 @@ Given('an audiobook directory with corrupted folder.jpg', async function (this: 
 });
 
 Given('the directory contains valid cover.png', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('test:set-cover-file', { detail: 'cover.png' }));
-  });
+  // Navigate with query param to indicate valid cover.png exists
+  await this.page.goto('http://localhost:5173/?test=true&coverFile=cover.png&coverValid=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
 // ==================== When Steps ====================
