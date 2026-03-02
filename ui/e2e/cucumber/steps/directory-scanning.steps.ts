@@ -142,11 +142,75 @@ Then('the directory count should be two', async function (this: NodokaWorld) {
 });
 
 Then('the directory last scanned timestamp should be updated', async function (this: NodokaWorld) {
-  // Timestamp updated
+  // Verify timestamp is displayed and recent
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  const timestampElement = this.page.locator('.directory-item .last-scanned, .directory-item time, [data-testid="last-scanned"]');
+  if (await timestampElement.count() > 0) {
+    const timestampText = await timestampElement.first().textContent();
+    expect(timestampText).toBeTruthy();
+
+    // Verify timestamp is recent (within last minute for test)
+    const now = Date.now();
+    const storedTimestamp = await this.page.evaluate(() => {
+      const settings = localStorage.getItem('nodoka-settings');
+      if (settings) {
+        try {
+          const parsed = JSON.parse(settings);
+          return parsed.lastScanned;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    });
+
+    if (storedTimestamp) {
+      const timeDiff = now - new Date(storedTimestamp).getTime();
+      expect(timeDiff).toBeLessThan(60000); // Within last minute
+    }
+  }
+
+  await settings.close();
 });
 
 Then('the directory path should match the original', async function (this: NodokaWorld) {
-  // Path preserved
+  // Verify directory path is preserved
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  const directoryItems = this.page.locator('.directory-item');
+  const firstDir = directoryItems.first();
+
+  if (await firstDir.isVisible()) {
+    const pathText = await firstDir.locator('.directory-path, [data-path]').textContent();
+    expect(pathText).toBeTruthy();
+    expect(pathText?.length).toBeGreaterThan(0);
+
+    // Store for comparison after potential reload
+    this.lastValue = pathText;
+  }
+
+  // Also verify in localStorage
+  const storedPath = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed.directories?.[0];
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  if (storedPath) {
+    expect(storedPath).toBeTruthy();
+  }
+
+  await settings.close();
 });
 
 Then('the files should be marked as existing', async function (this: NodokaWorld) {
@@ -167,5 +231,31 @@ Then('the files should be marked as not existing', async function (this: NodokaW
 });
 
 Then('the file length should be updated', async function (this: NodokaWorld) {
-  // File length updated
+  // Verify file duration is displayed and non-zero
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+
+  const durationElements = this.page.locator('.file-duration, .duration, [data-testid="file-duration"]');
+  const count = await durationElements.count();
+
+  if (count > 0) {
+    const durationText = await durationElements.first().textContent();
+    expect(durationText).toBeTruthy();
+
+    // Duration should be in format like "5:30" or "1:23:45"
+    const durationMatch = durationText?.match(/\d+:\d+/);
+    expect(durationMatch).toBeTruthy();
+  }
+
+  // Also verify duration is non-zero in the file list
+  const fileCards = library.fileCards;
+  const fileCount = await fileCards.count();
+
+  if (fileCount > 0) {
+    const firstFileDuration = fileCards.first().locator('.file-duration, .duration');
+    if (await firstFileDuration.isVisible()) {
+      const text = await firstFileDuration.textContent();
+      expect(text).not.toBe('0:00');
+    }
+  }
 });

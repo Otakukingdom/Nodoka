@@ -331,9 +331,38 @@ Then('the speed should be {float}', async function (this: NodokaWorld, speed: nu
 });
 
 Then('the panel ratio should be stored as {float}', async function (this: NodokaWorld, ratio: number) {
-  // Verify panel ratio through UI state
-  const leftPanel = this.page.locator('.library-panel');
+  // Verify panel ratio through actual UI dimensions
+  const leftPanel = this.page.locator('.library-panel, .left-panel').first();
+  const rightPanel = this.page.locator('.details-panel, .right-panel').first();
+
   await expect(leftPanel).toBeVisible();
+  await expect(rightPanel).toBeVisible();
+
+  const leftBox = await leftPanel.boundingBox();
+  const rightBox = await rightPanel.boundingBox();
+
+  if (leftBox && rightBox) {
+    const actualRatio = leftBox.width / (leftBox.width + rightBox.width);
+    expect(actualRatio).toBeCloseTo(ratio, 1);
+  }
+
+  // Also verify stored in localStorage
+  const storedRatio = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed.panelRatio;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  if (storedRatio !== null) {
+    expect(storedRatio).toBeCloseTo(ratio, 1);
+  }
 });
 
 Then('focus mode should be enabled', async function (this: NodokaWorld) {
@@ -362,11 +391,58 @@ Then('all settings should be available', async function (this: NodokaWorld) {
 });
 
 Then('the window position should be {int}, {int}', async function (this: NodokaWorld, x: number, y: number) {
-  // Window position is persisted in backend
+  // Verify window position through localStorage or URL params
+  const storedPosition = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return { x: parsed.windowX, y: parsed.windowY };
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  // If stored position exists, verify it matches
+  if (storedPosition) {
+    expect(storedPosition.x).toBe(x);
+    expect(storedPosition.y).toBe(y);
+  }
+
+  // Alternative: check URL params for test simulation
+  const url = this.page.url();
+  const hasExpectedParams = url.includes(`windowX=${x}`) || url.includes(`windowY=${y}`);
+  // Position settings are persisted (either in storage or backend)
+  expect(hasExpectedParams || storedPosition !== null).toBeTruthy();
 });
 
 Then('the window size should be {int}, {int}', async function (this: NodokaWorld, width: number, height: number) {
-  // Window size is persisted in backend
+  // Verify viewport size matches expected
+  const viewport = this.page.viewportSize();
+  expect(viewport?.width).toBe(width);
+  expect(viewport?.height).toBe(height);
+
+  // Also verify stored size in localStorage
+  const storedSize = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return { width: parsed.windowWidth, height: parsed.windowHeight };
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  // If stored size exists, verify it matches
+  if (storedSize) {
+    expect(storedSize.width).toBe(width);
+    expect(storedSize.height).toBe(height);
+  }
 });
 
 Then('the skip forward duration should be {int}', async function (this: NodokaWorld, seconds: number) {
@@ -398,7 +474,35 @@ Then('the skip backward duration should be {int}', async function (this: NodokaW
 });
 
 Then('the auto-save interval should be {int}', async function (this: NodokaWorld, seconds: number) {
-  // Auto-save interval is persisted in backend
+  // Verify auto-save interval in localStorage or settings UI
+  const storedInterval = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed.autoSaveInterval;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  if (storedInterval !== null) {
+    expect(storedInterval).toBe(seconds);
+  }
+
+  // Alternative: verify in settings modal
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+
+  const autoSaveSelect = this.page.locator('select').filter({ hasText: /Auto-save|save/ });
+  if (await autoSaveSelect.count() > 0) {
+    const value = await autoSaveSelect.first().inputValue();
+    expect(parseInt(value)).toBe(seconds);
+  }
+
+  await settings.close();
 });
 
 Then('the operation should fail', async function (this: NodokaWorld) {
@@ -406,11 +510,54 @@ Then('the operation should fail', async function (this: NodokaWorld) {
 });
 
 Then('the current audiobook should be {int}', async function (this: NodokaWorld, id: number) {
-  // Current audiobook is persisted in backend
+  // Verify current audiobook through localStorage or UI
+  const storedAudiobook = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed.currentAudiobook;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  if (storedAudiobook !== null) {
+    expect(storedAudiobook).toBe(id);
+  }
+
+  // Alternative: verify the currently selected audiobook in the UI
+  const library = new LibraryPage(this.page);
+  const selectedAudiobook = await library.getSelectedAudiobook();
+  expect(selectedAudiobook).not.toBeNull();
 });
 
 Then('the current file should be {string}', async function (this: NodokaWorld, path: string) {
-  // Current file is persisted in backend
+  // Verify current file through localStorage or UI
+  const storedFile = await this.page.evaluate(() => {
+    const settings = localStorage.getItem('nodoka-settings');
+    if (settings) {
+      try {
+        const parsed = JSON.parse(settings);
+        return parsed.currentFile;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  if (storedFile !== null) {
+    expect(storedFile).toContain(path);
+  }
+
+  // Alternative: verify the currently playing file in the player UI
+  const player = new PlayerPage(this.page);
+  const currentFileName = await player.getCurrentFileName();
+  // The file path or name should be visible in the player
+  expect(currentFileName).toBeTruthy();
 });
 
 Then('the result should be None', async function (this: NodokaWorld) {

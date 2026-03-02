@@ -1178,9 +1178,24 @@ Then('the cover art should maintain aspect ratio', async function (this: NodokaW
 // ==================== Error Handling Steps ====================
 
 Given('a network error occurs during library load', async function (this: NodokaWorld) {
-  await this.page.goto('http://localhost:5173/?test=true&networkError=true');
+  // Set up network interception to simulate failures
+  await this.page.route('**/api/**', route => {
+    route.abort('failed');
+  });
+
+  await this.page.route('**/*.json', route => {
+    route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Internal Server Error' })
+    });
+  });
+
+  await this.page.goto('http://localhost:5173/?test=true');
   await this.page.waitForSelector('.navbar', { timeout: 10000 });
-  // Trigger the error state
+
+  // The network interception will cause API calls to fail
+  // Trigger the error state by attempting to load library
   await this.page.waitForTimeout(500);
 });
 
@@ -1241,6 +1256,13 @@ Given('the application is in an error state', async function (this: NodokaWorld)
 // Note: "I scan the directory" is defined in directory-scanning.steps.ts
 
 When('I scan a large directory', async function (this: NodokaWorld) {
+  // Set up route to simulate slow/timeout response for large directory
+  await this.page.route('**/scan**', async route => {
+    // Simulate a slow response that eventually times out
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    route.abort('timedout');
+  });
+
   // Same as scanning directory
   await this.page.evaluate(() => {
     (window as any).__TAURI_INVOKE__('scan_directory', { path: '/large/directory' });

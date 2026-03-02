@@ -341,4 +341,23 @@ export class PlayerPage extends BasePage {
       await this.cycleSpeed();
     }
   }
+
+  /**
+   * Get current file name from player UI
+   */
+  async getCurrentFileName(): Promise<string | null> {
+    // Try to find the current file name in the player UI
+    const fileNameElement = this.page.locator('.player-file-name, .current-file, [data-testid="current-file"]');
+    if (await fileNameElement.count() > 0) {
+      return await fileNameElement.first().textContent();
+    }
+
+    // Alternative: check details panel for current file
+    const detailsFile = this.page.locator('.details-panel .file-name, .details-panel .file-title');
+    if (await detailsFile.count() > 0) {
+      return await detailsFile.first().textContent();
+    }
+
+    return null;
+  }
 }

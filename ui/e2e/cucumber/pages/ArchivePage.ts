@@ -224,7 +224,7 @@ export class ArchivePage extends BasePage {
    * Check if password input has focus
    */
   async isPasswordInputFocused(): Promise<boolean> {
-    return await this.passwordInput.isFocused();
+    return await this.passwordInput.evaluate(el => el === document.activeElement);
   }
 
   /**
