@@ -144,4 +144,127 @@ export class ArchivePage extends BasePage {
   async expectError(): Promise<void> {
     await expect(this.errorMessage.first()).toBeVisible();
   }
+
+  // ==================== Enhanced Methods for Comprehensive UI Testing ====================
+
+  /**
+   * Enter password and submit via Enter key
+   */
+  async enterPasswordViaKeyboard(password: string): Promise<void> {
+    await this.passwordInput.fill(password);
+    await this.page.keyboard.press('Enter');
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Get file names from archive
+   */
+  async getFileNames(): Promise<string[]> {
+    const files = this.fileList;
+    const count = await files.count();
+    const names: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const nameElement = files.nth(i).locator('.file-name, .card-title');
+      names.push((await nameElement.textContent()) ?? '');
+    }
+    return names;
+  }
+
+  /**
+   * Get archive type from badge
+   */
+  async getArchiveType(): Promise<string> {
+    const badge = this.archiveBadge.first();
+    if (await badge.isVisible()) {
+      return (await badge.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if extraction progress is visible
+   */
+  async isExtractionProgressVisible(): Promise<boolean> {
+    return await this.extractProgress.isVisible();
+  }
+
+  /**
+   * Wait for extraction progress to reach percentage
+   */
+  async waitForExtractionProgress(percent: number, timeout: number = 30000): Promise<void> {
+    const progressBar = this.extractProgress;
+    await progressBar.waitFor({ state: 'visible', timeout });
+  }
+
+  /**
+   * Get folder structure items
+   */
+  async getFolderStructureItems(): Promise<string[]> {
+    const items = this.folderStructure.locator('.folder-item, .tree-item');
+    const count = await items.count();
+    const names: string[] = [];
+    for (let i = 0; i < count; i++) {
+      names.push((await items.nth(i).textContent()) ?? '');
+    }
+    return names;
+  }
+
+  /**
+   * Expand folder in nested archive
+   */
+  async expandFolder(folderName: string): Promise<void> {
+    const folder = this.folderStructure.locator(`text="${folderName}"`);
+    if (await folder.isVisible()) {
+      await folder.click();
+      await this.page.waitForTimeout(300);
+    }
+  }
+
+  /**
+   * Check if password input has focus
+   */
+  async isPasswordInputFocused(): Promise<boolean> {
+    return await this.passwordInput.isFocused();
+  }
+
+  /**
+   * Get password prompt title text
+   */
+  async getPasswordPromptTitle(): Promise<string> {
+    const title = this.passwordPrompt.locator('h3, .modal-title, .prompt-title');
+    if (await title.isVisible()) {
+      return (await title.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Cancel password prompt
+   */
+  async cancelPasswordPrompt(): Promise<void> {
+    const cancelButton = this.passwordPrompt.locator('button:has-text("Cancel"), button[aria-label="Cancel"]');
+    if (await cancelButton.isVisible()) {
+      await cancelButton.click();
+      await this.page.waitForTimeout(300);
+    }
+  }
+
+  /**
+   * Get archive file size text
+   */
+  async getArchiveSize(): Promise<string> {
+    const sizeElement = this.page.locator('.archive-size, .file-size');
+    if (await sizeElement.isVisible()) {
+      return (await sizeElement.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if archive card has specific type indicator
+   */
+  async hasArchiveTypeIndicator(type: 'ZIP' | 'RAR' | '7z'): Promise<boolean> {
+    const typeBadge = this.page.locator(`.format-badge:has-text("${type}"), .${type.toLowerCase()}-badge`);
+    return await typeBadge.count() > 0;
+  }
 }

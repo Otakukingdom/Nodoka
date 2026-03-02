@@ -80,6 +80,18 @@ Given('a file is playing at position {int} minutes', async function (this: Nodok
   await player.play();
 });
 
+Given('a file is playing at position {int} minutes {int} seconds', async function (this: NodokaWorld, minutes: number, seconds: number) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  // Seek to the specified position
+  const positionMs = (minutes * 60 + seconds) * 1000;
+  await player.seek(positionMs / 1000);
+});
+
 // ==================== Given Steps - Player Controls ====================
 
 Given('a file is loaded', async function (this: NodokaWorld) {

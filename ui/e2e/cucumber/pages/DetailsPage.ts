@@ -317,4 +317,178 @@ export class DetailsPage extends BasePage {
     const file = this.fileItems.nth(index);
     await expect(file).toHaveClass(/ring-primary|selected/);
   }
+
+  // ==================== Enhanced Methods for Comprehensive UI Testing ====================
+
+  /**
+   * Create bookmark via context menu (right-click)
+   */
+  async createBookmarkViaContextMenu(): Promise<void> {
+    const playerArea = this.page.locator('.player-controls, .seek-bar');
+    await playerArea.click({ button: 'right' });
+    await this.page.waitForTimeout(200);
+
+    const addBookmarkOption = this.page.locator('text=Add Bookmark, text=Create Bookmark');
+    if (await addBookmarkOption.isVisible()) {
+      await addBookmarkOption.click();
+      await this.page.waitForTimeout(300);
+    }
+  }
+
+  /**
+   * Edit bookmark label inline by index
+   */
+  async editBookmarkLabel(index: number, newLabel: string): Promise<void> {
+    const bookmark = this.bookmarkItems.nth(index);
+    await bookmark.dblclick();
+    await this.page.waitForTimeout(200);
+
+    const input = bookmark.locator('input, [contenteditable="true"]');
+    if (await input.isVisible()) {
+      await input.fill(newLabel);
+      await this.page.keyboard.press('Enter');
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Edit bookmark note inline by index
+   */
+  async editBookmarkNote(index: number, note: string): Promise<void> {
+    const bookmark = this.bookmarkItems.nth(index);
+    await bookmark.hover();
+
+    const editNoteBtn = bookmark.locator('button[aria-label*="note"], button[aria-label*="edit"]');
+    if (await editNoteBtn.isVisible()) {
+      await editNoteBtn.click();
+      await this.page.waitForTimeout(200);
+
+      const noteInput = this.page.locator('.bookmark-note-input textarea, .bookmark-note input');
+      if (await noteInput.isVisible()) {
+        await noteInput.fill(note);
+        await this.page.keyboard.press('Enter');
+      }
+    }
+  }
+
+  /**
+   * Click bookmark to jump to its position
+   */
+  async jumpToBookmark(index: number): Promise<void> {
+    await this.bookmarkItems.nth(index).click();
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Get bookmark position time in milliseconds
+   */
+  async getBookmarkPositionMs(index: number): Promise<number> {
+    const bookmark = this.bookmarkItems.nth(index);
+    const timeText = await bookmark.locator('.bookmark-time, .time').textContent();
+    if (!timeText) return 0;
+
+    // Parse MM:SS or HH:MM:SS format
+    const parts = timeText.split(':').map(Number);
+    if (parts.length === 2) {
+      return (parts[0] * 60 + parts[1]) * 1000;
+    } else if (parts.length === 3) {
+      return (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+    }
+    return 0;
+  }
+
+  /**
+   * Verify file duration format
+   */
+  async verifyFileDurationFormat(index: number): Promise<boolean> {
+    const duration = await this.getFileDuration(index);
+    // Match MM:SS or HH:MM:SS format
+    return /^\d{1,2}:\d{2}(:\d{2})?$/.test(duration.trim());
+  }
+
+  /**
+   * Verify file progress percentage
+   */
+  async verifyFileProgressValue(index: number): Promise<number> {
+    const progressText = await this.getFileProgress(index);
+    const match = progressText.match(/(\d+)%/);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  /**
+   * Select and play a file by index
+   */
+  async selectAndPlayFile(index: number): Promise<void> {
+    await this.clickFile(index);
+    const playButton = this.page.locator('button[aria-label="Play"], button[aria-label="Pause"]').first();
+    if (await playButton.isVisible()) {
+      await playButton.click();
+      await this.page.waitForTimeout(300);
+    }
+  }
+
+  /**
+   * Get total files count displayed in details panel
+   */
+  async getTotalFilesCount(): Promise<number> {
+    const countElement = this.page.locator('.files-count, text=/\\d+\\s*files?/');
+    const text = await countElement.textContent();
+    const match = text?.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  /**
+   * Verify audiobook completion percentage
+   */
+  async getCompletionPercentage(): Promise<number> {
+    const progressText = await this.getProgressText();
+    const match = progressText.match(/(\d+)%/);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  /**
+   * Check if file has format badge
+   */
+  async hasFileFormatBadge(index: number): Promise<boolean> {
+    const file = this.fileItems.nth(index);
+    const badge = file.locator('.format-badge, .file-format, [data-format]');
+    return await badge.isVisible();
+  }
+
+  /**
+   * Get file format from badge
+   */
+  async getFileFormat(index: number): Promise<string> {
+    const file = this.fileItems.nth(index);
+    const badge = file.locator('.format-badge, .file-format, [data-format]');
+    if (await badge.isVisible()) {
+      return (await badge.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if details panel shows remaining time
+   */
+  async hasRemainingTime(): Promise<boolean> {
+    return await this.remainingTime.isVisible();
+  }
+
+  /**
+   * Check if file has play icon indicator
+   */
+  async hasFilePlayIcon(index: number): Promise<boolean> {
+    const file = this.fileItems.nth(index);
+    const playIcon = file.locator('.play-icon, svg[class*="play"], button[aria-label*="Play"]');
+    return await playIcon.count() > 0;
+  }
+
+  /**
+   * Check if file has warning icon (corrupted/unsupported)
+   */
+  async hasFileWarningIcon(index: number): Promise<boolean> {
+    const file = this.fileItems.nth(index);
+    const warningIcon = file.locator('.warning-icon, svg[class*="warning"], .corrupted-indicator');
+    return await warningIcon.count() > 0;
+  }
 }

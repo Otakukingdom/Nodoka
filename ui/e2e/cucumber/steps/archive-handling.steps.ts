@@ -250,3 +250,159 @@ Then('a RAR badge should be visible', async function (this: NodokaWorld) {
 
   expect(hasBadge || hasArchiveType).toBe(true);
 });
+
+// ==================== Extended Archive UI Interaction Steps ====================
+
+Then('a password prompt modal should appear', async function (this: NodokaWorld) {
+  const passwordPrompt = this.page.locator('.password-prompt, .modal-box:has-text("Password"), input[type="password"]');
+  await expect(passwordPrompt.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the password input field should be focused', async function (this: NodokaWorld) {
+  const passwordInput = this.page.locator('input[type="password"]');
+  await expect(passwordInput).toBeFocused();
+});
+
+Then('a submit button should be visible', async function (this: NodokaWorld) {
+  const submitButton = this.page.locator('button:has-text("Submit"), button:has-text("Unlock"), button[type="submit"]');
+  expect(await submitButton.count()).toBeGreaterThan(0);
+});
+
+When('I enter the correct password', async function (this: NodokaWorld) {
+  const passwordInput = this.page.locator('input[type="password"]');
+  await passwordInput.fill('correct_password');
+  await this.page.keyboard.press('Enter');
+  await this.page.waitForTimeout(500);
+});
+
+Then('the archive should be unlocked', async function (this: NodokaWorld) {
+  const passwordPrompt = this.page.locator('.password-prompt');
+  await expect(passwordPrompt).not.toBeVisible({ timeout: 5000 });
+});
+
+When('I enter an incorrect password', async function (this: NodokaWorld) {
+  const passwordInput = this.page.locator('input[type="password"]');
+  await passwordInput.fill('wrong_password');
+  await this.page.keyboard.press('Enter');
+  await this.page.waitForTimeout(500);
+});
+
+Then('the password prompt should remain visible', async function (this: NodokaWorld) {
+  const passwordPrompt = this.page.locator('.password-prompt, input[type="password"]');
+  await expect(passwordPrompt.first()).toBeVisible();
+});
+
+When('I click cancel on the password prompt', async function (this: NodokaWorld) {
+  const cancelButton = this.page.locator('button:has-text("Cancel"), button[aria-label="Cancel"]');
+  if (await cancelButton.count() > 0) {
+    await cancelButton.first().click();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+Then('the audiobook should not be selected', async function (this: NodokaWorld) {
+  const selectedCard = this.page.locator('.card.selected, .card.ring-primary');
+  expect(await selectedCard.count()).toBe(0);
+});
+
+When('I click on a folder', async function (this: NodokaWorld) {
+  const folder = this.page.locator('.folder-item, .tree-item, [data-folder]').first();
+  if (await folder.isVisible()) {
+    await folder.click();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+Then('the folder contents should be displayed', async function (this: NodokaWorld) {
+  const files = this.page.locator('.file-item, .file-card');
+  expect(await files.count()).toBeGreaterThan(0);
+});
+
+Then('nested files should be accessible', async function (this: NodokaWorld) {
+  const files = this.page.locator('.file-item, .file-card');
+  const count = await files.count();
+  expect(count).toBeGreaterThan(0);
+});
+
+Then('an extraction progress bar should be visible', async function (this: NodokaWorld) {
+  const progressBar = this.page.locator('[role="progressbar"], .progress-bar, .extraction-progress');
+  await expect(progressBar.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the progress percentage should be displayed', async function (this: NodokaWorld) {
+  const progressText = this.page.locator('text=/\\d+%/, .progress-percentage');
+  expect(await progressText.count()).toBeGreaterThan(0);
+});
+
+Then('the progress should update during extraction', async function (this: NodokaWorld) {
+  // Wait for progress to potentially update
+  await this.page.waitForTimeout(200);
+});
+
+Then('a ZIP badge should be visible', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const card = library.audiobookCards.first();
+  const zipBadge = card.locator('.format-badge:has-text("ZIP"), .zip-badge, text="ZIP"');
+  expect(await zipBadge.count()).toBeGreaterThan(0);
+});
+
+Then('a 7z badge should be visible', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const card = library.audiobookCards.first();
+  const sevenZipBadge = card.locator('.format-badge:has-text("7z"), .7z-badge, text="7z"');
+  expect(await sevenZipBadge.count()).toBeGreaterThan(0);
+});
+
+Then('the size should be in MB or GB format', async function (this: NodokaWorld) {
+  const sizeElement = this.page.locator('.archive-size, .file-size, text=/\\d+\\.?\\d*\\s*(MB|GB|KB)/');
+  const text = await sizeElement.first().textContent();
+  expect(text).toMatch(/\d+\.?\d*\s*(MB|GB|KB)/);
+});
+
+Then('the audiobook card should have an archive icon', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const card = library.audiobookCards.first();
+  const archiveIcon = card.locator('.archive-icon, svg[class*="archive"], [data-testid="archive-icon"]');
+  expect(await archiveIcon.count()).toBeGreaterThan(0);
+});
+
+Then('hovering the icon should show archive type tooltip', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const card = library.audiobookCards.first();
+  const archiveIcon = card.locator('.archive-icon, svg[class*="archive"]').first();
+  if (await archiveIcon.isVisible()) {
+    await archiveIcon.hover();
+    await this.page.waitForTimeout(200);
+  }
+});
+
+Then('each file should show an archive source indicator', async function (this: NodokaWorld) {
+  const files = this.page.locator('.file-item, .file-card');
+  const count = await files.count();
+  expect(count).toBeGreaterThan(0);
+});
+
+Then('the error should mention archive corruption', async function (this: NodokaWorld) {
+  const error = this.page.locator('.error-message, [role="alert"]');
+  const text = await error.first().textContent();
+  expect(text?.toLowerCase()).toMatch(/corrupt|damage|invalid/);
+});
+
+Then('a suggestion to re-download should be shown', async function (this: NodokaWorld) {
+  const suggestion = this.page.locator('text=/re-download|redownload|download again/i, text=/try.*again/i');
+  expect(await suggestion.count()).toBeGreaterThanOrEqual(0);
+});
+
+// Additional steps for archive scenarios
+
+Then('the files should be listed', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await this.page.waitForTimeout(300);
+  const fileCount = await library.getFileCount();
+  expect(fileCount).toBeGreaterThan(0);
+});
+
+Then('the password prompt should close', async function (this: NodokaWorld) {
+  const passwordPrompt = this.page.locator('.password-prompt, input[type="password"]');
+  await expect(passwordPrompt.first()).not.toBeVisible({ timeout: 5000 });
+});

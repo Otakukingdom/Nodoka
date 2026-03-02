@@ -137,4 +137,108 @@ export class SleepTimerPage extends BasePage {
   async expectTimerActive(): Promise<void> {
     await expect(this.timerDisplay).toBeVisible();
   }
+
+  // ==================== Enhanced Methods for Comprehensive UI Testing ====================
+
+  /**
+   * Get available duration options text
+   */
+  async getDurationOptions(): Promise<string[]> {
+    const options = this.modalBox.locator('button:has-text("min")');
+    const count = await options.count();
+    const texts: string[] = [];
+    for (let i = 0; i < count; i++) {
+      texts.push((await options.nth(i).textContent()) ?? '');
+    }
+    return texts;
+  }
+
+  /**
+   * Check if end of chapter option is available
+   */
+  async hasEndOfChapterOption(): Promise<boolean> {
+    return await this.endOfChapterOption.isVisible();
+  }
+
+  /**
+   * Get available fade duration options
+   */
+  async getFadeOptions(): Promise<string[]> {
+    const fadeSelect = this.modalBox.locator('select').first();
+    const options = await fadeSelect.locator('option').allInnerTexts();
+    return options;
+  }
+
+  /**
+   * Select fade duration by value
+   */
+  async selectFadeOption(seconds: number): Promise<void> {
+    const fadeSelect = this.modalBox.locator('select').first();
+    await fadeSelect.selectOption(seconds.toString());
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Verify modal has title "Sleep Timer"
+   */
+  async hasTitle(): Promise<boolean> {
+    const title = this.modalBox.locator('h3, .modal-title');
+    const text = await title.textContent();
+    return text?.includes('Sleep') ?? false;
+  }
+
+  /**
+   * Check if modal has close button
+   */
+  async hasCloseButton(): Promise<boolean> {
+    return await this.closeButton.isVisible();
+  }
+
+  /**
+   * Close modal via Escape key
+   */
+  async closeViaEscape(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Get timer mode (Duration or EndOfChapter)
+   */
+  async getTimerModeText(): Promise<string> {
+    const modeElement = this.modalBox.locator('.timer-mode, .sleep-timer-mode');
+    if (await modeElement.isVisible()) {
+      return (await modeElement.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if cancel timer button is visible
+   */
+  async hasCancelButton(): Promise<boolean> {
+    return await this.cancelButton.isVisible();
+  }
+
+  /**
+   * Click duration button by minutes value
+   */
+  async clickDurationButton(minutes: number): Promise<void> {
+    const button = this.modalBox.locator(`button:has-text("${minutes} min")`);
+    await button.click();
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Verify all expected duration options are present
+   */
+  async verifyDurationOptions(expected: number[]): Promise<boolean> {
+    for (const minutes of expected) {
+      const button = this.modalBox.locator(`button:has-text("${minutes} min")`);
+      if (!(await button.isVisible())) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
