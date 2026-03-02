@@ -7,3 +7,4 @@ export { BasePage } from './BasePage';
 export { LibraryPage } from './LibraryPage';
 export { PlayerPage } from './PlayerPage';
 export { SettingsPage } from './SettingsPage';
+export { ModalPage } from './ModalPage';

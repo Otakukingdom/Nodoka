@@ -45,3 +45,40 @@ Feature: Archive Handling
     Given the library has a password protected archive
     When I select the audiobook
     Then a password prompt should appear
+
+  # UI-specific scenarios
+
+  Scenario: Archive shows zip icon indicator
+    Given the library has a ZIP archive audiobook
+    When I view the audiobook in the library
+    Then an archive icon should be visible on the audiobook card
+
+  Scenario: Archive extraction shows progress
+    Given the library has a large ZIP archive audiobook
+    When I select the audiobook
+    Then an extraction progress indicator should be displayed
+
+  Scenario: Extracted files count is displayed
+    Given the library has a ZIP archive audiobook
+    When I select the audiobook
+    Then the total file count should be shown in the details panel
+
+  Scenario: Archive file size is shown
+    Given the library has a ZIP archive audiobook
+    When I view the audiobook details
+    Then the archive file size should be displayed
+
+  Scenario: Nested archive shows folder structure
+    Given the library has a nested archive
+    When I view the files list
+    Then the folder hierarchy should be visible
+
+  Scenario: Archive indicator in file list
+    Given the library has a ZIP archive audiobook
+    When I view the files list
+    Then each file should show it is from an archive
+
+  Scenario: Archive type badge is displayed
+    Given the library has a RAR archive audiobook
+    When I view the audiobook card
+    Then a RAR badge should be visible

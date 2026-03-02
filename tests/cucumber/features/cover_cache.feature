@@ -35,3 +35,23 @@ Feature: Cover Art Cache
     When I restart the application
     And I view the audiobook
     Then the cover art should load from cache
+
+  # ==================== UI Performance Scenarios ====================
+
+  Scenario: Cached cover loads instantly on revisit
+    Given the application has an audiobook with cached cover art
+    When I view the audiobook again
+    Then the cover art should load from cache
+    And the cover should appear without delay
+
+  Scenario: Cache indicator shows during load
+    Given the application has an audiobook with cover art
+    When I view the audiobook for the first time
+    Then a loading indicator may appear
+    And the cover art should be displayed
+
+  Scenario: Clear cache removes all cached covers
+    Given the application has cached cover art for audiobooks
+    When I clear the cover cache
+    Then no covers should be cached
+    And covers should reload on next view

@@ -1,6 +1,6 @@
 /**
  * Details Page Object Model
- * Encapsulates details panel interactions (bookmarks, audiobook info)
+ * Encapsulates details panel interactions (bookmarks, audiobook info, files)
  */
 
 import { Page, Locator, expect } from '@playwright/test';
@@ -18,20 +18,28 @@ export class DetailsPage extends BasePage {
   readonly coverPlaceholder: Locator;
   readonly progressDisplay: Locator;
   readonly completionBadge: Locator;
+  readonly filesList: Locator;
+  readonly fileItems: Locator;
+  readonly remainingTime: Locator;
+  readonly totalDuration: Locator;
 
   constructor(page: Page) {
     super(page);
     this.detailsPanel = page.locator('.details-panel');
     this.audiobookTitle = page.locator('.details-panel .card-title');
-    this.audiobookAuthor = page.locator('.details-panel .author');
+    this.audiobookAuthor = page.locator('.details-panel .author, .details-panel .author-value');
     this.bookmarksSection = page.locator('.details-panel .bookmarks-section');
     this.bookmarkList = page.locator('.details-panel .bookmark-list');
     this.bookmarkItems = page.locator('.details-panel .bookmark-item');
     this.noBookmarksMessage = page.locator('text=No bookmarks');
     this.coverArt = page.locator('.details-panel .cover-art img');
     this.coverPlaceholder = page.locator('.details-panel .cover-art .placeholder');
-    this.progressDisplay = page.locator('.details-panel .progress-text');
+    this.progressDisplay = page.locator('.details-panel .progress-text, .details-panel .completeness');
     this.completionBadge = page.locator('.details-panel .completion-badge');
+    this.filesList = page.locator('.details-panel .files-list, #files-list');
+    this.fileItems = page.locator('.details-panel .file-item, #files-list .card');
+    this.remainingTime = page.locator('.details-panel .remaining-time, .details-panel .time-remaining');
+    this.totalDuration = page.locator('.details-panel .total-duration, .details-panel .duration');
   }
 
   /**
@@ -119,7 +127,11 @@ export class DetailsPage extends BasePage {
    * Get audiobook author text
    */
   async getAuthor(): Promise<string> {
-    return (await this.audiobookAuthor.textContent()) ?? '';
+    const authorElement = this.page.locator('.details-panel .author-value, .details-panel .author-text, .details-panel .author');
+    if (await authorElement.isVisible()) {
+      return (await authorElement.textContent()) ?? '';
+    }
+    return '';
   }
 
   /**
@@ -169,5 +181,140 @@ export class DetailsPage extends BasePage {
    */
   async expectAuthor(expected: string): Promise<void> {
     await expect(this.audiobookAuthor).toContainText(expected);
+  }
+
+  // ==================== File List Methods ====================
+
+  /**
+   * Get file count
+   */
+  async getFileCount(): Promise<number> {
+    return await this.fileItems.count();
+  }
+
+  /**
+   * Get file name by index
+   */
+  async getFileName(index: number): Promise<string> {
+    const file = this.fileItems.nth(index);
+    const nameElement = file.locator('.file-name, .card-title');
+    return (await nameElement.textContent()) ?? '';
+  }
+
+  /**
+   * Get file duration by index
+   */
+  async getFileDuration(index: number): Promise<string> {
+    const file = this.fileItems.nth(index);
+    const durationElement = file.locator('.file-duration, .duration');
+    return (await durationElement.textContent()) ?? '';
+  }
+
+  /**
+   * Get file progress by index
+   */
+  async getFileProgress(index: number): Promise<string> {
+    const file = this.fileItems.nth(index);
+    const progressElement = file.locator('.file-progress, .progress');
+    return (await progressElement.textContent()) ?? '';
+  }
+
+  /**
+   * Check if file is marked as missing
+   */
+  async isFileMissing(index: number): Promise<boolean> {
+    const file = this.fileItems.nth(index);
+    const missingIndicator = file.locator('.file-missing, .missing-indicator');
+    return await missingIndicator.isVisible();
+  }
+
+  /**
+   * Click file to select/play
+   */
+  async clickFile(index: number): Promise<void> {
+    await this.fileItems.nth(index).click();
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Get remaining time text
+   */
+  async getRemainingTime(): Promise<string> {
+    if (await this.remainingTime.isVisible()) {
+      return (await this.remainingTime.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Get total duration text
+   */
+  async getTotalDuration(): Promise<string> {
+    if (await this.totalDuration.isVisible()) {
+      return (await this.totalDuration.textContent()) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if bookmarks section is visible
+   */
+  async isBookmarksSectionVisible(): Promise<boolean> {
+    return await this.bookmarksSection.isVisible();
+  }
+
+  /**
+   * Check if no bookmarks message is shown
+   */
+  async showsNoBookmarksMessage(): Promise<boolean> {
+    return await this.noBookmarksMessage.isVisible();
+  }
+
+  /**
+   * Get cover art source URL
+   */
+  async getCoverArtSrc(): Promise<string> {
+    if (await this.coverArt.isVisible()) {
+      return (await this.coverArt.getAttribute('src')) ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Scroll to bookmarks section
+   */
+  async scrollToBookmarks(): Promise<void> {
+    if (await this.bookmarksSection.isVisible()) {
+      await this.bookmarksSection.scrollIntoViewIfNeeded();
+    }
+  }
+
+  /**
+   * Scroll to files section
+   */
+  async scrollToFiles(): Promise<void> {
+    if (await this.filesList.isVisible()) {
+      await this.filesList.scrollIntoViewIfNeeded();
+    }
+  }
+
+  /**
+   * Get all file names
+   */
+  async getAllFileNames(): Promise<string[]> {
+    const names: string[] = [];
+    const count = await this.getFileCount();
+    for (let i = 0; i < count; i++) {
+      names.push(await this.getFileName(i));
+    }
+    return names;
+  }
+
+  /**
+   * Verify file is selected
+   */
+  async expectFileSelected(index: number): Promise<void> {
+    const file = this.fileItems.nth(index);
+    await expect(file).toHaveClass(/ring-primary|selected/);
   }
 }

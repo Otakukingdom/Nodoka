@@ -8,6 +8,7 @@ export { LibraryPage } from '../../pom/LibraryPage.js';
 export { PlayerPage } from '../../pom/PlayerPage.js';
 export { SettingsPage } from '../../pom/SettingsPage.js';
 export { BasePage } from '../../pom/BasePage.js';
+export { ModalPage } from '../../pom/ModalPage.js';
 
 // Export Cucumber-specific pages
 export { DetailsPage } from './DetailsPage.js';

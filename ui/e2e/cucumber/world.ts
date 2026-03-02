@@ -5,6 +5,7 @@
 
 import { World } from '@cucumber/cucumber';
 import { Page } from '@playwright/test';
+import type { AxeResults } from 'axe-core';
 
 export class NodokaWorld extends World {
   public page!: Page;
@@ -24,4 +25,8 @@ export class NodokaWorld extends World {
   public loadedFiles: string[] = [];
   public lastPosition: number = 0;
   public lastDuration: number = 0;
+
+  // Accessibility testing state
+  public accessibilityResults: AxeResults | null = null;
+  public focusableElements: string[] = [];
 }
