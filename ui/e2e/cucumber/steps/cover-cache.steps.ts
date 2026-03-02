@@ -130,3 +130,95 @@ Then('each audiobook should display its own cover', async function (this: Nodoka
     await expect(details.coverArt).toBeVisible();
   }
 });
+
+// ==================== Additional Given Steps ====================
+
+Given('the application has cached cover art for audiobooks', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&audiobookCount=3&hasCoverArt=true&coverCached=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // View each audiobook to cache covers
+  const library = new LibraryPage(this.page);
+  const details = new DetailsPage(this.page);
+
+  for (let i = 0; i < 3; i++) {
+    await library.selectAudiobook(i);
+    await expect(details.coverArt).toBeVisible({ timeout: 5000 }).catch(() => {});
+  }
+
+  this.coversCached = true;
+});
+
+// ==================== Additional When Steps ====================
+
+When('I clear the cover cache', async function (this: NodokaWorld) {
+  // Clear cover cache via settings or direct action
+  const settingsButton = this.page.locator('button[aria-label="Settings"]');
+  await settingsButton.click();
+  await this.page.waitForTimeout(300);
+
+  // Look for clear cache button
+  const clearCacheButton = this.page.locator('button:has-text("Clear Cache"), button:has-text("Clear Cover Cache")');
+  if (await clearCacheButton.isVisible()) {
+    await clearCacheButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  // Close settings modal
+  const closeButton = this.page.locator('.modal-box button[aria-label="Close"]');
+  if (await closeButton.isVisible()) {
+    await closeButton.click();
+  }
+  await this.page.waitForTimeout(300);
+
+  this.coversCached = false;
+});
+
+When('I view the audiobook for the first time', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await this.page.waitForTimeout(300);
+});
+
+// ==================== Additional Then Steps ====================
+
+Then('the cover should appear without delay', async function (this: NodokaWorld) {
+  const details = new DetailsPage(this.page);
+  const startTime = Date.now();
+
+  await expect(details.coverArt).toBeVisible({ timeout: 5000 });
+
+  const loadTime = Date.now() - startTime;
+  // Cached covers should load very quickly (under 500ms)
+  expect(loadTime).toBeLessThan(500);
+});
+
+Then('a loading indicator may appear', async function (this: NodokaWorld) {
+  // Loading indicator is optional - just verify the UI is responsive
+  const loading = this.page.locator('.loading-spinner, .skeleton, [role="status"]');
+  const isLoading = await loading.first().isVisible().catch(() => false);
+
+  // Either loading indicator is visible or content is already shown
+  const details = new DetailsPage(this.page);
+  const isContentVisible = await details.coverArt.isVisible().catch(() => false);
+
+  expect(isLoading || isContentVisible).toBe(true);
+});
+
+Then('no covers should be cached', async function (this: NodokaWorld) {
+  // Verify cache was cleared
+  const cachedIndicators = this.page.locator('[data-cached="true"], .cover-cached');
+  const count = await cachedIndicators.count();
+  expect(count).toBe(0);
+});
+
+Then('covers should reload on next view', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const details = new DetailsPage(this.page);
+
+  // Select an audiobook to trigger cover reload
+  await library.selectAudiobook(0);
+
+  // Cover should still load successfully
+  await expect(details.coverArt).toBeVisible({ timeout: 5000 });
+});

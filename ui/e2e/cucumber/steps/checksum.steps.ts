@@ -116,3 +116,7 @@ Then('checksums should be calculated without blocking the UI', async function (t
   const navbar = this.page.locator('.navbar');
   await expect(navbar).toBeVisible();
 });
+
+// Note: "I rescan the directory" is defined in directory-scanning.steps.ts
+// Note: "I force a full rescan" is defined in archive-handling.steps.ts
+// Note: "I scan the directory" is defined in directory-scanning.steps.ts

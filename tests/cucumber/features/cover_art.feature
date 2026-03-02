@@ -42,31 +42,6 @@ Feature: Cover Art Selection
     Given the application has an audiobook with cover art
     When I select the audiobook
     Then the cover art should appear in the details panel
-  Scenario: Placeholder shows when cover not loaded
-    Given the application has an audiobook without cover art
-    When I view the audiobook
-    Then a placeholder image should be displayed
-  Scenario: Cover art updates when file changes
-    Given the application has an audiobook with cover art
-    And the cover art file is modified
-    When I rescan the directory
-    Then the new cover art should be displayed
-  Scenario: Cover art aspect ratio is preserved
-    Given the application has an audiobook with cover art
-    When I view the audiobook
-    Then the cover art should maintain aspect ratio
-
-  # ==================== UI Display Scenarios ====================
-
-  Scenario: Cover art displays in library view
-    Given the application has an audiobook with cover art
-    When I view the library
-    Then the cover art should be displayed in the card
-
-  Scenario: Cover art displays in details panel
-    Given the application has an audiobook with cover art
-    When I select the audiobook
-    Then the cover art should appear in the details panel
 
   Scenario: Placeholder shows when cover not loaded
     Given the application has an audiobook without cover art

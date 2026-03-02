@@ -89,3 +89,7 @@ Then('no cover art should be selected', async function (this: NodokaWorld) {
   const placeholder = this.page.locator('.cover-art .placeholder');
   await expect(placeholder).toBeVisible();
 });
+
+// Note: "I view the library" is defined in ui-components.steps.ts
+// Note: "the cover art should be displayed in the card" is defined in ui-components.steps.ts
+// Note: "the cover art should maintain aspect ratio" is defined in ui-components.steps.ts

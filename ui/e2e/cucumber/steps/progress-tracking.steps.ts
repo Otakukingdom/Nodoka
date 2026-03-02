@@ -158,3 +158,5 @@ Then('the selected file should be stored', async function (this: NodokaWorld) {
   const selectedFile = await library.getSelectedFile();
   expect(selectedFile).not.toBeNull();
 });
+
+// Note: "the completeness should be zero" is defined in audiobook-library.steps.ts
