@@ -501,4 +501,187 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await expect(playerControls).toBeVisible();
     });
   });
+
+  // Backend User Preferences CRUD - Cucumber: Setting a user preference
+  test.describe('Backend User Preferences CRUD', () => {
+    test('preference can be set via backend', async ({ page }) => {
+      // Set a preference
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'language', value: 'en' });
+        }
+        return null;
+      });
+
+      // Get the preference
+      const value = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_preference', { key: 'language' });
+        }
+        return null;
+      });
+
+      expect(value).toBe('en');
+    });
+
+    test('preference can be retrieved via backend', async ({ page }) => {
+      // Set a preference first
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'testKey', value: 'testValue' });
+        }
+        return null;
+      });
+
+      // Get the preference
+      const value = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_preference', { key: 'testKey' });
+        }
+        return null;
+      });
+
+      expect(value).toBe('testValue');
+    });
+
+    test('all preferences can be retrieved', async ({ page }) => {
+      // Set multiple preferences
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          tauri.invoke('set_preference', { key: 'pref1', value: 'value1' });
+          tauri.invoke('set_preference', { key: 'pref2', value: 'value2' });
+        }
+        return null;
+      });
+
+      // Get all preferences
+      const preferences = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_all_preferences');
+        }
+        return [];
+      });
+
+      expect(Array.isArray(preferences)).toBe(true);
+      expect(preferences.length).toBeGreaterThanOrEqual(2);
+    });
+
+    test('preference can be deleted', async ({ page }) => {
+      // Set a preference
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'toDelete', value: 'value' });
+        }
+        return null;
+      });
+
+      // Delete the preference
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('delete_preference', { key: 'toDelete' });
+        }
+        return null;
+      });
+
+      // Try to get the preference - should be null
+      const value = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_preference', { key: 'toDelete' });
+        }
+        return 'not-found';
+      });
+
+      expect(value).toBeNull();
+    });
+
+    test('existing preference can be updated', async ({ page }) => {
+      // Set a preference
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'updatable', value: 'initial' });
+        }
+        return null;
+      });
+
+      // Update the preference
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'updatable', value: 'updated' });
+        }
+        return null;
+      });
+
+      // Get the preference
+      const value = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_preference', { key: 'updatable' });
+        }
+        return null;
+      });
+
+      expect(value).toBe('updated');
+    });
+  });
+
+  // NUL Byte Rejection - Cucumber: Preference rejects NUL bytes in key
+  test.describe('NUL Byte Rejection', () => {
+    test('NUL byte in preference key is rejected', async ({ page }) => {
+      let errorThrown = false;
+      try {
+        await page.evaluate(() => {
+          const tauri = (window as any).__TAURI__;
+          if (tauri) {
+            return tauri.invoke('set_preference', { key: 'key\0withNUL', value: 'value' });
+          }
+          return null;
+        });
+      } catch {
+        errorThrown = true;
+      }
+
+      expect(errorThrown).toBe(true);
+    });
+
+    test('NUL byte in preference value is rejected', async ({ page }) => {
+      let errorThrown = false;
+      try {
+        await page.evaluate(() => {
+          const tauri = (window as any).__TAURI__;
+          if (tauri) {
+            return tauri.invoke('set_preference', { key: 'validKey', value: 'value\0withNUL' });
+          }
+          return null;
+        });
+      } catch {
+        errorThrown = true;
+      }
+
+      expect(errorThrown).toBe(true);
+    });
+
+    test('valid preference with no NUL bytes is accepted', async ({ page }) => {
+      const result = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_preference', { key: 'validKey', value: 'validValue' });
+        }
+        return null;
+      });
+
+      // Should complete without error
+      expect(result).toBeUndefined();
+    });
+  });
 });

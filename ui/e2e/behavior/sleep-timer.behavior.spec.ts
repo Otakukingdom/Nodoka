@@ -417,4 +417,157 @@ test.describe('Sleep Timer - Behavioral Tests', () => {
       await expect(playerControls).toBeVisible();
     });
   });
+
+  // Backend Sleep Timer Operations - Cucumber: Creating a duration-based sleep timer
+  test.describe('Backend Sleep Timer Operations', () => {
+    test('duration-based sleep timer can be set', async ({ page }) => {
+      // Set a 30 minute duration timer
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_sleep_timer', {
+            mode: 'Duration',
+            durationSeconds: 1800
+          });
+        }
+        return null;
+      });
+
+      // Get timer state
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState?.active).toBe(true);
+      expect(timerState?.mode).toBe('Duration');
+      expect(timerState?.remainingSeconds).toBe(1800);
+    });
+
+    test('end-of-chapter sleep timer can be set', async ({ page }) => {
+      // Set an end-of-chapter timer
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_sleep_timer', {
+            mode: 'EndOfChapter'
+          });
+        }
+        return null;
+      });
+
+      // Get timer state
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState?.active).toBe(true);
+      expect(timerState?.mode).toBe('EndOfChapter');
+    });
+
+    test('sleep timer with fade duration can be set', async ({ page }) => {
+      // Set a timer with 10 second fade
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_sleep_timer', {
+            mode: 'Duration',
+            durationSeconds: 1800,
+            fadeDuration: 10
+          });
+        }
+        return null;
+      });
+
+      // Get timer state
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState?.active).toBe(true);
+      expect(timerState?.fadeDuration).toBe(10);
+    });
+
+    test('sleep timer can be cancelled', async ({ page }) => {
+      // Set a timer first
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_sleep_timer', {
+            mode: 'Duration',
+            durationSeconds: 1800
+          });
+        }
+        return null;
+      });
+
+      // Cancel the timer
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('cancel_sleep_timer');
+        }
+        return null;
+      });
+
+      // Get timer state - should be null
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState).toBeNull();
+    });
+
+    test('end-of-chapter timer has null remaining time', async ({ page }) => {
+      // Set an end-of-chapter timer
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('set_sleep_timer', {
+            mode: 'EndOfChapter'
+          });
+        }
+        return null;
+      });
+
+      // Get timer state
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState?.remainingSeconds).toBeNull();
+    });
+
+    test('inactive timer returns null', async ({ page }) => {
+      // Get timer state without setting one
+      const timerState = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_sleep_timer');
+        }
+        return null;
+      });
+
+      expect(timerState).toBeNull();
+    });
+  });
 });

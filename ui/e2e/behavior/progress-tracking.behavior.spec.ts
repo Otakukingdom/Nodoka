@@ -637,4 +637,119 @@ test.describe('Progress Tracking - Behavioral Tests', () => {
       await expect(libraryPanel).toBeVisible();
     });
   });
+
+  // Backend Progress Tracking - Cucumber: File seek position is updated
+  test.describe('Backend Progress Tracking', () => {
+    test('file progress can be updated via backend', async ({ page }) => {
+      // Update file progress
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('update_file_progress', {
+            filePath: '/test/audiobooks/The Great Adventure/Chapter 1.mp3',
+            seekPosition: 60000,
+            completeness: 50
+          });
+        }
+        return null;
+      });
+
+      // Get files and verify progress
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      const firstFile = files.find((f: { fullPath: string }) =>
+        f.fullPath === '/test/audiobooks/The Great Adventure/Chapter 1.mp3'
+      );
+      expect(firstFile?.seekPosition).toBe(60000);
+      expect(firstFile?.completeness).toBe(50);
+    });
+
+    test('audiobook completeness can be updated via backend', async ({ page }) => {
+      // Update audiobook completeness
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('update_audiobook_completeness', {
+            id: 1,
+            completeness: 75
+          });
+        }
+        return null;
+      });
+
+      // Get audiobook and verify
+      const audiobook = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_by_id', { id: 1 });
+        }
+        return null;
+      });
+
+      expect(audiobook?.completeness).toBe(75);
+    });
+
+    test('last listened timestamp can be updated via backend', async ({ page }) => {
+      // Update last listened
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('update_audiobook_last_listened', { id: 1 });
+        }
+        return null;
+      });
+
+      // Get audiobook and verify timestamp was updated
+      const audiobook = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_by_id', { id: 1 });
+        }
+        return null;
+      });
+
+      // lastListened should be a recent timestamp
+      expect(audiobook?.lastListened).toBeDefined();
+    });
+  });
+
+  // Audiobook Completeness Calculation - Cucumber: File completeness is tracked
+  test.describe('Audiobook Completeness Calculation', () => {
+    test('audiobook has completeness percentage', async ({ page }) => {
+      const audiobooks = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_all_audiobooks');
+        }
+        return [];
+      });
+
+      audiobooks.forEach((book: { completeness?: number }) => {
+        expect(book.completeness).toBeDefined();
+        expect(book.completeness).toBeGreaterThanOrEqual(0);
+        expect(book.completeness).toBeLessThanOrEqual(100);
+      });
+    });
+
+    test('completed audiobook shows 100 percent', async ({ page }) => {
+      const audiobooks = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_all_audiobooks');
+        }
+        return [];
+      });
+
+      // Find completed audiobook
+      const completedBook = audiobooks.find((book: { completeness?: number }) => book.completeness === 100);
+      expect(completedBook).toBeDefined();
+      expect(completedBook.name).toBe('Science Fiction Stories');
+    });
+  });
 });

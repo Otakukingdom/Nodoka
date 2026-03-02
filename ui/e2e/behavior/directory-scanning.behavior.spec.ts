@@ -497,4 +497,275 @@ test.describe('Directory Scanning - Behavioral Tests', () => {
       await expect(filesList).toBeVisible();
     });
   });
+
+  // Backend File Existence Tracking - Cucumber: Files are marked as existing when scanned
+  test.describe('Backend File Existence Tracking', () => {
+    test('files are marked as existing by default in mock', async ({ page }) => {
+      // Get files for audiobook 1
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      // All files should exist
+      expect(Array.isArray(files)).toBe(true);
+      expect(files.length).toBeGreaterThan(0);
+      files.forEach((file: { fileExists?: boolean }) => {
+        expect(file.fileExists).toBe(true);
+      });
+    });
+
+    test('file existence can be marked via backend', async ({ page }) => {
+      // Mark a file as not existing
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('mark_file_exists', {
+            filePath: '/test/audiobooks/The Great Adventure/Chapter 1.mp3',
+            exists: false
+          });
+        }
+        return null;
+      });
+
+      // Get files and verify the file is marked as not existing
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      const firstFile = files.find((f: { fullPath: string }) =>
+        f.fullPath === '/test/audiobooks/The Great Adventure/Chapter 1.mp3'
+      );
+      expect(firstFile?.fileExists).toBe(false);
+    });
+
+    test('audiobook files can be marked as missing', async ({ page }) => {
+      // Mark all files for an audiobook as missing
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('mark_audiobook_files_missing', { audiobookId: 1 });
+        }
+        return null;
+      });
+
+      // Get files and verify they are marked as not existing
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      files.forEach((file: { fileExists?: boolean }) => {
+        expect(file.fileExists).toBe(false);
+      });
+    });
+  });
+
+  // Directory CRUD Operations - Cucumber: Adding/removing directories
+  test.describe('Directory CRUD Operations', () => {
+    test('directories can be retrieved', async ({ page }) => {
+      const directories = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_directories');
+        }
+        return [];
+      });
+
+      expect(Array.isArray(directories)).toBe(true);
+      expect(directories.length).toBeGreaterThan(0);
+    });
+
+    test('directory contains correct metadata', async ({ page }) => {
+      const directories = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_directories');
+        }
+        return [];
+      });
+
+      const firstDir = directories[0];
+      expect(firstDir.fullPath).toBeDefined();
+      expect(firstDir.createdAt).toBeDefined();
+    });
+
+    test('directory last scanned timestamp is tracked', async ({ page }) => {
+      const directories = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_directories');
+        }
+        return [];
+      });
+
+      // Second directory has lastScanned set
+      const scannedDir = directories.find((d: { lastScanned?: string | null }) => d.lastScanned !== null);
+      expect(scannedDir).toBeDefined();
+    });
+  });
+
+  // File Length Updates - Cucumber: File length is updated during scan
+  test.describe('File Length Backend Updates', () => {
+    test('file has length information', async ({ page }) => {
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      const firstFile = files[0];
+      expect(firstFile.lengthOfFile).toBeDefined();
+      expect(firstFile.lengthOfFile).toBeGreaterThan(0);
+    });
+
+    test('file length is in milliseconds', async ({ page }) => {
+      const files = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      const firstFile = files[0];
+      // 1800000 ms = 30 minutes
+      expect(firstFile.lengthOfFile).toBe(1800000);
+    });
+  });
+
+  // Audiobook Removal via Directory - Cucumber: Directory removal cleans up audiobooks
+  test.describe('Audiobook Cleanup on Directory Removal', () => {
+    test('audiobooks are associated with directories', async ({ page }) => {
+      const audiobooks = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_all_audiobooks');
+        }
+        return [];
+      });
+
+      audiobooks.forEach((book: { directory?: string }) => {
+        expect(book.directory).toBeDefined();
+      });
+    });
+
+    test('deleting audiobook removes associated files', async ({ page }) => {
+      // Get initial file count
+      const filesBefore = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      expect(filesBefore.length).toBeGreaterThan(0);
+
+      // Delete the audiobook
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('delete_audiobook', { id: 1 });
+        }
+        return null;
+      });
+
+      // Get files after deletion - should be empty
+      const filesAfter = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_audiobook_files', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      expect(filesAfter.length).toBe(0);
+    });
+
+    test('deleting audiobook removes associated bookmarks', async ({ page }) => {
+      // Get initial bookmark count
+      const bookmarksBefore = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_bookmarks', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      // Delete the audiobook
+      await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('delete_audiobook', { id: 1 });
+        }
+        return null;
+      });
+
+      // Get bookmarks after deletion - should be empty
+      const bookmarksAfter = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('get_bookmarks', { audiobookId: 1 });
+        }
+        return [];
+      });
+
+      expect(bookmarksAfter.length).toBe(0);
+    });
+  });
+
+  // Scan Directory Operation - Cucumber: Directory metadata is tracked
+  test.describe('Scan Directory Operation', () => {
+    test('scan_directory command is available', async ({ page }) => {
+      const result = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('scan_directory', { path: '/test/audiobooks' });
+        }
+        return null;
+      });
+
+      // Should complete without error
+      expect(result).toBeUndefined();
+    });
+
+    test('insert_directory command is available', async ({ page }) => {
+      const result = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('insert_directory', { path: '/new/audiobooks' });
+        }
+        return null;
+      });
+
+      // Should complete without error
+      expect(result).toBeUndefined();
+    });
+
+    test('remove_directory command is available', async ({ page }) => {
+      const result = await page.evaluate(() => {
+        const tauri = (window as any).__TAURI__;
+        if (tauri) {
+          return tauri.invoke('remove_directory', { path: '/test/audiobooks' });
+        }
+        return null;
+      });
+
+      // Should complete without error
+      expect(result).toBeUndefined();
+    });
+  });
 });

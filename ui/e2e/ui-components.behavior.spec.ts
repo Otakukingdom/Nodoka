@@ -117,8 +117,12 @@ test.describe('UI Component Interactions', () => {
       const seekBar = page.locator('.btm-nav input[aria-label="Seek"]');
       await expect(seekBar).toBeVisible();
 
+      // Get the max value and use a valid value within range
+      const max = await seekBar.getAttribute('max');
+      const seekValue = Math.floor(parseInt(max ?? '100') / 2).toString();
+
       // Move seek bar
-      await seekBar.fill('500');
+      await seekBar.fill(seekValue);
       await page.waitForTimeout(200);
 
       await expect(seekBar).toBeVisible();
