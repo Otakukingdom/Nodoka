@@ -121,6 +121,12 @@ export async function triggerNotification(
           },
         });
       } else {
+        // Warn when Redux store is not available - tests may not behave as expected
+        console.warn(
+          '[test-utils] Redux store not available on window.__REDUX_STORE__. ' +
+            'Ensure VITE_PLAYWRIGHT_TEST=true is set when starting the dev server. ' +
+            'Falling back to DOM creation.'
+        );
         // Fallback: create notification DOM directly
         const toast = document.querySelector('.toast') || document.createElement('div');
         if (!toast.classList.contains('toast')) {
@@ -184,6 +190,12 @@ export async function forceLoadingState(page: Page, isLoading: boolean): Promise
         type: 'app/setLoading',
         payload: loading,
       });
+    } else {
+      console.warn(
+        '[test-utils] Redux store not available on window.__REDUX_STORE__. ' +
+          'Ensure VITE_PLAYWRIGHT_TEST=true is set when starting the dev server. ' +
+          'Loading state change was not applied.'
+      );
     }
   }, isLoading);
 }

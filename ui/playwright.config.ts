@@ -41,7 +41,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'PLAYWRIGHT_TEST=true npm run dev',
+    command: 'VITE_PLAYWRIGHT_TEST=true npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
