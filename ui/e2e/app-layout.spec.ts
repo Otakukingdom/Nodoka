@@ -3,7 +3,7 @@
  */
 
 import { test, expect, viewports } from './fixtures';
-import { screenshotConfig, fullPageScreenshotConfig, setTheme, gotoAndWait } from './test-utils';
+import { screenshotConfig, fullPageScreenshotConfig, setTheme, gotoAndWait, forceLoadingState } from './test-utils';
 
 test.describe('App Layout Screenshots', () => {
   test.beforeEach(async ({ page }) => {
@@ -159,12 +159,11 @@ test.describe('Complete Application Screenshots', () => {
   });
 
   test('Full application - loading state', async ({ page }) => {
-    // Navigate fresh to capture initial loading state
-    await page.goto('http://localhost:5173');
-    // Wait for DOM but capture before full hydration
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(100);
-    await expect(page).toHaveScreenshot('app-full-loading.png', fullPageScreenshotConfig);
+    // Use forceLoadingState to reliably capture loading state
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
+    await expect(page).toHaveScreenshot('app-full-loading.png', { ...fullPageScreenshotConfig, animations: 'allow' });
+    await forceLoadingState(page, false);
   });
 
   test('Full application - all themes comparison', async ({ page }) => {

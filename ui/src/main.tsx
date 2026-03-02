@@ -9,6 +9,11 @@ import { store } from './store';
 import App from './App';
 import './styles/main.css';
 
+// Expose Redux store for Playwright e2e testing
+if (import.meta.env.VITE_PLAYWRIGHT_TEST === 'true') {
+  (window as any).__REDUX_STORE__ = store;
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element not found');

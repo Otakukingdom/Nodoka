@@ -8,14 +8,20 @@ import { test, expect } from './fixtures';
 import { screenshotConfig, gotoAndWait, setTheme, forceLoadingState } from './test-utils';
 
 test.describe('Initial Loading Screenshots', () => {
-  test('page loading state before ready', async ({ page }) => {
+  test('page loading state via forced loading', async ({ page }) => {
+    // Navigate and wait for app to be ready first
     await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
-    // Capture the initial state before full app load
+    await page.waitForSelector('.navbar', { timeout: 10000 });
+    // Then force loading state to capture the loading spinner reliably
+    await forceLoadingState(page, true);
+    await page.waitForTimeout(300);
+    // Capture the loading state
     await expect(page).toHaveScreenshot(
       'page-initial-loading.png',
       { ...screenshotConfig, fullPage: true, animations: 'allow' }
     );
+    // Reset loading state
+    await forceLoadingState(page, false);
   });
 });
 
