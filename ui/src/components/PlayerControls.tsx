@@ -2,15 +2,24 @@
  * Player controls component at the bottom of the app
  */
 
-import { Play, Pause, Square } from 'lucide-react';
+import { Play, Pause, Square, SkipForward, SkipBack, Moon } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { cycleSpeed, toggleMute } from '../store/slices/playerSlice';
-import { playPause, stop, seek, updateSpeed, updateVolume } from '../store/thunks/playerThunks';
+import { openModal } from '../store/slices/appSlice';
+import { playPause, stop, seek, updateSpeed, updateVolume, seekForward, seekBackward } from '../store/thunks/playerThunks';
 import VolumeSlider from './VolumeSlider';
+
+// Default skip durations in seconds
+const DEFAULT_SKIP_FORWARD = 30;
+const DEFAULT_SKIP_BACKWARD = 15;
 
 export default function PlayerControls() {
   const dispatch = useAppDispatch();
-  const { playback, currentTime, totalDuration, speed, volume, isMuted } = useAppSelector(state => state.player);
+  const { playback, currentTime, totalDuration, speed, volume, isMuted, sleepTimer, sleepTimerRemainingMs } = useAppSelector(state => state.player);
+
+  // Get skip durations from settings (could be stored in app state in future)
+  const skipForwardDuration = DEFAULT_SKIP_FORWARD;
+  const skipBackwardDuration = DEFAULT_SKIP_BACKWARD;
 
   const handlePlayPause = () => {
     void dispatch(playPause());
@@ -37,6 +46,18 @@ export default function PlayerControls() {
     dispatch(toggleMute());
   };
 
+  const handleSkipForward = () => {
+    void dispatch(seekForward(skipForwardDuration));
+  };
+
+  const handleSkipBackward = () => {
+    void dispatch(seekBackward(skipBackwardDuration));
+  };
+
+  const handleSleepTimer = () => {
+    dispatch(openModal('SleepTimer'));
+  };
+
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -56,6 +77,16 @@ export default function PlayerControls() {
     <div className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4" role="region" aria-label="Audio player controls">
       {/* Left controls */}
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* Skip backward button */}
+        <button
+          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+          onClick={handleSkipBackward}
+          aria-label={`Skip backward ${skipBackwardDuration} seconds`}
+          title={`Skip backward ${skipBackwardDuration}s (←)`}
+        >
+          <SkipBack className="h-4 w-4" />
+        </button>
+        {/* Stop button */}
         <button
           className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary hidden sm:flex"
           onClick={handleStop}
@@ -64,6 +95,7 @@ export default function PlayerControls() {
         >
           <Square className="h-4 w-4" />
         </button>
+        {/* Play/Pause button */}
         <button
           className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             isPlaying ? 'pulse-playing' : ''
@@ -81,6 +113,15 @@ export default function PlayerControls() {
           ) : (
             <Play className="h-5 w-5 ml-0.5" />
           )}
+        </button>
+        {/* Skip forward button */}
+        <button
+          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+          onClick={handleSkipForward}
+          aria-label={`Skip forward ${skipForwardDuration} seconds`}
+          title={`Skip forward ${skipForwardDuration}s (→)`}
+        >
+          <SkipForward className="h-4 w-4" />
         </button>
       </div>
 
@@ -119,6 +160,20 @@ export default function PlayerControls() {
 
       {/* Right controls */}
       <div className="flex items-center gap-0.5 sm:gap-1">
+        {/* Sleep Timer button */}
+        <button
+          className={`btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary ${sleepTimer ? 'text-primary bg-primary/10' : ''}`}
+          onClick={handleSleepTimer}
+          aria-label={sleepTimer ? `Sleep timer active: ${sleepTimerRemainingMs ? formatTime(sleepTimerRemainingMs) : 'waiting'}` : 'Set sleep timer'}
+          title={sleepTimer ? `Sleep timer: ${sleepTimerRemainingMs ? formatTime(sleepTimerRemainingMs) : 'End of chapter'}` : 'Sleep timer (Ctrl+T)'}
+        >
+          <Moon className="h-4 w-4" />
+          {sleepTimer && sleepTimerRemainingMs && (
+            <span className="absolute -top-1 -right-1 text-[8px] font-mono bg-primary text-primary-content rounded-full px-1">
+              {Math.floor(sleepTimerRemainingMs / 60000)}
+            </span>
+          )}
+        </button>
         <button
           className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary group relative"
           onClick={handleSpeedClick}

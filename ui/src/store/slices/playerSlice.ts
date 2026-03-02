@@ -5,6 +5,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { PlaybackStatus, VolumeExpansion } from '../types';
 
+export type SleepTimerMode = 'Duration' | 'EndOfChapter';
+
 interface PlayerState {
   playback: PlaybackStatus;
   currentTime: number;
@@ -13,6 +15,12 @@ interface PlayerState {
   isMuted: boolean;
   volumeExpanded: VolumeExpansion;
   speed: number;
+  // Sleep timer state
+  sleepTimer: SleepTimerMode | null;
+  sleepTimerStartMs: number | null;
+  sleepTimerDurationMs: number | null;
+  sleepTimerRemainingMs: number | null;
+  sleepTimerFadeDuration: number;
 }
 
 const initialState: PlayerState = {
@@ -23,6 +31,12 @@ const initialState: PlayerState = {
   isMuted: false,
   volumeExpanded: 'Collapsed',
   speed: 1.0,
+  // Sleep timer
+  sleepTimer: null,
+  sleepTimerStartMs: null,
+  sleepTimerDurationMs: null,
+  sleepTimerRemainingMs: null,
+  sleepTimerFadeDuration: 10,
 };
 
 const playerSlice = createSlice({
@@ -64,6 +78,26 @@ const playerSlice = createSlice({
       state.currentTime = 0;
       state.totalDuration = 0;
     },
+    // Sleep timer actions
+    setSleepTimer: (state, action: PayloadAction<{ mode: SleepTimerMode; durationMinutes: number }>) => {
+      const now = Date.now();
+      state.sleepTimer = action.payload.mode;
+      state.sleepTimerStartMs = now;
+      state.sleepTimerDurationMs = action.payload.durationMinutes * 60 * 1000;
+      state.sleepTimerRemainingMs = action.payload.durationMinutes * 60 * 1000;
+    },
+    clearSleepTimer: (state) => {
+      state.sleepTimer = null;
+      state.sleepTimerStartMs = null;
+      state.sleepTimerDurationMs = null;
+      state.sleepTimerRemainingMs = null;
+    },
+    updateSleepTimerRemaining: (state, action: PayloadAction<number>) => {
+      state.sleepTimerRemainingMs = action.payload;
+    },
+    setFadeDuration: (state, action: PayloadAction<number>) => {
+      state.sleepTimerFadeDuration = action.payload;
+    },
   },
 });
 
@@ -79,6 +113,10 @@ export const {
   toggleMute,
   setMuted,
   resetPlayer,
+  setSleepTimer,
+  clearSleepTimer,
+  updateSleepTimerRemaining,
+  setFadeDuration,
 } = playerSlice.actions;
 
 export default playerSlice.reducer;

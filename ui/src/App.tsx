@@ -179,6 +179,12 @@ function App() {
       e.preventDefault();
       dispatch(openModal('Settings'));
     }
+
+    // Ctrl/Cmd + T for sleep timer
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+      e.preventDefault();
+      dispatch(openModal('SleepTimer'));
+    }
   }, [dispatch, currentFiles, selectedFile, volume]);
 
   useEffect(() => {

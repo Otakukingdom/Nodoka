@@ -5,6 +5,7 @@
 import { useAppSelector } from '../hooks/useRedux';
 import SettingsModal from './modals/SettingsModal';
 import KeyboardHelpModal from './modals/KeyboardHelpModal';
+import SleepTimerModal from './modals/SleepTimerModal';
 
 export default function ModalContainer() {
   const { activeModal } = useAppSelector(state => state.app);
@@ -17,6 +18,7 @@ export default function ModalContainer() {
     <div className="modal modal-open backdrop-blur-sm bg-base-content/20">
       {activeModal === 'Settings' && <SettingsModal />}
       {activeModal === 'KeyboardHelp' && <KeyboardHelpModal />}
+      {activeModal === 'SleepTimer' && <SleepTimerModal />}
     </div>
   );
 }

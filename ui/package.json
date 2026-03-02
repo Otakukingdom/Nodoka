@@ -17,6 +17,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-shell": "^2.2.0",
     "lucide-react": "^0.575.0",
     "react": "^19.0.0",
@@ -24,6 +25,7 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@eslint/js": "^9.39.3",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
