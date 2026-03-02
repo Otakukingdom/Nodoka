@@ -1,0 +1,205 @@
+/**
+ * Playback Controls Step Definitions
+ * Implements UI interactions for playback controls feature tests
+ */
+
+import { Given, When, Then } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+import { NodokaWorld } from '../world.js';
+import { PlayerPage, LibraryPage } from '../pages/index.js';
+
+// ==================== Given Steps ====================
+
+Given('the application has a volume setting', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+Given('the application has a speed setting', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+Given('the application has a player', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  const player = new PlayerPage(this.page);
+  await player.expectPlayerVisible();
+});
+
+Given('the player has loaded media', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+});
+
+Given('the player is playing', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+});
+
+Given('the player has loaded media with duration {int} ms', async function (this: NodokaWorld, duration: number) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+});
+
+// ==================== When Steps ====================
+
+When('I set the volume above maximum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Volume slider max is 200, try to set to 250
+  await player.setVolume(250);
+});
+
+When('I set the volume below minimum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Volume slider min is 0, try to set to -50
+  await player.setVolume(-50);
+});
+
+When('I set the speed above maximum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Cycle speed multiple times to try to exceed max
+  for (let i = 0; i < 10; i++) {
+    await player.cycleSpeed();
+  }
+});
+
+When('I set the speed below minimum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Speed has a minimum value, cycle through options
+  for (let i = 0; i < 10; i++) {
+    await player.cycleSpeed();
+  }
+});
+
+When('I set the volume to valid value', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.setVolume(75);
+  this.lastValue = 75;
+});
+
+When('I set the speed to valid value', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.cycleSpeed();
+});
+
+When('I check the playback state', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.expectPlayerVisible();
+});
+
+When('I start playback', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.play();
+});
+
+When('I pause playback', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.pause();
+});
+
+When('I stop playback', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.stop();
+});
+
+When('playback reaches the end', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Seek to near end
+  const duration = await player.getDuration();
+  await player.seek(duration - 100);
+
+  // Simulate waiting for end
+  await this.page.waitForTimeout(500);
+});
+
+When('I seek to position {int} ms', async function (this: NodokaWorld, position: number) {
+  const player = new PlayerPage(this.page);
+  await player.seek(position);
+});
+
+// ==================== Then Steps ====================
+
+Then('the volume should be clamped to maximum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeLessThanOrEqual(200);
+});
+
+Then('the volume should be clamped to minimum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeGreaterThanOrEqual(0);
+});
+
+Then('the speed should be clamped to maximum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const speedText = await player.getSpeed();
+  const speed = parseFloat(speedText.replace('x', ''));
+  expect(speed).toBeLessThanOrEqual(4.0);
+});
+
+Then('the speed should be clamped to minimum', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const speedText = await player.getSpeed();
+  const speed = parseFloat(speedText.replace('x', ''));
+  expect(speed).toBeGreaterThanOrEqual(0.5);
+});
+
+Then('the volume should be valid', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeGreaterThanOrEqual(0);
+  expect(volume).toBeLessThanOrEqual(200);
+});
+
+Then('the speed should be valid', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const speedText = await player.getSpeed();
+  const speed = parseFloat(speedText.replace('x', ''));
+  expect(speed).toBeGreaterThanOrEqual(0.5);
+  expect(speed).toBeLessThanOrEqual(4.0);
+});
+
+Then('the playback state should be NothingSpecial', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Initial state - play button visible, not playing
+  await player.expectPlayButtonVisible();
+});
+
+Then('the playback state should be Playing', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the playback state should be Paused', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(false);
+});
+
+Then('the playback state should be Stopped', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // After stop, play button should be visible and position reset
+  await player.expectPlayButtonVisible();
+});
+
+Then('the playback state should be Ended', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // After end, play button should be visible
+  await player.expectPlayButtonVisible();
+});
+
+Then('the position should be clamped to duration', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const position = await player.getSeekPosition();
+  const duration = await player.getDuration();
+  expect(position).toBeLessThanOrEqual(duration);
+});

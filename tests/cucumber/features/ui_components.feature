@@ -528,3 +528,44 @@ Feature: UI Component Behavior
     Given a notification is showing
     When I click the dismiss button
     Then the notification should disappear
+
+  # ==================== Delete Confirmation ====================
+
+  Scenario: Delete audiobook shows confirmation dialog
+    Given the application has an audiobook
+    And the audiobook has files
+    When I click delete audiobook
+    Then a confirmation dialog should appear
+
+  Scenario: Delete audiobook can be cancelled
+    Given the application has an audiobook
+    When I click delete audiobook
+    And I cancel the deletion
+    Then the audiobook count should be one
+
+  Scenario: Confirming deletion removes audiobook
+    Given the application has an audiobook
+    And the audiobook has files
+    When I click delete audiobook
+    And I confirm the deletion
+    Then the audiobook count should be zero
+
+  # ==================== Bulk Selection ====================
+
+  Scenario: Bulk selection of audiobooks
+    Given the application has 5 audiobooks
+    When I select multiple audiobooks with Ctrl+Click
+    Then all selected audiobooks should be highlighted
+    And the bulk action bar should appear
+
+  Scenario: Bulk delete audiobooks
+    Given the application has 5 audiobooks
+    And I select multiple audiobooks with Ctrl+Click
+    When I click bulk delete
+    Then a confirmation dialog should appear
+    And the selected count should be shown
+
+  Scenario: Select all audiobooks
+    Given the application has 5 audiobooks
+    When I press Ctrl+A
+    Then all audiobooks should be selected

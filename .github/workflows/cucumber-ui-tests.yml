@@ -1,0 +1,75 @@
+name: Cucumber UI Tests
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  cucumber-tests:
+    name: Cucumber UI Tests - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        working-directory: ui
+        run: npm run build
+
+      - name: Start dev server in background
+        working-directory: ui
+        run: npm run dev &
+        env:
+          VITE_PLAYWRIGHT_TEST: 'true'
+
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:5173 -t 60000
+
+      - name: Run Cucumber UI tests
+        working-directory: ui
+        run: npm run test:cucumber
+        env:
+          VITE_PLAYWRIGHT_TEST: 'true'
+
+      - name: Upload Cucumber report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cucumber-report-${{ matrix.os }}
+          path: ui/e2e/cucumber-report.html
+          retention-days: 30
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## Cucumber UI Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "OS: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "Node.js: ${{ matrix.node-version }}" >> $GITHUB_STEP_SUMMARY
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ All Cucumber UI tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some Cucumber UI tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "See cucumber-report artifact for details" >> $GITHUB_STEP_SUMMARY
+          fi

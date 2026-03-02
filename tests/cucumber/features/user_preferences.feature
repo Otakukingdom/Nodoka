@@ -12,26 +12,26 @@ Feature: User Preferences Management
 
   Scenario: Getting a user preference
     Given the application has a database
-    And I set user preference "language" to "en"
+    And the application has user preference "language" set to "en"
     When I get user preference "language"
     Then the value should be "en"
 
   Scenario: Getting all user preferences
     Given the application has a database
-    And I set user preference "language" to "en"
-    And I set user preference "region" to "US"
+    And the application has user preference "language" set to "en"
+    And the application has user preference "region" set to "US"
     When I get all user preferences
     Then I should receive 2 preferences
 
   Scenario: Deleting a user preference
     Given the application has a database
-    And I set user preference "language" to "en"
+    And the application has user preference "language" set to "en"
     When I delete user preference "language"
     Then the preference should not exist
 
   Scenario: Updating existing preference
     Given the application has a database
-    And I set user preference "language" to "en"
+    And the application has user preference "language" set to "en"
     When I set user preference "language" to "es"
     Then the preference value should be "es"
 
