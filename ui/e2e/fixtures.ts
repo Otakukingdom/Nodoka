@@ -447,3 +447,144 @@ export const viewports = {
   small: { width: 800, height: 600 },
   mobile: { width: 375, height: 667 },
 } as const;
+
+/**
+ * Edge case mock data for testing empty states
+ */
+export const mockEmptyLibrary: typeof mockAudiobooks = [];
+
+/**
+ * Mock audiobooks without author
+ */
+export const mockAudiobooksWithoutAuthor = [
+  { ...mockAudiobooks[2], author: null },
+];
+
+/**
+ * Mock files with missing file indicator
+ */
+export const mockFilesWithMissing = [
+  ...mockFiles,
+  {
+    audiobookId: 1,
+    name: 'Chapter 4 - Missing File',
+    fullPath: '/test/audiobooks/The Great Adventure/Chapter 4.mp3',
+    lengthOfFile: 1800000,
+    seekPosition: 0,
+    position: 3,
+    completeness: 0,
+    fileExists: false,
+    createdAt: new Date().toISOString(),
+  },
+];
+
+/**
+ * Mock audiobooks without cover art
+ */
+export const mockAudiobooksNoCover = [
+  { ...mockAudiobooks[2], hasCoverArt: false },
+];
+
+/**
+ * Helper to create a test with custom mock data scenario
+ */
+export function createTestWithScenario(
+  scenario: 'default' | 'empty' | 'missing-files' | 'no-covers'
+) {
+  return base.extend({
+    page: async ({ page }, use) => {
+      const scenarioData = {
+        default: {
+          audiobooks: mockAudiobooks,
+          files: mockFiles,
+        },
+        empty: {
+          audiobooks: mockEmptyLibrary,
+          files: [],
+        },
+        'missing-files': {
+          audiobooks: mockAudiobooks,
+          files: mockFilesWithMissing,
+        },
+        'no-covers': {
+          audiobooks: mockAudiobooksNoCover,
+          files: mockFiles,
+        },
+      };
+
+      const data = scenarioData[scenario];
+
+      await page.addInitScript(
+        ({ audiobooks, files, bookmarks, settings, directories, preferences, sleepTimer, progressData }) => {
+          // Player state mock
+          let playbackState = 'Stopped';
+          let currentTime = 0;
+          let volume = settings.volume;
+          let speed = settings.speed;
+          let currentAudiobookId: number | null = null;
+          let currentFile: string | null = null;
+
+          // Local state
+          let localBookmarks = [...bookmarks];
+          let localAudiobooks = [...audiobooks];
+          let localFiles = [...files];
+          let localPreferences = { ...preferences };
+          let localSleepTimer = { ...sleepTimer };
+          let nextBookmarkId = 100;
+
+          (window as any).__TAURI__ = {
+            invoke: async (cmd: string, args?: Record<string, unknown>) => {
+              switch (cmd) {
+                case 'get_all_audiobooks':
+                  return localAudiobooks;
+                case 'get_audiobook_files':
+                  return localFiles.filter((f: any) => f.audiobookId === args?.['audiobookId']);
+                case 'get_bookmarks':
+                  return localBookmarks.filter((b: any) => b.audiobookId === args?.['audiobookId']);
+                case 'create_bookmark':
+                  const newBookmark = {
+                    id: nextBookmarkId++,
+                    audiobookId: args?.['audiobookId'] as number,
+                    filePath: args?.['filePath'] as string,
+                    positionMs: args?.['positionMs'] as number,
+                    label: args?.['label'] as string,
+                    note: args?.['note'] as string | undefined,
+                    createdAt: new Date().toISOString(),
+                  };
+                  localBookmarks.push(newBookmark);
+                  return newBookmark.id;
+                case 'get_theme':
+                  return settings.theme;
+                case 'set_theme':
+                  settings.theme = args?.['theme'] as string;
+                  return undefined;
+                case 'play_pause':
+                  playbackState = playbackState === 'Playing' ? 'Paused' : 'Playing';
+                  return playbackState === 'Playing';
+                case 'stop':
+                  playbackState = 'Stopped';
+                  currentTime = 0;
+                  return undefined;
+                case 'get_playback_state':
+                  return playbackState;
+                default:
+                  return null;
+              }
+            },
+          };
+        },
+        {
+          audiobooks: data.audiobooks,
+          files: data.files,
+          bookmarks: mockBookmarks,
+          settings: mockSettings,
+          directories: mockDirectories,
+          preferences: mockPreferences,
+          sleepTimer: mockSleepTimer,
+          progressData: mockProgressData,
+        }
+      );
+      await use(page);
+    },
+  });
+}

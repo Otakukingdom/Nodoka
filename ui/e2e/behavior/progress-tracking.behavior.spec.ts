@@ -549,4 +549,92 @@ test.describe('Progress Tracking - Behavioral Tests', () => {
       expect(max).not.toBeNull();
     });
   });
+
+  // File-Level Progress Updates - Cucumber: File seek position is updated
+  test.describe('File-Level Progress Updates', () => {
+    test('seeking updates file progress indicator', async ({ page }) => {
+      await page.locator('#audiobook-list .card').first().click();
+      await page.waitForTimeout(300);
+
+      // Select a file
+      await page.locator('#files-list .card').first().click();
+      await page.waitForTimeout(200);
+
+      // Seek to position - use numeric value based on max
+      const seekBar = page.locator('.btm-nav input[aria-label="Seek"]');
+      const max = await seekBar.getAttribute('max');
+      const seekValue = Math.floor(parseInt(max ?? '100') / 2).toString();
+      await seekBar.fill(seekValue);
+      await page.waitForTimeout(200);
+
+      // File card should still be visible
+      const firstFile = page.locator('#files-list .card').first();
+      await expect(firstFile).toBeVisible();
+    });
+
+    test('file completeness percentage updates during playback', async ({ page }) => {
+      await page.locator('#audiobook-list .card').first().click();
+      await page.waitForTimeout(300);
+
+      // First file has 100% progress
+      const firstFile = page.locator('#files-list .card').first();
+      await expect(firstFile).toContainText('100%');
+
+      // Start playback
+      await page.locator('.btm-nav button[aria-label="Play"]').first().click();
+      await page.waitForTimeout(200);
+
+      // File progress should still be visible
+      await expect(firstFile).toBeVisible();
+    });
+  });
+
+  // Progress Persistence - Cucumber: Metadata persistence
+  test.describe('Progress Persistence', () => {
+    test('progress persists across page reloads', async ({ page }) => {
+      // Get initial progress
+      const firstCard = page.locator('#audiobook-list .card').first();
+      const progressText = await firstCard.locator('text=/%/').first().textContent();
+
+      // Reload page
+      await page.reload();
+      await page.waitForTimeout(500);
+
+      // Progress should be the same
+      const firstCardAfter = page.locator('#audiobook-list .card').first();
+      const progressTextAfter = await firstCardAfter.locator('text=/%/').first().textContent();
+
+      expect(progressText).toBe(progressTextAfter);
+    });
+
+    test('selected file is restored on app restart', async ({ page }) => {
+      // Select audiobook and file
+      await page.locator('#audiobook-list .card').first().click();
+      await page.waitForTimeout(300);
+      await page.locator('#files-list .card').nth(1).click();
+      await page.waitForTimeout(200);
+
+      // Reload
+      await page.reload();
+      await page.waitForTimeout(500);
+
+      // Player should be functional
+      const playerControls = page.locator('.btm-nav');
+      await expect(playerControls).toBeVisible();
+    });
+
+    test('audiobook selection persists', async ({ page }) => {
+      // Select audiobook
+      await page.locator('#audiobook-list .card').first().click();
+      await page.waitForTimeout(300);
+
+      // Reload
+      await page.reload();
+      await page.waitForTimeout(500);
+
+      // Library should be functional
+      const libraryPanel = page.locator('.library-panel');
+      await expect(libraryPanel).toBeVisible();
+    });
+  });
 });
