@@ -124,33 +124,157 @@ export const mockSettings = {
 };
 
 /**
+ * Mock directory data
+ */
+export const mockDirectories = [
+  { fullPath: '/test/audiobooks', createdAt: new Date(Date.now() - 86400000 * 30).toISOString(), lastScanned: null },
+  { fullPath: '/test/audiobooks2', createdAt: new Date(Date.now() - 86400000 * 15).toISOString(), lastScanned: new Date().toISOString() },
+];
+
+/**
+ * Mock user preferences
+ */
+export const mockPreferences = {
+  language: 'en',
+  region: 'US',
+};
+
+/**
+ * Mock sleep timer state
+ */
+export const mockSleepTimer = {
+  active: false,
+  mode: null as 'Duration' | 'EndOfChapter' | null,
+  remainingSeconds: null as number | null,
+  fadeDuration: 0,
+};
+
+/**
+ * Mock progress tracking data
+ */
+export const mockProgressData = {
+  lastListened: new Date(Date.now() - 3600000).toISOString(),
+  selectedFile: '/test/audiobooks/The Great Adventure/Chapter 1.mp3',
+};
+
+/**
  * Inject mock Tauri API into the page
  */
 async function injectMockTauri(page: Page) {
   await page.addInitScript(
-    ({ audiobooks, files, bookmarks, settings }) => {
+    ({ audiobooks, files, bookmarks, settings, directories, preferences, sleepTimer, progressData }) => {
       // Player state mock
       let playbackState = 'Stopped';
       let currentTime = 0;
       let volume = settings.volume;
       let speed = settings.speed;
+      let currentAudiobookId: number | null = null;
+      let currentFile: string | null = null;
+
+      // Local state for testing
+      let localBookmarks = [...bookmarks];
+      let localAudiobooks = [...audiobooks];
+      let localFiles = [...files];
+      let localPreferences = { ...preferences };
+      let localSleepTimer = { ...sleepTimer };
+      let nextBookmarkId = 100;
 
       (window as any).__TAURI__ = {
         invoke: async (cmd: string, args?: Record<string, unknown>) => {
           switch (cmd) {
-            // Database commands
+            // Database commands - Audiobooks
             case 'get_all_audiobooks':
-              return audiobooks;
+              return localAudiobooks;
             case 'get_audiobook_by_id':
-              return audiobooks.find((a: any) => a.id === args?.['id']) ?? null;
+              return localAudiobooks.find((a: any) => a.id === args?.['id']) ?? null;
+            case 'get_audiobook_by_path':
+              return localAudiobooks.find((a: any) => a.fullPath === args?.['path']) ?? null;
+            case 'get_audiobooks_by_directory':
+              return localAudiobooks.filter((a: any) => a.directory === args?.['directory']);
+            case 'insert_audiobook':
+              const newAudiobook = {
+                id: Math.floor(Math.random() * 1000) + 100,
+                ...args,
+                completeness: 0,
+                createdAt: new Date().toISOString(),
+              };
+              localAudiobooks.push(newAudiobook);
+              return newAudiobook.id;
+            case 'delete_audiobook':
+              localAudiobooks = localAudiobooks.filter((a: any) => a.id !== args?.['id']);
+              localFiles = localFiles.filter((f: any) => f.audiobookId !== args?.['id']);
+              localBookmarks = localBookmarks.filter((b: any) => b.audiobookId !== args?.['id']);
+              return undefined;
+            case 'update_audiobook_completeness':
+              const ab = localAudiobooks.find((a: any) => a.id === args?.['id']);
+              if (ab) ab.completeness = args?.['completeness'] as number;
+              return undefined;
+            case 'update_audiobook_author':
+              const abAuthor = localAudiobooks.find((a: any) => a.id === args?.['id']);
+              if (abAuthor) abAuthor.author = args?.['author'] as string;
+              return undefined;
+            case 'update_audiobook_last_listened':
+              const abLast = localAudiobooks.find((a: any) => a.id === args?.['id']);
+              if (abLast) abLast.lastListened = new Date().toISOString();
+              return undefined;
+
+            // Database commands - Files
             case 'get_audiobook_files':
-              return files.filter((f: any) => f.audiobookId === args?.['audiobookId']);
+              return localFiles.filter((f: any) => f.audiobookId === args?.['audiobookId']);
+            case 'update_file_progress':
+              const file = localFiles.find((f: any) => f.fullPath === args?.['filePath']);
+              if (file) {
+                file.seekPosition = args?.['seekPosition'] as number;
+                file.completeness = args?.['completeness'] as number;
+              }
+              return undefined;
+            case 'mark_file_exists':
+              const fileExists = localFiles.find((f: any) => f.fullPath === args?.['filePath']);
+              if (fileExists) fileExists.fileExists = args?.['exists'] as boolean;
+              return undefined;
+            case 'mark_audiobook_files_missing':
+              localFiles
+                .filter((f: any) => f.audiobookId === args?.['audiobookId'])
+                .forEach((f: any) => (f.fileExists = false));
+              return undefined;
+
+            // Database commands - Bookmarks
             case 'get_bookmarks':
-              return bookmarks.filter((b: any) => b.audiobookId === args?.['audiobookId']);
+              return localBookmarks.filter((b: any) => b.audiobookId === args?.['audiobookId']);
+            case 'create_bookmark':
+              const newBookmark = {
+                id: nextBookmarkId++,
+                audiobookId: args?.['audiobookId'] as number,
+                filePath: args?.['filePath'] as string,
+                positionMs: args?.['positionMs'] as number,
+                label: args?.['label'] as string,
+                note: args?.['note'] as string | undefined,
+                createdAt: new Date().toISOString(),
+              };
+              localBookmarks.push(newBookmark);
+              return newBookmark.id;
+            case 'update_bookmark':
+              const bm = localBookmarks.find((b: any) => b.id === args?.['id']);
+              if (bm) Object.assign(bm, args);
+              return undefined;
+            case 'delete_bookmark':
+              localBookmarks = localBookmarks.filter((b: any) => b.id !== args?.['id']);
+              return undefined;
+            case 'jump_to_bookmark':
+              const bookmark = localBookmarks.find((b: any) => b.id === args?.['id']);
+              if (bookmark) {
+                currentTime = bookmark.positionMs;
+                currentFile = bookmark.filePath;
+              }
+              return undefined;
+
+            // Database commands - Directories
             case 'get_directories':
-              return [{ fullPath: '/test/audiobooks', createdAt: new Date().toISOString() }];
+              return directories;
             case 'insert_directory':
+              return undefined;
             case 'remove_directory':
+              return undefined;
             case 'scan_directory':
               return undefined;
 
@@ -163,16 +287,17 @@ async function injectMockTauri(page: Page) {
               currentTime = 0;
               return undefined;
             case 'seek':
-              currentTime = args?.['positionMs'] as number;
+              currentTime = Math.min(args?.['positionMs'] as number, 1800000);
               return undefined;
             case 'set_volume':
-              volume = args?.['volume'] as number;
+              volume = Math.max(0, Math.min(200, args?.['volume'] as number));
               return undefined;
             case 'set_speed':
-              speed = args?.['speed'] as number;
+              speed = Math.max(0.5, Math.min(2.0, args?.['speed'] as number));
               return undefined;
             case 'load_file':
               playbackState = 'Paused';
+              currentFile = args?.['path'] as string;
               return undefined;
             case 'get_current_time':
               return currentTime;
@@ -180,14 +305,6 @@ async function injectMockTauri(page: Page) {
               return 1800000;
             case 'get_playback_state':
               return playbackState;
-
-            // Bookmark commands
-            case 'create_bookmark':
-              return Math.floor(Math.random() * 1000) + 10;
-            case 'update_bookmark':
-            case 'delete_bookmark':
-            case 'jump_to_bookmark':
-              return undefined;
 
             // Settings commands
             case 'get_theme':
@@ -198,23 +315,98 @@ async function injectMockTauri(page: Page) {
             case 'get_panel_ratio':
               return settings.panelRatio;
             case 'set_panel_ratio':
+              settings.panelRatio = args?.['ratio'] as number;
               return undefined;
             case 'get_focus_mode':
               return settings.focusMode;
             case 'set_focus_mode':
+              settings.focusMode = args?.['enabled'] as boolean;
               return undefined;
             case 'get_volume':
               return volume;
             case 'set_volume_preference':
+              settings.volume = args?.['volume'] as number;
               return undefined;
             case 'get_speed':
               return speed;
             case 'set_speed_preference':
+              settings.speed = args?.['speed'] as number;
               return undefined;
             case 'get_prefers_reduced_motion':
               return settings.prefersReducedMotion;
             case 'set_prefers_reduced_motion':
+              settings.prefersReducedMotion = args?.['enabled'] as boolean;
               return undefined;
+            case 'get_window_position':
+              return null;
+            case 'set_window_position':
+              return undefined;
+            case 'get_window_size':
+              return null;
+            case 'set_window_size':
+              return undefined;
+            case 'get_skip_forward_duration':
+              return 30;
+            case 'set_skip_forward_duration':
+              return undefined;
+            case 'get_skip_backward_duration':
+              return 15;
+            case 'set_skip_backward_duration':
+              return undefined;
+            case 'get_auto_save_interval':
+              return 5;
+            case 'set_auto_save_interval':
+              if ((args?.['interval'] as number) < 1 || (args?.['interval'] as number) > 60) {
+                throw new Error('Invalid auto-save interval');
+              }
+              return undefined;
+            case 'get_current_audiobook':
+              return currentAudiobookId;
+            case 'set_current_audiobook':
+              currentAudiobookId = args?.['id'] as number;
+              return undefined;
+            case 'get_current_file':
+              return currentFile;
+            case 'set_current_file':
+              currentFile = args?.['path'] as string;
+              return undefined;
+            case 'reset_settings_to_defaults':
+              settings.volume = 100;
+              settings.speed = 1.0;
+              settings.theme = 'System';
+              settings.focusMode = false;
+              settings.prefersReducedMotion = false;
+              return undefined;
+
+            // User preferences
+            case 'get_preference':
+              return localPreferences[args?.['key'] as string] ?? null;
+            case 'set_preference':
+              if ((args?.['key'] as string).includes('\0') || (args?.['value'] as string)?.includes('\0')) {
+                throw new Error('NUL bytes not allowed');
+              }
+              localPreferences[args?.['key'] as string] = args?.['value'];
+              return undefined;
+            case 'get_all_preferences':
+              return Object.entries(localPreferences).map(([key, value]) => ({ key, value }));
+            case 'delete_preference':
+              delete localPreferences[args?.['key'] as string];
+              return undefined;
+
+            // Sleep timer commands
+            case 'set_sleep_timer':
+              localSleepTimer.active = true;
+              localSleepTimer.mode = args?.['mode'] as 'Duration' | 'EndOfChapter';
+              localSleepTimer.remainingSeconds = args?.['durationSeconds'] as number ?? null;
+              localSleepTimer.fadeDuration = args?.['fadeDuration'] as number ?? 0;
+              return undefined;
+            case 'cancel_sleep_timer':
+              localSleepTimer.active = false;
+              localSleepTimer.mode = null;
+              localSleepTimer.remainingSeconds = null;
+              return undefined;
+            case 'get_sleep_timer':
+              return localSleepTimer.active ? localSleepTimer : null;
 
             default:
               console.warn(`Unknown Tauri command: ${cmd}`);
@@ -228,6 +420,10 @@ async function injectMockTauri(page: Page) {
       files: mockFiles,
       bookmarks: mockBookmarks,
       settings: mockSettings,
+      directories: mockDirectories,
+      preferences: mockPreferences,
+      sleepTimer: mockSleepTimer,
+      progressData: mockProgressData,
     }
   );
 }

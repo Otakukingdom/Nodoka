@@ -1,8 +1,10 @@
+@ui
 Feature: Settings Management
   As an audiobook listener
   I want to customize my listening experience
   So that the application works according to my preferences
 
+  @critical
   Scenario: Theme preference is persisted
     Given the application has a settings store
     When I set the theme to Dark
@@ -45,3 +47,64 @@ Feature: Settings Management
     And I set the volume to 75
     When I retrieve settings
     Then all settings should be available
+
+  # Extended scenarios for window, skip, and auto-save settings
+
+  Scenario: Window position is persisted
+    Given the application has a settings store
+    When I set the window position to 100, 200
+    Then the window position should be 100, 200
+
+  Scenario: Window size is persisted
+    Given the application has a settings store
+    When I set the window size to 800, 600
+    Then the window size should be 800, 600
+
+  Scenario: Skip forward duration is persisted
+    Given the application has a settings store
+    When I set the skip forward duration to 30 seconds
+    Then the skip forward duration should be 30
+
+  Scenario: Skip backward duration is persisted
+    Given the application has a settings store
+    When I set the skip backward duration to 15 seconds
+    Then the skip backward duration should be 15
+
+  Scenario: Auto-save interval is persisted
+    Given the application has a settings store
+    When I set the auto-save interval to 10 seconds
+    Then the auto-save interval should be 10
+
+  Scenario: Auto-save interval rejects invalid values
+    Given the application has a settings store
+    When I try to set the auto-save interval to 0 seconds
+    Then the operation should fail
+
+  Scenario: Auto-save interval rejects values over 60
+    Given the application has a settings store
+    When I try to set the auto-save interval to 61 seconds
+    Then the operation should fail
+
+  Scenario: Current audiobook is persisted
+    Given the application has a settings store
+    When I set the current audiobook to 42
+    Then the current audiobook should be 42
+
+  Scenario: Current file is persisted
+    Given the application has a settings store
+    When I set the current file to "/path/to/file.mp3"
+    Then the current file should be "/path/to/file.mp3"
+
+  Scenario: Reset to defaults
+    Given the application has a settings store
+    And I set the volume to 50
+    And I set the speed to 2.0
+    When I reset settings to defaults
+    Then the volume should be 100
+    And the speed should be 1.0
+
+  Scenario: Corrupted current audiobook is cleared
+    Given the application has a settings store
+    And the current audiobook setting is corrupted
+    When I get the current audiobook
+    Then the result should be None

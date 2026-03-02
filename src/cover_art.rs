@@ -65,13 +65,15 @@ pub fn select(audiobook_dir: &Path, embedded_image: Option<&[u8]>) -> Result<Opt
 
     let candidates = candidate_paths(audiobook_dir)?;
     for path in candidates {
-        if let Ok(img) = image::open(&path) {
-            let (width, height) = img.dimensions();
-            return Ok(Some(Selection {
-                source: Source::File(path),
-                width,
-                height,
-            }));
+        if let Ok(bytes) = std::fs::read(&path) {
+            if let Ok(img) = image::load_from_memory(&bytes) {
+                let (width, height) = img.dimensions();
+                return Ok(Some(Selection {
+                    source: Source::File(path),
+                    width,
+                    height,
+                }));
+            }
         }
     }
 
