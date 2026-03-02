@@ -71,3 +71,46 @@ Feature: Playback Controls
     And the player has loaded media with duration 60000 ms
     When I seek to position 70000 ms
     Then the position should be clamped to duration
+
+  # ==================== Cross-File Playback Scenarios ====================
+
+  Scenario: Playback advances to next file automatically
+    Given the application has an audiobook with 3 files
+    And I am playing the first file
+    When the first file ends
+    Then the second file should start playing automatically
+    And the UI should update to show the second file selected
+
+  Scenario: Playback stops at end of last file
+    Given the application has an audiobook with 2 files
+    And I am playing the second file
+    When the second file ends
+    Then playback should stop
+    And the audiobook should be marked as complete
+
+  Scenario: User can skip to next file manually
+    Given the application has an audiobook with 3 files
+    And I am playing the first file
+    When I press the skip forward button repeatedly
+    Then playback should advance to the next file
+    And the file list should update the selection
+
+  Scenario: User can skip to previous file manually
+    Given the application has an audiobook with 3 files
+    And I am playing the third file
+    When I press the skip backward button repeatedly
+    Then playback should go to the previous file
+    And the file list should update the selection
+
+  Scenario: Skip forward at end of file goes to next file
+    Given the application has an audiobook with 3 files
+    And I am playing the first file near the end
+    When I press the skip forward button
+    Then the next file should start playing
+
+  Scenario: File transition is seamless
+    Given the application has an audiobook with 3 files
+    And I am playing the first file
+    When the first file ends
+    Then playback should continue without interruption
+    And the progress should reset for the new file

@@ -111,12 +111,6 @@ When('I double-click the divider', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(300);
 });
 
-When('I restart the application', async function (this: NodokaWorld) {
-  await this.page.reload();
-  await this.page.waitForSelector('.navbar', { timeout: 10000 });
-  await this.page.waitForTimeout(500);
-});
-
 // ==================== When Steps - Focus Mode ====================
 
 When('I toggle focus mode', async function (this: NodokaWorld) {

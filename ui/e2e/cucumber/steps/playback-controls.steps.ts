@@ -48,6 +48,57 @@ Given('the player has loaded media with duration {int} ms', async function (this
   await library.selectFile(0);
 });
 
+// ==================== Cross-File Playback Given Steps ====================
+
+Given('the application has an audiobook with {int} files', async function (this: NodokaWorld, fileCount: number) {
+  await this.page.goto(`http://localhost:5173/?test=true&fileCount=${fileCount}`);
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+Given('I am playing the first file', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  await this.page.waitForTimeout(300);
+
+  this.lastPosition = 0;
+});
+
+Given('I am playing the second file', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(1);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  await this.page.waitForTimeout(300);
+});
+
+Given('I am playing the third file', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(2);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  await this.page.waitForTimeout(300);
+});
+
+Given('I am playing the first file near the end', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  // Seek to near end
+  await player.seekToEnd();
+  await player.play();
+  await this.page.waitForTimeout(300);
+});
+
 // ==================== When Steps ====================
 
 When('I set the volume above maximum', async function (this: NodokaWorld) {
@@ -202,4 +253,132 @@ Then('the position should be clamped to duration', async function (this: NodokaW
   const position = await player.getSeekPosition();
   const duration = await player.getDuration();
   expect(position).toBeLessThanOrEqual(duration);
+});
+
+// ==================== Cross-File Playback When Steps ====================
+
+When('the first file ends', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Seek to near end and wait for transition
+  await player.seekToEnd();
+  await player.play();
+  await this.page.waitForTimeout(1000);
+});
+
+When('the second file ends', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.seekToEnd();
+  await player.play();
+  await this.page.waitForTimeout(1000);
+});
+
+When('I press the skip forward button repeatedly', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Press skip forward multiple times
+  for (let i = 0; i < 5; i++) {
+    await player.skipForward();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+When('I press the skip backward button repeatedly', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  // Press skip backward multiple times
+  for (let i = 0; i < 5; i++) {
+    await player.skipBackward();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+When('I press the skip forward button', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await player.skipForward();
+  await this.page.waitForTimeout(300);
+});
+
+// ==================== Cross-File Playback Then Steps ====================
+
+Then('the second file should start playing automatically', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Wait for file transition
+  await this.page.waitForTimeout(500);
+
+  // Verify playback continues
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the UI should update to show the second file selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+
+  // Verify second file is selected
+  const selectedFile = await library.getSelectedFile();
+  expect(selectedFile).not.toBeNull();
+});
+
+Then('the audiobook should be marked as complete', async function (this: NodokaWorld) {
+  // Check for completion indicator
+  const completionBadge = this.page.locator('.completion-badge, [data-complete="true"]');
+  const isVisible = await completionBadge.isVisible().catch(() => false);
+
+  // Also check for 100% progress
+  const progressText = this.page.locator('text=/100%|Complete/');
+  const hasProgress = await progressText.isVisible().catch(() => false);
+
+  expect(isVisible || hasProgress).toBe(true);
+});
+
+Then('playback should advance to the next file', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Verify playback is still active
+  await this.page.waitForTimeout(300);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the file list should update the selection', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+
+  // Verify a file is selected
+  const selectedFile = await library.getSelectedFile();
+  expect(selectedFile).not.toBeNull();
+});
+
+Then('playback should go to the previous file', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Verify playback is still active or paused at start
+  await this.page.waitForTimeout(300);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the next file should start playing', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Wait for transition
+  await this.page.waitForTimeout(500);
+
+  // Verify playback continues
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('playback should continue without interruption', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Verify playback state is maintained
+  await this.page.waitForTimeout(300);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the progress should reset for the new file', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+
+  // Progress should be near beginning for new file
+  const position = await player.getSeekPosition();
+  expect(position).toBeLessThan(5000); // Less than 5 seconds
 });

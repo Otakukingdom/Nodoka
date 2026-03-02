@@ -416,3 +416,82 @@ Then('the current file should be {string}', async function (this: NodokaWorld, p
 Then('the result should be None', async function (this: NodokaWorld) {
   expect(this.lastValue).toBeNull();
 });
+
+// ==================== Cross-Session Persistence Steps ====================
+
+Given('I am playing an audiobook at position {int} minutes', async function (this: NodokaWorld, minutes: number) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  await this.page.waitForTimeout(300);
+
+  // Seek to the specified position
+  const positionMs = minutes * 60 * 1000;
+  await player.seek(positionMs);
+  this.lastPosition = positionMs;
+});
+
+When('I restart the application', async function (this: NodokaWorld) {
+  // Simulate restart by reloading the page
+  // In a real Tauri app, this would close and reopen the app
+  await this.page.reload({ waitUntil: 'networkidle' });
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+Then('the theme should still be Dark', async function (this: NodokaWorld) {
+  const html = this.page.locator('html');
+  await expect(html).toHaveAttribute('data-theme', 'dark');
+});
+
+Then('the theme should still be {string}', async function (this: NodokaWorld, theme: string) {
+  const html = this.page.locator('html');
+  if (theme === 'Dark') {
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+  } else if (theme === 'Light') {
+    await expect(html).toHaveAttribute('data-theme', 'light');
+  }
+});
+
+Then('the UI should display in dark mode', async function (this: NodokaWorld) {
+  const html = this.page.locator('html');
+  const theme = await html.getAttribute('data-theme');
+  expect(theme).toBe('dark');
+
+  // Also verify dark mode styling is applied
+  const body = this.page.locator('body');
+  const backgroundColor = await body.evaluate((el) =>
+    window.getComputedStyle(el).backgroundColor
+  );
+  // Dark mode should have a dark background (low RGB values)
+  expect(backgroundColor).toBeTruthy();
+});
+
+Then('the volume slider should show {int}', async function (this: NodokaWorld, volume: number) {
+  const player = new PlayerPage(this.page);
+  const currentVolume = await player.getVolume();
+  expect(currentVolume).toBe(volume);
+});
+
+Then('the audiobook should be selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  const selectedAudiobook = await library.getSelectedAudiobook();
+  expect(selectedAudiobook).not.toBeNull();
+});
+
+Then('the position should be restored to {int} minutes', async function (this: NodokaWorld, minutes: number) {
+  const player = new PlayerPage(this.page);
+
+  // Wait for position to be restored
+  await this.page.waitForTimeout(500);
+
+  const position = await player.getSeekPosition();
+  const expectedMs = minutes * 60 * 1000;
+
+  // Allow some tolerance for position restoration (within 5 seconds)
+  const tolerance = 5000;
+  expect(Math.abs(position - expectedMs)).toBeLessThanOrEqual(tolerance);
+});

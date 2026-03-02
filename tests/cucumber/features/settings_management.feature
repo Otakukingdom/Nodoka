@@ -108,3 +108,47 @@ Feature: Settings Management
     And the current audiobook setting is corrupted
     When I get the current audiobook
     Then the result should be None
+
+  # Cross-session persistence scenarios
+
+  @critical
+  Scenario: Theme preference persists across restarts
+    Given the application has a settings store
+    And I set the theme to Dark
+    When I restart the application
+    Then the theme should still be Dark
+    And the UI should display in dark mode
+
+  Scenario: Volume level persists across sessions
+    Given the application has a settings store
+    And I set the volume to 75
+    When I restart the application
+    Then the volume should be 75
+    And the volume slider should show 75
+
+  Scenario: Speed preference persists across sessions
+    Given the application has a settings store
+    And I set the speed to 1.5
+    When I restart the application
+    Then the speed should be 1.5
+
+  Scenario: Last played position is restored
+    Given the application has an audiobook
+    And I am playing an audiobook at position 5 minutes
+    When I restart the application
+    Then the audiobook should be selected
+    And the position should be restored to 5 minutes
+
+  Scenario: Skip duration preferences persist
+    Given the application has a settings store
+    And I set the skip forward duration to 30 seconds
+    And I set the skip backward duration to 15 seconds
+    When I restart the application
+    Then the skip forward duration should be 30
+    And the skip backward duration should be 15
+
+  Scenario: Focus mode preference persists
+    Given the application has a settings store
+    And I enable focus mode
+    When I restart the application
+    Then focus mode should be enabled

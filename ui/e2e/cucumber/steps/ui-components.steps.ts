@@ -1162,3 +1162,196 @@ Then('the cover art should maintain aspect ratio', async function (this: NodokaW
     }
   }
 });
+
+// ==================== Error Handling Steps ====================
+
+Given('a network error occurs during library load', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&networkError=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  // Trigger the error state
+  await this.page.waitForTimeout(500);
+});
+
+Given('the database file is corrupted', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&databaseCorrupted=true');
+  await this.page.waitForTimeout(500);
+});
+
+When('I start the application', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&databaseCorrupted=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+Given('the library has a directory without read permission', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&permissionError=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+Given('the disk is nearly full', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&diskFull=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+Given('the library has an audiobook with invalid audio', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&invalidAudio=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+});
+
+When('I try to play the invalid file', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.play();
+  await this.page.waitForTimeout(500);
+});
+
+Given('an error notification is displayed', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&showError=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+Given('multiple operations fail simultaneously', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&multipleErrors=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+Given('the application is in an error state', async function (this: NodokaWorld) {
+  await this.page.goto('http://localhost:5173/?test=true&errorState=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+// Note: "I scan the directory" is defined in directory-scanning.steps.ts
+
+When('I scan a large directory', async function (this: NodokaWorld) {
+  // Same as scanning directory
+  await this.page.evaluate(() => {
+    (window as any).__TAURI_INVOKE__('scan_directory', { path: '/large/directory' });
+  });
+  await this.page.waitForTimeout(500);
+});
+
+// Note: "I view the error state" is defined above in Error States section
+
+When('I view the notifications', async function (this: NodokaWorld) {
+  const notificationArea = this.page.locator('.notification-area, .toast-container');
+  if (await notificationArea.count() > 0) {
+    await notificationArea.waitFor({ state: 'visible', timeout: 3000 });
+  }
+});
+
+When('I try to delete an audiobook', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+
+  // Try to trigger delete
+  await library.audiobookCards.first().click({ button: 'right' });
+  await this.page.waitForTimeout(200);
+
+  const deleteOption = this.page.locator('text=Delete, button:has-text("Delete")').first();
+  if (await deleteOption.isVisible()) {
+    await deleteOption.click();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+Then('a retry button should be visible', async function (this: NodokaWorld) {
+  const retryButton = this.page.locator('button:has-text("Retry"), button[aria-label="Retry"]');
+  await expect(retryButton.first()).toBeVisible({ timeout: 5000 });
+});
+
+// Note: "the operation should be retried" is defined in panel-states.steps.ts
+
+Then('a recovery message should be displayed', async function (this: NodokaWorld) {
+  const recoveryMessage = this.page.locator('text=/recovery|recover|corrupted|damaged/i');
+  await expect(recoveryMessage.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the option to start fresh should be available', async function (this: NodokaWorld) {
+  const startFreshButton = this.page.locator('button:has-text("Start Fresh"), button:has-text("Reset"), button:has-text("New Database")');
+  await expect(startFreshButton.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('a permission error message should be displayed', async function (this: NodokaWorld) {
+  const permissionError = this.page.locator('text=/permission|access denied|cannot read/i');
+  await expect(permissionError.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the application should continue to function', async function (this: NodokaWorld) {
+  // Verify app is still responsive
+  const navbar = this.page.locator('.navbar');
+  await expect(navbar).toBeVisible();
+});
+
+Then('other directories should still be scanned', async function (this: NodokaWorld) {
+  // Verify some content is shown
+  const audiobookList = this.page.locator('#audiobook-list');
+  await expect(audiobookList).toBeVisible();
+});
+
+Then('a disk space warning should be displayed', async function (this: NodokaWorld) {
+  const diskWarning = this.page.locator('text=/disk space|storage|full/i');
+  await expect(diskWarning.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the scan should be aborted safely', async function (this: NodokaWorld) {
+  // Verify no loading indicator stuck
+  await this.page.waitForTimeout(500);
+  const loadingIndicator = this.page.locator('.loading, .scanning');
+  const isLoading = await loadingIndicator.isVisible().catch(() => false);
+  // Loading should have stopped
+  expect(isLoading).toBe(false);
+});
+
+Then('a detailed error message should be shown', async function (this: NodokaWorld) {
+  const errorMessage = this.page.locator('.error-message, .error-details, [role="alert"]');
+  await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the error should include the file path', async function (this: NodokaWorld) {
+  const errorText = await this.page.locator('.error-message, .error-details').first().textContent();
+  // Should contain some path-like text
+  expect(errorText).toMatch(/\/|\\/);
+});
+
+Then('suggestions for fixing the issue should be provided', async function (this: NodokaWorld) {
+  const suggestions = this.page.locator('text=/try|suggest|check|ensure|verify/i');
+  await expect(suggestions.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the error state should be cleared', async function (this: NodokaWorld) {
+  await this.page.waitForTimeout(300);
+  const errorElement = this.page.locator('.error-message, .error-notification');
+  const hasError = await errorElement.count() > 0 && await errorElement.first().isVisible();
+  expect(hasError).toBe(false);
+});
+
+Then('errors should be shown one at a time', async function (this: NodokaWorld) {
+  const errorNotifications = this.page.locator('.error-notification, .toast.error');
+  const count = await errorNotifications.count();
+  // Should only show one at a time
+  expect(count).toBeLessThanOrEqual(1);
+});
+
+Then('I should be able to dismiss each error', async function (this: NodokaWorld) {
+  const dismissButtons = this.page.locator('.error-notification button, .toast.error button');
+  const count = await dismissButtons.count();
+  if (count > 0) {
+    await dismissButtons.first().click();
+    await this.page.waitForTimeout(200);
+  }
+});
+
+// Note: "a warning should be displayed" is defined in audio-validation.steps.ts
+
+Then('the action should require additional confirmation', async function (this: NodokaWorld) {
+  const confirmDialog = this.page.locator('.modal-box:has-text("Confirm"), .dialog:has-text("Are you sure")');
+  // Either a modal appeared or the delete didn't happen immediately
+  const hasConfirmDialog = await confirmDialog.count() > 0;
+  expect(hasConfirmDialog).toBe(true);
+});

@@ -569,3 +569,58 @@ Feature: UI Component Behavior
     Given the application has 5 audiobooks
     When I press Ctrl+A
     Then all audiobooks should be selected
+
+  # ==================== Error Handling UI ====================
+
+  @critical
+  Scenario: Network error shows retry option
+    Given the application is running
+    When a network error occurs during library load
+    Then an error message should be displayed
+    And a retry button should be visible
+    When I click retry
+    Then the operation should be retried
+
+  Scenario: Corrupted database shows recovery message
+    Given the database file is corrupted
+    When I start the application
+    Then a recovery message should be displayed
+    And the option to start fresh should be available
+
+  Scenario: File permission error is handled gracefully
+    Given the library has a directory without read permission
+    When I scan the directory
+    Then a permission error message should be displayed
+    And the application should continue to function
+    And other directories should still be scanned
+
+  Scenario: Disk full error during scan is handled
+    Given the disk is nearly full
+    When I scan a large directory
+    Then a disk space warning should be displayed
+    And the scan should be aborted safely
+
+  Scenario: Invalid audio file shows detailed error
+    Given the library has an audiobook with invalid audio
+    When I try to play the invalid file
+    Then a detailed error message should be shown
+    And the error should include the file path
+    And suggestions for fixing the issue should be provided
+
+  Scenario: Error notification can be dismissed
+    Given an error notification is displayed
+    When I click the dismiss button
+    Then the notification should disappear
+    And the error state should be cleared
+
+  Scenario: Multiple errors are queued and shown sequentially
+    Given multiple operations fail simultaneously
+    When I view the notifications
+    Then errors should be shown one at a time
+    And I should be able to dismiss each error
+
+  Scenario: Error state prevents destructive actions
+    Given the application is in an error state
+    When I try to delete an audiobook
+    Then a warning should be displayed
+    And the action should require additional confirmation

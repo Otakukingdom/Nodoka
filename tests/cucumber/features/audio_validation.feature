@@ -92,3 +92,37 @@ Feature: Audio File Validation
     Given the library has an audiobook with FLAC files
     When I view the file details
     Then the sample rate should be displayed
+
+  # ==================== Duration Calculation ====================
+
+  @critical
+  Scenario: Duration is calculated correctly for MP3 files
+    Given the library has an audiobook with MP3 files
+    When I view the files list
+    Then each file should display its calculated duration
+    And the duration should match the actual audio length
+
+  Scenario: Total audiobook duration is sum of file durations
+    Given the library has an audiobook with 3 files
+    When I view the audiobook details
+    Then the total duration should be displayed
+    And the total should equal the sum of all file durations
+
+  Scenario: Duration updates when file is replaced
+    Given the library has an audiobook with a file
+    When the file is replaced with a longer version
+    And I rescan the directory
+    Then the duration should be updated
+    And the audiobook total duration should reflect the change
+
+  Scenario: Duration is preserved across sessions
+    Given the library has an audiobook with known duration
+    When I restart the application
+    Then the file durations should be preserved
+    And the total audiobook duration should be correct
+
+  Scenario: Duration displays correctly for very long files
+    Given the library has an audiobook with a file over 24 hours
+    When I view the files list
+    Then the duration should display in HH:MM:SS format
+    And hours should be correctly calculated
