@@ -38,6 +38,44 @@ Given('a file is playing for keyboard testing', async function (this: NodokaWorl
   this.lastPosition = await player.getSeekPosition();
 });
 
+Given('a file is loaded with volume at {int}', async function (this: NodokaWorld, volume: number) {
+  await this.page.goto(`/?test=true&audiobookCount=1&volume=${volume}`);
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  this.lastValue = await player.getVolume();
+});
+
+Given('an audiobook with {int} files is loaded', async function (this: NodokaWorld, fileCount: number) {
+  await this.page.goto(`/?test=true&audiobookCount=1&fileCount=${fileCount}`);
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+});
+
+Given('the first file is selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectFile(0);
+  this.lastValue = 0;
+});
+
+Given('the second file is selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectFile(1);
+  this.lastValue = 1;
+});
+
+Given('the third file is selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectFile(2);
+  this.lastValue = 2;
+});
+
 Given('a modal is open for keyboard testing', async function (this: NodokaWorld) {
   const settings = new SettingsPage(this.page);
   await settings.open();
@@ -134,6 +172,48 @@ When('I hold Shift and press ArrowLeft', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(200);
 });
 
+// ==================== When Steps - Volume Control Keys ====================
+
+When('I press Plus key', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  this.lastValue = await player.getVolume();
+  await this.page.keyboard.press('+');
+  await this.page.waitForTimeout(200);
+});
+
+When('I press Minus key', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  this.lastValue = await player.getVolume();
+  await this.page.keyboard.press('-');
+  await this.page.waitForTimeout(200);
+});
+
+When('I press Equals key', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  this.lastValue = await player.getVolume();
+  await this.page.keyboard.press('=');
+  await this.page.waitForTimeout(200);
+});
+
+When('I press Underscore key', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  this.lastValue = await player.getVolume();
+  await this.page.keyboard.press('_');
+  await this.page.waitForTimeout(200);
+});
+
+// ==================== When Steps - File Navigation Keys ====================
+
+When('I press ArrowDown key for file navigation', async function (this: NodokaWorld) {
+  await this.page.keyboard.press('ArrowDown');
+  await this.page.waitForTimeout(200);
+});
+
+When('I press ArrowUp key for file navigation', async function (this: NodokaWorld) {
+  await this.page.keyboard.press('ArrowUp');
+  await this.page.waitForTimeout(200);
+});
+
 // ==================== Then Steps - Playback Controls ====================
 
 Then('playback should toggle state', async function (this: NodokaWorld) {
@@ -198,6 +278,96 @@ Then('volume should decrease', async function (this: NodokaWorld) {
   const player = new PlayerPage(this.page);
   // Volume should have decreased
   await this.page.waitForTimeout(100);
+});
+
+// ==================== Then Steps - Volume Control ====================
+
+Then('volume should increase by {int}', async function (this: NodokaWorld, amount: number) {
+  const player = new PlayerPage(this.page);
+  const newVolume = await player.getVolume();
+  const expectedVolume = Math.min(100, (this.lastValue as number) + amount);
+  expect(newVolume).toBe(expectedVolume);
+});
+
+Then('volume should decrease by {int}', async function (this: NodokaWorld, amount: number) {
+  const player = new PlayerPage(this.page);
+  const newVolume = await player.getVolume();
+  const expectedVolume = Math.max(0, (this.lastValue as number) - amount);
+  expect(newVolume).toBe(expectedVolume);
+});
+
+Then('volume should be at maximum {int}', async function (this: NodokaWorld, maxVolume: number) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeLessThanOrEqual(maxVolume);
+});
+
+Then('volume should be at minimum {int}', async function (this: NodokaWorld, minVolume: number) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeGreaterThanOrEqual(minVolume);
+});
+
+// ==================== Then Steps - File Navigation ====================
+
+// Note: "the second file should be selected" is defined in ui-components.steps.ts
+
+Then('the first file should be selected', async function (this: NodokaWorld) {
+  const details = this.page.locator('.file-list-item, [data-testid="file-item"]');
+  const selectedFile = details.locator('.selected, [data-selected="true"], .ring-primary');
+  await expect(selectedFile.first()).toBeVisible();
+
+  // Verify first file (index 0) is selected
+  const allFiles = await details.all();
+  let selectedIndex = -1;
+  for (let i = 0; i < allFiles.length; i++) {
+    const isSelected = await allFiles[i].evaluate(el =>
+      el.classList.contains('selected') ||
+      el.getAttribute('data-selected') === 'true' ||
+      el.classList.contains('ring-primary')
+    );
+    if (isSelected) {
+      selectedIndex = i;
+      break;
+    }
+  }
+  expect(selectedIndex).toBe(0);
+});
+
+Then('the first file should remain selected', async function (this: NodokaWorld) {
+  // Same as above - first file should be selected
+  const details = this.page.locator('.file-list-item, [data-testid="file-item"]');
+  const selectedFile = details.locator('.selected, [data-selected="true"], .ring-primary');
+  await expect(selectedFile.first()).toBeVisible();
+});
+
+Then('the third file should be selected', async function (this: NodokaWorld) {
+  const details = this.page.locator('.file-list-item, [data-testid="file-item"]');
+  const selectedFile = details.locator('.selected, [data-selected="true"], .ring-primary');
+  await expect(selectedFile.first()).toBeVisible();
+
+  // Verify third file (index 2) is selected
+  const allFiles = await details.all();
+  let selectedIndex = -1;
+  for (let i = 0; i < allFiles.length; i++) {
+    const isSelected = await allFiles[i].evaluate(el =>
+      el.classList.contains('selected') ||
+      el.getAttribute('data-selected') === 'true' ||
+      el.classList.contains('ring-primary')
+    );
+    if (isSelected) {
+      selectedIndex = i;
+      break;
+    }
+  }
+  expect(selectedIndex).toBe(2);
+});
+
+Then('the third file should remain selected', async function (this: NodokaWorld) {
+  // Same as above - third file should still be selected
+  const details = this.page.locator('.file-list-item, [data-testid="file-item"]');
+  const selectedFile = details.locator('.selected, [data-selected="true"], .ring-primary');
+  await expect(selectedFile.first()).toBeVisible();
 });
 
 // ==================== Then Steps - Modal Controls ====================

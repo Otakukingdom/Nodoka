@@ -4,55 +4,85 @@
  * This file documents step definitions that are missing or need enhancement
  * to ensure complete UI point-and-click testing coverage.
  *
- * AUDIT DATE: 2026-03-02 (Final Update)
+ * AUDIT DATE: 2026-03-02 (Final Update - Session 2)
  * STATUS: Comprehensive coverage achieved with enhanced UI interactions
  *
- * === RECENT ENHANCEMENTS (Session 2026-03-02) ===
+ * === RECENT ENHANCEMENTS (Session 2026-03-02 - Part 2) ===
  *
- * 1. settings.steps.ts Enhancements:
- *    - Window position verification: Now uses localStorage and URL param verification
- *    - Window size verification: Now checks viewport dimensions AND localStorage
- *    - Auto-save interval verification: Added localStorage + UI verification
- *    - Current audiobook/file verification: Added localStorage + UI verification
- *    - Panel ratio verification: Now calculates actual ratio from DOM bounding boxes
+ * 1. keyboard-shortcuts.steps.ts Enhancements:
+ *    - Plus key (+) increases volume by 5 - NEW
+ *    - Minus key (-) decreases volume by 5 - NEW
+ *    - Equals key (=) increases volume - NEW
+ *    - Underscore key (_) decreases volume - NEW
+ *    - ArrowDown navigates to next file - NEW
+ *    - ArrowUp navigates to previous file - NEW
+ *    - File navigation boundary tests (first/last file) - NEW
  *
- * 2. directory-scanning.steps.ts Enhancements:
- *    - Timestamp verification: Now checks for displayed timestamps and localStorage
- *    - Path verification: Now verifies directory paths in UI and localStorage
- *    - File length verification: Now checks for duration format and non-zero values
+ * 2. panel-states.steps.ts Enhancements:
+ *    - Double-click divider resets to default ratio (40%) - NEW
+ *    - Panel divider hover styling verification - NEW
+ *    - Cursor changes to col-resize on hover - NEW
+ *    - Minimum width constraint verification - NEW
+ *    - Maximum width constraint verification - NEW
+ *    - Drag to specific percentage position - NEW
  *
  * 3. ui-components.steps.ts Enhancements:
- *    - Network error simulation: Now uses Playwright route interception
- *    - Large directory scan: Now simulates timeout with route delays
+ *    - Click on volume track at specific percentage - NEW
+ *    - Hover over volume slider for tooltip - NEW
+ *    - Drag volume slider thumb to percentage - NEW
+ *    - Volume min/max constraint tests - NEW
+ *    - File list click selection - NEW
+ *    - File list double-click to play - NEW
+ *    - File list scroll to view more files - NEW
+ *    - Playing indicator visibility - NEW
+ *    - Progress bar visibility on files - NEW
  *
- * 4. archive-handling.steps.ts Enhancements:
- *    - Progress monitoring: Now captures initial/final progress values
- *    - Progress update verification: Compares progress before/after extraction
+ * 4. notifications.steps.ts Enhancements:
+ *    - Multiple notifications stacking vertically - NEW
+ *    - Newer notifications appear on top - NEW
+ *    - Dismiss all notifications button - NEW
+ *    - Error icon verification - NEW
+ *    - Success icon verification - NEW
+ *    - Info icon verification - NEW
+ *    - Sequential notification triggering - NEW
  *
- * 5. PlayerPage POM Enhancement:
- *    - Added getCurrentFileName() method for file verification
+ * 5. accessibility.steps.ts Enhancements:
+ *    - Tab cycles through modal elements only - NEW
+ *    - Shift+Tab cycles backward in modal - NEW
+ *    - Focus returns to trigger on modal close - NEW
+ *    - First focusable element gets focus on modal open - NEW
+ *    - Modal title announcement for screen readers - NEW
  *
- * 6. ArchivePage POM Fix:
- *    - Fixed isPasswordInputFocused() to use evaluate() instead of isFocused()
+ * 6. PlayerPage POM Enhancement:
+ *    - Added dragVolumeSliderTo() method - NEW
+ *    - Added clickVolumeTrackAt() method - NEW
+ *    - Added hoverVolumeSlider() method - NEW
+ *    - Added getVolumeTooltipValue() method - NEW
+ *    - Added pressVolumeUpShortcut() method - NEW
+ *    - Added pressVolumeDownShortcut() method - NEW
  *
- * === ENHANCEMENTS COMPLETED (Previous Sessions) ===
+ * === FEATURE FILES EXTENDED ===
  *
- * 1. Page Object Model Classes Enhanced:
- *    - DetailsPage: Added 20+ new methods for comprehensive file/bookmark testing
- *    - SleepTimerPage: Added duration options, fade settings, modal interaction methods
- *    - ArchivePage: Added password prompt, folder expansion, extraction progress methods
- *    - NotificationPage: Added stacking, z-index, icon verification methods
+ * 1. keyboard_shortcuts.feature:
+ *    - Plus/Minus volume control (6 scenarios)
+ *    - ArrowUp/Down file navigation (4 scenarios)
+ *    Total: +10 scenarios
  *
- * 2. Feature Files Extended:
- *    - settings_management.feature: Added 18 new scenarios for modal UI interactions
- *    - bookmarks.feature: Added 12 new scenarios for UI point-and-click testing
- *    - archive_handling.feature: Added 14 new scenarios for password/folder interactions
- *    - sleep_timer.feature: Added 20 new scenarios for modal UI testing
+ * 2. ui_components.feature:
+ *    - Panel resize interactions (5 scenarios)
+ *    - Volume slider interactions (6 scenarios)
+ *    - File list interactions (5 scenarios)
+ *    Total: +16 scenarios
  *
- * 3. Step Definitions Enhanced:
- *    - settings.steps.ts: Added 50+ new step definitions for modal interactions
- *    - bookmarks.steps.ts: Added 30+ new step definitions for bookmark UI testing
- *    - archive-handling.steps.ts: Added 25+ new step definitions for archive UI
+ * 3. notifications.feature:
+ *    - Notification stacking UI (7 scenarios)
+ *    Total: +7 scenarios
+ *
+ * 4. accessibility.feature:
+ *    - Modal focus trap UI (5 scenarios)
+ *    Total: +5 scenarios
+ *
+ * === TOTAL NEW SCENARIOS ADDED: 38+ ===
  *
  * === STEP DEFINITION FILES STATUS ===
  *
@@ -99,7 +129,7 @@
  *
  * 5. ui-components.steps.ts - COMPLETE + ENHANCED
  *    - Player controls (play, pause, stop, seek)
- *    - Volume and speed controls
+ *    - Volume and speed controls (click, drag, hover)
  *    - Sleep timer modal
  *    - Settings modal
  *    - Search and filter
@@ -108,13 +138,16 @@
  *    - Error states with network interception (page.route())
  *    - Network error simulation via route.abort()
  *    - Timeout simulation for large operations
+ *    - File list interactions (click, double-click, scroll)
  *
- * 6. panel-states.steps.ts - COMPLETE
- *    - Panel resize functionality
+ * 6. panel-states.steps.ts - COMPLETE + ENHANCED
+ *    - Panel resize functionality (drag, double-click reset)
+ *    - Panel ratio constraints (min/max width)
  *    - Focus mode toggle
  *    - Loading states
  *    - Error states
  *    - State persistence
+ *    - Hover styling verification
  *
  * 7. playback-controls.steps.ts - COMPLETE
  *    - Volume/speed clamping
@@ -122,11 +155,14 @@
  *    - Cross-file playback
  *    - Skip forward/backward
  *
- * 8. accessibility.steps.ts - COMPLETE
+ * 8. accessibility.steps.ts - COMPLETE + ENHANCED
  *    - axe-core integration
  *    - Keyboard navigation
  *    - Focus management
  *    - ARIA compliance
+ *    - Modal focus trap testing
+ *    - Focus return on modal close
+ *    - Screen reader announcements
  *
  * 9. search-filter.steps.ts - COMPLETE
  *    - Search by title/author
@@ -138,11 +174,13 @@
  *     - Bulk selection (Ctrl+Click, Shift+Click)
  *     - Bulk actions
  *
- * 11. notifications.steps.ts - COMPLETE
+ * 11. notifications.steps.ts - COMPLETE + ENHANCED
  *     - Success/error/info notifications
  *     - Auto-dismiss behavior
  *     - Manual dismiss
  *     - Notification stacking
+ *     - Dismiss all functionality
+ *     - Icon verification by type
  *
  * 12. directory-scanning.steps.ts - COMPLETE + ENHANCED
  *     - Directory scanning trigger
@@ -152,18 +190,29 @@
  *     - Path verification (UI + localStorage)
  *     - File length/duration verification
  *
+ * 13. keyboard-shortcuts.steps.ts - COMPLETE + ENHANCED
+ *     - Play/pause (Space)
+ *     - Mute toggle (M)
+ *     - Seek forward/backward (ArrowLeft/Right)
+ *     - Volume control (+/-)
+ *     - File navigation (ArrowUp/Down)
+ *     - Modal shortcuts (Escape, F1, Ctrl+T, Ctrl+Comma)
+ *     - Bookmark creation (Ctrl+B)
+ *     - Select all (Ctrl+A)
+ *     - Tab navigation
+ *
  * === FEATURE FILES STATUS ===
  *
- * TOTAL: 400+ scenarios
+ * TOTAL: 440+ scenarios (38+ new scenarios added)
  *
  * All 17 feature files have corresponding step definitions:
- * - ui_components.feature: 103 scenarios
+ * - ui_components.feature: 119+ scenarios (16 new)
  * - settings_management.feature: 43 scenarios
  * - audio_validation.feature: 28 scenarios
- * - keyboard_shortcuts.feature: 20 scenarios
+ * - keyboard_shortcuts.feature: 30 scenarios (10 new)
  * - playback_controls.feature: 19 scenarios
  * - audiobook_library.feature: 17 scenarios
- * - accessibility.feature: 15 scenarios
+ * - accessibility.feature: 20 scenarios (5 new)
  * - archive_handling.feature: 29 scenarios
  * - directory_scanning.feature: 10 scenarios
  * - cover_art.feature: 10 scenarios
@@ -172,7 +221,7 @@
  * - progress_tracking.feature: 8 scenarios
  * - user_preferences.feature: 7 scenarios
  * - checksum.feature: 6 scenarios
- * - notifications.feature: 6 scenarios
+ * - notifications.feature: 13 scenarios (7 new)
  * - sleep_timer.feature: 26 scenarios
  *
  * === UI INTERACTION TESTING COVERAGE ===
@@ -180,12 +229,17 @@
  * All tests use actual Playwright UI interactions:
  * - Real keyboard presses via page.keyboard.press()
  * - Real mouse clicks via locator.click()
+ * - Real mouse double-clicks via locator.dblclick()
+ * - Real mouse drags via page.mouse.down()/move()/up()
  * - Real form input via locator.fill()
  * - Real dropdown selection via locator.selectOption()
  * - Real checkbox toggling via locator.check()/uncheck()
+ * - Real hover interactions via locator.hover()
  * - Network interception via page.route()
  * - DOM measurements via locator.boundingBox()
  * - LocalStorage verification via page.evaluate()
+ * - Focus state verification via :focus selector
+ * - Viewport verification via locator.isInViewport()
  *
  * === TESTING PATTERNS ===
  *
@@ -204,6 +258,21 @@
  *    - Wait for update
  *    - Compare final vs initial progress
  *
+ * 4. Drag Interaction Pattern:
+ *    - Get element bounding box
+ *    - Hover over element
+ *    - Mouse down
+ *    - Move to target position
+ *    - Mouse up
+ *    - Verify new state
+ *
+ * 5. Focus Trap Pattern:
+ *    - Open modal
+ *    - Tab through all focusable elements
+ *    - Verify focus stays within modal
+ *    - Close modal
+ *    - Verify focus returns to trigger
+ *
  * === NOTES ===
  *
  * - All step definitions use Playwright page interactions
@@ -214,4 +283,4 @@
  */
 
 // This file serves as documentation and doesn't export anything
-export const auditVersion = '2026-03-02-final';
+export const auditVersion = '2026-03-02-final-session2';

@@ -360,4 +360,70 @@ export class PlayerPage extends BasePage {
 
     return null;
   }
+
+  /**
+   * Drag volume slider to specific percentage
+   */
+  async dragVolumeSliderTo(percentage: number): Promise<void> {
+    const slider = this.volumeSlider;
+    const box = await slider.boundingBox();
+    if (box) {
+      const targetX = box.x + (box.width * percentage / 100);
+      await slider.hover();
+      await this.page.mouse.down();
+      await this.page.mouse.move(targetX, box.y + box.height / 2);
+      await this.page.mouse.up();
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Click on volume track at specific position
+   */
+  async clickVolumeTrackAt(percentage: number): Promise<void> {
+    const box = await this.volumeSlider.boundingBox();
+    if (box) {
+      const targetX = box.x + (box.width * percentage / 100);
+      await this.page.mouse.click(targetX, box.y + box.height / 2);
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Hover over volume slider to show tooltip
+   */
+  async hoverVolumeSlider(): Promise<void> {
+    await this.volumeSlider.hover();
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Get volume tooltip value if visible
+   */
+  async getVolumeTooltipValue(): Promise<string | null> {
+    const tooltip = this.page.locator('.volume-tooltip, [data-testid="volume-tooltip"], .tooltip:has-text("%")');
+    if (await tooltip.isVisible()) {
+      return await tooltip.textContent();
+    }
+
+    // Try to get from title attribute
+    const title = await this.volumeSlider.getAttribute('title');
+    return title;
+  }
+
+  /**
+   * Press keyboard shortcut for volume increase
+   */
+  async pressVolumeUpShortcut(): Promise<void> {
+    await this.page.keyboard.press('+');
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Press keyboard shortcut for volume decrease
+   */
+  async pressVolumeDownShortcut(): Promise<void> {
+    await this.page.keyboard.press('-');
+    await this.page.waitForTimeout(200);
+  }
 }

@@ -115,6 +115,76 @@ Feature: Keyboard Shortcuts
     When I press Ctrl+A keys
     Then all audiobooks should be selected via shortcut
 
+  # ==================== Volume Control via Plus/Minus Keys ====================
+
+  Scenario: Plus key increases volume by 5
+    Given the application is running
+    And a file is loaded with volume at 50
+    When I press Plus key
+    Then volume should increase by 5
+
+  Scenario: Minus key decreases volume by 5
+    Given the application is running
+    And a file is loaded with volume at 50
+    When I press Minus key
+    Then volume should decrease by 5
+
+  Scenario: Volume cannot exceed 100 with Plus key
+    Given the application is running
+    And a file is loaded with volume at 98
+    When I press Plus key
+    And I press Plus key
+    Then volume should be at maximum 100
+
+  Scenario: Volume cannot go below 0 with Minus key
+    Given the application is running
+    And a file is loaded with volume at 2
+    When I press Minus key
+    And I press Minus key
+    Then volume should be at minimum 0
+
+  Scenario: Equals key also increases volume
+    Given the application is running
+    And a file is loaded with volume at 50
+    When I press Equals key
+    Then volume should increase by 5
+
+  Scenario: Underscore key also decreases volume
+    Given the application is running
+    And a file is loaded with volume at 50
+    When I press Underscore key
+    Then volume should decrease by 5
+
+  # ==================== File Navigation via Arrow Keys ====================
+
+  Scenario: ArrowDown navigates to next file
+    Given the application is running
+    And an audiobook with 3 files is loaded
+    And the first file is selected
+    When I press ArrowDown key for file navigation
+    Then the second file should be selected
+
+  Scenario: ArrowUp navigates to previous file
+    Given the application is running
+    And an audiobook with 3 files is loaded
+    And the second file is selected
+    When I press ArrowUp key for file navigation
+    Then the first file should be selected
+
+  Scenario: ArrowUp at first file does nothing
+    Given the application is running
+    And an audiobook with 3 files is loaded
+    And the first file is selected
+    When I press ArrowUp key for file navigation
+    Then the first file should remain selected
+
+  Scenario: ArrowDown at last file does nothing
+    Given the application is running
+    And an audiobook with 3 files is loaded
+    And the third file is selected
+    When I press ArrowDown key for file navigation
+    Then the third file should remain selected
+
   # ==================== Focus Navigation ====================
 
   Scenario: Tab moves focus forward

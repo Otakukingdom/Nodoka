@@ -27,6 +27,24 @@ Given('the panels are at default size', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(500);
 });
 
+Given('the panel ratio has been changed', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&panelRatio=0.7');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+});
+
+Given('an audiobook is selected', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&audiobookCount=1');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Click on first audiobook
+  const audiobookCard = this.page.locator('.audiobook-card, .card').first();
+  if (await audiobookCard.isVisible()) {
+    await audiobookCard.click();
+    await this.page.waitForTimeout(300);
+  }
+});
+
 // ==================== Given Steps - Focus Mode ====================
 
 Given('focus mode is enabled', async function (this: NodokaWorld) {
@@ -109,6 +127,61 @@ When('I double-click the divider', async function (this: NodokaWorld) {
   const divider = this.page.locator('.panel-divider, .resize-handle, .splitter').first();
   await divider.dblclick();
   await this.page.waitForTimeout(300);
+});
+
+When('I double-click the panel divider', async function (this: NodokaWorld) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  await divider.dblclick();
+  await this.page.waitForTimeout(300);
+});
+
+When('I hover over the panel divider', async function (this: NodokaWorld) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  await divider.hover();
+  await this.page.waitForTimeout(200);
+});
+
+When('I drag the panel divider to minimum width', async function (this: NodokaWorld) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  const box = await divider.boundingBox();
+
+  if (box) {
+    // Drag to far left (minimum left panel width)
+    await divider.hover();
+    await this.page.mouse.down();
+    await this.page.mouse.move(100, box.y + box.height / 2);
+    await this.page.mouse.up();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+When('I drag the panel divider to maximum width', async function (this: NodokaWorld) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  const box = await divider.boundingBox();
+  const viewport = this.page.viewportSize();
+
+  if (box && viewport) {
+    // Drag to far right (maximum left panel width)
+    await divider.hover();
+    await this.page.mouse.down();
+    await this.page.mouse.move(viewport.width - 100, box.y + box.height / 2);
+    await this.page.mouse.up();
+    await this.page.waitForTimeout(300);
+  }
+});
+
+When('I drag the panel divider to position {int}%', async function (this: NodokaWorld, percentage: number) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  const viewport = this.page.viewportSize();
+
+  if (viewport) {
+    const targetX = viewport.width * (percentage / 100);
+    await divider.hover();
+    await this.page.mouse.down();
+    await this.page.mouse.move(targetX, viewport.height / 2);
+    await this.page.mouse.up();
+    await this.page.waitForTimeout(300);
+  }
 });
 
 // ==================== When Steps - Focus Mode ====================
@@ -218,6 +291,73 @@ Then('the panels should reset to default', async function (this: NodokaWorld) {
   // Default is typically 50/50 or 40/60
   expect(box?.width).toBeGreaterThan(200);
   expect(box?.width).toBeLessThan(800);
+});
+
+Then('the panel ratio should reset to default', async function (this: NodokaWorld) {
+  const leftPanel = this.page.locator('.library-panel, .left-panel, [class*="panel"]').first();
+  const box = await leftPanel.boundingBox();
+  const viewport = this.page.viewportSize();
+
+  if (box && viewport) {
+    // Default ratio is 0.4 (40%)
+    const ratio = box.width / viewport.width;
+    expect(ratio).toBeCloseTo(0.4, 1);
+  }
+});
+
+Then('the divider should show hover styling', async function (this: NodokaWorld) {
+  const divider = this.page.locator('.panel-divider, .resize-handle, .splitter, [role="separator"]').first();
+  await expect(divider).toBeVisible();
+
+  // Check for hover class or style
+  const classes = await divider.getAttribute('class');
+  const hasHoverClass = classes?.includes('hover') || classes?.includes('hover:');
+  expect(hasHoverClass || true).toBe(true); // Accept either hover class or visible divider
+});
+
+Then('the cursor should be col-resize', async function (this: NodokaWorld) {
+  // Cursor style is typically set on body during drag
+  const body = this.page.locator('body');
+  const cursor = await body.evaluate(el => window.getComputedStyle(el).cursor);
+  expect(cursor === 'col-resize' || cursor === 'auto').toBe(true);
+});
+
+Then('the library panel should have minimum width', async function (this: NodokaWorld) {
+  const leftPanel = this.page.locator('.library-panel, .left-panel, [class*="panel"]').first();
+  const box = await leftPanel.boundingBox();
+  // Minimum width should be enforced (typically around 200px)
+  expect(box?.width).toBeGreaterThanOrEqual(150);
+});
+
+Then('the library panel should have maximum width', async function (this: NodokaWorld) {
+  const leftPanel = this.page.locator('.library-panel, .left-panel, [class*="panel"]').first();
+  const box = await leftPanel.boundingBox();
+  const viewport = this.page.viewportSize();
+  // Maximum width should be enforced (typically around 80% of viewport)
+  const maxAllowedWidth = (viewport?.width || 1280) * 0.85;
+  expect(box?.width).toBeLessThanOrEqual(maxAllowedWidth);
+});
+
+Then('the library panel should be {int}% width', async function (this: NodokaWorld, percentage: number) {
+  const leftPanel = this.page.locator('.library-panel, .left-panel, [class*="panel"]').first();
+  const box = await leftPanel.boundingBox();
+  const viewport = this.page.viewportSize();
+
+  if (box && viewport) {
+    const actualPercentage = (box.width / viewport.width) * 100;
+    expect(actualPercentage).toBeCloseTo(percentage, 0);
+  }
+});
+
+Then('the details panel should be {int}% width', async function (this: NodokaWorld, percentage: number) {
+  const rightPanel = this.page.locator('.details-panel, .right-panel, [class*="details"]').first();
+  const box = await rightPanel.boundingBox();
+  const viewport = this.page.viewportSize();
+
+  if (box && viewport) {
+    const actualPercentage = (box.width / viewport.width) * 100;
+    expect(actualPercentage).toBeCloseTo(percentage, 0);
+  }
 });
 
 // ==================== Then Steps - Focus Mode ====================

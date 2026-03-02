@@ -48,6 +48,24 @@ Given('multiple notifications are showing', async function (this: NodokaWorld) {
   this.lastCount = count;
 });
 
+Given('{int} notifications are showing', async function (this: NodokaWorld, count: number) {
+  await this.page.goto(`/?test=true&notificationCount=${count}`);
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  // Wait for notifications to appear
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  await notifications.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  this.lastCount = count;
+});
+
+Given('a notification is visible with progress', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&showNotification=progress');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const notification = this.page.locator('.toast, .notification, [role="alert"]');
+  await notification.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+});
+
 // ==================== When Steps ====================
 // Note: "a notification is triggered" is in ui-components.steps.ts
 
@@ -95,6 +113,67 @@ When('I swipe the notification away', async function (this: NodokaWorld) {
       await this.page.waitForTimeout(300);
     }
   }
+});
+
+When('I trigger {int} notifications in sequence', async function (this: NodokaWorld, count: number) {
+  for (let i = 0; i < count; i++) {
+    await this.page.evaluate((idx) => {
+      // Trigger notification via window event or Redux dispatch
+      window.dispatchEvent(new CustomEvent('test:notification', {
+        detail: { type: 'info', message: `Notification ${idx + 1}` }
+      }));
+    }, i);
+    await this.page.waitForTimeout(200);
+  }
+});
+
+When('I trigger another notification', async function (this: NodokaWorld) {
+  await this.page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('test:notification', {
+      detail: { type: 'info', message: 'New notification' }
+    }));
+  });
+  await this.page.waitForTimeout(300);
+});
+
+When('I click dismiss all notifications', async function (this: NodokaWorld) {
+  const dismissAllButton = this.page.locator('button:has-text("Dismiss all"), button:has-text("Clear all"), [data-testid="dismiss-all"]');
+  if (await dismissAllButton.isVisible()) {
+    await dismissAllButton.click();
+    await this.page.waitForTimeout(300);
+  } else {
+    // Fallback: dismiss each notification individually
+    const dismissButtons = this.page.locator('.toast button, .notification button, [role="alert"] button');
+    const count = await dismissButtons.count();
+    for (let i = 0; i < count; i++) {
+      await dismissButtons.nth(i).click();
+      await this.page.waitForTimeout(100);
+    }
+  }
+});
+
+When('an error notification appears', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&showNotification=error');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+
+  this.lastNotificationType = 'error';
+});
+
+When('a success notification appears', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&showNotification=success');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+
+  this.lastNotificationType = 'success';
+});
+
+When('an info notification appears', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&showNotification=info');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+  await this.page.waitForTimeout(500);
+
+  this.lastNotificationType = 'info';
 });
 
 // ==================== Then Steps ====================
@@ -174,4 +253,74 @@ Then('newer notifications should appear above older ones', async function (this:
 Then('the notification should handle the click action', async function (this: NodokaWorld) {
   // Verify notification click performed expected action
   await this.page.waitForTimeout(300);
+});
+
+Then('{int} notifications should be visible', async function (this: NodokaWorld, count: number) {
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  const actualCount = await notifications.count();
+  expect(actualCount).toBe(count);
+});
+
+Then('they should be stacked vertically', async function (this: NodokaWorld) {
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  const count = await notifications.count();
+
+  if (count > 1) {
+    const positions: { y: number; x: number }[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const box = await notifications.nth(i).boundingBox();
+      if (box) {
+        positions.push({ y: box.y, x: box.x });
+      }
+    }
+
+    // Verify vertical stacking (notifications should have different Y positions)
+    const uniqueYPositions = new Set(positions.map(p => p.y));
+    expect(uniqueYPositions.size).toBe(count);
+  }
+});
+
+Then('the new notification should appear on top', async function (this: NodokaWorld) {
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  const count = await notifications.count();
+
+  if (count > 1) {
+    const firstBox = await notifications.first().boundingBox();
+    const lastBox = await notifications.last().boundingBox();
+
+    if (firstBox && lastBox) {
+      // First notification should be higher (lower Y value) or have a higher z-index
+      expect(firstBox.y).toBeLessThanOrEqual(lastBox.y);
+    }
+  }
+});
+
+Then('all notifications should disappear', async function (this: NodokaWorld) {
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  await expect(notifications.first()).not.toBeVisible({ timeout: 3000 });
+});
+
+Then('the notification should have an error icon', async function (this: NodokaWorld) {
+  const notification = this.page.locator('.toast.error, .notification.error, .alert-error, [role="alert"]').first();
+  await expect(notification).toBeVisible();
+
+  const icon = notification.locator('svg, .icon, [class*="error"], [class*="danger"]');
+  await expect(icon.first()).toBeVisible();
+});
+
+Then('the notification should have a success icon', async function (this: NodokaWorld) {
+  const notification = this.page.locator('.toast.success, .notification.success, .alert-success').first();
+  await expect(notification).toBeVisible();
+
+  const icon = notification.locator('svg, .icon, [class*="success"], [class*="check"]');
+  await expect(icon.first()).toBeVisible();
+});
+
+Then('the notification should have an info icon', async function (this: NodokaWorld) {
+  const notification = this.page.locator('.toast.info, .notification.info, .alert-info').first();
+  await expect(notification).toBeVisible();
+
+  const icon = notification.locator('svg, .icon, [class*="info"]');
+  await expect(icon.first()).toBeVisible();
 });

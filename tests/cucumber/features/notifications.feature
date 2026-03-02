@@ -45,3 +45,42 @@ Feature: Notification System
     Given a notification is visible
     Then the notification should have an icon
     And the notification should be dismissible
+
+  # ==================== Notification Stacking UI ====================
+
+  Scenario: Multiple notifications stack vertically
+    Given the application is running
+    When I trigger 3 notifications in sequence
+    Then 3 notifications should be visible
+    And they should be stacked vertically
+
+  Scenario: Newer notifications appear on top
+    Given the application is running
+    And 2 notifications are showing
+    When I trigger another notification
+    Then the new notification should appear on top
+
+  Scenario: Dismiss all notifications button
+    Given the application is running
+    And 3 notifications are showing
+    When I click dismiss all notifications
+    Then all notifications should disappear
+
+  Scenario: Notification shows correct icon for type
+    Given the application is running
+    When an error notification appears
+    Then the notification should have an error icon
+
+  Scenario: Success notification shows success icon
+    Given the application is running
+    When a success notification appears
+    Then the notification should have a success icon
+
+  Scenario: Info notification shows info icon
+    Given the application is running
+    When an info notification appears
+    Then the notification should have an info icon
+
+  Scenario: Notification shows progress indicator
+    Given a notification is visible with progress
+    Then a progress indicator should be shown on the notification

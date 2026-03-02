@@ -43,6 +43,37 @@ Feature: Accessibility Compliance
     When I navigate with keyboard only
     Then focus indicators should be visible on all elements
 
+  # ==================== Modal Focus Trap UI Testing ====================
+
+  Scenario: Tab cycles through modal elements only
+    Given the settings modal is open
+    When I press Tab 10 times
+    Then focus should remain within the modal
+    And focus should cycle through all focusable elements
+
+  Scenario: Shift+Tab cycles backward in modal
+    Given the settings modal is open
+    When I press Shift+Tab 5 times
+    Then focus should remain within the modal
+    And focus should move backward through elements
+
+  Scenario: Focus returns to trigger on modal close
+    Given the application is running
+    And the settings button is focused
+    When I press Enter to open settings
+    And I press Escape to close
+    Then focus should return to the settings button
+
+  Scenario: First focusable element gets focus on modal open
+    Given the application is running
+    When I open the settings modal
+    Then the first focusable element should have focus
+
+  Scenario: Screen reader announces modal title
+    Given screen reader mode is enabled
+    When the settings modal opens
+    Then the modal title should be announced
+
   # ==================== Screen Reader Support ====================
 
   Scenario: State changes are announced

@@ -22,6 +22,17 @@ Given('a modal is open for accessibility testing', async function (this: NodokaW
   await settings.open();
 });
 
+// Note: "the settings modal is open" is defined in ui-components.steps.ts
+
+Given('the settings button is focused', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const settingsButton = this.page.locator('button[aria-label*="settings"], button:has-text("Settings")').first();
+  await settingsButton.focus();
+  await this.page.waitForTimeout(200);
+});
+
 Given('high contrast mode is enabled', async function (this: NodokaWorld) {
   await this.page.evaluate(() => {
     document.body.classList.add('high-contrast');
@@ -87,6 +98,44 @@ When('I check for focus visibility', async function (this: NodokaWorld) {
   await this.page.keyboard.press('Tab');
   await this.page.waitForTimeout(100);
 });
+
+When('I press Tab {int} times', async function (this: NodokaWorld, times: number) {
+  for (let i = 0; i < times; i++) {
+    await this.page.keyboard.press('Tab');
+    await this.page.waitForTimeout(100);
+  }
+});
+
+When('I press Shift+Tab {int} times', async function (this: NodokaWorld, times: number) {
+  for (let i = 0; i < times; i++) {
+    await this.page.keyboard.press('Shift+Tab');
+    await this.page.waitForTimeout(100);
+  }
+});
+
+When('I press Enter to open settings', async function (this: NodokaWorld) {
+  await this.page.keyboard.press('Enter');
+  await this.page.waitForTimeout(300);
+});
+
+When('I press Escape to close', async function (this: NodokaWorld) {
+  await this.page.keyboard.press('Escape');
+  await this.page.waitForTimeout(300);
+});
+
+When('I open the settings modal', async function (this: NodokaWorld) {
+  const settings = new SettingsPage(this.page);
+  await settings.open();
+  await this.page.waitForTimeout(200);
+});
+
+When('the settings modal opens', async function (this: NodokaWorld) {
+  const modal = this.page.locator('.modal-box, [role="dialog"]');
+  await modal.waitFor({ state: 'visible', timeout: 5000 });
+  await this.page.waitForTimeout(200);
+});
+
+// Note: "I tab through all focusable elements" is defined above
 
 // ==================== Then Steps ====================
 
@@ -172,6 +221,8 @@ Then('focus should be trapped within the modal', async function (this: NodokaWor
     }
   }
 });
+
+// Note: "focus should remain within the modal" for simpler checks is in ui-components.steps.ts
 
 Then('a screen reader announcement should be made for state changes', async function (this: NodokaWorld) {
   const liveRegion = this.page.locator('[aria-live="polite"], [aria-live="assertive"], [role="status"]');
@@ -308,4 +359,44 @@ Then('touch targets should be at least 44x44 pixels', async function (this: Nodo
       expect(isLargeEnough).toBe(true);
     }
   }
+});
+
+// Note: "focus should remain within the modal" is defined in ui-components.steps.ts
+
+Then('focus should cycle through all focusable elements', async function (this: NodokaWorld) {
+  // Verify we visited multiple elements
+  const uniqueElements = new Set(this.focusableElements);
+  expect(uniqueElements.size).toBeGreaterThan(1);
+});
+
+Then('focus should move backward through elements', async function (this: NodokaWorld) {
+  const focusedElement = this.page.locator(':focus');
+  await expect(focusedElement).toBeVisible();
+});
+
+Then('focus should return to the settings button', async function (this: NodokaWorld) {
+  const settingsButton = this.page.locator('button[aria-label*="settings"], button:has-text("Settings")').first();
+  const isFocused = await settingsButton.evaluate(el => el === document.activeElement);
+  expect(isFocused).toBe(true);
+});
+
+Then('the first focusable element should have focus', async function (this: NodokaWorld) {
+  const modal = this.page.locator('.modal-box, [role="dialog"]').first();
+  const firstFocusable = modal.locator('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])').first();
+
+  const focusedElement = this.page.locator(':focus');
+  const isFocused = await focusedElement.evaluate((el, firstEl) => {
+    return el === firstEl || el.contains(firstEl) || firstEl.contains(el);
+  }, await firstFocusable.elementHandle()!);
+
+  expect(isFocused).toBe(true);
+});
+
+Then('the modal title should be announced', async function (this: NodokaWorld) {
+  // Check for aria-labelledby or aria-label on modal
+  const modal = this.page.locator('.modal-box, [role="dialog"]').first();
+  const labelledBy = await modal.getAttribute('aria-labelledby');
+  const ariaLabel = await modal.getAttribute('aria-label');
+
+  expect(labelledBy || ariaLabel).toBeTruthy();
 });

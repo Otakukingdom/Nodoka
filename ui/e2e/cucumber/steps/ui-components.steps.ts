@@ -44,6 +44,21 @@ Given('the audiobook has {int} files', async function (this: NodokaWorld, count:
   await library.selectAudiobook(0);
 });
 
+// Note: "the application has an audiobook with {int} files" is defined in playback-controls.steps.ts
+
+Given('the application has an audiobook with files', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&audiobookCount=1&fileCount=3');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+});
+
+Given('the audiobook is selected', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+});
+
 Given('a file with {int}% progress', async function (this: NodokaWorld, progress: number) {
   const library = new LibraryPage(this.page);
   await library.selectAudiobook(0);
@@ -117,6 +132,34 @@ Given('a file is playing with volume', async function (this: NodokaWorld) {
   const player = new PlayerPage(this.page);
   await player.setVolume(75);
   await player.play();
+});
+
+Given('a file is playing with volume {int}', async function (this: NodokaWorld, volume: number) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.setVolume(volume);
+  await player.play();
+});
+
+Given('a file is loaded with volume {int}', async function (this: NodokaWorld, volume: number) {
+  const library = new LibraryPage(this.page);
+  await library.selectAudiobook(0);
+  await library.selectFile(0);
+
+  const player = new PlayerPage(this.page);
+  await player.setVolume(volume);
+});
+
+Given('the audio is muted', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const isMuted = await player.isMuted();
+  if (!isMuted) {
+    await player.toggleMute();
+    await this.page.waitForTimeout(200);
+  }
 });
 
 Given('a file is playing at {int}% progress', async function (this: NodokaWorld, progress: number) {
@@ -350,6 +393,32 @@ When('I view the files list', async function (this: NodokaWorld) {
   await library.selectAudiobook(0);
 });
 
+When('I click on the second file in the list', async function (this: NodokaWorld) {
+  const fileItems = this.page.locator('.file-list-item, [data-testid="file-item"], .file-item');
+  await fileItems.nth(1).click();
+  await this.page.waitForTimeout(200);
+});
+
+When('I click on the first file', async function (this: NodokaWorld) {
+  const fileItems = this.page.locator('.file-list-item, [data-testid="file-item"], .file-item');
+  await fileItems.first().click();
+  await this.page.waitForTimeout(200);
+});
+
+When('I double-click on the first file', async function (this: NodokaWorld) {
+  const fileItems = this.page.locator('.file-list-item, [data-testid="file-item"], .file-item');
+  await fileItems.first().dblclick();
+  await this.page.waitForTimeout(300);
+});
+
+When('I scroll the files list to the bottom', async function (this: NodokaWorld) {
+  const filesList = this.page.locator('.files-list, [data-testid="files-list"], .file-list').first();
+  await filesList.evaluate(el => {
+    el.scrollTop = el.scrollHeight;
+  });
+  await this.page.waitForTimeout(300);
+});
+
 // ==================== When Steps - Bookmarks Section ====================
 
 When('I view the bookmarks section', async function (this: NodokaWorld) {
@@ -393,6 +462,41 @@ When('I click the stop button', async function (this: NodokaWorld) {
 When('I drag the volume slider to {int}%', async function (this: NodokaWorld, percent: number) {
   const player = new PlayerPage(this.page);
   await player.setVolume(percent * 2); // Volume is 0-200
+});
+
+When('I click on the volume track at {int}%', async function (this: NodokaWorld, percent: number) {
+  const volumeSlider = this.page.locator('.volume-slider, input[type="range"][aria-label*="volume"], [data-testid="volume-slider"]').first();
+  const box = await volumeSlider.boundingBox();
+
+  if (box) {
+    const targetX = box.x + (box.width * percent / 100);
+    await this.page.mouse.click(targetX, box.y + box.height / 2);
+    await this.page.waitForTimeout(200);
+  } else {
+    // Fallback: use PlayerPage method
+    const player = new PlayerPage(this.page);
+    await player.setVolume(percent);
+  }
+});
+
+When('I hover over the volume slider', async function (this: NodokaWorld) {
+  const volumeSlider = this.page.locator('.volume-slider, input[type="range"][aria-label*="volume"], [data-testid="volume-slider"]').first();
+  await volumeSlider.hover();
+  await this.page.waitForTimeout(200);
+});
+
+When('I drag the volume slider thumb to {int}%', async function (this: NodokaWorld, percent: number) {
+  const volumeSlider = this.page.locator('.volume-slider input[type="range"], input[type="range"][aria-label*="volume"]').first();
+  const box = await volumeSlider.boundingBox();
+
+  if (box) {
+    const targetX = box.x + (box.width * percent / 100);
+    await volumeSlider.hover();
+    await this.page.mouse.down();
+    await this.page.mouse.move(targetX, box.y + box.height / 2);
+    await this.page.mouse.up();
+    await this.page.waitForTimeout(200);
+  }
 });
 
 When('I click the mute button', async function (this: NodokaWorld) {
@@ -754,6 +858,58 @@ Then('the duration should display as {string}', async function (this: NodokaWorl
   expect(text).toContain(duration);
 });
 
+Then('the second file should be selected', async function (this: NodokaWorld) {
+  const fileItems = this.page.locator('.file-list-item, [data-testid="file-item"], .file-item');
+  const secondFile = fileItems.nth(1);
+
+  // Check for selection indicator
+  const isSelected = await secondFile.evaluate(el =>
+    el.classList.contains('selected') ||
+    el.classList.contains('ring-primary') ||
+    el.getAttribute('data-selected') === 'true'
+  );
+
+  expect(isSelected).toBe(true);
+});
+
+Then('the selection should be visually indicated', async function (this: NodokaWorld) {
+  const selectedFile = this.page.locator('.file-list-item.selected, .file-list-item.ring-primary, [data-selected="true"]');
+  await expect(selectedFile.first()).toBeVisible();
+});
+
+Then('the file should start playing', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  await this.page.waitForTimeout(500);
+  const isPlaying = await player.isPlaying();
+  expect(isPlaying).toBe(true);
+});
+
+Then('the file should show a progress bar at {int}%', async function (this: NodokaWorld, percent: number) {
+  const progressBar = this.page.locator('.file-progress-bar, .progress-bar, [data-testid="file-progress"]').first();
+  await expect(progressBar).toBeVisible();
+
+  // Check progress bar width or aria-valuenow
+  const ariaValue = await progressBar.getAttribute('aria-valuenow');
+  if (ariaValue) {
+    expect(parseInt(ariaValue)).toBeGreaterThanOrEqual(percent - 10);
+  }
+});
+
+Then('the playing file should show a playing indicator', async function (this: NodokaWorld) {
+  const playingIndicator = this.page.locator('.file-playing, .playing-indicator, [data-testid="playing-indicator"], .file-item.playing');
+  await expect(playingIndicator.first()).toBeVisible();
+});
+
+Then('the last files should be visible', async function (this: NodokaWorld) {
+  const fileItems = this.page.locator('.file-list-item, [data-testid="file-item"], .file-item');
+  const count = await fileItems.count();
+  expect(count).toBeGreaterThan(0);
+
+  // Verify last file is visible
+  const lastFile = fileItems.last();
+  await expect(lastFile).toBeInViewport();
+});
+
 // ==================== Then Steps - Bookmarks Section ====================
 
 Then('the label {string} should be visible', async function (this: NodokaWorld, label: string) {
@@ -817,6 +973,40 @@ Then('the audio should be muted', async function (this: NodokaWorld) {
   const player = new PlayerPage(this.page);
   const isMuted = await player.isMuted();
   expect(isMuted).toBe(true);
+});
+
+Then('the audio should be unmuted', async function (this: NodokaWorld) {
+  const player = new PlayerPage(this.page);
+  const isMuted = await player.isMuted();
+  expect(isMuted).toBe(false);
+});
+
+// Note: "the volume should be {int}" is defined in settings.steps.ts
+
+Then('a tooltip with current volume should be visible', async function (this: NodokaWorld) {
+  const tooltip = this.page.locator('.tooltip, [role="tooltip"], [data-testid="volume-tooltip"]');
+  const isVisible = await tooltip.isVisible().catch(() => false);
+
+  // Some implementations use native title attribute instead
+  if (!isVisible) {
+    const volumeSlider = this.page.locator('.volume-slider input[type="range"]').first();
+    const title = await volumeSlider.getAttribute('title');
+    expect(title).toBeTruthy();
+  } else {
+    expect(isVisible).toBe(true);
+  }
+});
+
+Then('the volume should be at maximum {int}', async function (this: NodokaWorld, maxVolume: number) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeLessThanOrEqual(maxVolume);
+});
+
+Then('the volume should be at minimum {int}', async function (this: NodokaWorld, minVolume: number) {
+  const player = new PlayerPage(this.page);
+  const volume = await player.getVolume();
+  expect(volume).toBeGreaterThanOrEqual(minVolume);
 });
 
 Then('the speed should cycle to the next value', async function (this: NodokaWorld) {

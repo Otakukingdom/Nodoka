@@ -78,6 +78,37 @@ Feature: UI Component Behavior
     When I view the files list
     Then the duration should display as "1:01:01"
 
+  Scenario: Click file to select it
+    Given the application has an audiobook with 3 files
+    And the audiobook is selected
+    When I click on the second file in the list
+    Then the second file should be selected
+    And the selection should be visually indicated
+
+  Scenario: Double-click file to play
+    Given the application has an audiobook with files
+    And the audiobook is selected
+    When I double-click on the first file
+    Then the file should start playing
+
+  Scenario: File shows progress bar when partially played
+    Given the application has an audiobook
+    And a file with 50% progress
+    When I view the files list
+    Then the file should show a progress bar at 50%
+
+  Scenario: File shows playing indicator when active
+    Given the application has an audiobook
+    And a file is playing
+    When I view the files list
+    Then the playing file should show a playing indicator
+
+  Scenario: Scroll to view more files
+    Given the application has an audiobook with 20 files
+    And the audiobook is selected
+    When I scroll the files list to the bottom
+    Then the last files should be visible
+
   # ==================== Bookmarks Section ====================
 
   Scenario: Bookmarks can be displayed for selected audiobook
@@ -150,6 +181,44 @@ Feature: UI Component Behavior
     And a file is playing with volume
     When I click the mute button
     Then the audio should be muted
+
+  Scenario: Unmute restores previous volume
+    Given the application has an audiobook
+    And a file is playing with volume 75
+    And the audio is muted
+    When I click the mute button
+    Then the audio should be unmuted
+    And the volume should be 75
+
+  Scenario: Click on volume track to set volume
+    Given the application has an audiobook
+    And a file is loaded
+    When I click on the volume track at 75%
+    Then the volume should be set to 75
+
+  Scenario: Volume slider shows tooltip on hover
+    Given the application has an audiobook
+    And a file is loaded
+    When I hover over the volume slider
+    Then a tooltip with current volume should be visible
+
+  Scenario: Volume slider thumb can be dragged
+    Given the application has an audiobook
+    And a file is loaded with volume 50
+    When I drag the volume slider thumb to 80%
+    Then the volume should be set to 80
+
+  Scenario: Volume cannot exceed 100
+    Given the application has an audiobook
+    And a file is loaded with volume 95
+    When I drag the volume slider thumb to 120%
+    Then the volume should be at maximum 100
+
+  Scenario: Volume cannot go below 0
+    Given the application has an audiobook
+    And a file is loaded with volume 10
+    When I drag the volume slider thumb to -20%
+    Then the volume should be at minimum 0
 
   Scenario: Speed button cycles through speeds
     Given the application has an audiobook
@@ -348,6 +417,39 @@ Feature: UI Component Behavior
     Given I have resized the panels to 60/40
     When I restart the application
     Then the panels should remain at 60/40
+
+  Scenario: Double-click divider resets to default
+    Given the application is running
+    And the panel ratio has been changed
+    When I double-click the panel divider
+    Then the panel ratio should reset to default
+
+  Scenario: Panel divider shows hover effect
+    Given the application is running
+    When I hover over the panel divider
+    Then the divider should show hover styling
+
+  Scenario: Cursor changes when hovering divider
+    Given the application is running
+    When I hover over the panel divider
+    Then the cursor should be col-resize
+
+  Scenario: Panel has minimum width constraint
+    Given the application is running
+    When I drag the panel divider to minimum width
+    Then the library panel should have minimum width
+
+  Scenario: Panel has maximum width constraint
+    Given the application is running
+    When I drag the panel divider to maximum width
+    Then the library panel should have maximum width
+
+  Scenario: Drag panel divider to specific percentage
+    Given the application is running
+    And an audiobook is selected
+    When I drag the panel divider to position 60%
+    Then the library panel should be 60% width
+    And the details panel should be 40% width
 
   # ==================== Focus Mode ====================
 
