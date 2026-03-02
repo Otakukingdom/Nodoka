@@ -245,4 +245,82 @@ export class LibraryPage extends BasePage {
   async isBulkActionBarVisible(): Promise<boolean> {
     return await this.getBulkActionBar().isVisible();
   }
+
+  /**
+   * Get visible audiobook count (after search filter)
+   */
+  async getVisibleAudiobookCount(): Promise<number> {
+    return await this.audiobookCards.count();
+  }
+
+  /**
+   * Check if search input has value
+   */
+  async hasSearchValue(): Promise<boolean> {
+    const value = await this.searchInput.inputValue();
+    return value.length > 0;
+  }
+
+  /**
+   * Get current sort value
+   */
+  async getSortValue(): Promise<string> {
+    return await this.sortSelect.inputValue();
+  }
+
+  /**
+   * Select all audiobooks via Ctrl+A
+   */
+  async selectAllAudiobooks(): Promise<void> {
+    await this.page.keyboard.press('Control+a');
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * Get audiobook title by index
+   */
+  async getAudiobookTitle(index: number): Promise<string> {
+    const card = this.audiobookCards.nth(index);
+    const titleElement = card.locator('.card-title');
+    if (await titleElement.count() > 0) {
+      return await titleElement.textContent() ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Check if audiobook exists with title
+   */
+  async hasAudiobookWithTitle(title: string): Promise<boolean> {
+    const card = this.audiobookCards.filter({ hasText: title });
+    return await card.count() > 0;
+  }
+
+  /**
+   * Get file name by index
+   */
+  async getFileName(index: number): Promise<string> {
+    const file = this.fileCards.nth(index);
+    const nameElement = file.locator('.file-name, .card-title');
+    if (await nameElement.count() > 0) {
+      return await nameElement.textContent() ?? '';
+    }
+    return '';
+  }
+
+  /**
+   * Wait for library to load
+   */
+  async waitForLibraryToLoad(): Promise<void> {
+    await this.page.waitForSelector('#audiobook-list', { timeout: 10000 });
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Double-click audiobook to play
+   */
+  async doubleClickAudiobook(index: number): Promise<void> {
+    await this.audiobookCards.nth(index).dblclick();
+    await this.page.waitForTimeout(300);
+  }
 }

@@ -1040,9 +1040,6 @@ Then('the right panel should be narrower', async function (this: NodokaWorld) {
   // Panel resized
 });
 
-Then('the panels should remain at {int}\\/{int}', async function (this: NodokaWorld, left: number, right: number) {
-  // Panel ratio persisted
-});
 
 // ==================== Then Steps - Focus Mode ====================
 
@@ -1288,4 +1285,23 @@ Then('all audiobooks should be selected', async function (this: NodokaWorld) {
   const selectedCards = this.page.locator('.card.ring-primary, .card.selected');
   const selectedCount = await selectedCards.count();
   expect(selectedCount).toBe(totalCount);
+});
+
+// ==================== Then Steps - Panel Persistence ====================
+
+Then('the panels should remain at {int}\\/{int}', async function (this: NodokaWorld, left: number, right: number) {
+  const leftPanel = this.page.locator('.library-panel');
+  const leftBox = await leftPanel.boundingBox();
+  if (leftBox) {
+    const leftWidth = leftBox.width;
+    const rightPanel = this.page.locator('.details-panel');
+    const rightBox = await rightPanel.boundingBox();
+    if (rightBox) {
+      const rightWidth = rightBox.width;
+      const totalWidth = leftWidth + rightWidth;
+      const actualRatio = Math.round((leftWidth / totalWidth) * 100);
+      expect(actualRatio).toBeGreaterThanOrEqual(left - 2);
+      expect(actualRatio).toBeLessThanOrEqual(right + 2);
+    }
+  }
 });

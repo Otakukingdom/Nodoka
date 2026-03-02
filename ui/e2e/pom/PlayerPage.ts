@@ -281,4 +281,64 @@ export class PlayerPage extends BasePage {
     const match = ariaLabel?.match(/(\d+)/);
     return match ? parseInt(match[1]) : 15;
   }
+
+  /**
+   * Seek to end of track (near the end)
+   */
+  async seekToEnd(): Promise<void> {
+    const duration = await this.getDuration();
+    if (duration > 0) {
+      await this.seek(duration - 100);
+      await this.page.waitForTimeout(200);
+    }
+  }
+
+  /**
+   * Get current playback state
+   */
+  async getPlaybackState(): Promise<'playing' | 'paused' | 'stopped'> {
+    if (await this.pauseButton.isVisible()) {
+      return 'playing';
+    }
+    if (await this.playButton.first().isVisible()) {
+      const position = await this.getSeekPosition();
+      return position > 0 ? 'paused' : 'stopped';
+    }
+    return 'stopped';
+  }
+
+  /**
+   * Press keyboard shortcut for seek forward
+   */
+  async pressSeekForwardShortcut(): Promise<void> {
+    await this.page.keyboard.press('ArrowRight');
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Press keyboard shortcut for seek backward
+   */
+  async pressSeekBackwardShortcut(): Promise<void> {
+    await this.page.keyboard.press('ArrowLeft');
+    await this.page.waitForTimeout(200);
+  }
+
+  /**
+   * Get current time in milliseconds
+   */
+  async getCurrentTimeMs(): Promise<number> {
+    return await this.getSeekPosition();
+  }
+
+  /**
+   * Set playback rate by cycling through options
+   */
+  async setPlaybackRate(rate: number): Promise<void> {
+    const targetText = `${rate}x`;
+    for (let i = 0; i < 10; i++) {
+      const currentSpeed = await this.getSpeed();
+      if (currentSpeed === targetText) return;
+      await this.cycleSpeed();
+    }
+  }
 }
