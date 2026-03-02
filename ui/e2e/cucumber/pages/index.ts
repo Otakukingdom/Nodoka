@@ -13,3 +13,5 @@ export { ModalPage } from '../../pom/ModalPage.js';
 // Export Cucumber-specific pages
 export { DetailsPage } from './DetailsPage.js';
 export { SleepTimerPage } from './SleepTimerPage.js';
+export { ArchivePage } from './ArchivePage.js';
+export { NotificationPage } from './NotificationPage.js';

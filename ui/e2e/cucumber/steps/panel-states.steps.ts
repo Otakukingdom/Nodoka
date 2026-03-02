@@ -77,10 +77,7 @@ Given('a file permission error occurs', async function (this: NodokaWorld) {
 
 // ==================== When Steps - Panel Resize ====================
 
-When('a divider between panels should be visible', async function (this: NodokaWorld) {
-  const divider = this.page.locator('.panel-divider, .resize-handle, [data-testid="panel-resizer"], .splitter');
-  await expect(divider.first()).toBeVisible();
-});
+// Note: "a divider between panels should be visible" as Then is defined below
 
 When('I drag the divider to the right', async function (this: NodokaWorld) {
   const divider = this.page.locator('.panel-divider, .resize-handle, .splitter').first();
@@ -133,27 +130,8 @@ When('I toggle focus mode', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(300);
 });
 
-When('I enable focus mode', async function (this: NodokaWorld) {
-  const focusModeButton = this.page.locator('button[aria-label*="focus"], button:has-text("Focus")');
-  if (await focusModeButton.count() > 0) {
-    const isPressed = await focusModeButton.first().getAttribute('aria-pressed');
-    if (isPressed !== 'true') {
-      await focusModeButton.first().click();
-    }
-  }
-  await this.page.waitForTimeout(300);
-});
-
-When('I disable focus mode', async function (this: NodokaWorld) {
-  const focusModeButton = this.page.locator('button[aria-label*="focus"], button:has-text("Focus")');
-  if (await focusModeButton.count() > 0) {
-    const isPressed = await focusModeButton.first().getAttribute('aria-pressed');
-    if (isPressed === 'true') {
-      await focusModeButton.first().click();
-    }
-  }
-  await this.page.waitForTimeout(300);
-});
+// Note: "I enable focus mode" is defined in settings.steps.ts
+// Note: "I disable focus mode" is defined in settings.steps.ts
 
 // ==================== When Steps - Loading States ====================
 

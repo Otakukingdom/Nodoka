@@ -26,6 +26,10 @@ export class NodokaWorld extends World {
   public lastPosition: number = 0;
   public lastDuration: number = 0;
 
+  // Cover cache testing state
+  public coversCached: boolean = false;
+  public coverFirstViewTime: number = 0;
+
   // Accessibility testing state
   public accessibilityResults: AxeResults | null = null;
   public focusableElements: string[] = [];

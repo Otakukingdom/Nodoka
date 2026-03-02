@@ -137,10 +137,7 @@ Given('the application has audiobooks by {string} and {string}', async function 
   await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
-Given('I search for {string}', async function (this: NodokaWorld, query: string) {
-  const library = new LibraryPage(this.page);
-  await library.search(query);
-});
+// Note: "I search for {string}" is defined in search-filter.steps.ts
 
 Then('only audiobooks by Jane should be displayed', async function (this: NodokaWorld) {
   const library = new LibraryPage(this.page);
@@ -150,10 +147,7 @@ Then('only audiobooks by Jane should be displayed', async function (this: Nodoka
   }
 });
 
-Given('the application has audiobooks with different last listened dates', async function (this: NodokaWorld) {
-  await this.page.goto('/?test=true&hasLastListened=true');
-  await this.page.waitForSelector('.navbar', { timeout: 10000 });
-});
+// Note: "the application has audiobooks with different last listened dates" is defined in search-filter.steps.ts
 
 // ==================== Given Steps - Settings Modal ====================
 
@@ -212,49 +206,26 @@ Given('I have resized the panels to {int}\\/{int}', async function (this: Nodoka
   }
 });
 
-Given('I restart the application', async function (this: NodokaWorld) {
-  await this.page.reload();
-  await this.page.waitForSelector('.navbar', { timeout: 10000 });
-});
+// Note: "I restart the application" is defined in panel-states.steps.ts
 
 // ==================== Given Steps - Focus Mode ====================
 
-Given('focus mode is enabled', async function (this: NodokaWorld) {
-  await this.page.evaluate(() => {
-    document.body.classList.add('focus-mode');
-  });
-});
+// Note: "focus mode is enabled" is defined in panel-states.steps.ts
 
 // ==================== Given Steps - Loading States ====================
 
-Given('the application is loading audiobooks', async function (this: NodokaWorld) {
-  await this.page.goto('/?test=true&loading=true');
-  await this.page.waitForSelector('.navbar', { timeout: 10000 });
-});
+// Note: "the application is loading audiobooks" is defined in panel-states.steps.ts
 
 Given('the application is loading', async function (this: NodokaWorld) {
   await this.page.goto('/?test=true&loading=true');
   await this.page.waitForSelector('.navbar', { timeout: 10000 });
 });
 
-Given('loading completes', async function (this: NodokaWorld) {
-  // Wait for loading to complete by checking for loading spinner to disappear
-  const loadingSpinner = this.page.locator('.loading-spinner, .spinner, [aria-busy="true"]');
-  await loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
-
-  // Wait for content to appear
-  const content = this.page.locator('.card, .audiobook-card, #audiobook-list');
-  await content.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
-
-  await this.page.waitForTimeout(500);
-});
+// Note: "loading completes" is defined in panel-states.steps.ts
 
 // ==================== Given Steps - Error States ====================
 
-Given('loading audiobooks fails', async function (this: NodokaWorld) {
-  await this.page.goto('/?test=true&error=true');
-  await this.page.waitForSelector('.navbar', { timeout: 10000 });
-});
+// Note: "loading audiobooks fails" is defined in panel-states.steps.ts
 
 Given('a retry button is visible', async function (this: NodokaWorld) {
   const retryButton = this.page.locator('button:has-text("Retry")');
@@ -360,10 +331,7 @@ When('I view the audiobook', async function (this: NodokaWorld) {
 
 // ==================== When Steps - Files List ====================
 
-When('I view the audiobook details', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-  await library.selectAudiobook(0);
-});
+// Note: "I view the audiobook details" is defined in archive-handling.steps.ts
 
 When('I view the files list', async function (this: NodokaWorld) {
   const library = new LibraryPage(this.page);
@@ -465,15 +433,8 @@ When('I clear the search', async function (this: NodokaWorld) {
   await library.clearSearch();
 });
 
-When('I sort by title ascending', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-  await library.sortBy('Title');
-});
-
-When('I sort by last listened', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-  await library.sortBy('RecentlyPlayed');
-});
+// Note: "I sort by title ascending" is defined in search-filter.steps.ts
+// Note: "I sort by last listened" is defined in search-filter.steps.ts
 
 // ==================== When Steps - Settings Modal ====================
 
@@ -570,15 +531,7 @@ When('I view the layout', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(200);
 });
 
-When('I drag the divider to the right', async function (this: NodokaWorld) {
-  const divider = this.page.locator('.panel-divider');
-  if (await divider.isVisible()) {
-    await divider.hover();
-    await this.page.mouse.down();
-    await this.page.mouse.move(500, 0);
-    await this.page.mouse.up();
-  }
-});
+// Note: "I drag the divider to the right" is defined in panel-states.steps.ts
 
 // ==================== When Steps - Focus Mode ====================
 
@@ -597,10 +550,7 @@ When('I view the error state', async function (this: NodokaWorld) {
   await expect(errorMessage).toBeVisible();
 });
 
-When('I click retry', async function (this: NodokaWorld) {
-  const retryButton = this.page.locator('button:has-text("Retry")');
-  await retryButton.click();
-});
+// Note: "I click retry" is defined in panel-states.steps.ts
 
 // ==================== When Steps - Keyboard Shortcuts ====================
 
@@ -903,34 +853,16 @@ Then('the application logo should be visible', async function (this: NodokaWorld
 
 // ==================== Then Steps - Search and Filter ====================
 
-Then('only {string} should be displayed', async function (this: NodokaWorld, title: string) {
-  const library = new LibraryPage(this.page);
-  const titles = await library.getAudiobookTitles();
-  expect(titles.some(t => t.includes(title))).toBe(true);
-});
+// Note: "only {string} should be displayed" is defined in search-filter.steps.ts
 
 Then('only audiobooks by {string} should be displayed', async function (this: NodokaWorld, author: string) {
   const authorElement = this.page.locator(`.card:has-text("${author}")`);
   await expect(authorElement).toBeVisible();
 });
 
-Then('all {int} audiobooks should be displayed', async function (this: NodokaWorld, count: number) {
-  const library = new LibraryPage(this.page);
-  const actualCount = await library.getAudiobookCount();
-  expect(actualCount).toBe(count);
-});
-
-Then('{string} should be listed before {string}', async function (this: NodokaWorld, first: string, second: string) {
-  const library = new LibraryPage(this.page);
-  const titles = await library.getAudiobookTitles();
-  const firstIndex = titles.findIndex(t => t.includes(first));
-  const secondIndex = titles.findIndex(t => t.includes(second));
-  expect(firstIndex).toBeLessThan(secondIndex);
-});
-
-Then('the most recent should be first', async function (this: NodokaWorld) {
-  // Verify order
-});
+// Note: "all {int} audiobooks should be displayed" is defined in search-filter.steps.ts
+// Note: "{string} should be listed before {string}" is defined in search-filter.steps.ts
+// Note: "the most recent should be first" is defined in search-filter.steps.ts
 
 // ==================== Then Steps - Settings Modal ====================
 
@@ -1027,59 +959,26 @@ Then('a loading indicator should appear', async function (this: NodokaWorld) {
 
 // ==================== Then Steps - Panel Resize ====================
 
-Then('a divider between panels should be visible', async function (this: NodokaWorld) {
-  const divider = this.page.locator('.panel-divider');
-  await expect(divider).toBeVisible();
-});
-
-Then('the left panel should be wider', async function (this: NodokaWorld) {
-  // Panel resized
-});
-
-Then('the right panel should be narrower', async function (this: NodokaWorld) {
-  // Panel resized
-});
+// Note: "a divider between panels should be visible" is defined in panel-states.steps.ts
+// Note: "the left panel should be wider" is defined in panel-states.steps.ts
+// Note: "the right panel should be narrower" is defined in panel-states.steps.ts
 
 
 // ==================== Then Steps - Focus Mode ====================
 
-Then('non-essential elements should be hidden', async function (this: NodokaWorld) {
-  const body = this.page.locator('body');
-  await expect(body).toHaveClass(/focus-mode/);
-});
+// Note: "non-essential elements should be hidden" is defined in panel-states.steps.ts
 
 // ==================== Then Steps - Loading States ====================
 
-Then('a loading spinner should be visible', async function (this: NodokaWorld) {
-  const spinner = this.page.locator('.loading-spinner');
-  await expect(spinner).toBeVisible();
-});
-
-Then('skeleton placeholders should be displayed', async function (this: NodokaWorld) {
-  const skeleton = this.page.locator('.skeleton');
-  await expect(skeleton).toBeVisible();
-});
-
-Then('the actual content should be displayed', async function (this: NodokaWorld) {
-  const content = this.page.locator('.card');
-  await expect(content.first()).toBeVisible();
-});
+// Note: "a loading spinner should be visible" is defined in panel-states.steps.ts
+// Note: "skeleton placeholders should be displayed" is defined in panel-states.steps.ts
+// Note: "the actual content should be displayed" is defined in panel-states.steps.ts
 
 // ==================== Then Steps - Error States ====================
 
-Then('an error message should be displayed', async function (this: NodokaWorld) {
-  const error = this.page.locator('.error-message');
-  await expect(error).toBeVisible();
-});
-
-Then('a retry button should be available', async function (this: NodokaWorld) {
-  const retry = this.page.locator('button:has-text("Retry")');
-  await expect(retry).toBeVisible();
-});
-
-Then('the operation should be retried', async function (this: NodokaWorld) {
-  // Retry happened
-});
+// Note: "an error message should be displayed" is defined in panel-states.steps.ts
+// Note: "a retry button should be available" is defined in panel-states.steps.ts
+// Note: "the operation should be retried" is defined in panel-states.steps.ts
 
 // ==================== Then Steps - Keyboard Shortcuts ====================
 
@@ -1194,60 +1093,14 @@ Then('the notification should disappear', async function (this: NodokaWorld) {
 
 // ==================== When Steps - Delete Confirmation ====================
 
-When('I click delete audiobook', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-
-  // Right-click on audiobook to open context menu
-  await library.audiobookCards.first().click({ button: 'right' });
-  await this.page.waitForTimeout(200);
-
-  // Click delete option
-  const deleteOption = this.page.locator('text=Delete');
-  if (await deleteOption.isVisible()) {
-    await deleteOption.click();
-  }
-});
-
-When('I cancel the deletion', async function (this: NodokaWorld) {
-  const cancelButton = this.page.locator('button:has-text("Cancel")');
-  if (await cancelButton.isVisible()) {
-    await cancelButton.click();
-  }
-  await this.page.waitForTimeout(300);
-});
-
-When('I confirm the deletion', async function (this: NodokaWorld) {
-  const confirmButton = this.page.locator('button:has-text("Confirm"), button:has-text("Delete")');
-  if (await confirmButton.isVisible()) {
-    await confirmButton.click();
-  }
-  await this.page.waitForTimeout(500);
-});
+// Note: "I click delete audiobook" is defined in delete-bulk.steps.ts
+// Note: "I cancel the deletion" is defined in delete-bulk.steps.ts
+// Note: "I confirm the deletion" is defined in delete-bulk.steps.ts
 
 // ==================== When Steps - Bulk Selection ====================
 
-When('I select multiple audiobooks with Ctrl+Click', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-  const cards = library.audiobookCards;
-
-  // Select first card normally
-  await cards.first().click();
-  await this.page.waitForTimeout(200);
-
-  // Select second and third cards with Ctrl
-  await cards.nth(1).click({ modifiers: ['Control'] });
-  await this.page.waitForTimeout(200);
-  await cards.nth(2).click({ modifiers: ['Control'] });
-  await this.page.waitForTimeout(300);
-});
-
-When('I click bulk delete', async function (this: NodokaWorld) {
-  const bulkDeleteButton = this.page.locator('button:has-text("Delete Selected")');
-  if (await bulkDeleteButton.isVisible()) {
-    await bulkDeleteButton.click();
-  }
-  await this.page.waitForTimeout(300);
-});
+// Note: "I select multiple audiobooks with Ctrl+Click" is defined in delete-bulk.steps.ts
+// Note: "I click bulk delete" is defined in delete-bulk.steps.ts
 
 When('I press Ctrl+A', async function (this: NodokaWorld) {
   await this.page.keyboard.press('Control+a');
@@ -1256,10 +1109,7 @@ When('I press Ctrl+A', async function (this: NodokaWorld) {
 
 // ==================== Then Steps - Delete Confirmation ====================
 
-Then('a confirmation dialog should appear', async function (this: NodokaWorld) {
-  const dialog = this.page.locator('.modal-box, .confirmation-dialog, [role="dialog"]');
-  await expect(dialog).toBeVisible();
-});
+// Note: "a confirmation dialog should appear" is defined in delete-bulk.steps.ts
 
 Then('the selected count should be shown', async function (this: NodokaWorld) {
   const selectedCount = this.page.locator('text=/\\d+ selected/');
@@ -1268,24 +1118,9 @@ Then('the selected count should be shown', async function (this: NodokaWorld) {
 
 // ==================== Then Steps - Bulk Selection ====================
 
-Then('all selected audiobooks should be highlighted', async function (this: NodokaWorld) {
-  const selectedCards = this.page.locator('.card.ring-primary, .card.selected');
-  const count = await selectedCards.count();
-  expect(count).toBeGreaterThanOrEqual(2);
-});
-
-Then('the bulk action bar should appear', async function (this: NodokaWorld) {
-  const bulkActionBar = this.page.locator('.bulk-action-bar, .selection-bar');
-  await expect(bulkActionBar).toBeVisible();
-});
-
-Then('all audiobooks should be selected', async function (this: NodokaWorld) {
-  const library = new LibraryPage(this.page);
-  const totalCount = await library.getAudiobookCount();
-  const selectedCards = this.page.locator('.card.ring-primary, .card.selected');
-  const selectedCount = await selectedCards.count();
-  expect(selectedCount).toBe(totalCount);
-});
+// Note: "all selected audiobooks should be highlighted" is defined in delete-bulk.steps.ts
+// Note: "the bulk action bar should appear" is defined in delete-bulk.steps.ts
+// Note: "all audiobooks should be selected" is defined in delete-bulk.steps.ts
 
 // ==================== Then Steps - Panel Persistence ====================
 

@@ -179,6 +179,14 @@ When('I view the audiobook in the library', async function (this: NodokaWorld) {
   await this.page.waitForTimeout(300);
 });
 
+When('I view the audiobook card', async function (this: NodokaWorld) {
+  const library = new LibraryPage(this.page);
+  // Just view the card without selecting - scroll to make visible
+  const card = library.audiobookCards.first();
+  await card.scrollIntoViewIfNeeded();
+  await this.page.waitForTimeout(300);
+});
+
 When('I view the audiobook details', async function (this: NodokaWorld) {
   const library = new LibraryPage(this.page);
   await library.selectAudiobook(0);
