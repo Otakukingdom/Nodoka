@@ -1,6 +1,9 @@
 [build]
 rustflags = ["-D", "warnings"]
 
+[alias]
+xtask = "run -p xtask --"
+
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "link-args=-Wl,-rpath,@executable_path/../Frameworks,-rpath,/Applications/VLC.app/Contents/MacOS/lib"]
 

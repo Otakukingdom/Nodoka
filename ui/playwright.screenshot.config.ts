@@ -36,46 +36,12 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
   },
   projects: [
-    // Light theme screenshots
+    // Single project - tests handle theme/viewport changes internally via helpers
     {
-      name: 'screenshot-light',
+      name: 'screenshot-chromium',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
-        colorScheme: 'light',
-      },
-    },
-    // Dark theme screenshots
-    {
-      name: 'screenshot-dark',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 720 },
-        colorScheme: 'dark',
-      },
-    },
-    // Responsive: Tablet
-    {
-      name: 'screenshot-tablet',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1024, height: 768 },
-      },
-    },
-    // Responsive: Small desktop
-    {
-      name: 'screenshot-small',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 800, height: 600 },
-      },
-    },
-    // Responsive: Compact
-    {
-      name: 'screenshot-compact',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 640, height: 480 },
       },
     },
   ],

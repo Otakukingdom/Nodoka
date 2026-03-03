@@ -121,7 +121,9 @@ packaging/windows/*.msi
 # Playwright e2e screenshot artifacts
 ui/e2e-screenshots/
 ui/playwright-report/
+ui/playwright-report-screenshots/
 ui/test-results/
+ui/test-results-screenshots/
 ui/e2e/.auth/
 ui/coverage/
 

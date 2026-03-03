@@ -243,7 +243,7 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-base-100">
+      <div className="flex items-center justify-center h-screen bg-base-100" data-testid="app-container">
         <div className="flex flex-col items-center gap-4">
           <div
             className="w-12 h-12 rounded-full gradient-premium animate-spin"
@@ -256,7 +256,7 @@ function App() {
   }
 
   return (
-    <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`}>
+    <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
       <TopBar />
       <main className="flex flex-1 overflow-hidden" role="main" ref={mainRef}>
         <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0">

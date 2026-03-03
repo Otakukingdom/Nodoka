@@ -11,10 +11,11 @@ enum Commands {
 }
 
 fn main() -> anyhow::Result<()> {
-    let command = clap::Command::new("xtask")
-        .about("Nodoka project automation tasks")
-        .subcommand_required(true)
-        .subcommand(Commands::augment_subcommands(clap::Command::new("xtask")));
+    let command = Commands::augment_subcommands(
+        clap::Command::new("xtask")
+            .about("Nodoka project automation tasks")
+            .subcommand_required(true),
+    );
 
     let matches = command.get_matches();
     let (cmd_name, sub_matches) = matches.subcommand().expect("subcommand required");

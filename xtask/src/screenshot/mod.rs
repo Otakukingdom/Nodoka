@@ -63,7 +63,7 @@
 //! # Command Options
 //!
 //! - `--output <dir>`: Custom output directory (default: screenshots)
-//! - `--project <name>`: Playwright project to run (default: chromium)
+//! - `--project <name>`: Playwright project to run (default: screenshot-chromium)
 //! - `--headed`: Run in headed mode for debugging
 //! - `--timeout <secs>`: Custom timeout for Playwright tests
 //! - `--skip-readme`: Skip README index generation
@@ -72,6 +72,15 @@
 //!
 //! - `SCREENSHOT_OUTPUT_DIR`: Override output directory
 //! - `SCREENSHOT_WORKERS`: Number of concurrent browser instances (default: 5)
+//!
+//! # Troubleshooting
+//!
+//! - **Screenshots not generated**: Ensure npm and Playwright are installed.
+//!   Run `npx playwright install chromium` to install the browser.
+//! - **Blank screenshots**: Check that `VITE_PLAYWRIGHT_TEST=true` is set when
+//!   the dev server starts. This exposes the Redux store for state manipulation.
+//! - **Timeout errors**: Increase timeout with `--timeout 900` for slower machines.
+//! - **Port already in use**: Kill any process using port 5173 before running.
 
 mod organizer;
 mod readme;
@@ -89,8 +98,8 @@ pub struct Args {
     #[arg(short, long, default_value = "screenshots")]
     pub output: String,
 
-    /// Playwright project to run (default: chromium)
-    #[arg(short, long, default_value = "chromium")]
+    /// Playwright project to run (default: screenshot-chromium)
+    #[arg(short, long, default_value = "screenshot-chromium")]
     pub project: String,
 
     /// Skip generating README index

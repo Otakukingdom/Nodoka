@@ -7,7 +7,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 // Check if running in test mode or standalone web mode
-const isTestMode = process.env.VITEST === 'true' || process.env.PLAYWRIGHT_TEST === 'true';
+const isTestMode = process.env.VITEST === 'true' || process.env.VITE_PLAYWRIGHT_TEST === 'true';
 const isTauriDev = process.env.TAURI_DEV === 'true';
 
 export default defineConfig(async () => {
@@ -27,7 +27,7 @@ export default defineConfig(async () => {
       }])
     ],
     define: {
-      'import.meta.env.VITE_PLAYWRIGHT_TEST': JSON.stringify(process.env.PLAYWRIGHT_TEST === 'true'),
+      'import.meta.env.VITE_PLAYWRIGHT_TEST': process.env.VITE_PLAYWRIGHT_TEST === 'true' ? '"true"' : 'undefined',
     },
     clearScreen: false,
     server: {
