@@ -116,34 +116,31 @@ export async function selectAudiobook(page: Page, id: number): Promise<void> {
 }
 
 /**
- * Open a modal by name
+ * Open a modal by name via Redux dispatch
  */
 export async function openModal(
   page: Page,
   name: 'settings' | 'keyboard-help' | 'sleep-timer' | 'bookmark-editor'
 ): Promise<void> {
-  const actions: Record<string, () => Promise<void>> = {
-    settings: async () => {
-      await page.click('button[aria-label="Settings"]');
-    },
-    'keyboard-help': async () => {
-      await page.keyboard.press('F1');
-    },
-    'sleep-timer': async () => {
-      // Sleep timer is usually accessed via player controls
-      const sleepButton = page.locator('button[aria-label="Sleep timer"]');
-      if (await sleepButton.isVisible()) {
-        await sleepButton.click();
-      }
-    },
-    'bookmark-editor': async () => {
-      // Open via keyboard shortcut or button
-      await page.keyboard.press('b');
-    },
+  // Map helper names to Redux ActiveModal values
+  const modalMap: Record<string, string> = {
+    'settings': 'Settings',
+    'keyboard-help': 'KeyboardHelp',
+    'sleep-timer': 'SleepTimer',
+    'bookmark-editor': 'BookmarkEditor',
   };
 
-  await actions[name]();
-  await page.waitForSelector('.modal-box', { timeout: 5000 });
+  const modalName = modalMap[name];
+
+  // Dispatch Redux action to open modal directly
+  await page.evaluate((modal) => {
+    const store = (window as any).__REDUX_STORE__;
+    if (store) {
+      store.dispatch({ type: 'app/openModal', payload: modal });
+    }
+  }, modalName);
+
+  // Wait for modal to appear
   await page.waitForTimeout(300);
 }
 

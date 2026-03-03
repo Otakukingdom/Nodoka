@@ -225,8 +225,10 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('audiobook-hover', async ({ page }) => {
-      const audiobookItem = page.locator('.audiobook-item, [data-testid="audiobook-item"]').first();
-      await hoverElement(page, await audiobookItem.elementHandle() ?? '');
+      // Audiobook cards are .card elements within the audiobook list
+      const audiobookCard = page.locator('#audiobook-list .card').first();
+      await audiobookCard.hover();
+      await page.waitForTimeout(300);
       await takeScreenshot(page, 'library-panel', 'audiobook-hover');
     });
 
@@ -247,8 +249,9 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('sort-dropdown-open', async ({ page }) => {
-      const sortButton = page.locator('[data-testid="sort-dropdown"], button[aria-label="Sort"]');
-      await sortButton.click();
+      // Sort dropdown is a select element in the toolbar
+      const sortSelect = page.locator('.library-panel select').first();
+      await sortSelect.click();
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'library-panel', 'sort-dropdown-open');
     });
@@ -446,7 +449,8 @@ test.describe.parallel('Screenshot Generation', () => {
 
     test('theme-dropdown-open', async ({ page }) => {
       await openModal(page, 'settings');
-      const themeDropdown = page.locator('[data-testid="theme-select"], select[name="theme"]');
+      // Theme dropdown is the first select in the settings modal
+      const themeDropdown = page.locator('.modal-box .form-control select').first();
       await themeDropdown.click();
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'modals/settings', 'theme-dropdown-open');
@@ -535,7 +539,9 @@ test.describe.parallel('Screenshot Generation', () => {
   // ========================================
   // MODALS - BOOKMARK EDITOR
   // ========================================
-  test.describe('modals/bookmark-editor', () => {
+  // NOTE: BookmarkEditorModal component does not exist yet.
+  // These tests are skipped until the modal is implemented.
+  test.describe.skip('modals/bookmark-editor', () => {
     test.beforeEach(async ({ page }) => {
       await injectScenarioData(page, 'default');
       await selectAudiobook(page, 1);
@@ -832,7 +838,8 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('focus-ring-audiobook-item', async ({ page }) => {
-      const audiobookItem = page.locator('.audiobook-item, [data-testid="audiobook-item"]').first();
+      // Audiobook cards are .card elements within the audiobook list
+      const audiobookItem = page.locator('#audiobook-list .card').first();
       await audiobookItem.focus();
       await page.waitForTimeout(200);
       await takeScreenshot(page, 'accessibility', 'focus-ring-audiobook-item');
@@ -840,7 +847,8 @@ test.describe.parallel('Screenshot Generation', () => {
 
     test('focus-ring-modal-button', async ({ page }) => {
       await openModal(page, 'settings');
-      const closeButton = page.locator('.modal-box button[aria-label="Close"], .modal-box button:has-text("Done")');
+      // Use .first() to avoid strict mode violation when multiple buttons match
+      const closeButton = page.locator('.modal-box button[aria-label="Close"], .modal-box button:has-text("Done")').first();
       await closeButton.focus();
       await page.waitForTimeout(200);
       await takeScreenshot(page, 'accessibility', 'focus-ring-modal-button');

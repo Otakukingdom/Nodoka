@@ -160,6 +160,13 @@ pub fn run(args: Args) -> Result<()> {
         println!("Generating README index...");
         readme::generate(&output_dir)
             .context("Failed to generate README index")?;
+
+        // Verify README was created
+        let readme_path = output_dir.join("README.md");
+        if !readme_path.exists() {
+            anyhow::bail!("README.md was not generated at {}", readme_path.display());
+        }
+        println!("README generated at: {}", readme_path.display());
     }
 
     println!();
