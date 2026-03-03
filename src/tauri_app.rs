@@ -65,6 +65,8 @@ pub fn run(db: Database) -> ! {
             crate::tauri::commands::insert_directory,
             crate::tauri::commands::remove_directory,
             crate::tauri::commands::scan_directory,
+            crate::tauri::commands::validate_directory,
+            crate::tauri::commands::update_directory_path,
             // Player commands
             crate::tauri::commands::play_pause,
             crate::tauri::commands::stop,

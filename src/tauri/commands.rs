@@ -214,6 +214,72 @@ pub async fn remove_directory(
     queries::delete_directory(db.connection(), &path).map_err(|e| e.to_string())
 }
 
+/// Validation result for directory accessibility
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DirectoryValidation {
+    /// Whether the directory exists on disk
+    pub exists: bool,
+    /// Whether the directory is readable
+    pub readable: bool,
+    /// Error type if validation failed
+    pub error: Option<String>,
+}
+
+/// Validate directory accessibility
+///
+/// Returns validation status for a directory path, checking if it exists and is readable.
+#[tauri::command]
+pub async fn validate_directory(path: String) -> std::result::Result<DirectoryValidation, String> {
+    use std::fs;
+
+    let dir_path = Path::new(&path);
+
+    if !dir_path.exists() {
+        return Ok(DirectoryValidation {
+            exists: false,
+            readable: false,
+            error: Some("NotFound".to_string()),
+        });
+    }
+
+    if !dir_path.is_dir() {
+        return Ok(DirectoryValidation {
+            exists: true,
+            readable: false,
+            error: Some("NotADirectory".to_string()),
+        });
+    }
+
+    let readable = fs::read_dir(&path)
+        .map(|mut d| d.next().map(|r| r.is_ok()).unwrap_or(true))
+        .unwrap_or(false);
+
+    Ok(DirectoryValidation {
+        exists: true,
+        readable,
+        error: if readable {
+            None
+        } else {
+            Some("PermissionDenied".to_string())
+        },
+    })
+}
+
+/// Update directory path (for relocated folders)
+///
+/// # Errors
+/// Returns an error string if the database update fails
+#[tauri::command]
+pub async fn update_directory_path(
+    old_path: String,
+    new_path: String,
+    state: State<'_, AppState>,
+) -> std::result::Result<(), String> {
+    let db = state.db.lock();
+    queries::update_directory_path(db.connection(), &old_path, &new_path)
+        .map_err(|e| e.to_string())
+}
+
 /// Scan a directory for new audiobooks
 ///
 /// # Errors

@@ -656,6 +656,44 @@ pub fn update_directory_last_scanned(conn: &Connection, path: &str) -> Result<()
     Ok(())
 }
 
+/// Updates a directory path (for relocated folders)
+///
+/// This updates the directory path and all associated audiobook paths atomically.
+///
+/// # Errors
+///
+/// Returns an error if the database update fails
+pub fn update_directory_path(conn: &Connection, old_path: &str, new_path: &str) -> Result<()> {
+    validate_no_nul("directory.old_path", old_path)?;
+    validate_no_nul("directory.new_path", new_path)?;
+
+    // Update audiobooks: change directory reference and update full_path
+    conn.execute(
+        "UPDATE audiobooks SET directory = ?1, full_path = ?2 || substr(full_path, length(?3) + 1) WHERE directory = ?3",
+        params![new_path, new_path, old_path],
+    )?;
+
+    // Update audiobook files: update full_path for files in this directory
+    conn.execute(
+        "UPDATE audiobook_file SET full_path = ?1 || substr(full_path, length(?2) + 1) WHERE full_path LIKE ?2 || '%'",
+        params![new_path, old_path],
+    )?;
+
+    // Update bookmarks: update file_path for bookmarks in this directory
+    conn.execute(
+        "UPDATE bookmarks SET file_path = ?1 || substr(file_path, length(?2) + 1) WHERE file_path LIKE ?2 || '%'",
+        params![new_path, old_path],
+    )?;
+
+    // Finally update the directory record
+    conn.execute(
+        "UPDATE directories SET full_path = ?1 WHERE full_path = ?2",
+        params![new_path, old_path],
+    )?;
+
+    Ok(())
+}
+
 /// Gets audiobook by full path
 ///
 /// # Errors

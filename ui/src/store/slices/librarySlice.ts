@@ -30,6 +30,9 @@ interface LibraryState {
 
   // Loading state
   isLibraryLoading: boolean;
+
+  // Scanning progress
+  scanningPaths: string[];
 }
 
 const initialState: LibraryState = {
@@ -43,6 +46,7 @@ const initialState: LibraryState = {
   sortOrder: 'RecentlyPlayed',
   filterStatus: 'All',
   isLibraryLoading: true,
+  scanningPaths: [],
 };
 
 const librarySlice = createSlice({
@@ -91,6 +95,20 @@ const librarySlice = createSlice({
     setLibraryLoading: (state, action: PayloadAction<boolean>) => {
       state.isLibraryLoading = action.payload;
     },
+    addScanningPath: (state, action: PayloadAction<string>) => {
+      if (!state.scanningPaths.includes(action.payload)) {
+        state.scanningPaths.push(action.payload);
+      }
+    },
+    removeScanningPath: (state, action: PayloadAction<string>) => {
+      state.scanningPaths = state.scanningPaths.filter(p => p !== action.payload);
+    },
+    setDirectoryError: (state, action: PayloadAction<{ path: string; error: string | null }>) => {
+      const dir = state.directories.find(d => d.fullPath === action.payload.path);
+      if (dir) {
+        dir.error = action.payload.error as 'NotFound' | 'PermissionDenied' | 'Unknown' | undefined;
+      }
+    },
   },
 });
 
@@ -108,6 +126,9 @@ export const {
   setFilterStatus,
   clearLibrarySelection,
   setLibraryLoading,
+  addScanningPath,
+  removeScanningPath,
+  setDirectoryError,
 } = librarySlice.actions;
 
 export default librarySlice.reducer;

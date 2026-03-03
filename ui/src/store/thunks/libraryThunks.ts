@@ -12,6 +12,9 @@ import {
   setDirectories,
   setLibraryLoading,
   addBookmark,
+  addScanningPath,
+  removeScanningPath,
+  setDirectoryError,
 } from '../slices/librarySlice';
 import { setTheme, setPanelRatio, setLoading, addNotification } from '../slices/appSlice';
 import { setVolume, setSpeed, setPlayback } from '../slices/playerSlice';
@@ -40,6 +43,12 @@ export const loadInitialData = createAsyncThunk(
       dispatch(setSpeed(speed));
       dispatch(setLibraryLoading(false));
       dispatch(setLoading(false));
+
+      // Validate directories after loading
+      if (directories.length > 0) {
+        // Run validation in background without blocking UI
+        void dispatch(validateDirectoriesOnStartup());
+      }
     } catch (error) {
       console.error('Failed to load initial data:', error);
       dispatch(setLibraryLoading(false));
@@ -165,17 +174,52 @@ export const removeDirectory = createAsyncThunk(
   }
 );
 
+/**
+ * Update directory path for relocated folders
+ * Called when a user locates a folder that was moved
+ */
+export const updateDirectoryPath = createAsyncThunk(
+  'library/updateDirectoryPath',
+  async ({ oldPath, newPath }: { oldPath: string; newPath: string }, { dispatch }) => {
+    try {
+      await TauriCommands.updateDirectoryPath(oldPath, newPath);
+      // Refresh both directories and audiobooks since paths have changed
+      const [directories, audiobooks] = await Promise.all([
+        TauriCommands.getDirectories(),
+        TauriCommands.getAllAudiobooks(),
+      ]);
+      dispatch(setDirectories(directories));
+      dispatch(setAudiobooks(audiobooks));
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Success',
+        message: 'Folder path updated successfully',
+        durationMs: 3000,
+        createdAt: Date.now(),
+      }));
+    } catch (error) {
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Error',
+        message: `Failed to update folder path: ${error}`,
+        durationMs: 5000,
+        createdAt: Date.now(),
+      }));
+    }
+  }
+);
+
 export const rescanDirectory = createAsyncThunk(
   'library/rescanDirectory',
   async (path: string, { dispatch }) => {
-    dispatch(setLibraryLoading(true));
+    dispatch(addScanningPath(path));
     try {
       await TauriCommands.scanDirectory(path);
       const audiobooks = await TauriCommands.getAllAudiobooks();
       dispatch(setAudiobooks(audiobooks));
-      dispatch(setLibraryLoading(false));
+      // Clear any error for this directory on successful scan
+      dispatch(setDirectoryError({ path, error: null }));
     } catch (error) {
-      dispatch(setLibraryLoading(false));
       dispatch(addNotification({
         id: Date.now(),
         kind: 'Error',
@@ -183,7 +227,40 @@ export const rescanDirectory = createAsyncThunk(
         durationMs: 5000,
         createdAt: Date.now(),
       }));
+    } finally {
+      dispatch(removeScanningPath(path));
     }
+  }
+);
+
+/**
+ * Validate all directories on startup
+ * Checks each directory for accessibility and sets error state if issues found
+ */
+export const validateDirectoriesOnStartup = createAsyncThunk(
+  'library/validateDirectoriesOnStartup',
+  async (_, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    const { directories } = state.library;
+
+    // Validate each directory in parallel
+    const validationPromises = directories.map(async (dir) => {
+      try {
+        const validation = await TauriCommands.validateDirectory(dir.fullPath);
+        if (!validation.exists) {
+          dispatch(setDirectoryError({ path: dir.fullPath, error: 'NotFound' }));
+        } else if (!validation.readable) {
+          dispatch(setDirectoryError({ path: dir.fullPath, error: 'PermissionDenied' }));
+        } else {
+          dispatch(setDirectoryError({ path: dir.fullPath, error: null }));
+        }
+      } catch (error) {
+        console.error(`Failed to validate directory ${dir.fullPath}:`, error);
+        dispatch(setDirectoryError({ path: dir.fullPath, error: 'Unknown' }));
+      }
+    });
+
+    await Promise.all(validationPromises);
   }
 );
 

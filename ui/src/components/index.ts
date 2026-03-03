@@ -16,6 +16,12 @@ export { default as VolumeSlider } from './VolumeSlider';
 export { default as ModalContainer } from './ModalContainer';
 export { default as NotificationContainer } from './NotificationContainer';
 
+// Overlay components
+export { default as DragDropOverlay } from './DragDropOverlay';
+
+// Error components
+export { default as DirectoryErrorBanner } from './DirectoryErrorBanner';
+
 // Modal components
 export { default as SettingsModal } from './modals/SettingsModal';
 export { default as KeyboardHelpModal } from './modals/KeyboardHelpModal';

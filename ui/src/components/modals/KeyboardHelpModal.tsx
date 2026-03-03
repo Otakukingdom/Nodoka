@@ -88,6 +88,15 @@ export default function KeyboardHelpModal() {
         </table>
       </div>
 
+      {/* Tip section for drag-and-drop */}
+      <div className="mt-6 p-4 bg-base-200/50 rounded-lg border border-base-300/50">
+        <p className="text-sm text-base-content/80">
+          <span className="font-medium">Tip:</span> You can also{' '}
+          <span className="font-semibold">drag and drop folders</span> directly onto the window to add
+          audiobook directories.
+        </p>
+      </div>
+
       {/* Footer */}
       <div className="modal-action mt-6">
         <button

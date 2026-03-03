@@ -11,6 +11,7 @@ import {
   PlayerControls,
   ModalContainer,
   NotificationContainer,
+  DragDropOverlay,
 } from './components';
 import { loadInitialData, selectFile, createBookmark, addDirectory } from './store/thunks/libraryThunks';
 import { updatePlayerTime, playPause, seekForward, seekBackward, updateVolume } from './store/thunks/playerThunks';
@@ -32,6 +33,11 @@ function App() {
 
   useEffect(() => {
     void dispatch(loadInitialData());
+  }, [dispatch]);
+
+  // Drag-and-drop handler for adding directories
+  const handleDragDrop = useCallback((path: string) => {
+    void dispatch(addDirectory(path));
   }, [dispatch]);
 
   // Apply theme to HTML element for DaisyUI
@@ -254,6 +260,10 @@ function App() {
       <PlayerControls />
       <ModalContainer />
       <NotificationContainer />
+      <DragDropOverlay
+        onDrop={handleDragDrop}
+        isDisabled={isAddingDirectory || isLibraryLoading}
+      />
     </div>
   );
 }

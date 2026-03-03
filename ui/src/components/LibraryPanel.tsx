@@ -3,12 +3,45 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Check, BookOpen, Search, FolderPlus } from 'lucide-react';
+import { Check, BookOpen, Search, FolderPlus, Folder, ExternalLink } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
 import { selectAudiobook, addDirectory } from '../store/thunks/libraryThunks';
 import { getFilteredAudiobooks } from '../store/thunks/libraryThunks';
 import type { AudiobookSortOrder, Audiobook } from '../store/types';
+
+/**
+ * Get common audiobook folder suggestions based on platform
+ */
+function getCommonFolderSuggestions(): { label: string; path: string }[] {
+  // Detect platform from userAgent or use Tauri API if available
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const isWindows = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
+  const homeDir = '~';
+
+  if (isMac) {
+    return [
+      { label: 'Music/Audiobooks', path: `${homeDir}/Music/Audiobooks` },
+      { label: 'Documents/Audiobooks', path: `${homeDir}/Documents/Audiobooks` },
+      { label: 'Downloads/Audiobooks', path: `${homeDir}/Downloads/Audiobooks` },
+    ];
+  }
+
+  if (isWindows) {
+    return [
+      { label: 'Music\\Audiobooks', path: `%USERPROFILE%\\Music\\Audiobooks` },
+      { label: 'Documents\\Audiobooks', path: `%USERPROFILE%\\Documents\\Audiobooks` },
+      { label: 'Downloads\\Audiobooks', path: `%USERPROFILE%\\Downloads\\Audiobooks` },
+    ];
+  }
+
+  // Linux and others
+  return [
+    { label: 'Music/Audiobooks', path: `${homeDir}/Music/Audiobooks` },
+    { label: 'Documents/Audiobooks', path: `${homeDir}/Documents/Audiobooks` },
+    { label: 'Downloads/Audiobooks', path: `${homeDir}/Downloads/Audiobooks` },
+  ];
+}
 
 export default function LibraryPanel() {
   const dispatch = useAppDispatch();
@@ -119,7 +152,7 @@ export default function LibraryPanel() {
                 <div className="text-title-lg text-base-content/90 mb-2 text-center font-semibold">
                   No audiobooks yet
                 </div>
-                <div className="text-body text-base-content/60 mb-8 max-w-xs mx-auto text-center leading-relaxed">
+                <div className="text-body text-base-content/60 mb-6 max-w-xs mx-auto text-center leading-relaxed">
                   Add a folder containing your audiobook files to get started
                 </div>
                 <button
@@ -135,11 +168,38 @@ export default function LibraryPanel() {
                   )}
                   <span className="font-medium">Add Audiobook Folder</span>
                 </button>
+
+                {/* Common folder suggestions */}
+                <div className="mt-6 w-full max-w-xs">
+                  <p className="text-xs text-base-content/50 mb-3 text-center">
+                    Try these common locations:
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {getCommonFolderSuggestions().map((suggestion) => (
+                      <button
+                        key={suggestion.path}
+                        className="btn btn-ghost btn-sm justify-start gap-2 text-xs text-base-content/70 hover:text-primary hover:bg-primary/10"
+                        onClick={() => void handleAddDirectory()}
+                        disabled={isAddingDirectory || isLibraryLoading}
+                      >
+                        <Folder className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{suggestion.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="text-caption mt-5 flex items-center gap-1.5">
                   <span>or press</span>
                   <kbd className="kbd kbd-sm px-2">Ctrl</kbd>
                   <span>+</span>
                   <kbd className="kbd kbd-sm px-2">D</kbd>
+                </div>
+
+                {/* Drag and drop hint */}
+                <div className="mt-4 flex items-center gap-2 text-xs text-base-content/40">
+                  <ExternalLink className="w-3 h-3" />
+                  <span>You can also drag and drop a folder</span>
                 </div>
               </>
             )}

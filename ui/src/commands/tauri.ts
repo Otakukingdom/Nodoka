@@ -215,3 +215,24 @@ export async function setPrefersReducedMotion(prefers: boolean): Promise<void> {
   if (isPlaywrightTest) return;
   return await invoke('set_prefers_reduced_motion', { prefers });
 }
+
+// Directory validation result
+export interface DirectoryValidation {
+  exists: boolean;
+  readable: boolean;
+  error: string | null;
+}
+
+// Validate directory accessibility
+export async function validateDirectory(path: string): Promise<DirectoryValidation> {
+  if (isPlaywrightTest) {
+    return { exists: true, readable: true, error: null };
+  }
+  return await invoke('validate_directory', { path });
+}
+
+// Update directory path (for relocated folders)
+export async function updateDirectoryPath(oldPath: string, newPath: string): Promise<void> {
+  if (isPlaywrightTest) return;
+  return await invoke('update_directory_path', { oldPath, newPath });
+}
