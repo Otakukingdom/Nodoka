@@ -181,12 +181,13 @@ describe('ScanProgressIndicator', () => {
   });
 
   describe('cancel functionality', () => {
-    it('shows cancel button when onCancel provided', () => {
+    it('shows cancel button when onCancel provided and scan is over 3 seconds', () => {
       const onCancel = vi.fn();
       render(
         <ScanProgressIndicator
           currentPath="/test/audiobooks"
           scannedCount={0}
+          elapsedTime={3500}
           onCancel={onCancel}
         />
       );
@@ -199,6 +200,21 @@ describe('ScanProgressIndicator', () => {
         <ScanProgressIndicator
           currentPath="/test/audiobooks"
           scannedCount={0}
+          elapsedTime={3500}
+        />
+      );
+
+      expect(screen.queryByRole('button', { name: 'Cancel scanning' })).not.toBeInTheDocument();
+    });
+
+    it('hides cancel button for short scans (under 3 seconds)', () => {
+      const onCancel = vi.fn();
+      render(
+        <ScanProgressIndicator
+          currentPath="/test/audiobooks"
+          scannedCount={0}
+          elapsedTime={2000}
+          onCancel={onCancel}
         />
       );
 
@@ -211,6 +227,7 @@ describe('ScanProgressIndicator', () => {
         <ScanProgressIndicator
           currentPath="/test/audiobooks"
           scannedCount={0}
+          elapsedTime={3500}
           onCancel={onCancel}
         />
       );
@@ -227,6 +244,7 @@ describe('ScanProgressIndicator', () => {
         <ScanProgressIndicator
           currentPath="/test/audiobooks"
           scannedCount={0}
+          elapsedTime={3500}
           onCancel={onCancel}
           isCancelDisabled={true}
         />

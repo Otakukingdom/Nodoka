@@ -2,7 +2,7 @@
  * Library panel component showing audiobook list
  */
 
-import { useMemo, useCallback, useRef, useEffect } from 'react';
+import { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { Check, BookOpen, Search, FolderPlus, ExternalLink, AlertTriangle, FolderSearch, RefreshCw } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
@@ -18,6 +18,13 @@ export default function LibraryPanel() {
   // Debounce timer ref for search input
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Check if any directory is being scanned (must be declared before useEffect that uses it)
+  const isScanning = scanningPaths.length > 0;
+
+  // Track previous scanning state for screen reader announcements
+  const [prevScanningState, setPrevScanningState] = useState(isScanning);
+  const [announcement, setAnnouncement] = useState<string | null>(null);
+
   // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
@@ -27,14 +34,26 @@ export default function LibraryPanel() {
     };
   }, []);
 
+  // Screen reader announcements for scan state changes
+  useEffect(() => {
+    if (prevScanningState && !isScanning) {
+      // Scan completed
+      const foundCount = scanProgress?.foundCount ?? audiobooks.length;
+      setAnnouncement(`Scan complete. Found ${foundCount} audiobook${foundCount === 1 ? '' : 's'}.`);
+      // Clear announcement after 3 seconds
+      setTimeout(() => setAnnouncement(null), 3000);
+    } else if (!prevScanningState && isScanning) {
+      // Scan started
+      setAnnouncement('Scanning folder for audiobooks...');
+    }
+    setPrevScanningState(isScanning);
+  }, [isScanning, prevScanningState, scanProgress?.foundCount, audiobooks.length]);
+
   // Get directories with errors for inline error display
   const directoriesWithErrors = useMemo(() =>
     directories.filter(dir => dir.error !== undefined),
     [directories]
   );
-
-  // Check if any directory is being scanned
-  const isScanning = scanningPaths.length > 0;
 
   const filteredBooks = useMemo(() => {
     return getFilteredAudiobooks(audiobooks, searchQuery, filterStatus, sortOrder);
@@ -93,6 +112,12 @@ export default function LibraryPanel() {
       role="navigation"
       aria-label="Audiobook library"
     >
+      {/* Screen reader announcements for async operations */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+        {isScanning && scanProgress && `Scanning: ${scanProgress.foundCount} audiobooks found`}
+      </div>
+
       {/* Toolbar */}
       <div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/50">
         <div className="relative flex-1">
@@ -197,7 +222,7 @@ export default function LibraryPanel() {
                 <div className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold">
                   Add Your Audiobooks
                 </div>
-                <div className="text-body text-base-content/60 mb-5 max-w-xs mx-auto text-center leading-relaxed">
+                <div className="text-body text-base-content/70 mb-5 max-w-xs mx-auto text-center leading-relaxed">
                   Select a folder containing your audiobook files to get started
                 </div>
 
@@ -217,15 +242,15 @@ export default function LibraryPanel() {
                 </button>
 
                 {/* Keyboard shortcut hint - secondary visual element */}
-                <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/50">
+                <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/70">
                   <span>or press</span>
                   <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">Ctrl</kbd>
-                  <span className="text-base-content/40">+</span>
+                  <span className="text-base-content/50">+</span>
                   <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">D</kbd>
                 </div>
 
                 {/* Drag and drop hint - tertiary visual element */}
-                <div className="mt-3 flex items-center gap-2 text-xs text-base-content/40">
+                <div className="mt-3 flex items-center gap-2 text-xs text-base-content/60">
                   <ExternalLink className="w-3 h-3" />
                   <span>Drag and drop a folder also works</span>
                 </div>

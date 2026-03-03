@@ -22,6 +22,7 @@ const shortcuts: KeyboardShortcut[] = [
   { key: '-', action: 'Volume down' },
   { key: 'Ctrl/Cmd + D', action: 'Add audiobook folder' },
   { key: 'Ctrl/Cmd + R', action: 'Rescan current folder' },
+  { key: 'Ctrl/Cmd + Shift + R', action: 'Rescan all folders' },
   { key: 'Ctrl/Cmd + B', action: 'Create bookmark' },
   { key: 'Ctrl/Cmd + ,', action: 'Open settings' },
   { key: 'F1', action: 'Show keyboard help' },

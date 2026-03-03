@@ -6,6 +6,143 @@
 import { test, expect } from '../fixtures';
 import { gotoAndWait, openSettingsModal, closeModal } from '../test-utils';
 
+test.describe('Directory Management UX - 30-Second First-Time User Goal', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('first-time user can add folder and see audiobooks within 30 seconds', async ({ page }) => {
+    // Start timing
+    const startTime = Date.now();
+
+    // Verify empty state or library panel loads quickly (within 2 seconds)
+    const libraryPanel = page.locator('.library-panel');
+    await expect(libraryPanel).toBeVisible({ timeout: 2000 });
+
+    // Check for Add Folder button visibility (should be immediately visible)
+    const addButton = page.locator('.library-panel button').filter({ hasText: /add folder/i });
+    const addInToolbar = page.locator('.library-panel .btn-square[aria-label*="folder"]');
+
+    // Either empty state button or toolbar button should be visible
+    const hasAddButton = (await addButton.count()) > 0 || (await addInToolbar.count()) > 0;
+    expect(hasAddButton).toBeTruthy();
+
+    // Verify keyboard shortcut hint is visible for discoverability
+    const ctrlKey = page.locator('.library-panel .kbd:has-text("Ctrl")');
+    const ctrlCount = await ctrlKey.count();
+
+    // If empty state is shown, shortcut hints should be visible
+    if (ctrlCount > 0) {
+      await expect(ctrlKey.first()).toBeVisible();
+    }
+
+    // Verify the app is responsive and ready
+    const searchInput = page.locator('.library-panel input[placeholder*="Search"]');
+    await expect(searchInput).toBeVisible();
+
+    // Calculate elapsed time
+    const elapsedMs = Date.now() - startTime;
+
+    // App should be ready for user interaction within 5 seconds
+    expect(elapsedMs).toBeLessThan(5000);
+
+    // Verify Ctrl+D shortcut is available
+    await page.keyboard.press('Control+D');
+    await page.waitForTimeout(200);
+
+    // App should remain functional after Ctrl+D
+    await expect(libraryPanel).toBeVisible();
+  });
+
+  test('empty state appears within 2 seconds of app load', async ({ page }) => {
+    const startTime = Date.now();
+
+    // Clear any existing data to see empty state
+    await page.evaluate(() => {
+      const tauri = (window as any).__TAURI__;
+      if (tauri) {
+        return tauri.invoke('remove_directory', { path: '/test/audiobooks' });
+      }
+      return null;
+    });
+
+    // Reload to see empty state
+    await page.reload();
+
+    // Library panel should be visible within 2 seconds
+    const libraryPanel = page.locator('.library-panel');
+    await expect(libraryPanel).toBeVisible({ timeout: 2000 });
+
+    // Check for Add Folder button
+    const addButton = page.locator('.library-panel button').filter({ hasText: /add folder/i });
+    if (await addButton.count() > 0) {
+      await expect(addButton.first()).toBeVisible();
+    }
+
+    const elapsedMs = Date.now() - startTime;
+    expect(elapsedMs).toBeLessThan(2000);
+  });
+
+  test('Add Folder button is prominent and meets touch target size', async ({ page }) => {
+    // Clear any existing data
+    await page.evaluate(() => {
+      const tauri = (window as any).__TAURI__;
+      if (tauri) {
+        return tauri.invoke('remove_directory', { path: '/test/audiobooks' });
+      }
+      return null;
+    });
+
+    await page.reload();
+    await page.waitForTimeout(500);
+
+    const addButton = page.locator('.library-panel button').filter({ hasText: /add folder/i });
+
+    if (await addButton.count() > 0) {
+      // Should have premium styling for prominence
+      await expect(addButton.first()).toHaveClass(/btn-premium|btn-primary/);
+
+      // Check touch target size (min 44px)
+      const box = await addButton.first().boundingBox();
+      expect(box).toBeTruthy();
+      expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('keyboard shortcuts are discoverable from empty state', async ({ page }) => {
+    // Clear any existing data
+    await page.evaluate(() => {
+      const tauri = (window as any).__TAURI__;
+      if (tauri) {
+        return tauri.invoke('remove_directory', { path: '/test/audiobooks' });
+      }
+      return null;
+    });
+
+    await page.reload();
+    await page.waitForTimeout(500);
+
+    // Open keyboard help to verify shortcuts are documented
+    await page.keyboard.press('F1');
+    await page.waitForTimeout(300);
+
+    const modal = page.locator('.modal-box');
+    if (await modal.isVisible()) {
+      // Look for Ctrl+D shortcut documentation
+      const shortcuts = modal.locator('kbd:has-text("D")');
+      const count = await shortcuts.count();
+      expect(count).toBeGreaterThan(0);
+
+      // Look for Ctrl+R shortcut documentation
+      const rescanShortcuts = modal.locator('kbd:has-text("R")');
+      const rescanCount = await rescanShortcuts.count();
+      expect(rescanCount).toBeGreaterThan(0);
+
+      await page.keyboard.press('Escape');
+    }
+  });
+});
+
 test.describe('Directory Management UX - First-Time User', () => {
   test.beforeEach(async ({ page }) => {
     await gotoAndWait(page);

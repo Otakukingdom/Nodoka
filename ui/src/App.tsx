@@ -26,7 +26,7 @@ import { toggleMute, setVolume } from './store/slices/playerSlice';
 function App() {
   const dispatch = useAppDispatch();
   const { theme, isLoading, panelRatio, panelDividerDragging } = useAppSelector(state => state.app);
-  const { currentFiles, selectedFile, isLibraryLoading, isAddingDirectory, audiobooks, selectedAudiobook } = useAppSelector(state => state.library);
+  const { currentFiles, selectedFile, isLibraryLoading, isAddingDirectory, audiobooks, selectedAudiobook, directories } = useAppSelector(state => state.library);
   const { volume } = useAppSelector(state => state.player);
   const mainRef = useRef<HTMLElement>(null);
 
@@ -214,7 +214,7 @@ function App() {
     }
 
     // Ctrl/Cmd + R for rescan current audiobook's directory
-    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r' && !e.shiftKey) {
       e.preventDefault();
       if (selectedAudiobook !== undefined) {
         const selectedBook = audiobooks.find(b => b.id === selectedAudiobook);
@@ -223,7 +223,18 @@ function App() {
         }
       }
     }
-  }, [dispatch, currentFiles, selectedFile, volume, isAddingDirectory, isLibraryLoading, selectedAudiobook, audiobooks]);
+
+    // Ctrl/Cmd + Shift + R for rescan all directories
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+      e.preventDefault();
+      // Rescan all directories that don't have errors
+      for (const dir of directories) {
+        if (!dir.error) {
+          void dispatch(rescanDirectory(dir.fullPath));
+        }
+      }
+    }
+  }, [dispatch, currentFiles, selectedFile, volume, isAddingDirectory, isLibraryLoading, selectedAudiobook, audiobooks, directories]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyboard);

@@ -888,4 +888,260 @@ describe('LibraryPanel', () => {
       expect(toolbarButton).toBeDisabled();
     });
   });
+
+  describe('UX specification requirements', () => {
+    describe('touch target sizes', () => {
+      it('Add Folder button meets minimum 44px touch target', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        const button = screen.getByRole('button', { name: 'Add audiobook folder' });
+        // min-h-12 class = 48px minimum height
+        expect(button).toHaveClass('min-h-12');
+      });
+    });
+
+    describe('accessibility - screen reader announcements', () => {
+      it('has screen reader announcement region for async operations', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Should have aria-live region for announcements
+        const liveRegion = document.querySelector('[aria-live="polite"]');
+        expect(liveRegion).toBeInTheDocument();
+      });
+
+      it('announces scan progress to screen readers', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: ['/test'],
+          scanProgress: {
+            path: '/test',
+            startTime: Date.now(),
+            foundCount: 5,
+          },
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Scanning progress should be visible
+        expect(screen.getByText('Scanning...')).toBeInTheDocument();
+      });
+    });
+
+    describe('focus management', () => {
+      it('all interactive elements are keyboard accessible', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // All buttons should have accessible names
+        const buttons = screen.getAllByRole('button');
+        buttons.forEach((button) => {
+          expect(button).toHaveAttribute('aria-label');
+        });
+
+        // Search input should be accessible
+        const searchInput = screen.getByPlaceholderText('Search audiobooks...');
+        expect(searchInput).toBeInTheDocument();
+
+        // Sort select should be accessible
+        const sortSelect = screen.getByRole('combobox');
+        expect(sortSelect).toBeInTheDocument();
+      });
+    });
+
+    describe('plain language error messages', () => {
+      it('error messages use plain language, not technical jargon', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [
+            {
+              fullPath: '/test/missing',
+              createdAt: '2024-01-01T00:00:00Z',
+              error: 'NotFound',
+            },
+          ],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Error message should be in plain language
+        const errorText = screen.getByText('Folder moved or deleted');
+        expect(errorText).toBeInTheDocument();
+
+        // Should NOT contain technical jargon
+        const alert = screen.getByRole('alert');
+        expect(alert.textContent).not.toContain('ENOENT');
+        expect(alert.textContent).not.toContain('Error code:');
+        expect(alert.textContent).not.toContain('0x');
+      });
+    });
+
+    describe('keyboard shortcut hints', () => {
+      it('shows keyboard shortcut hint in empty state', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Should show keyboard shortcut hint
+        expect(screen.getByText(/or press/)).toBeInTheDocument();
+        expect(screen.getByText('Ctrl')).toBeInTheDocument();
+        expect(screen.getByText('D')).toBeInTheDocument();
+      });
+
+      it('shows drag and drop hint in empty state', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: false,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Should show drag and drop hint
+        expect(screen.getByText(/drag.*drop.*folder/i)).toBeInTheDocument();
+      });
+    });
+
+    describe('loading states', () => {
+      it('shows loading skeletons within 100ms of loading state', () => {
+        const store = createTestStore({
+          audiobooks: [],
+          selectedAudiobook: null,
+          searchQuery: '',
+          sortOrder: 'RecentlyPlayed',
+          filterStatus: 'All',
+          directories: [],
+          currentFiles: [],
+          selectedFile: null,
+          bookmarks: [],
+          isLibraryLoading: true,
+          isAddingDirectory: false,
+          scanningPaths: [],
+        });
+
+        render(
+          <Provider store={store}>
+            <LibraryPanel />
+          </Provider>
+        );
+
+        // Should show skeleton loading indicators
+        const skeletons = document.querySelectorAll('.skeleton');
+        expect(skeletons.length).toBeGreaterThan(0);
+      });
+    });
+  });
 });

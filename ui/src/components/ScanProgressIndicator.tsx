@@ -2,7 +2,7 @@
  * Scan progress indicator component
  *
  * Displays real-time progress during directory scanning operations.
- * Shows current path, audiobook count, and elapsed time.
+ * Shows current path, audiobook count, elapsed time, and estimated remaining time.
  */
 
 import { useMemo } from 'react';
@@ -21,6 +21,8 @@ export interface ScanProgressProps {
   onCancel?: () => void;
   /** Whether cancel is disabled */
   isCancelDisabled?: boolean;
+  /** Current subfolder being scanned (optional) */
+  currentSubPath?: string;
 }
 
 /**
@@ -43,6 +45,19 @@ function formatElapsedTime(ms: number): string {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${hours}h ${remainingMinutes}m`;
+}
+
+/**
+ * Estimates remaining time based on current progress
+ */
+function estimateRemaining(elapsedMs: number, foundCount: number, totalCount?: number): number | undefined {
+  if (totalCount === undefined || foundCount === 0 || totalCount <= foundCount) {
+    return undefined;
+  }
+
+  const rate = foundCount / elapsedMs; // audiobooks per millisecond
+  const remaining = totalCount - foundCount;
+  return Math.round(remaining / rate);
 }
 
 /**
@@ -77,6 +92,7 @@ export default function ScanProgressIndicator({
   elapsedTime = 0,
   onCancel,
   isCancelDisabled = false,
+  currentSubPath,
 }: ScanProgressProps) {
   // Calculate progress percentage if total is known
   const progressPercent = useMemo(() => {
@@ -86,14 +102,29 @@ export default function ScanProgressIndicator({
     return Math.min(100, Math.round((scannedCount / totalCount) * 100));
   }, [scannedCount, totalCount]);
 
+  // Estimate remaining time for long scans
+  const estimatedRemaining = useMemo(() => {
+    // Only show estimate after 5 seconds of scanning
+    if (elapsedTime < 5000) {
+      return undefined;
+    }
+    return estimateRemaining(elapsedTime, scannedCount, totalCount);
+  }, [elapsedTime, scannedCount, totalCount]);
+
   // Determine if we should show elapsed time (only after 2 seconds)
   const showElapsedTime = elapsedTime >= 2000;
+
+  // Determine if we should show cancel button (for scans over 3 seconds)
+  const showCancelButton = elapsedTime >= 3000 && onCancel;
 
   // Get display path
   const displayPath = truncatePath(currentPath);
 
   // Format audiobook count text
   const audiobookText = scannedCount === 1 ? 'audiobook' : 'audiobooks';
+
+  // Get subfolder display if available
+  const subfolderDisplay = currentSubPath ? truncatePath(currentSubPath, 30) : null;
 
   return (
     <div
@@ -121,19 +152,34 @@ export default function ScanProgressIndicator({
               Scanning...
             </span>
             {showElapsedTime && (
-              <span className="text-xs text-base-content/50 tabular-nums">
+              <span className="text-xs text-base-content/70 tabular-nums">
                 {formatElapsedTime(elapsedTime)}
+                {estimatedRemaining !== undefined && (
+                  <span className="text-base-content/50 ml-1">
+                    (~{formatElapsedTime(estimatedRemaining)} remaining)
+                  </span>
+                )}
               </span>
             )}
           </div>
 
           {/* Current path */}
           <div
-            className="text-xs text-base-content/60 truncate"
+            className="text-xs text-base-content/70 truncate"
             title={currentPath}
           >
             {displayPath}
           </div>
+
+          {/* Current subfolder (if different from main path) */}
+          {subfolderDisplay && subfolderDisplay !== displayPath && (
+            <div
+              className="text-xs text-base-content/50 truncate mt-0.5"
+              title={currentSubPath}
+            >
+              Currently: {subfolderDisplay}
+            </div>
+          )}
 
           {/* Progress bar (if total known) */}
           {progressPercent !== undefined && (
@@ -141,6 +187,10 @@ export default function ScanProgressIndicator({
               <div
                 className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progressPercent}%` }}
+                role="progressbar"
+                aria-valuenow={progressPercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
               />
             </div>
           )}
@@ -152,15 +202,15 @@ export default function ScanProgressIndicator({
               {scannedCount} {audiobookText} found
             </span>
             {totalCount !== undefined && totalCount > 0 && (
-              <span className="text-xs text-base-content/40">
+              <span className="text-xs text-base-content/60">
                 of {totalCount}
               </span>
             )}
           </div>
         </div>
 
-        {/* Cancel button */}
-        {onCancel && (
+        {/* Cancel button - shown for longer scans */}
+        {showCancelButton && (
           <button
             className="btn btn-ghost btn-sm btn-circle shrink-0 hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
             onClick={onCancel}

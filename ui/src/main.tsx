@@ -11,7 +11,7 @@ import './styles/main.css';
 
 // Expose Redux store for Playwright e2e testing
 if (import.meta.env.VITE_PLAYWRIGHT_TEST === 'true') {
-  (window as any).__REDUX_STORE__ = store;
+  (window as { __REDUX_STORE__?: typeof store }).__REDUX_STORE__ = store;
 }
 
 const rootElement = document.getElementById('root');
