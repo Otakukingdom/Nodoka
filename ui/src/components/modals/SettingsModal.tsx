@@ -96,6 +96,22 @@ export default function SettingsModal() {
     return counts;
   }, [audiobooks]);
 
+  // Sort directories: errors first, then alphabetically by folder name
+  const sortedDirectories = useMemo(() => {
+    return [...directories].sort((a, b) => {
+      // Directories with errors come first
+      const aHasError = a.error !== undefined;
+      const bHasError = b.error !== undefined;
+      if (aHasError && !bHasError) return -1;
+      if (!aHasError && bHasError) return 1;
+
+      // Then sort alphabetically by folder name
+      const aName = a.fullPath.split(/[/\\]/).pop() ?? a.fullPath;
+      const bName = b.fullPath.split(/[/\\]/).pop() ?? b.fullPath;
+      return aName.localeCompare(bName);
+    });
+  }, [directories]);
+
   const handleClose = () => {
     dispatch(closeModal());
   };
@@ -277,7 +293,7 @@ export default function SettingsModal() {
                 </div>
               ) : (
                 <div className="divide-y divide-base-300/50">
-                  {directories.map((dir: Directory) => {
+                  {sortedDirectories.map((dir: Directory) => {
                     const isScanning = scanningPaths.has(dir.fullPath);
                     const hasError = dir.error !== undefined;
                     const isSuccess = successPaths.has(dir.fullPath);
@@ -565,7 +581,7 @@ export default function SettingsModal() {
         message="This will remove the folder from your library. Your files won't be deleted from disk."
         confirmLabel="Remove"
         cancelLabel="Cancel"
-        variant="danger"
+        variant="warning"
         onConfirm={() => void confirmRemoval()}
         onCancel={cancelRemoval}
       />

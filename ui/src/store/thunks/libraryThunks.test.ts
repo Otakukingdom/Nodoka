@@ -72,6 +72,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {
@@ -111,6 +112,31 @@ describe('library thunks', () => {
       expect(state.app.notifications).toHaveLength(1);
       expect(state.app.notifications[0].kind).toBe('Warning');
       expect(state.app.notifications[0].message).toBe('That folder is already in your library');
+
+      // Should NOT set isAddingDirectory for duplicates (early return)
+      expect(state.library.isAddingDirectory).toBe(false);
+    });
+
+    it('sets isAddingDirectory state during directory addition', async () => {
+      vi.mocked(TauriCommands.getAllAudiobooks)
+        .mockResolvedValueOnce([]) // before count
+        .mockResolvedValueOnce([]); // after count
+      vi.mocked(TauriCommands.insertDirectory).mockResolvedValue(undefined);
+      vi.mocked(TauriCommands.getDirectories).mockResolvedValue([
+        { fullPath: '/Users/test/new-audiobooks', createdAt: '2024-01-02T00:00:00Z' },
+      ]);
+
+      const promise = store.dispatch(addDirectory('/Users/test/new-audiobooks'));
+
+      // Check that isAddingDirectory is set immediately
+      let state = store.getState();
+      expect(state.library.isAddingDirectory).toBe(true);
+
+      await promise;
+
+      // After completion, isAddingDirectory should be false
+      state = store.getState();
+      expect(state.library.isAddingDirectory).toBe(false);
     });
 
     it('adds new directory successfully', async () => {
@@ -190,6 +216,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {
@@ -259,6 +286,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {
@@ -315,6 +343,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {
@@ -375,6 +404,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {
@@ -431,6 +461,7 @@ describe('library thunks', () => {
           sortOrder: 'RecentlyPlayed',
           filterStatus: 'All',
           isLibraryLoading: false,
+          isAddingDirectory: false,
           scanningPaths: [],
         },
         app: {

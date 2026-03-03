@@ -2,7 +2,7 @@
  * Main application component
  */
 
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import {
   TopBar,
@@ -13,7 +13,7 @@ import {
   NotificationContainer,
   DragDropOverlay,
 } from './components';
-import { loadInitialData, selectFile, createBookmark, addDirectory } from './store/thunks/libraryThunks';
+import { loadInitialData, selectFile, createBookmark, addDirectory, rescanDirectory } from './store/thunks/libraryThunks';
 import { updatePlayerTime, playPause, seekForward, seekBackward, updateVolume } from './store/thunks/playerThunks';
 import {
   openModal,
@@ -26,10 +26,9 @@ import { toggleMute, setVolume } from './store/slices/playerSlice';
 function App() {
   const dispatch = useAppDispatch();
   const { theme, isLoading, panelRatio, panelDividerDragging } = useAppSelector(state => state.app);
-  const { currentFiles, selectedFile, isLibraryLoading } = useAppSelector(state => state.library);
+  const { currentFiles, selectedFile, isLibraryLoading, isAddingDirectory, audiobooks, selectedAudiobook } = useAppSelector(state => state.library);
   const { volume } = useAppSelector(state => state.player);
   const mainRef = useRef<HTMLElement>(null);
-  const [isAddingDirectory, setIsAddingDirectory] = useState(false);
 
   useEffect(() => {
     void dispatch(loadInitialData());
@@ -198,7 +197,6 @@ function App() {
       e.preventDefault();
       void (async () => {
         if (isAddingDirectory || isLibraryLoading) return;
-        setIsAddingDirectory(true);
         try {
           const { open } = await import('@tauri-apps/plugin-dialog');
           const selected = await open({
@@ -211,12 +209,21 @@ function App() {
           }
         } catch (error) {
           console.error('Failed to add directory:', error);
-        } finally {
-          setIsAddingDirectory(false);
         }
       })();
     }
-  }, [dispatch, currentFiles, selectedFile, volume, isAddingDirectory, isLibraryLoading]);
+
+    // Ctrl/Cmd + R for rescan current audiobook's directory
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+      e.preventDefault();
+      if (selectedAudiobook !== undefined) {
+        const selectedBook = audiobooks.find(b => b.id === selectedAudiobook);
+        if (selectedBook?.directory) {
+          void dispatch(rescanDirectory(selectedBook.directory));
+        }
+      }
+    }
+  }, [dispatch, currentFiles, selectedFile, volume, isAddingDirectory, isLibraryLoading, selectedAudiobook, audiobooks]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyboard);

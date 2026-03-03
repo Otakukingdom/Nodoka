@@ -30,6 +30,7 @@ interface LibraryState {
 
   // Loading state
   isLibraryLoading: boolean;
+  isAddingDirectory: boolean;
 
   // Scanning progress
   scanningPaths: string[];
@@ -46,6 +47,7 @@ const initialState: LibraryState = {
   sortOrder: 'RecentlyPlayed',
   filterStatus: 'All',
   isLibraryLoading: true,
+  isAddingDirectory: false,
   scanningPaths: [],
 };
 
@@ -109,6 +111,9 @@ const librarySlice = createSlice({
         dir.error = action.payload.error as 'NotFound' | 'PermissionDenied' | 'Unknown' | undefined;
       }
     },
+    setIsAddingDirectory: (state, action: PayloadAction<boolean>) => {
+      state.isAddingDirectory = action.payload;
+    },
   },
 });
 
@@ -126,6 +131,7 @@ export const {
   setFilterStatus,
   clearLibrarySelection,
   setLibraryLoading,
+  setIsAddingDirectory,
   addScanningPath,
   removeScanningPath,
   setDirectoryError,

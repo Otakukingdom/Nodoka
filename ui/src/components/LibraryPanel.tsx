@@ -2,60 +2,58 @@
  * Library panel component showing audiobook list
  */
 
-import { useMemo, useState } from 'react';
-import { Check, BookOpen, Search, FolderPlus, Folder, ExternalLink } from 'lucide-react';
+import { useMemo, useCallback, useRef, useEffect } from 'react';
+import { Check, BookOpen, Search, FolderPlus, ExternalLink, AlertTriangle, FolderSearch, RefreshCw } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
-import { selectAudiobook, addDirectory } from '../store/thunks/libraryThunks';
+import { selectAudiobook, addDirectory, removeDirectory, updateDirectoryPath } from '../store/thunks/libraryThunks';
 import { getFilteredAudiobooks } from '../store/thunks/libraryThunks';
-import type { AudiobookSortOrder, Audiobook } from '../store/types';
-
-/**
- * Get common audiobook folder suggestions based on platform
- */
-function getCommonFolderSuggestions(): { label: string; path: string }[] {
-  // Detect platform from userAgent or use Tauri API if available
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const isWindows = navigator.platform.toUpperCase().indexOf('WIN') >= 0;
-  const homeDir = '~';
-
-  if (isMac) {
-    return [
-      { label: 'Music/Audiobooks', path: `${homeDir}/Music/Audiobooks` },
-      { label: 'Documents/Audiobooks', path: `${homeDir}/Documents/Audiobooks` },
-      { label: 'Downloads/Audiobooks', path: `${homeDir}/Downloads/Audiobooks` },
-    ];
-  }
-
-  if (isWindows) {
-    return [
-      { label: 'Music\\Audiobooks', path: `%USERPROFILE%\\Music\\Audiobooks` },
-      { label: 'Documents\\Audiobooks', path: `%USERPROFILE%\\Documents\\Audiobooks` },
-      { label: 'Downloads\\Audiobooks', path: `%USERPROFILE%\\Downloads\\Audiobooks` },
-    ];
-  }
-
-  // Linux and others
-  return [
-    { label: 'Music/Audiobooks', path: `${homeDir}/Music/Audiobooks` },
-    { label: 'Documents/Audiobooks', path: `${homeDir}/Documents/Audiobooks` },
-    { label: 'Downloads/Audiobooks', path: `${homeDir}/Downloads/Audiobooks` },
-  ];
-}
+import type { AudiobookSortOrder, Audiobook, Directory } from '../store/types';
 
 export default function LibraryPanel() {
   const dispatch = useAppDispatch();
-  const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading } =
+  const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading, isAddingDirectory, directories, scanningPaths } =
     useAppSelector(state => state.library);
-  const [isAddingDirectory, setIsAddingDirectory] = useState(false);
+
+  // Debounce timer ref for search input
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
+
+  // Get directories with errors for inline error display
+  const directoriesWithErrors = useMemo(() =>
+    directories.filter(dir => dir.error !== undefined),
+    [directories]
+  );
+
+  // Check if any directory is being scanned
+  const isScanning = scanningPaths.length > 0;
 
   const filteredBooks = useMemo(() => {
     return getFilteredAudiobooks(audiobooks, searchQuery, filterStatus, sortOrder);
   }, [audiobooks, searchQuery, filterStatus, sortOrder]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSearchQuery(e.target.value));
-  };
+  // Debounced search handler for performance with large libraries
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Clear existing timer
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    // Set new timer - 150ms debounce
+    searchDebounceRef.current = setTimeout(() => {
+      dispatch(setSearchQuery(value));
+    }, 150);
+  }, [dispatch]);
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch(setSortOrder(e.target.value as AudiobookSortOrder));
@@ -70,7 +68,6 @@ export default function LibraryPanel() {
   const handleAddDirectory = async () => {
     if (isAddingDirectory || isLibraryLoading) return;
 
-    setIsAddingDirectory(true);
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
       const selected = await open({
@@ -84,8 +81,6 @@ export default function LibraryPanel() {
       }
     } catch (error) {
       console.error('Failed to add directory:', error);
-    } finally {
-      setIsAddingDirectory(false);
     }
   };
 
@@ -123,6 +118,24 @@ export default function LibraryPanel() {
 
       {/* Audiobook list */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3" id="audiobook-list">
+        {/* Directory error banners - show at top when directories have issues */}
+        {!isLibraryLoading && directoriesWithErrors.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {directoriesWithErrors.map((dir) => (
+              <DirectoryErrorBannerInline
+                key={dir.fullPath}
+                directory={dir}
+                onLocate={(oldPath, newPath) => {
+                  void dispatch(updateDirectoryPath({ oldPath, newPath }));
+                }}
+                onRemove={(path) => {
+                  void dispatch(removeDirectory(path));
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {isLibraryLoading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -130,16 +143,15 @@ export default function LibraryPanel() {
             ))}
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6 min-h-[300px]">
-            <div className="relative w-20 h-20 mb-6">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/25 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-transparent" />
-              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center shadow-depth-2 border border-base-300/30">
-                <BookOpen className="w-8 h-8 text-primary/60" />
-              </div>
-            </div>
+          <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[300px] animate-fade-in">
             {searchQuery ? (
               <>
+                <div className="relative w-16 h-16 mb-5">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-base-300/50 to-base-200/30" />
+                  <div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center shadow-depth-1 border border-base-300/30">
+                    <Search className="w-7 h-7 text-base-content/40" />
+                  </div>
+                </div>
                 <div className="text-title text-base-content/80 mb-2 text-center">
                   No matches found
                 </div>
@@ -149,14 +161,37 @@ export default function LibraryPanel() {
               </>
             ) : (
               <>
-                <div className="text-title-lg text-base-content/90 mb-2 text-center font-semibold">
-                  No audiobooks yet
+                {/* Prominent empty state with animated icon */}
+                <div className="relative w-24 h-24 mb-5">
+                  {/* Outer pulse ring - draws attention */}
+                  <div
+                    className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5"
+                    style={{
+                      animation: 'pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
+                  />
+                  {/* Inner glow */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-transparent" />
+                  {/* Center icon container */}
+                  <div className="absolute inset-4 rounded-full bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center shadow-depth-2 border border-base-300/30">
+                    <BookOpen
+                      className="w-9 h-9 text-primary/70"
+                      style={{ animation: 'pulse 2.5s ease-in-out infinite' }}
+                    />
+                  </div>
                 </div>
-                <div className="text-body text-base-content/60 mb-6 max-w-xs mx-auto text-center leading-relaxed">
-                  Add a folder containing your audiobook files to get started
+
+                {/* Clear visual hierarchy: title > description > action */}
+                <div className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold">
+                  Add Your Audiobooks
                 </div>
+                <div className="text-body text-base-content/60 mb-5 max-w-xs mx-auto text-center leading-relaxed">
+                  Select a folder containing your audiobook files to get started
+                </div>
+
+                {/* Primary action - large touch target (min-h-12 = 48px) */}
                 <button
-                  className="btn btn-premium px-6 py-3 shadow-md hover:shadow-lg transition-all duration-200 gap-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="btn btn-premium min-h-12 h-12 px-8 shadow-lg hover:shadow-xl transition-all duration-200 gap-2.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 text-base"
                   onClick={() => void handleAddDirectory()}
                   disabled={isAddingDirectory || isLibraryLoading}
                   aria-label="Add audiobook folder"
@@ -166,40 +201,21 @@ export default function LibraryPanel() {
                   ) : (
                     <FolderPlus className="h-5 w-5" />
                   )}
-                  <span className="font-medium">Add Audiobook Folder</span>
+                  <span className="font-semibold">Add Folder</span>
                 </button>
 
-                {/* Common folder suggestions */}
-                <div className="mt-6 w-full max-w-xs">
-                  <p className="text-xs text-base-content/50 mb-3 text-center">
-                    Try these common locations:
-                  </p>
-                  <div className="flex flex-col gap-1.5">
-                    {getCommonFolderSuggestions().map((suggestion) => (
-                      <button
-                        key={suggestion.path}
-                        className="btn btn-ghost btn-sm justify-start gap-2 text-xs text-base-content/70 hover:text-primary hover:bg-primary/10"
-                        onClick={() => void handleAddDirectory()}
-                        disabled={isAddingDirectory || isLibraryLoading}
-                      >
-                        <Folder className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{suggestion.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="text-caption mt-5 flex items-center gap-1.5">
+                {/* Keyboard shortcut hint - secondary visual element */}
+                <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/50">
                   <span>or press</span>
-                  <kbd className="kbd kbd-sm px-2">Ctrl</kbd>
-                  <span>+</span>
-                  <kbd className="kbd kbd-sm px-2">D</kbd>
+                  <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">Ctrl</kbd>
+                  <span className="text-base-content/40">+</span>
+                  <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">D</kbd>
                 </div>
 
-                {/* Drag and drop hint */}
-                <div className="mt-4 flex items-center gap-2 text-xs text-base-content/40">
+                {/* Drag and drop hint - tertiary visual element */}
+                <div className="mt-3 flex items-center gap-2 text-xs text-base-content/40">
                   <ExternalLink className="w-3 h-3" />
-                  <span>You can also drag and drop a folder</span>
+                  <span>Drag and drop a folder also works</span>
                 </div>
               </>
             )}
@@ -217,6 +233,16 @@ export default function LibraryPanel() {
           </div>
         )}
       </div>
+
+      {/* Scanning status footer - shows when directories are being scanned */}
+      {isScanning && (
+        <div className="px-3 py-2 border-t border-base-300 bg-primary/5 flex items-center gap-2">
+          <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+          <span className="text-xs text-primary font-medium">
+            Scanning {scanningPaths.length} {scanningPaths.length === 1 ? 'folder' : 'folders'}...
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -230,7 +256,7 @@ interface AudiobookCardProps {
 function AudiobookCard({ book, isSelected, onClick }: AudiobookCardProps) {
   return (
     <div
-      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group ${
+      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group card-performance ${
         isSelected
           ? 'ring-2 ring-primary shadow-lg bg-primary/5 scale-[1.01]'
           : 'shadow-sm border border-base-300/50 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5'
@@ -281,6 +307,82 @@ function AudiobookCardSkeleton() {
           <div className="flex-1 h-2 skeleton rounded-full" />
           <div className="h-3 w-9 skeleton rounded" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inline error banner for directory issues displayed in library panel
+ * Provides immediate visibility of directory problems with recovery actions
+ */
+interface DirectoryErrorBannerInlineProps {
+  directory: Directory;
+  onLocate: (oldPath: string, newPath: string) => void;
+  onRemove: (path: string) => void;
+}
+
+function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: DirectoryErrorBannerInlineProps) {
+  const folderName = directory.fullPath.split(/[/\\]/).pop() ?? directory.fullPath;
+
+  const getErrorMessage = (error: string | undefined): string => {
+    switch (error) {
+      case 'NotFound':
+        return 'Folder moved or deleted';
+      case 'PermissionDenied':
+        return 'Permission denied';
+      default:
+        return 'Unable to access folder';
+    }
+  };
+
+  const handleLocate = async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: `Locate "${folderName}" Folder`,
+      });
+      if (selected && typeof selected === 'string') {
+        onLocate(directory.fullPath, selected);
+      }
+    } catch (error) {
+      console.error('Failed to locate folder:', error);
+    }
+  };
+
+  return (
+    <div
+      className="alert alert-warning alert-sm py-2 px-3 shadow-sm"
+      role="alert"
+      aria-label={`Error for folder ${folderName}`}
+    >
+      <AlertTriangle className="w-4 h-4 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-sm truncate" title={directory.fullPath}>
+          {folderName}
+        </p>
+        <p className="text-xs opacity-80">{getErrorMessage(directory.error)}</p>
+      </div>
+      <div className="flex gap-1.5 shrink-0">
+        {directory.error === 'NotFound' && (
+          <button
+            className="btn btn-xs btn-ghost gap-1"
+            onClick={() => void handleLocate()}
+            aria-label="Locate folder"
+          >
+            <FolderSearch className="w-3.5 h-3.5" />
+            <span>Locate</span>
+          </button>
+        )}
+        <button
+          className="btn btn-xs btn-ghost text-error hover:bg-error/10 gap-1"
+          onClick={() => void onRemove(directory.fullPath)}
+          aria-label="Remove folder from library"
+        >
+          <span>Remove</span>
+        </button>
       </div>
     </div>
   );

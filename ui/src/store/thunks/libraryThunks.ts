@@ -11,6 +11,7 @@ import {
   setSelectedFile,
   setDirectories,
   setLibraryLoading,
+  setIsAddingDirectory,
   addBookmark,
   addScanningPath,
   removeScanningPath,
@@ -120,6 +121,9 @@ export const addDirectory = createAsyncThunk(
       return;
     }
 
+    // Set immediate loading state for UI feedback
+    dispatch(setIsAddingDirectory(true));
+
     try {
       // Get audiobook count before adding
       const audiobooksBefore = await TauriCommands.getAllAudiobooks();
@@ -151,6 +155,8 @@ export const addDirectory = createAsyncThunk(
         durationMs: 5000,
         createdAt: Date.now(),
       }));
+    } finally {
+      dispatch(setIsAddingDirectory(false));
     }
   }
 );
