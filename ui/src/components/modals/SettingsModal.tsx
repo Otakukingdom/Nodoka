@@ -12,6 +12,8 @@ import {
   RotateCcw,
   Gauge,
   Accessibility,
+  Folder,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { closeModal, setFocusMode, setPrefersReducedMotion } from '../../store/slices/appSlice';
@@ -22,6 +24,7 @@ import {
   rescanDirectory,
 } from '../../store/thunks/libraryThunks';
 import type { ThemeMode, Directory } from '../../store/types';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const SKIP_DURATIONS = [15, 30, 60];
 const SKIP_BACKWARD_DURATIONS = [15, 30];
@@ -35,8 +38,9 @@ export default function SettingsModal() {
   const [skipForwardDuration, setSkipForwardDuration] = useState(30);
   const [skipBackwardDuration, setSkipBackwardDuration] = useState(30);
   const [autoSaveInterval, setAutoSaveInterval] = useState(10);
-  const [isRescanning, setIsRescanning] = useState(false);
+  const [scanningPaths, setScanningPaths] = useState<Set<string>>(new Set());
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<Directory | null>(null);
 
   const handleClose = () => {
     dispatch(closeModal());
@@ -72,22 +76,38 @@ export default function SettingsModal() {
     }
   };
 
-  const handleRemoveDirectory = async (path: string) => {
-    try {
-      await dispatch(removeDirectory(path));
-    } catch (error) {
-      console.error('Failed to remove directory:', error);
+  const handleRemoveClick = (dir: Directory) => {
+    setPendingRemoval(dir);
+  };
+
+  const confirmRemoval = async () => {
+    if (pendingRemoval) {
+      try {
+        await dispatch(removeDirectory(pendingRemoval.fullPath));
+      } catch (error) {
+        console.error('Failed to remove directory:', error);
+      } finally {
+        setPendingRemoval(null);
+      }
     }
   };
 
+  const cancelRemoval = () => {
+    setPendingRemoval(null);
+  };
+
   const handleRescanDirectory = async (path: string) => {
-    setIsRescanning(true);
+    setScanningPaths(prev => new Set(prev).add(path));
     try {
       await dispatch(rescanDirectory(path));
     } catch (error) {
       console.error('Failed to rescan directory:', error);
     } finally {
-      setIsRescanning(false);
+      setScanningPaths(prev => {
+        const next = new Set(prev);
+        next.delete(path);
+        return next;
+      });
     }
   };
 
@@ -105,7 +125,8 @@ export default function SettingsModal() {
   };
 
   return (
-    <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[90vh] overflow-y-auto">
+    <>
+      <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[90vh] overflow-y-auto">
       {/* Close button with enhanced hover state */}
       <button
         className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
@@ -158,55 +179,100 @@ export default function SettingsModal() {
           </label>
           <div className="space-y-2">
             {/* Directory list */}
-            <div className="bg-base-200 rounded-lg max-h-40 overflow-y-auto">
+            <div className="bg-base-200 rounded-lg max-h-48 overflow-y-auto">
               {directories.length === 0 ? (
-                <div className="text-sm text-base-content/50 py-4 text-center">
-                  No directories added yet. Click &quot;Add Directory&quot; to get started.
+                <div className="text-sm text-base-content/50 py-6 text-center">
+                  <Folder className="w-8 h-8 mx-auto mb-2 text-base-content/30" />
+                  No directories added yet
                 </div>
               ) : (
-                <div className="space-y-1 p-2">
-                  {directories.map((dir: Directory) => (
-                    <div
-                      key={dir.fullPath}
-                      className="flex items-center justify-between bg-base-100 rounded border border-base-300/50 group hover:border-primary/20 transition-all duration-200"
-                    >
-                      <div className="flex-1 flex items-center gap-2 min-w-0 px-2">
-                        <FolderPlus className="w-4 h-4 text-base-content/40" />
-                        <span className="text-sm truncate">{dir.fullPath}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          className="btn btn-ghost btn-xs hover:bg-primary/10 hover:text-primary transition-color"
-                          onClick={() => handleRescanDirectory(dir.fullPath)}
-                          disabled={isRescanning}
-                          aria-label="Rescan directory"
-                          title="Rescan directory"
-                        >
-                          {isRescanning ? (
-                            <RefreshCw className="w-3 h-3 animate-spin" />
+                <div className="divide-y divide-base-300/50">
+                  {directories.map((dir: Directory) => {
+                    const isScanning = scanningPaths.has(dir.fullPath);
+                    const hasError = dir.error !== undefined;
+                    const folderName = dir.fullPath.split(/[/\\]/).pop() || dir.fullPath;
+
+                    const getErrorMessage = (error: string) => {
+                      switch (error) {
+                        case 'NotFound':
+                          return 'Folder not found';
+                        case 'PermissionDenied':
+                          return 'Permission denied';
+                        default:
+                          return 'Unable to access folder';
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={dir.fullPath}
+                        className={`flex items-center justify-between px-3 py-2 group hover:bg-base-300/30 transition-all duration-200 ${
+                          isScanning ? 'bg-primary/5' : ''
+                        } ${hasError ? 'bg-warning/5' : ''}`}
+                      >
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          {hasError ? (
+                            <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
                           ) : (
-                            <RefreshCw className="w-3 h-3" />
+                            <Folder className="w-4 h-4 text-primary/70 shrink-0" />
                           )}
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-xs text-error hover:bg-error/10"
-                          onClick={() => handleRemoveDirectory(dir.fullPath)}
-                          aria-label="Remove directory"
-                          title="Remove directory"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                          <div className="flex flex-col min-w-0">
+                            <span
+                              className={`text-sm font-medium truncate ${hasError ? 'text-warning' : ''}`}
+                              title={dir.fullPath}
+                            >
+                              {folderName}
+                            </span>
+                            {hasError ? (
+                              <span className="text-xs text-warning/80">
+                                {getErrorMessage(dir.error!)}
+                              </span>
+                            ) : (
+                              <span
+                                className="text-xs text-base-content/50 truncate"
+                                title={dir.fullPath}
+                              >
+                                {dir.fullPath}
+                              </span>
+                            )}
+                          </div>
+                          {isScanning && (
+                            <span className="text-xs text-primary italic ml-2">
+                              Scanning...
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            className="btn btn-ghost btn-xs hover:bg-primary/10 hover:text-primary transition-color"
+                            onClick={() => handleRescanDirectory(dir.fullPath)}
+                            disabled={isScanning}
+                            aria-label={hasError ? 'Retry' : 'Rescan directory'}
+                            title={hasError ? 'Retry' : 'Rescan directory'}
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs text-base-content/50 hover:text-error hover:bg-error/10 transition-color"
+                            onClick={() => handleRemoveClick(dir)}
+                            disabled={isScanning}
+                            aria-label="Remove directory"
+                            title="Remove directory"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
             {/* Add directory button */}
             <button
-              className="btn btn-outline btn-sm w-full mt-2 gap-2 hover:bg-primary hover:text-primary hover:border-primary transition-all duration-200"
+              className="btn btn-outline btn-sm w-full mt-2 gap-2 hover:bg-primary hover:text-primary-content hover:border-primary transition-all duration-200"
               onClick={handleAddDirectory}
-              disabled={isRescanning || isLibraryLoading}
+              disabled={isLibraryLoading}
               aria-label="Add directory"
             >
               <FolderPlus className="w-4 h-4" />
@@ -358,6 +424,19 @@ export default function SettingsModal() {
           Done
         </button>
       </div>
-    </div>
+      </div>
+
+      {/* Confirmation Dialog for directory removal */}
+      <ConfirmationDialog
+        isOpen={pendingRemoval !== null}
+        title={pendingRemoval ? `Remove ${pendingRemoval.fullPath.split(/[/\\]/).pop()}?` : ''}
+        message="This will remove the folder from your library. Your files won't be deleted from disk."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmRemoval}
+        onCancel={cancelRemoval}
+      />
+    </>
   );
 }

@@ -44,6 +44,8 @@ export interface Directory {
   fullPath: string;
   createdAt: string;
   lastScanned?: string;
+  error?: 'NotFound' | 'PermissionDenied' | 'Unknown';
+  audiobookCount?: number;
 }
 
 export type PlaybackStatus = 'Playing' | 'Paused' | 'Stopped' | 'Ended';

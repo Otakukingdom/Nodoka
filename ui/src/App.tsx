@@ -2,7 +2,7 @@
  * Main application component
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useAppSelector, useAppDispatch } from './hooks/useRedux';
 import {
   TopBar,
@@ -12,7 +12,7 @@ import {
   ModalContainer,
   NotificationContainer,
 } from './components';
-import { loadInitialData, selectFile, createBookmark } from './store/thunks/libraryThunks';
+import { loadInitialData, selectFile, createBookmark, addDirectory } from './store/thunks/libraryThunks';
 import { updatePlayerTime, playPause, seekForward, seekBackward, updateVolume } from './store/thunks/playerThunks';
 import {
   openModal,
@@ -25,9 +25,10 @@ import { toggleMute, setVolume } from './store/slices/playerSlice';
 function App() {
   const dispatch = useAppDispatch();
   const { theme, isLoading, panelRatio, panelDividerDragging } = useAppSelector(state => state.app);
-  const { currentFiles, selectedFile } = useAppSelector(state => state.library);
+  const { currentFiles, selectedFile, isLibraryLoading } = useAppSelector(state => state.library);
   const { volume } = useAppSelector(state => state.player);
   const mainRef = useRef<HTMLElement>(null);
+  const [isAddingDirectory, setIsAddingDirectory] = useState(false);
 
   useEffect(() => {
     void dispatch(loadInitialData());
@@ -185,7 +186,31 @@ function App() {
       e.preventDefault();
       dispatch(openModal('SleepTimer'));
     }
-  }, [dispatch, currentFiles, selectedFile, volume]);
+
+    // Ctrl/Cmd + D for add directory
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      void (async () => {
+        if (isAddingDirectory || isLibraryLoading) return;
+        setIsAddingDirectory(true);
+        try {
+          const { open } = await import('@tauri-apps/plugin-dialog');
+          const selected = await open({
+            directory: true,
+            multiple: false,
+            title: 'Select Audiobook Directory',
+          });
+          if (selected) {
+            await dispatch(addDirectory(selected));
+          }
+        } catch (error) {
+          console.error('Failed to add directory:', error);
+        } finally {
+          setIsAddingDirectory(false);
+        }
+      })();
+    }
+  }, [dispatch, currentFiles, selectedFile, volume, isAddingDirectory, isLibraryLoading]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyboard);

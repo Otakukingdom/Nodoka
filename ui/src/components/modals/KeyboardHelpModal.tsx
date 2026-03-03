@@ -20,6 +20,7 @@ const shortcuts: KeyboardShortcut[] = [
   { key: 'M', action: 'Mute/Unmute' },
   { key: '+ / =', action: 'Volume up' },
   { key: '-', action: 'Volume down' },
+  { key: 'Ctrl/Cmd + D', action: 'Add audiobook folder' },
   { key: 'Ctrl/Cmd + B', action: 'Create bookmark' },
   { key: 'Ctrl/Cmd + ,', action: 'Open settings' },
   { key: 'F1', action: 'Show keyboard help' },

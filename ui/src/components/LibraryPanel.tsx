@@ -2,11 +2,11 @@
  * Library panel component showing audiobook list
  */
 
-import { useMemo } from 'react';
-import { Check, BookOpen, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, BookOpen, Search, FolderPlus } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
-import { selectAudiobook } from '../store/thunks/libraryThunks';
+import { selectAudiobook, addDirectory } from '../store/thunks/libraryThunks';
 import { getFilteredAudiobooks } from '../store/thunks/libraryThunks';
 import type { AudiobookSortOrder, Audiobook } from '../store/types';
 
@@ -14,6 +14,7 @@ export default function LibraryPanel() {
   const dispatch = useAppDispatch();
   const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading } =
     useAppSelector(state => state.library);
+  const [isAddingDirectory, setIsAddingDirectory] = useState(false);
 
   const filteredBooks = useMemo(() => {
     return getFilteredAudiobooks(audiobooks, searchQuery, filterStatus, sortOrder);
@@ -30,6 +31,28 @@ export default function LibraryPanel() {
   const handleBookClick = (book: Audiobook) => {
     if (book.id !== undefined) {
       void dispatch(selectAudiobook(book.id));
+    }
+  };
+
+  const handleAddDirectory = async () => {
+    if (isAddingDirectory || isLibraryLoading) return;
+
+    setIsAddingDirectory(true);
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Select Audiobook Directory',
+      });
+
+      if (selected) {
+        await dispatch(addDirectory(selected));
+      }
+    } catch (error) {
+      console.error('Failed to add directory:', error);
+    } finally {
+      setIsAddingDirectory(false);
     }
   };
 
@@ -74,21 +97,44 @@ export default function LibraryPanel() {
             ))}
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="text-center py-16 px-6">
-            <div className="relative w-20 h-20 mx-auto mb-5">
+          <div className="text-center py-12 px-6">
+            <div className="relative w-16 h-16 mx-auto mb-4">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} />
               <div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-2">
-                <BookOpen className="w-8 h-8 text-base-content/40" />
+                <BookOpen className="w-7 h-7 text-base-content/40" />
               </div>
             </div>
-            <div className="text-lg font-semibold mb-2 text-base-content/80">
-              {searchQuery ? 'No matches found' : 'No audiobooks yet'}
-            </div>
-            <div className="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
-              {searchQuery
-                ? 'Try adjusting your search terms or clear the search'
-                : 'Click "Add Directory" in the menu to import your audiobook collection'}
-            </div>
+            {searchQuery ? (
+              <>
+                <div className="text-lg font-semibold mb-2 text-base-content/80">
+                  No matches found
+                </div>
+                <div className="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
+                  Try adjusting your search terms or clear the search
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-semibold mb-2 text-base-content/80">
+                  No audiobooks yet
+                </div>
+                <div className="text-sm text-base-content/60 mb-6 max-w-xs mx-auto">
+                  Add a folder to get started
+                </div>
+                <button
+                  className="btn btn-primary shadow-md hover:shadow-lg transition-all duration-200 gap-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  onClick={handleAddDirectory}
+                  disabled={isAddingDirectory || isLibraryLoading}
+                  aria-label="Add audiobook folder"
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  <span>Add Audiobook Folder</span>
+                </button>
+                <div className="text-xs text-base-content/50 mt-4">
+                  or press <kbd className="kbd kbd-xs mx-1">Ctrl</kbd>+<kbd className="kbd kbd-xs mx-1">D</kbd>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
