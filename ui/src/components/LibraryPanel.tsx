@@ -12,7 +12,7 @@ import type { AudiobookSortOrder, Audiobook, Directory } from '../store/types';
 
 export default function LibraryPanel() {
   const dispatch = useAppDispatch();
-  const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading, isAddingDirectory, directories, scanningPaths } =
+  const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading, isAddingDirectory, directories, scanningPaths, scanProgress } =
     useAppSelector(state => state.library);
 
   // Debounce timer ref for search input
@@ -234,14 +234,14 @@ export default function LibraryPanel() {
         )}
       </div>
 
-      {/* Scanning status footer - shows when directories are being scanned */}
-      {isScanning && (
-        <div className="px-3 py-2 border-t border-base-300 bg-primary/5 flex items-center gap-2">
-          <RefreshCw className="w-4 h-4 text-primary animate-spin" />
-          <span className="text-xs text-primary font-medium">
-            Scanning {scanningPaths.length} {scanningPaths.length === 1 ? 'folder' : 'folders'}...
-          </span>
-        </div>
+      {/* Scanning status footer - detailed progress indicator */}
+      {isScanning && scanProgress && (
+        <ScanProgressIndicator
+          currentPath={scanProgress.path}
+          scannedCount={scanProgress.foundCount}
+          totalCount={scanProgress.totalCount}
+          elapsedTime={Date.now() - scanProgress.startTime}
+        />
       )}
     </div>
   );
@@ -386,4 +386,120 @@ function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: Directory
       </div>
     </div>
   );
+}
+
+/**
+ * Scan progress indicator component that displays real-time scan progress
+ * Uses the ScanProgressIndicator from components folder
+ */
+function ScanProgressIndicator({
+  currentPath,
+  scannedCount,
+  totalCount,
+  elapsedTime,
+}: {
+  currentPath: string;
+  scannedCount: number;
+  totalCount?: number;
+  elapsedTime: number;
+}) {
+  return (
+    <div
+      className="px-3 py-2.5 border-t border-primary/20 bg-primary/5 animate-fade-in"
+      role="status"
+      aria-live="polite"
+      aria-label="Scanning progress"
+    >
+      <div className="flex items-center gap-3">
+        {/* Animated scanning icon */}
+        <div className="relative shrink-0">
+          <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+        </div>
+
+        {/* Progress info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-primary font-medium">
+              Scanning...
+            </span>
+            {elapsedTime >= 2000 && (
+              <span className="text-xs text-base-content/50 tabular-nums">
+                {formatScanTime(elapsedTime)}
+              </span>
+            )}
+          </div>
+
+          {/* Current path - truncated */}
+          <div
+            className="text-xs text-base-content/60 truncate mt-0.5"
+            title={currentPath}
+          >
+            {truncateScanPath(currentPath)}
+          </div>
+        </div>
+
+        {/* Audiobook count badge */}
+        {scannedCount > 0 && (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10">
+            <BookOpen className="w-3 h-3 text-success" />
+            <span className="text-xs text-success font-medium tabular-nums">
+              {scannedCount}
+            </span>
+            {totalCount !== undefined && totalCount > 0 && (
+              <span className="text-xs text-base-content/40">
+                of {totalCount}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Formats elapsed time for scan progress display
+ */
+function formatScanTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s`;
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes < 60) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+/**
+ * Truncates path to show the most relevant part
+ */
+function truncateScanPath(path: string, maxLength = 50): string {
+  if (path.length <= maxLength) {
+    return path;
+  }
+
+  // Try to keep the folder name visible
+  const parts = path.split(/[/\\]/);
+  const folderName = parts[parts.length - 1] ?? '';
+
+  if (folderName.length >= maxLength) {
+    return `...${folderName.slice(-(maxLength - 3))}`;
+  }
+
+  // Show as much of the end of the path as possible
+  const availableLength = maxLength - folderName.length - 4;
+  if (availableLength > 10) {
+    return `${path.slice(0, availableLength)}.../${folderName}`;
+  }
+
+  return `...${folderName}`;
 }

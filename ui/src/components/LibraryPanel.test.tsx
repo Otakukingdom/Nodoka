@@ -246,7 +246,7 @@ describe('LibraryPanel', () => {
   });
 
   describe('scanning state', () => {
-    it('shows scanning indicator when directories are being scanned', () => {
+    it('shows scanning indicator when directories are being scanned with progress', () => {
       const store = createTestStore({
         audiobooks: [
           {
@@ -272,6 +272,11 @@ describe('LibraryPanel', () => {
         isLibraryLoading: false,
         isAddingDirectory: false,
         scanningPaths: ['/test/audiobooks'],
+        scanProgress: {
+          path: '/test/audiobooks',
+          startTime: Date.now(),
+          foundCount: 3,
+        },
       });
 
       render(
@@ -280,8 +285,69 @@ describe('LibraryPanel', () => {
         </Provider>
       );
 
-      // Should show scanning status
-      expect(screen.getByText(/Scanning/)).toBeInTheDocument();
+      // Should show scanning status with progress
+      expect(screen.getByText('Scanning...')).toBeInTheDocument();
+      // Should show found count
+      expect(screen.getByText('3')).toBeInTheDocument();
+    });
+
+    it('shows elapsed time for long-running scans', () => {
+      const startTime = Date.now() - 5000; // 5 seconds ago
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: ['/test/audiobooks'],
+        scanProgress: {
+          path: '/test/audiobooks',
+          startTime,
+          foundCount: 0,
+        },
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should show elapsed time (5s or more) - look for pattern like "5s"
+      expect(screen.getByText(/\d+s/)).toBeInTheDocument();
+    });
+
+    it('does not show scanning indicator when scanProgress is missing', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: ['/test/audiobooks'],
+        scanProgress: undefined,
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should not show scanning status when no progress info
+      expect(screen.queryByText('Scanning...')).not.toBeInTheDocument();
     });
   });
 

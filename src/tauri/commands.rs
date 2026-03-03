@@ -228,6 +228,11 @@ pub struct DirectoryValidation {
 /// Validate directory accessibility
 ///
 /// Returns validation status for a directory path, checking if it exists and is readable.
+///
+/// # Errors
+///
+/// This function does not return errors - all validation results are returned in the
+/// `DirectoryValidation` struct, including cases where the path doesn't exist or isn't readable.
 #[tauri::command]
 pub async fn validate_directory(path: String) -> std::result::Result<DirectoryValidation, String> {
     use std::fs;

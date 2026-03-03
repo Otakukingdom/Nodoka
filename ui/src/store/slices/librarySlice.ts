@@ -12,6 +12,20 @@ import type {
   AudiobookFilterStatus,
 } from '../types';
 
+/** Detailed progress information for an ongoing scan */
+export interface ScanProgressInfo {
+  /** Path being scanned */
+  path: string;
+  /** Timestamp when scan started (ms since epoch) */
+  startTime: number;
+  /** Number of audiobooks found so far */
+  foundCount: number;
+  /** Total expected count (if known) */
+  totalCount?: number;
+  /** Current subfolder being scanned */
+  currentSubPath?: string;
+}
+
 interface LibraryState {
   // Audiobook library
   audiobooks: Audiobook[];
@@ -34,6 +48,8 @@ interface LibraryState {
 
   // Scanning progress
   scanningPaths: string[];
+  /** Detailed progress for the most recent/current scan */
+  scanProgress?: ScanProgressInfo;
 }
 
 const initialState: LibraryState = {
@@ -49,6 +65,7 @@ const initialState: LibraryState = {
   isLibraryLoading: true,
   isAddingDirectory: false,
   scanningPaths: [],
+  scanProgress: undefined,
 };
 
 const librarySlice = createSlice({
@@ -114,6 +131,28 @@ const librarySlice = createSlice({
     setIsAddingDirectory: (state, action: PayloadAction<boolean>) => {
       state.isAddingDirectory = action.payload;
     },
+    /** Start tracking scan progress for a path */
+    startScanProgress: (state, action: PayloadAction<{ path: string; totalCount?: number }>) => {
+      state.scanProgress = {
+        path: action.payload.path,
+        startTime: Date.now(),
+        foundCount: 0,
+        totalCount: action.payload.totalCount,
+      };
+    },
+    /** Update scan progress with found count */
+    updateScanProgress: (state, action: PayloadAction<{ foundCount: number; currentSubPath?: string }>) => {
+      if (state.scanProgress) {
+        state.scanProgress.foundCount = action.payload.foundCount;
+        if (action.payload.currentSubPath) {
+          state.scanProgress.currentSubPath = action.payload.currentSubPath;
+        }
+      }
+    },
+    /** Clear scan progress when scan completes */
+    clearScanProgress: (state) => {
+      state.scanProgress = undefined;
+    },
   },
 });
 
@@ -135,6 +174,12 @@ export const {
   addScanningPath,
   removeScanningPath,
   setDirectoryError,
+  startScanProgress,
+  updateScanProgress,
+  clearScanProgress,
 } = librarySlice.actions;
 
+// ScanProgressInfo is already exported via the interface definition above
+
 export default librarySlice.reducer;
+

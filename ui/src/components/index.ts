@@ -22,6 +22,10 @@ export { default as DragDropOverlay } from './DragDropOverlay';
 // Error components
 export { default as DirectoryErrorBanner } from './DirectoryErrorBanner';
 
+// Progress components
+export { default as ScanProgressIndicator } from './ScanProgressIndicator';
+export type { ScanProgressProps } from './ScanProgressIndicator';
+
 // Modal components
 export { default as SettingsModal } from './modals/SettingsModal';
 export { default as KeyboardHelpModal } from './modals/KeyboardHelpModal';

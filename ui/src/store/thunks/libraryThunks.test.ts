@@ -196,6 +196,43 @@ describe('library thunks', () => {
       expect(state.library.scanningPaths).not.toContain('/Users/test/audiobooks');
     });
 
+    it('sets scanProgress during scan', async () => {
+      vi.mocked(TauriCommands.getAllAudiobooks)
+        .mockResolvedValueOnce([]) // before count
+        .mockResolvedValueOnce([{ id: 1, name: 'Book', directory: '/test', fullPath: '/test/Book', completeness: 0, defaultOrder: 0, createdAt: '2024-01-01' }]); // after count
+      vi.mocked(TauriCommands.scanDirectory).mockResolvedValue(undefined);
+
+      const promise = store.dispatch(rescanDirectory('/Users/test/audiobooks'));
+
+      // Check that scanProgress is set immediately
+      let state = store.getState();
+      expect(state.library.scanProgress).toBeDefined();
+      expect(state.library.scanProgress?.path).toBe('/Users/test/audiobooks');
+      expect(state.library.scanProgress?.startTime).toBeGreaterThan(0);
+
+      await promise;
+
+      // After completion, scanProgress should be cleared
+      state = store.getState();
+      expect(state.library.scanProgress).toBeUndefined();
+    });
+
+    it('updates scanProgress with found count', async () => {
+      vi.mocked(TauriCommands.getAllAudiobooks)
+        .mockResolvedValueOnce([]) // before count - 0 books
+        .mockResolvedValueOnce([
+          { id: 1, name: 'Book 1', directory: '/test', fullPath: '/test/Book1', completeness: 0, defaultOrder: 0, createdAt: '2024-01-01' },
+          { id: 2, name: 'Book 2', directory: '/test', fullPath: '/test/Book2', completeness: 0, defaultOrder: 1, createdAt: '2024-01-01' },
+        ]); // after count - 2 books
+      vi.mocked(TauriCommands.scanDirectory).mockResolvedValue(undefined);
+
+      await store.dispatch(rescanDirectory('/Users/test/audiobooks'));
+
+      const state = store.getState();
+      // scanProgress should be cleared after completion
+      expect(state.library.scanProgress).toBeUndefined();
+    });
+
     it('clears directory error on successful scan', async () => {
       // Pre-populate with error state
       store = createTestStore({
@@ -257,11 +294,14 @@ describe('library thunks', () => {
 
     it('removes path from scanningPaths even when scan fails', async () => {
       vi.mocked(TauriCommands.scanDirectory).mockRejectedValue(new Error('Scan failed'));
+      vi.mocked(TauriCommands.getAllAudiobooks).mockResolvedValue([]);
 
       await store.dispatch(rescanDirectory('/Users/test/audiobooks'));
 
       const state = store.getState();
       expect(state.library.scanningPaths).not.toContain('/Users/test/audiobooks');
+      // scanProgress should also be cleared
+      expect(state.library.scanProgress).toBeUndefined();
 
       // Should show error notification
       expect(state.app.notifications).toHaveLength(1);

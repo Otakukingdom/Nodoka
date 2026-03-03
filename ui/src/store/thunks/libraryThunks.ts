@@ -16,6 +16,9 @@ import {
   addScanningPath,
   removeScanningPath,
   setDirectoryError,
+  startScanProgress,
+  updateScanProgress,
+  clearScanProgress,
 } from '../slices/librarySlice';
 import { setTheme, setPanelRatio, setLoading, addNotification } from '../slices/appSlice';
 import { setVolume, setSpeed, setPlayback } from '../slices/playerSlice';
@@ -123,6 +126,10 @@ export const addDirectory = createAsyncThunk(
 
     // Set immediate loading state for UI feedback
     dispatch(setIsAddingDirectory(true));
+    // Add to scanning paths for footer indicator
+    dispatch(addScanningPath(path));
+    // Start detailed progress tracking
+    dispatch(startScanProgress({ path }));
 
     try {
       // Get audiobook count before adding
@@ -136,6 +143,11 @@ export const addDirectory = createAsyncThunk(
       // Get audiobook count after adding to check if any were found
       const audiobooksAfter = await TauriCommands.getAllAudiobooks();
       dispatch(setAudiobooks(audiobooksAfter));
+
+      // Update progress with found count
+      dispatch(updateScanProgress({
+        foundCount: audiobooksAfter.length - countBefore,
+      }));
 
       // Show feedback if no audiobooks were found in the folder
       if (audiobooksAfter.length === countBefore) {
@@ -157,6 +169,8 @@ export const addDirectory = createAsyncThunk(
       }));
     } finally {
       dispatch(setIsAddingDirectory(false));
+      dispatch(removeScanningPath(path));
+      dispatch(clearScanProgress());
     }
   }
 );
@@ -219,10 +233,24 @@ export const rescanDirectory = createAsyncThunk(
   'library/rescanDirectory',
   async (path: string, { dispatch }) => {
     dispatch(addScanningPath(path));
+    // Start detailed progress tracking
+    dispatch(startScanProgress({ path }));
+
     try {
+      // Get audiobook count before scan for progress tracking
+      const audiobooksBefore = await TauriCommands.getAllAudiobooks();
+      const countBefore = audiobooksBefore.length;
+
       await TauriCommands.scanDirectory(path);
+
       const audiobooks = await TauriCommands.getAllAudiobooks();
       dispatch(setAudiobooks(audiobooks));
+
+      // Update progress with found count
+      dispatch(updateScanProgress({
+        foundCount: audiobooks.length - countBefore,
+      }));
+
       // Clear any error for this directory on successful scan
       dispatch(setDirectoryError({ path, error: null }));
     } catch (error) {
@@ -235,6 +263,7 @@ export const rescanDirectory = createAsyncThunk(
       }));
     } finally {
       dispatch(removeScanningPath(path));
+      dispatch(clearScanProgress());
     }
   }
 );
