@@ -12,7 +12,7 @@ import {
   ModalContainer,
   NotificationContainer,
 } from './components';
-import { loadInitialData, selectFile } from './store/thunks/libraryThunks';
+import { loadInitialData, selectFile, createBookmark } from './store/thunks/libraryThunks';
 import { updatePlayerTime, playPause, seekForward, seekBackward, updateVolume } from './store/thunks/playerThunks';
 import {
   openModal,
@@ -171,7 +171,7 @@ function App() {
     // Ctrl/Cmd + B for bookmark
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
       e.preventDefault();
-      // TODO: Implement create bookmark
+      void dispatch(createBookmark());
     }
 
     // Ctrl/Cmd + , for settings

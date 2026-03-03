@@ -11,11 +11,13 @@ import {
   setSelectedFile,
   setDirectories,
   setLibraryLoading,
+  addBookmark,
 } from '../slices/librarySlice';
 import { setTheme, setPanelRatio, setLoading, addNotification } from '../slices/appSlice';
 import { setVolume, setSpeed, setPlayback } from '../slices/playerSlice';
 import * as TauriCommands from '../../commands/tauri';
-import type { AudiobookSortOrder, ThemeMode, Audiobook } from '../types';
+import type { AudiobookSortOrder, ThemeMode, Audiobook, Bookmark } from '../types';
+import type { RootState } from '../index';
 
 export const loadInitialData = createAsyncThunk(
   'library/loadInitialData',
@@ -209,3 +211,86 @@ export const getFilteredAudiobooks = (
 
   return filtered;
 };
+
+/**
+ * Format milliseconds to MM:SS or HH:MM:SS string
+ */
+function formatBookmarkTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Create a bookmark at the current playback position
+ * Triggered by Ctrl+B keyboard shortcut
+ */
+export const createBookmark = createAsyncThunk(
+  'library/createBookmark',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const { selectedAudiobook, selectedFile } = state.library;
+    const { currentTime } = state.player;
+
+    // Validate required state
+    if (selectedAudiobook === undefined || !selectedFile) {
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Warning',
+        message: 'Cannot create bookmark: no file is playing',
+        durationMs: 3000,
+        createdAt: Date.now(),
+      }));
+      return null;
+    }
+
+    const label = `Bookmark at ${formatBookmarkTime(currentTime)}`;
+
+    try {
+      const bookmarkId = await TauriCommands.createBookmark(
+        selectedAudiobook,
+        selectedFile,
+        currentTime,
+        label,
+        undefined
+      );
+
+      const bookmark: Bookmark = {
+        id: bookmarkId,
+        audiobookId: selectedAudiobook,
+        filePath: selectedFile,
+        positionMs: currentTime,
+        label,
+        note: undefined,
+        createdAt: new Date().toISOString(),
+      };
+
+      dispatch(addBookmark(bookmark));
+
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Success',
+        message: `Bookmark created at ${formatBookmarkTime(currentTime)}`,
+        durationMs: 2000,
+        createdAt: Date.now(),
+      }));
+
+      return bookmark;
+    } catch (error) {
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Error',
+        message: `Failed to create bookmark: ${error}`,
+        durationMs: 5000,
+        createdAt: Date.now(),
+      }));
+      return null;
+    }
+  }
+);

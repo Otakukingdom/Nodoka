@@ -25,6 +25,11 @@ describe('playerSlice', () => {
     isMuted: false,
     volumeExpanded: 'Collapsed' as const,
     speed: 1.0,
+    sleepTimer: null as const,
+    sleepTimerStartMs: null as const,
+    sleepTimerDurationMs: null as const,
+    sleepTimerRemainingMs: null as const,
+    sleepTimerFadeDuration: 10,
   };
 
   it('should return the initial state', () => {
@@ -110,8 +115,14 @@ describe('playerSlice', () => {
         currentTime: 10000,
         totalDuration: 300000,
         volume: 100,
+        isMuted: false,
         volumeExpanded: 'Collapsed' as const,
         speed: 1.0,
+        sleepTimer: null as const,
+        sleepTimerStartMs: null as const,
+        sleepTimerDurationMs: null as const,
+        sleepTimerRemainingMs: null as const,
+        sleepTimerFadeDuration: 10,
       };
       const state = playerReducer(playingState, resetPlayer());
       expect(state.playback).toBe('Stopped');
