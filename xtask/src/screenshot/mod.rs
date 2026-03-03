@@ -11,14 +11,16 @@
 //! cargo xtask screenshot
 //! ```
 //!
-//! # Concurrent Execution
+//! # Self-Sufficient Operation
 //!
-//! Screenshots are captured concurrently using a pool of 5 Playwright headless
-//! browser instances for optimal performance. The pool size can be configured
-//! via the `SCREENSHOT_WORKERS` environment variable.
-//!
-//! The Vite dev server is started automatically with `VITE_PLAYWRIGHT_TEST=true`
-//! to enable mock backend mode, allowing screenshots without the Rust backend.
+//! The command is fully self-sufficient and will:
+//! - Validate the environment (Node.js, npm, disk space)
+//! - Install npm dependencies if stale or missing
+//! - Install Playwright Chromium browser if missing
+//! - Clean up stale processes from previous failed runs
+//! - Prevent concurrent runs with a lock file
+//! - Start and stop the Vite dev server automatically
+//! - Clean up all resources on success, failure, or interruption
 //!
 //! # Output Structure
 //!
@@ -67,28 +69,20 @@
 //! - `--headed`: Run in headed mode for debugging
 //! - `--timeout <secs>`: Custom timeout for Playwright tests
 //! - `--skip-readme`: Skip README index generation
-//!
-//! # Environment Variables
-//!
-//! - `SCREENSHOT_OUTPUT_DIR`: Override output directory
-//! - `SCREENSHOT_WORKERS`: Number of concurrent browser instances (default: 5)
-//!
-//! # Troubleshooting
-//!
-//! - **Screenshots not generated**: Ensure npm and Playwright are installed.
-//!   Run `npx playwright install chromium` to install the browser.
-//! - **Blank screenshots**: Check that `VITE_PLAYWRIGHT_TEST=true` is set when
-//!   the dev server starts. This exposes the Redux store for state manipulation.
-//! - **Timeout errors**: Increase timeout with `--timeout 900` for slower machines.
-//! - **Port already in use**: Kill any process using port 5173 before running.
 
+mod cleanup;
+mod deps;
+mod lock;
 mod organizer;
+mod preflight;
 mod readme;
+mod server;
+mod signal;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::Args as ClapArgs;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::time::Duration;
 
 /// Screenshot generation arguments
@@ -117,54 +111,94 @@ pub struct Args {
 
 /// Run the screenshot generation command
 pub fn run(args: Args) -> Result<()> {
-    let project_root = std::env::current_dir()
-        .context("Failed to get current directory")?;
+    // Set up signal handler first
+    signal::setup_signal_handler()?;
 
+    let project_root =
+        std::env::current_dir().context("Failed to get current directory")?;
     let ui_dir = project_root.join("ui");
     let output_dir = project_root.join(&args.output);
 
     println!("Screenshot Generation for Nodoka");
     println!("==================================");
-    println!("Output directory: {}", output_dir.display());
-    println!("Project: {}", args.project);
     println!();
 
-    // Step 1: Create output directory structure
-    println!("[1/4] Creating output directory structure...");
+    // === PHASE 1: PRE-FLIGHT CHECKS ===
+    println!("Pre-flight checks...");
+    preflight::run_preflight_checks(&project_root)?;
+    println!("Pre-flight checks passed");
+    println!();
+
+    // === PHASE 2: DEPENDENCY SETUP ===
+    println!("Step 1: Checking dependencies...");
+    deps::ensure_npm_dependencies(&ui_dir)?;
+    deps::ensure_playwright_browser(&ui_dir)?;
+    println!("Dependencies ready");
+    println!();
+
+    // === PHASE 3: CLEANUP ===
+    println!("Step 2: Cleaning up stale processes...");
+    cleanup::kill_stale_dev_server()?;
+    cleanup::kill_orphaned_playwright_processes()?;
+    println!("Cleanup complete");
+    println!();
+
+    // === PHASE 4: LOCK ACQUISITION ===
+    println!("Step 3: Acquiring lock...");
+    let _lock = lock::LockFile::acquire(&ui_dir)?;
+    println!();
+
+    // === PHASE 5: ARTIFACT CLEANUP ===
+    println!("Step 4: Cleaning previous artifacts...");
+    cleanup::cleanup_previous_artifacts(&project_root, &ui_dir)?;
+    println!();
+
+    // === PHASE 6: DIRECTORY STRUCTURE ===
+    println!("Step 5: Creating output directory structure...");
     organizer::create_directory_structure(&output_dir)
         .context("Failed to create output directory structure")?;
+    println!();
 
-    // Step 2: Start Vite dev server
-    println!("[2/4] Starting Vite dev server...");
-    let mut dev_server = start_dev_server(&ui_dir)
-        .context("Failed to start dev server")?;
+    // === PHASE 7: SERVER STARTUP ===
+    println!("Step 6: Starting Vite dev server...");
+    let mut dev_server =
+        server::DevServer::start(&ui_dir, Duration::from_secs(60))?;
+    println!();
 
-    // Give the server time to start
-    std::thread::sleep(Duration::from_secs(5));
+    // === PHASE 8: PLAYWRIGHT EXECUTION ===
+    println!("Step 7: Running Playwright screenshot generation...");
+    let playwright_result =
+        run_playwright_screenshots(&ui_dir, &output_dir, &args);
+    println!();
 
-    // Step 3: Run Playwright screenshot tests
-    println!("[3/4] Running Playwright screenshot generation...");
-    let result = run_playwright_screenshots(&ui_dir, &output_dir, &args);
-
-    // Clean up: stop the dev server
-    println!("[4/4] Cleaning up...");
-    if let Err(e) = stop_dev_server(&mut dev_server) {
+    // === PHASE 9: CLEANUP ===
+    println!("Step 8: Cleaning up...");
+    if let Err(e) = dev_server.stop() {
         eprintln!("Warning: Failed to stop dev server gracefully: {}", e);
     }
 
-    // Check Playwright result
-    result.context("Playwright screenshot generation failed")?;
+    // Handle Playwright result
+    if let Err(e) = playwright_result {
+        println!();
+        println!("Error: {}", e);
+        println!();
+        println!("Debug information:");
+        println!("├── Playwright report: ui/playwright-report-screenshots/index.html");
+        println!("├── Test results: ui/test-results-screenshots/");
+        println!("└── Run with --headed flag to see browser during tests");
+        println!();
+        println!("To retry: cargo xtask screenshot");
+        bail!("Playwright tests failed");
+    }
 
-    // Step 5: Generate README index
+    // === PHASE 10: README GENERATION ===
     if !args.skip_readme {
-        println!("Generating README index...");
-        readme::generate(&output_dir)
-            .context("Failed to generate README index")?;
+        println!("Step 9: Generating README index...");
+        readme::generate(&output_dir).context("Failed to generate README index")?;
 
-        // Verify README was created
         let readme_path = output_dir.join("README.md");
         if !readme_path.exists() {
-            anyhow::bail!("README.md was not generated at {}", readme_path.display());
+            bail!("README.md was not generated at {}", readme_path.display());
         }
         println!("README generated at: {}", readme_path.display());
     }
@@ -176,54 +210,12 @@ pub fn run(args: Args) -> Result<()> {
     Ok(())
 }
 
-/// Start the Vite dev server with Playwright test mode enabled
-fn start_dev_server(ui_dir: &Path) -> Result<std::process::Child> {
-    let mut cmd = Command::new("npm");
-    cmd.args(["run", "dev"])
-        .env("VITE_PLAYWRIGHT_TEST", "true")
-        .current_dir(ui_dir)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-
-    let child = cmd.spawn()
-        .context("Failed to spawn npm run dev. Make sure npm is available.")?;
-
-    Ok(child)
-}
-
-/// Stop the dev server gracefully with cross-platform support
-fn stop_dev_server(child: &mut std::process::Child) -> Result<()> {
-    #[cfg(unix)]
-    {
-        // Send SIGTERM for graceful shutdown on Unix
-        let pid = child.id() as i32;
-        // SAFETY: libc::kill is a standard POSIX call for process signaling
-        unsafe {
-            libc::kill(pid, libc::SIGTERM);
-        }
-        // Wait a bit for graceful shutdown
-        std::thread::sleep(Duration::from_secs(2));
-    }
-
-    #[cfg(windows)]
-    {
-        // On Windows, taskkill is more reliable for process tree termination
-        let pid = child.id().to_string();
-        let _ = std::process::Command::new("taskkill")
-            .args(["/PID", &pid, "/F", "/T"])
-            .output();
-        std::thread::sleep(Duration::from_secs(1));
-    }
-
-    // Kill if still running
-    let _ = child.kill();
-    let _ = child.wait();
-
-    Ok(())
-}
-
 /// Run Playwright tests for screenshot generation
-fn run_playwright_screenshots(ui_dir: &Path, output_dir: &Path, args: &Args) -> Result<()> {
+fn run_playwright_screenshots(
+    ui_dir: &Path,
+    output_dir: &Path,
+    args: &Args,
+) -> Result<()> {
     let mut cmd = Command::new("npx");
     cmd.args([
         "playwright",
@@ -232,19 +224,21 @@ fn run_playwright_screenshots(ui_dir: &Path, output_dir: &Path, args: &Args) -> 
         "--project",
         &args.project,
     ])
-    .env("SCREENSHOT_OUTPUT_DIR", output_dir.to_string_lossy().as_ref())
+    .env(
+        "SCREENSHOT_OUTPUT_DIR",
+        output_dir.to_string_lossy().as_ref(),
+    )
     .current_dir(ui_dir);
 
     if args.headed {
         cmd.arg("--headed");
     }
 
-    let status = cmd.status()
-        .context("Failed to run Playwright tests. Make sure npx and playwright are available.")?;
+    let status = cmd.status().context("Failed to run Playwright tests")?;
 
     if status.success() {
         Ok(())
     } else {
-        anyhow::bail!("Playwright tests failed with status: {}", status)
+        bail!("Playwright tests failed with status: {}", status)
     }
 }

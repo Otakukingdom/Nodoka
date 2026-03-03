@@ -63,7 +63,7 @@ fn build_manifest(output_dir: &Path) -> Result<Manifest> {
         let path = entry.path();
 
         // Only process PNG files
-        if path.extension().map_or(false, |ext| ext == "png") {
+        if path.extension().is_some_and(|ext| ext == "png") {
             let relative_path = path.strip_prefix(output_dir)
                 .context("Failed to compute relative path")?
                 .to_string_lossy()
