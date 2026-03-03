@@ -78,6 +78,7 @@ mod preflight;
 mod readme;
 mod server;
 mod signal;
+mod state;
 
 use anyhow::{bail, Context, Result};
 use clap::Args as ClapArgs;
@@ -118,6 +119,9 @@ pub fn run(args: Args) -> Result<()> {
         std::env::current_dir().context("Failed to get current directory")?;
     let ui_dir = project_root.join("ui");
     let output_dir = project_root.join(&args.output);
+
+    // Register UI directory for emergency cleanup on interrupt
+    state::register_ui_dir(ui_dir.clone());
 
     println!("Screenshot Generation for Nodoka");
     println!("==================================");

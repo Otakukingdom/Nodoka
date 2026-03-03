@@ -5,20 +5,7 @@
 use anyhow::{bail, Context, Result};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-
-static INTERRUPTED: AtomicBool = AtomicBool::new(false);
-
-/// Set the interrupted flag (called from signal handler)
-pub fn set_interrupted() {
-    INTERRUPTED.store(true, Ordering::SeqCst);
-}
-
-/// Check if we've been interrupted
-pub fn is_interrupted() -> bool {
-    INTERRUPTED.load(Ordering::SeqCst)
-}
 
 /// Running dev server handle
 pub struct DevServer {
@@ -42,14 +29,23 @@ impl DevServer {
             .spawn()
             .context("Failed to spawn npm run dev")?;
 
+        let pid = child.id();
+        super::state::register_server_pid(pid);
+
         println!("├── Waiting for server...");
+
+        // Create HTTP client for health checks
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_secs(2))
+            .build()
+            .context("Failed to create HTTP client")?;
 
         // Wait for server to respond
         let start = Instant::now();
         let mut child = Some(child);
 
         loop {
-            if is_interrupted() {
+            if super::state::is_interrupted() {
                 if let Some(ref mut c) = child {
                     let _ = c.kill();
                 }
@@ -68,15 +64,9 @@ impl DevServer {
                 );
             }
 
-            // Use curl to check server health (cross-platform available)
-            let check_result = Command::new("curl")
-                .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &url])
-                .timeout(Duration::from_secs(2))
-                .output();
-
-            if let Ok(output) = check_result {
-                let code = String::from_utf8_lossy(&output.stdout);
-                if code.trim() == "200" {
+            // Use reqwest to check server health
+            match client.get(&url).send() {
+                Ok(resp) if resp.status().is_success() => {
                     let elapsed = start.elapsed();
                     println!(
                         "│   └── [{:.1}s] Server responding at {}",
@@ -84,6 +74,12 @@ impl DevServer {
                         url
                     );
                     break;
+                }
+                Ok(_) => {
+                    // Server responded but not 200, keep waiting
+                }
+                Err(_) => {
+                    // Connection failed, keep waiting
                 }
             }
 
@@ -157,18 +153,5 @@ impl Drop for DevServer {
             let _ = child.kill();
             let _ = child.wait();
         }
-    }
-}
-
-/// Extension trait for Command to add timeout support
-trait CommandTimeout {
-    fn timeout(&mut self, duration: Duration) -> &mut Self;
-}
-
-impl CommandTimeout for Command {
-    fn timeout(&mut self, _duration: Duration) -> &mut Self {
-        // On Unix, we can't set process timeout directly
-        // The timeout is handled by the caller
-        self
     }
 }

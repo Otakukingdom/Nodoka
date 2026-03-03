@@ -174,3 +174,37 @@ fn run_playwright_install(ui_dir: &Path) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_hash_file_contents() {
+        let mut file = NamedTempFile::new().unwrap();
+        write!(file, "test content").unwrap();
+
+        let hash1 = hash_file_contents(file.path()).unwrap();
+        let hash2 = hash_file_contents(file.path()).unwrap();
+
+        // Same content should produce same hash
+        assert_eq!(hash1, hash2);
+        assert!(!hash1.is_empty());
+    }
+
+    #[test]
+    fn test_hash_different_contents() {
+        let mut file1 = NamedTempFile::new().unwrap();
+        let mut file2 = NamedTempFile::new().unwrap();
+        write!(file1, "content 1").unwrap();
+        write!(file2, "content 2").unwrap();
+
+        let hash1 = hash_file_contents(file1.path()).unwrap();
+        let hash2 = hash_file_contents(file2.path()).unwrap();
+
+        // Different content should produce different hash
+        assert_ne!(hash1, hash2);
+    }
+}

@@ -41,6 +41,9 @@ impl LockFile {
             .with_context(|| format!("Failed to create lock file at {}", path.display()))?;
         write!(file, "{}", pid)?;
 
+        // Register lock path for emergency cleanup
+        super::state::register_lock_path(path.clone());
+
         println!("│   └── [OK] Lock acquired (PID {})", pid);
 
         Ok(Self { path })

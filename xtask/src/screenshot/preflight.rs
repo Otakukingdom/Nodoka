@@ -168,3 +168,22 @@ fn get_available_disk_space(path: &Path) -> Result<u64> {
 
     bail!("Failed to parse disk space from wmic output")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_node_version() {
+        assert_eq!(parse_node_version("v20.11.0").unwrap(), 20);
+        assert_eq!(parse_node_version("v18.0.0").unwrap(), 18);
+        assert_eq!(parse_node_version("v22.1.2").unwrap(), 22);
+        assert_eq!(parse_node_version("20.11.0").unwrap(), 20);
+    }
+
+    #[test]
+    fn test_parse_node_version_invalid() {
+        assert!(parse_node_version("").is_err());
+        assert!(parse_node_version("invalid").is_err());
+    }
+}
