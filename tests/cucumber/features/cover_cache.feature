@@ -55,3 +55,36 @@ Feature: Cover Art Cache
     When I clear the cover cache
     Then no covers should be cached
     And covers should reload on next view
+
+  # ==================== UI Verification Scenarios ====================
+
+  Scenario: Cover image loads and displays in img element
+    Given the application has an audiobook with cover art
+    When I view the audiobook
+    Then the cover img element should be visible
+    And the img src should point to the cover URL
+
+  Scenario: Loading spinner appears while cover loads
+    Given the application has an audiobook with cover art
+    When I view the audiobook for the first time
+    Then a loading spinner may appear before cover shows
+    And the spinner should disappear when cover loads
+
+  Scenario: Cached cover loads instantly without spinner
+    Given the application has an audiobook with cached cover art
+    When I view the audiobook again
+    Then no loading spinner should appear
+    And the cover should be visible immediately
+
+  Scenario: Cover refresh shows updated image in UI
+    Given the application has an audiobook with cached cover art
+    When the cover art file is modified
+    And I rescan the directory
+    Then the updated cover should be visible in details panel
+    And the library card should show the new cover
+
+  Scenario: Cover error shows fallback placeholder
+    Given the application has an audiobook with missing cover
+    When I view the audiobook
+    Then a placeholder image should be displayed
+    And the placeholder should indicate no cover available

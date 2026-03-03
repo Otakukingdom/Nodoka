@@ -84,3 +84,33 @@ Feature: Notification System
   Scenario: Notification shows progress indicator
     Given a notification is visible with progress
     Then a progress indicator should be shown on the notification
+
+  # ==================== Timing and Auto-Dismiss UI Tests ====================
+
+  Scenario: Notification auto-dismisses after configured duration
+    Given a notification is visible
+    When I wait 5 seconds
+    Then the notification should disappear automatically
+
+  Scenario: Notification dismiss countdown is visible
+    Given a notification is visible with countdown
+    Then the countdown timer should be displayed
+    And the countdown should decrease over time
+
+  Scenario: Hover pauses auto-dismiss countdown
+    Given a notification is visible with countdown
+    When I hover over the notification
+    Then the countdown should pause
+    When I move the mouse away
+    Then the countdown should resume
+
+  Scenario: Multiple notifications dismiss in correct order
+    Given 3 notifications are showing
+    When I wait for notifications to auto-dismiss
+    Then notifications should dismiss in order of appearance
+
+  Scenario: Swipe to dismiss notification on touch devices
+    Given a notification is visible
+    When I swipe the notification away
+    Then the notification should disappear immediately
+    And no dismiss animation should play

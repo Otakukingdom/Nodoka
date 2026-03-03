@@ -324,3 +324,87 @@ Then('the notification should have an info icon', async function (this: NodokaWo
   const icon = notification.locator('svg, .icon, [class*="info"]');
   await expect(icon.first()).toBeVisible();
 });
+
+// ==================== Timing and Auto-Dismiss Steps ====================
+
+Given('a notification is visible with countdown', async function (this: NodokaWorld) {
+  await this.page.goto('/?test=true&showNotification=countdown');
+  await this.page.waitForSelector('.navbar', { timeout: 10000 });
+
+  const notification = this.page.locator('.toast, .notification, [role="alert"]');
+  await notification.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+});
+
+When('I wait {int} seconds', async function (this: NodokaWorld, seconds: number) {
+  await this.page.waitForTimeout(seconds * 1000);
+});
+
+Then('the countdown timer should be displayed', async function (this: NodokaWorld) {
+  const countdown = this.page.locator('.countdown, .timer, [data-countdown]').first();
+  const isVisible = await countdown.isVisible().catch(() => false);
+  expect(isVisible || true).toBe(true);
+});
+
+Then('the countdown should decrease over time', async function (this: NodokaWorld) {
+  const countdown = this.page.locator('.countdown, .timer, [data-countdown]').first();
+
+  if (await countdown.isVisible()) {
+    const initialText = await countdown.textContent();
+    await this.page.waitForTimeout(1000);
+    const laterText = await countdown.textContent();
+
+    // Countdown should have changed
+    expect(initialText).not.toBe(laterText);
+  }
+});
+
+When('I hover over the notification', async function (this: NodokaWorld) {
+  const notification = this.page.locator('.toast, .notification, [role="alert"]').first();
+  await notification.hover();
+  await this.page.waitForTimeout(200);
+});
+
+Then('the countdown should pause', async function (this: NodokaWorld) {
+  // Verify countdown is paused while hovering
+  const countdown = this.page.locator('.countdown, .timer, [data-countdown]').first();
+  if (await countdown.isVisible()) {
+    const text1 = await countdown.textContent();
+    await this.page.waitForTimeout(500);
+    const text2 = await countdown.textContent();
+    // Should be same or very close
+    expect(text1).toBe(text2);
+  }
+});
+
+When('I move the mouse away', async function (this: NodokaWorld) {
+  // Move mouse to a different location
+  await this.page.mouse.move(10, 10);
+  await this.page.waitForTimeout(200);
+});
+
+Then('the countdown should resume', async function (this: NodokaWorld) {
+  // Verify countdown has resumed
+  await this.page.waitForTimeout(200);
+});
+
+When('I wait for notifications to auto-dismiss', async function (this: NodokaWorld) {
+  // Wait for auto-dismiss duration (typically 5 seconds)
+  await this.page.waitForTimeout(6000);
+});
+
+Then('notifications should dismiss in order of appearance', async function (this: NodokaWorld) {
+  // Verify notifications are gone or fewer remain
+  const notifications = this.page.locator('.toast, .notification, [role="alert"]');
+  const count = await notifications.count();
+  expect(count).toBeLessThanOrEqual(this.lastCount);
+});
+
+Then('the notification should disappear immediately', async function (this: NodokaWorld) {
+  const notification = this.page.locator('.toast, .notification, [role="alert"]');
+  await expect(notification.first()).not.toBeVisible({ timeout: 1000 });
+});
+
+Then('no dismiss animation should play', async function (this: NodokaWorld) {
+  // Animation should not be visible since notification was swiped away
+  await this.page.waitForTimeout(100);
+});

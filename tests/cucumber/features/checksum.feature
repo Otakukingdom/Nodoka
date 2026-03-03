@@ -37,3 +37,36 @@ Feature: File Checksum Verification
     Given the library has an audiobook with large audio files
     When I scan the directory
     Then checksums should be calculated without blocking the UI
+
+  # ==================== UI Verification Scenarios ====================
+
+  Scenario: Changed file indicator appears in UI
+    Given the application has an audiobook with checksummed files
+    When a file is modified externally
+    And I rescan the directory
+    Then the file should be flagged as changed
+    And a visual change indicator should be visible on the file
+
+  Scenario: Checksum verification progress indicator
+    Given the library has an audiobook with large audio files
+    When I scan the directory
+    Then a scanning progress indicator should be visible
+    And the progress indicator should show percentage complete
+
+  Scenario: File integrity status displayed in details panel
+    Given the application has an audiobook with checksummed files
+    When I select the audiobook
+    Then the file integrity status should be displayed in the details panel
+    And each file should show a verification status icon
+
+  Scenario: Checksum status tooltip on hover
+    Given the application has an audiobook with checksummed files
+    When I hover over a file verification status icon
+    Then a tooltip should show the checksum verification details
+
+  Scenario: Checksum mismatch shows warning notification
+    Given the application has an audiobook with checksummed files
+    When a file is modified externally
+    And I rescan the directory
+    Then a warning notification should appear
+    And the notification should indicate file integrity issues
