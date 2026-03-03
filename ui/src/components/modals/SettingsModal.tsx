@@ -83,6 +83,7 @@ export default function SettingsModal() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingRemoval, setPendingRemoval] = useState<Directory | null>(null);
   const [isRescanningAll, setIsRescanningAll] = useState(false);
+  const [rescanProgress, setRescanProgress] = useState<{ current: number; total: number } | null>(null);
   const [successPaths, setSuccessPaths] = useState<Set<string>>(new Set());
 
   // Calculate audiobook counts per directory
@@ -182,16 +183,20 @@ export default function SettingsModal() {
     if (directories.length === 0 || isRescanningAll) return;
 
     setIsRescanningAll(true);
+    setRescanProgress({ current: 0, total: directories.length });
     try {
       // Rescan all directories sequentially
-      for (const dir of directories) {
-        if (!dir.error) {
+      for (let i = 0; i < directories.length; i++) {
+        const dir = directories[i];
+        if (dir && !dir.error) {
           await dispatch(rescanDirectory(dir.fullPath));
         }
+        setRescanProgress({ current: i + 1, total: directories.length });
       }
     } catch (error) {
       console.error('Failed to rescan all directories:', error);
     } finally {
+      setRescanProgress(null);
       setIsRescanningAll(false);
     }
   };
@@ -397,6 +402,11 @@ export default function SettingsModal() {
                 >
                   <RefreshCw className={`w-4 h-4 ${isRescanningAll ? 'animate-spin' : ''}`} />
                   <span>Rescan All</span>
+                  {isRescanningAll && rescanProgress && (
+                    <span className="text-xs text-base-content/60 tabular-nums">
+                      {rescanProgress.current}/{rescanProgress.total}
+                    </span>
+                  )}
                 </button>
               )}
             </div>

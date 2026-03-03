@@ -93,11 +93,47 @@ export const selectFile = createAsyncThunk(
 
 export const addDirectory = createAsyncThunk(
   'library/addDirectory',
-  async (path: string, { dispatch }) => {
+  async (path: string, { dispatch, getState }) => {
+    const state = getState() as RootState;
+
+    // Check for duplicate directory
+    const exists = state.library.directories.some(
+      d => d.fullPath === path
+    );
+    if (exists) {
+      dispatch(addNotification({
+        id: Date.now(),
+        kind: 'Warning',
+        message: 'That folder is already in your library',
+        durationMs: 3000,
+        createdAt: Date.now(),
+      }));
+      return;
+    }
+
     try {
+      // Get audiobook count before adding
+      const audiobooksBefore = await TauriCommands.getAllAudiobooks();
+      const countBefore = audiobooksBefore.length;
+
       await TauriCommands.insertDirectory(path);
       const directories = await TauriCommands.getDirectories();
       dispatch(setDirectories(directories));
+
+      // Get audiobook count after adding to check if any were found
+      const audiobooksAfter = await TauriCommands.getAllAudiobooks();
+      dispatch(setAudiobooks(audiobooksAfter));
+
+      // Show feedback if no audiobooks were found in the folder
+      if (audiobooksAfter.length === countBefore) {
+        dispatch(addNotification({
+          id: Date.now(),
+          kind: 'Info',
+          message: 'No audiobooks found in that folder. Try a folder with audio files.',
+          durationMs: 5000,
+          createdAt: Date.now(),
+        }));
+      }
     } catch (error) {
       dispatch(addNotification({
         id: Date.now(),

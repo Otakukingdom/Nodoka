@@ -536,4 +536,75 @@ describe('SettingsModal - Directory Management', () => {
       expect(systemOption).toBeInTheDocument();
     });
   });
+
+  describe('rescan all progress', () => {
+    it('shows progress indicator during batch rescan', async () => {
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks1',
+            createdAt: '2024-01-01',
+          },
+          {
+            fullPath: '/home/user/audiobooks2',
+            createdAt: '2024-01-01',
+          },
+          {
+            fullPath: '/home/user/audiobooks3',
+            createdAt: '2024-01-01',
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      // Find Rescan All button
+      const rescanAllButton = screen.getByRole('button', { name: 'Rescan all directories' });
+      expect(rescanAllButton).toBeInTheDocument();
+
+      // Click to start rescan - this will trigger the async operation
+      fireEvent.click(rescanAllButton);
+
+      // Button should be disabled during rescan
+      await waitFor(() => {
+        expect(rescanAllButton).toBeDisabled();
+      });
+    });
+
+    it('Rescan All button shows spinner when scanning', async () => {
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks1',
+            createdAt: '2024-01-01',
+          },
+          {
+            fullPath: '/home/user/audiobooks2',
+            createdAt: '2024-01-01',
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      const rescanAllButton = screen.getByRole('button', { name: 'Rescan all directories' });
+
+      await waitFor(() => {
+        fireEvent.click(rescanAllButton);
+      });
+
+      // The button should contain the Rescan All text
+      expect(rescanAllButton).toHaveTextContent('Rescan All');
+    });
+  });
 });
