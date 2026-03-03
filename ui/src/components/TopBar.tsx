@@ -60,7 +60,7 @@ export default function TopBar() {
       <div className="flex items-center gap-1">
         <button
           className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          onClick={handleAddDirectory}
+          onClick={() => void handleAddDirectory()}
           disabled={isAddingDirectory || isLibraryLoading}
           aria-label="Add audiobook folder"
           title="Add Folder (Ctrl+D)"

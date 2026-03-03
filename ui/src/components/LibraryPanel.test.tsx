@@ -112,6 +112,56 @@ describe('LibraryPanel', () => {
       expect(screen.getByText('D')).toBeInTheDocument();
     });
 
+    it('disables add button while library is loading', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: true,
+        loadState: 'Ready',
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Button should not be visible during loading (skeletons shown instead)
+      expect(screen.queryByRole('button', { name: 'Add audiobook folder' })).not.toBeInTheDocument();
+    });
+
+    it('shows premium button styling with btn-premium class', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        loadState: 'Ready',
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      const button = screen.getByRole('button', { name: 'Add audiobook folder' });
+      expect(button).toHaveClass('btn-premium');
+    });
+
     it('shows search empty state when search has no results', () => {
       const store = createTestStore({
         audiobooks: [],

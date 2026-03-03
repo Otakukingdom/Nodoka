@@ -120,7 +120,6 @@ describe('SettingsModal - Directory Management', () => {
       );
 
       expect(screen.getByText('audiobooks')).toBeInTheDocument();
-      expect(screen.getByText('/home/user/audiobooks')).toBeInTheDocument();
     });
 
     it('shows rescan button for each directory', () => {
@@ -161,6 +160,129 @@ describe('SettingsModal - Directory Management', () => {
       );
 
       expect(screen.getByRole('button', { name: 'Remove directory' })).toBeInTheDocument();
+    });
+
+    it('shows audiobook count badge when count is available', () => {
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks',
+            createdAt: '2024-01-01',
+          },
+        ],
+        audiobooks: [
+          {
+            id: 1,
+            name: 'Book 1',
+            directory: '/home/user/audiobooks',
+            fullPath: '/home/user/audiobooks/Book 1',
+            completeness: 0,
+            defaultOrder: 0,
+            createdAt: '2024-01-01',
+          },
+          {
+            id: 2,
+            name: 'Book 2',
+            directory: '/home/user/audiobooks',
+            fullPath: '/home/user/audiobooks/Book 2',
+            completeness: 0,
+            defaultOrder: 1,
+            createdAt: '2024-01-01',
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      expect(screen.getByText(/2 books/)).toBeInTheDocument();
+    });
+
+    it('shows last scanned timestamp when available', () => {
+      const recentDate = new Date();
+      recentDate.setHours(recentDate.getHours() - 2);
+
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks',
+            createdAt: '2024-01-01',
+            lastScanned: recentDate.toISOString(),
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      expect(screen.getByText(/2h ago/)).toBeInTheDocument();
+    });
+
+    it('shows Rescan All button when multiple directories exist', () => {
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks1',
+            createdAt: '2024-01-01',
+          },
+          {
+            fullPath: '/home/user/audiobooks2',
+            createdAt: '2024-01-01',
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      expect(screen.getByRole('button', { name: 'Rescan all directories' })).toBeInTheDocument();
+    });
+
+    it('hides Rescan All button when only one directory exists', () => {
+      const store = createTestStore({
+        directories: [
+          {
+            fullPath: '/home/user/audiobooks',
+            createdAt: '2024-01-01',
+          },
+        ],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      expect(screen.queryByRole('button', { name: 'Rescan all directories' })).not.toBeInTheDocument();
+    });
+
+    it('shows Add Folder button with correct label', () => {
+      const store = createTestStore({
+        directories: [],
+        isLibraryLoading: false,
+      });
+
+      render(
+        <Provider store={store}>
+          <SettingsModal />
+        </Provider>
+      );
+
+      expect(screen.getByRole('button', { name: 'Add directory' })).toBeInTheDocument();
     });
   });
 

@@ -2,7 +2,7 @@
  * Settings modal component
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   X,
   Settings,
@@ -14,6 +14,7 @@ import {
   Accessibility,
   Folder,
   AlertTriangle,
+  Check,
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { closeModal, setFocusMode, setPrefersReducedMotion } from '../../store/slices/appSlice';
@@ -30,10 +31,50 @@ const SKIP_DURATIONS = [15, 30, 60];
 const SKIP_BACKWARD_DURATIONS = [15, 30];
 const AUTO_SAVE_INTERVALS = [1, 5, 10, 15, 30, 60];
 
+/**
+ * Format a date string to relative time (e.g., "2 hours ago")
+ */
+function formatRelativeTime(dateString: string | undefined): string | null {
+  if (!dateString) return null;
+
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSeconds < 60) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/**
+ * Truncate path to show folder name and parent directory
+ */
+function truncatePath(fullPath: string): { display: string; tooltip: string } {
+  const parts = fullPath.split(/[/\\]/).filter(Boolean);
+  const folderName = parts[parts.length - 1] ?? fullPath;
+
+  if (parts.length <= 2) {
+    return { display: fullPath, tooltip: fullPath };
+  }
+
+  // Show "...parent/folderName" for deep paths
+  const parentDir = parts[parts.length - 2];
+  const display = `...${parentDir}/${folderName}`;
+
+  return { display, tooltip: fullPath };
+}
+
 export default function SettingsModal() {
   const dispatch = useAppDispatch();
   const { theme, focusMode, prefersReducedMotion } = useAppSelector(state => state.app);
-  const { directories, isLibraryLoading } = useAppSelector(state => state.library);
+  const { directories, isLibraryLoading, audiobooks } = useAppSelector(state => state.library);
 
   const [skipForwardDuration, setSkipForwardDuration] = useState(30);
   const [skipBackwardDuration, setSkipBackwardDuration] = useState(30);
@@ -41,6 +82,18 @@ export default function SettingsModal() {
   const [scanningPaths, setScanningPaths] = useState<Set<string>>(new Set());
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingRemoval, setPendingRemoval] = useState<Directory | null>(null);
+  const [isRescanningAll, setIsRescanningAll] = useState(false);
+  const [successPaths, setSuccessPaths] = useState<Set<string>>(new Set());
+
+  // Calculate audiobook counts per directory
+  const audiobookCountsByDirectory = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const book of audiobooks) {
+      const current = counts.get(book.directory) ?? 0;
+      counts.set(book.directory, current + 1);
+    }
+    return counts;
+  }, [audiobooks]);
 
   const handleClose = () => {
     dispatch(closeModal());
@@ -98,8 +151,22 @@ export default function SettingsModal() {
 
   const handleRescanDirectory = async (path: string) => {
     setScanningPaths(prev => new Set(prev).add(path));
+    setSuccessPaths(prev => {
+      const next = new Set(prev);
+      next.delete(path);
+      return next;
+    });
     try {
       await dispatch(rescanDirectory(path));
+      // Show success indicator for 2 seconds
+      setSuccessPaths(prev => new Set(prev).add(path));
+      setTimeout(() => {
+        setSuccessPaths(prev => {
+          const next = new Set(prev);
+          next.delete(path);
+          return next;
+        });
+      }, 2000);
     } catch (error) {
       console.error('Failed to rescan directory:', error);
     } finally {
@@ -108,6 +175,24 @@ export default function SettingsModal() {
         next.delete(path);
         return next;
       });
+    }
+  };
+
+  const handleRescanAll = async () => {
+    if (directories.length === 0 || isRescanningAll) return;
+
+    setIsRescanningAll(true);
+    try {
+      // Rescan all directories sequentially
+      for (const dir of directories) {
+        if (!dir.error) {
+          await dispatch(rescanDirectory(dir.fullPath));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to rescan all directories:', error);
+    } finally {
+      setIsRescanningAll(false);
     }
   };
 
@@ -179,7 +264,7 @@ export default function SettingsModal() {
           </label>
           <div className="space-y-2">
             {/* Directory list */}
-            <div className="bg-base-200 rounded-lg max-h-48 overflow-y-auto">
+            <div className="bg-base-200 rounded-lg max-h-52 overflow-y-auto custom-scrollbar">
               {directories.length === 0 ? (
                 <div className="text-sm text-base-content/50 py-6 text-center">
                   <Folder className="w-8 h-8 mx-auto mb-2 text-base-content/30" />
@@ -190,7 +275,11 @@ export default function SettingsModal() {
                   {directories.map((dir: Directory) => {
                     const isScanning = scanningPaths.has(dir.fullPath);
                     const hasError = dir.error !== undefined;
-                    const folderName = dir.fullPath.split(/[/\\]/).pop() || dir.fullPath;
+                    const isSuccess = successPaths.has(dir.fullPath);
+                    const folderName = dir.fullPath.split(/[/\\]/).pop() ?? dir.fullPath;
+                    const audiobookCount = audiobookCountsByDirectory.get(dir.fullPath) ?? dir.audiobookCount ?? 0;
+                    const relativeTime = formatRelativeTime(dir.lastScanned);
+                    const truncatedPath = truncatePath(dir.fullPath);
 
                     const getErrorMessage = (error: string) => {
                       switch (error) {
@@ -206,47 +295,66 @@ export default function SettingsModal() {
                     return (
                       <div
                         key={dir.fullPath}
-                        className={`flex items-center justify-between px-3 py-2 group hover:bg-base-300/30 transition-all duration-200 ${
+                        className={`flex items-center justify-between px-3 py-2.5 group hover:bg-base-300/30 transition-all duration-200 ${
                           isScanning ? 'bg-primary/5' : ''
-                        } ${hasError ? 'bg-warning/5' : ''}`}
+                        } ${hasError ? 'bg-warning/5' : ''} ${isSuccess ? 'bg-success/5' : ''}`}
                       >
-                        <div className="flex-1 flex items-center gap-2 min-w-0">
-                          {hasError ? (
-                            <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
-                          ) : (
-                            <Folder className="w-4 h-4 text-primary/70 shrink-0" />
-                          )}
-                          <div className="flex flex-col min-w-0">
-                            <span
-                              className={`text-sm font-medium truncate ${hasError ? 'text-warning' : ''}`}
-                              title={dir.fullPath}
-                            >
-                              {folderName}
-                            </span>
+                        <div className="flex-1 flex items-center gap-2.5 min-w-0">
+                          <div className="relative shrink-0">
                             {hasError ? (
-                              <span className="text-xs text-warning/80">
-                                {getErrorMessage(dir.error!)}
-                              </span>
+                              <AlertTriangle className="w-4 h-4 text-warning" />
+                            ) : isSuccess ? (
+                              <Check className="w-4 h-4 text-success animate-pulse" />
                             ) : (
+                              <Folder className="w-4 h-4 text-primary/70" />
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
                               <span
-                                className="text-xs text-base-content/50 truncate"
+                                className={`text-sm font-medium truncate ${hasError ? 'text-warning' : ''}`}
                                 title={dir.fullPath}
                               >
-                                {dir.fullPath}
+                                {folderName}
+                              </span>
+                              {audiobookCount > 0 && (
+                                <span className="badge badge-xs badge-ghost text-[10px] font-medium px-1.5 py-0.5 shrink-0">
+                                  {audiobookCount} {audiobookCount === 1 ? 'book' : 'books'}
+                                </span>
+                              )}
+                            </div>
+                            {hasError && dir.error ? (
+                              <span className="text-xs text-warning/80">
+                                {getErrorMessage(dir.error)}
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-2 text-xs text-base-content/50">
+                                <span
+                                  className="truncate"
+                                  title={truncatedPath.tooltip}
+                                >
+                                  {truncatedPath.display}
+                                </span>
+                                {relativeTime && (
+                                  <>
+                                    <span className="text-base-content/30">•</span>
+                                    <span className="shrink-0">{relativeTime}</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            {isScanning && (
+                              <span className="text-xs text-primary italic mt-0.5">
+                                Scanning...
                               </span>
                             )}
                           </div>
-                          {isScanning && (
-                            <span className="text-xs text-primary italic ml-2">
-                              Scanning...
-                            </span>
-                          )}
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-0.5 shrink-0">
                           <button
                             className="btn btn-ghost btn-xs hover:bg-primary/10 hover:text-primary transition-color"
-                            onClick={() => handleRescanDirectory(dir.fullPath)}
-                            disabled={isScanning}
+                            onClick={() => void handleRescanDirectory(dir.fullPath)}
+                            disabled={isScanning || isRescanningAll}
                             aria-label={hasError ? 'Retry' : 'Rescan directory'}
                             title={hasError ? 'Retry' : 'Rescan directory'}
                           >
@@ -255,7 +363,7 @@ export default function SettingsModal() {
                           <button
                             className="btn btn-ghost btn-xs text-base-content/50 hover:text-error hover:bg-error/10 transition-color"
                             onClick={() => handleRemoveClick(dir)}
-                            disabled={isScanning}
+                            disabled={isScanning || isRescanningAll}
                             aria-label="Remove directory"
                             title="Remove directory"
                           >
@@ -268,16 +376,30 @@ export default function SettingsModal() {
                 </div>
               )}
             </div>
-            {/* Add directory button */}
-            <button
-              className="btn btn-outline btn-sm w-full mt-2 gap-2 hover:bg-primary hover:text-primary-content hover:border-primary transition-all duration-200"
-              onClick={handleAddDirectory}
-              disabled={isLibraryLoading}
-              aria-label="Add directory"
-            >
-              <FolderPlus className="w-4 h-4" />
-              <span>Add Directory</span>
-            </button>
+            {/* Action buttons */}
+            <div className="flex gap-2 mt-2">
+              <button
+                className="btn btn-outline btn-sm flex-1 gap-2 hover:bg-primary hover:text-primary-content hover:border-primary transition-all duration-200"
+                onClick={() => void handleAddDirectory()}
+                disabled={isLibraryLoading || isRescanningAll}
+                aria-label="Add directory"
+              >
+                <FolderPlus className="w-4 h-4" />
+                <span>Add Folder</span>
+              </button>
+              {directories.length > 1 && (
+                <button
+                  className="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                  onClick={() => void handleRescanAll()}
+                  disabled={isLibraryLoading || isRescanningAll}
+                  aria-label="Rescan all directories"
+                  title="Rescan all directories"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRescanningAll ? 'animate-spin' : ''}`} />
+                  <span>Rescan All</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -434,7 +556,7 @@ export default function SettingsModal() {
         confirmLabel="Remove"
         cancelLabel="Cancel"
         variant="danger"
-        onConfirm={confirmRemoval}
+        onConfirm={() => void confirmRemoval()}
         onCancel={cancelRemoval}
       />
     </>

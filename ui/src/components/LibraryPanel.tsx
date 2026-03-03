@@ -97,41 +97,49 @@ export default function LibraryPanel() {
             ))}
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="text-center py-12 px-6">
-            <div className="relative w-16 h-16 mx-auto mb-4">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} />
-              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-2">
-                <BookOpen className="w-7 h-7 text-base-content/40" />
+          <div className="flex flex-col items-center justify-center py-16 px-6 min-h-[300px]">
+            <div className="relative w-20 h-20 mb-6">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/25 to-primary/5 animate-pulse" style={{ animationDuration: '3s' }} />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-transparent" />
+              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center shadow-depth-2 border border-base-300/30">
+                <BookOpen className="w-8 h-8 text-primary/60" />
               </div>
             </div>
             {searchQuery ? (
               <>
-                <div className="text-lg font-semibold mb-2 text-base-content/80">
+                <div className="text-title text-base-content/80 mb-2 text-center">
                   No matches found
                 </div>
-                <div className="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
+                <div className="text-body text-base-content/60 max-w-xs mx-auto text-center leading-relaxed">
                   Try adjusting your search terms or clear the search
                 </div>
               </>
             ) : (
               <>
-                <div className="text-lg font-semibold mb-2 text-base-content/80">
+                <div className="text-title-lg text-base-content/90 mb-2 text-center font-semibold">
                   No audiobooks yet
                 </div>
-                <div className="text-sm text-base-content/60 mb-6 max-w-xs mx-auto">
-                  Add a folder to get started
+                <div className="text-body text-base-content/60 mb-8 max-w-xs mx-auto text-center leading-relaxed">
+                  Add a folder containing your audiobook files to get started
                 </div>
                 <button
-                  className="btn btn-primary shadow-md hover:shadow-lg transition-all duration-200 gap-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  onClick={handleAddDirectory}
+                  className="btn btn-premium px-6 py-3 shadow-md hover:shadow-lg transition-all duration-200 gap-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  onClick={() => void handleAddDirectory()}
                   disabled={isAddingDirectory || isLibraryLoading}
                   aria-label="Add audiobook folder"
                 >
-                  <FolderPlus className="h-4 w-4" />
-                  <span>Add Audiobook Folder</span>
+                  {isAddingDirectory ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    <FolderPlus className="h-5 w-5" />
+                  )}
+                  <span className="font-medium">Add Audiobook Folder</span>
                 </button>
-                <div className="text-xs text-base-content/50 mt-4">
-                  or press <kbd className="kbd kbd-xs mx-1">Ctrl</kbd>+<kbd className="kbd kbd-xs mx-1">D</kbd>
+                <div className="text-caption mt-5 flex items-center gap-1.5">
+                  <span>or press</span>
+                  <kbd className="kbd kbd-sm px-2">Ctrl</kbd>
+                  <span>+</span>
+                  <kbd className="kbd kbd-sm px-2">D</kbd>
                 </div>
               </>
             )}
