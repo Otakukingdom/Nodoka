@@ -15,6 +15,7 @@
     "test:cucumber:watch": "cucumber-js --config cucumber.cjs --watch",
     "test:cucumber:html": "cucumber-js --config cucumber.cjs --format html:e2e/cucumber-report.html",
     "test:e2e:full": "npm run test && npm run test:cucumber",
+    "screenshot": "cd .. && cargo xtask screenshot",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
