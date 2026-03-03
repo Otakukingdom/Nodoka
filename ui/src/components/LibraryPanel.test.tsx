@@ -511,4 +511,381 @@ describe('LibraryPanel', () => {
       expect(screen.getByRole('option', { name: 'Progress' })).toBeInTheDocument();
     });
   });
+
+  describe('directory error recovery', () => {
+    it('shows "Folder moved or deleted" message for NotFound error', () => {
+      const store = createTestStore({
+        audiobooks: [
+          {
+            id: 1,
+            name: 'Test Audiobook',
+            directory: '/test/missing',
+            fullPath: '/test/missing/Test Audiobook',
+            completeness: 50,
+            defaultOrder: 0,
+            createdAt: '2024-01-01',
+          },
+        ],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/missing',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'NotFound',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should show plain language error message
+      expect(screen.getByText('Folder moved or deleted')).toBeInTheDocument();
+    });
+
+    it('shows "Permission denied" message for PermissionDenied error', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/protected',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'PermissionDenied',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should show plain language error message
+      expect(screen.getByText('Permission denied')).toBeInTheDocument();
+    });
+
+    it('shows "Unable to access folder" for unknown errors', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/unknown',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'UnknownError',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should show generic error message
+      expect(screen.getByText('Unable to access folder')).toBeInTheDocument();
+    });
+
+    it('shows Locate button only for NotFound errors', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/missing',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'NotFound',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Locate button should be present for NotFound error
+      expect(screen.getByRole('button', { name: 'Locate folder' })).toBeInTheDocument();
+    });
+
+    it('does not show Locate button for PermissionDenied errors', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/protected',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'PermissionDenied',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Locate button should NOT be present for PermissionDenied
+      expect(screen.queryByRole('button', { name: 'Locate folder' })).not.toBeInTheDocument();
+    });
+
+    it('shows Remove button for all error types', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/missing',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'NotFound',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Remove button should be present
+      expect(screen.getByRole('button', { name: 'Remove folder from library' })).toBeInTheDocument();
+    });
+
+    it('error banner has alert role for accessibility', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/missing',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'NotFound',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Error banner should have role="alert"
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+    });
+
+    it('shows folder name (not full path) in error banner', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [
+          {
+            fullPath: '/test/long/path/to/audiobooks',
+            createdAt: '2024-01-01T00:00:00Z',
+            error: 'NotFound',
+          },
+        ],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Should show just the folder name, not the full path
+      expect(screen.getByText('audiobooks')).toBeInTheDocument();
+    });
+  });
+
+  describe('returning user - toolbar folder button', () => {
+    it('shows folder button in toolbar when audiobooks exist', () => {
+      const store = createTestStore({
+        audiobooks: [
+          {
+            id: 1,
+            name: 'Test Audiobook',
+            directory: '/test',
+            fullPath: '/test/Test Audiobook',
+            completeness: 50,
+            defaultOrder: 0,
+            createdAt: '2024-01-01',
+          },
+        ],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Toolbar button should be visible
+      const toolbarButton = screen.getByRole('button', { name: 'Add audiobook folder' });
+      expect(toolbarButton).toBeInTheDocument();
+    });
+
+    it('does not show folder button in toolbar when library is empty', () => {
+      const store = createTestStore({
+        audiobooks: [],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: [],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Empty state button should be visible, but toolbar button should not
+      const buttons = screen.getAllByRole('button', { name: 'Add audiobook folder' });
+      // Only one button should be visible (the prominent empty state button)
+      expect(buttons.length).toBe(1);
+      // That button should have premium styling
+      expect(buttons[0]).toHaveClass('btn-premium');
+    });
+
+    it('disables toolbar button while scanning', () => {
+      const store = createTestStore({
+        audiobooks: [
+          {
+            id: 1,
+            name: 'Test Audiobook',
+            directory: '/test',
+            fullPath: '/test/Test Audiobook',
+            completeness: 50,
+            defaultOrder: 0,
+            createdAt: '2024-01-01',
+          },
+        ],
+        selectedAudiobook: null,
+        searchQuery: '',
+        sortOrder: 'RecentlyPlayed',
+        filterStatus: 'All',
+        directories: [{ fullPath: '/test', createdAt: '2024-01-01T00:00:00Z' }],
+        currentFiles: [],
+        selectedFile: null,
+        bookmarks: [],
+        isLibraryLoading: false,
+        isAddingDirectory: false,
+        scanningPaths: ['/test'],
+      });
+
+      render(
+        <Provider store={store}>
+          <LibraryPanel />
+        </Provider>
+      );
+
+      // Toolbar button should be disabled during scan
+      const toolbarButton = screen.getAllByRole('button', { name: 'Add audiobook folder' }).find(
+        (btn) => btn.classList.contains('btn-square')
+      );
+      expect(toolbarButton).toBeDisabled();
+    });
+  });
 });

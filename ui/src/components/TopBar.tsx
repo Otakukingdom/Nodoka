@@ -10,7 +10,7 @@ import { addDirectory } from '../store/thunks/libraryThunks';
 
 export default function TopBar() {
   const dispatch = useAppDispatch();
-  const { isLibraryLoading } = useAppSelector(state => state.library);
+  const { isLibraryLoading, directories } = useAppSelector(state => state.library);
   const [isAddingDirectory, setIsAddingDirectory] = useState(false);
 
   const handleSettingsClick = () => {
@@ -68,12 +68,17 @@ export default function TopBar() {
           <FolderPlus className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${isAddingDirectory ? 'animate-pulse' : ''}`} />
         </button>
         <button
-          className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative"
           onClick={handleSettingsClick}
           aria-label="Settings"
           title="Settings (Ctrl+,)"
         >
           <Settings className="h-5 w-5 transition-transform duration-200 group-hover:rotate-45" />
+          {directories.length > 0 && (
+            <span className="badge badge-xs badge-primary absolute -top-1 -right-1 px-1.5 font-medium">
+              {directories.length}
+            </span>
+          )}
         </button>
       </div>
     </div>

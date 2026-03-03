@@ -114,6 +114,18 @@ export default function LibraryPanel() {
           <option value="Title">Title</option>
           <option value="Progress">Progress</option>
         </select>
+        {/* Add folder button - visible when audiobooks exist (returning user) */}
+        {audiobooks.length > 0 && (
+          <button
+            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            onClick={() => void handleAddDirectory()}
+            disabled={isAddingDirectory || isLibraryLoading || isScanning}
+            aria-label="Add audiobook folder"
+            title="Add Folder (Ctrl+D)"
+          >
+            <FolderPlus className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Audiobook list */}

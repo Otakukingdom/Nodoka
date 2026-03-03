@@ -180,3 +180,115 @@ test.describe('Orientation Change Handling', () => {
     );
   });
 });
+
+test.describe('Theme Consistency - Directory Management', () => {
+  test.use({ viewport: { width: 1280, height: 720 } });
+
+  test('directory UI elements visible in dark theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Dark');
+
+    // Check library panel is visible
+    const libraryPanel = page.locator('.library-panel');
+    await expect(libraryPanel).toBeVisible();
+
+    // Check toolbar buttons are visible
+    const searchInput = page.locator('.library-panel input[placeholder*="Search"]');
+    await expect(searchInput).toBeVisible();
+
+    // Check audiobook list
+    const audiobookList = page.locator('#audiobook-list');
+    await expect(audiobookList).toBeVisible();
+  });
+
+  test('directory UI elements visible in light theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Light');
+
+    // Check library panel is visible
+    const libraryPanel = page.locator('.library-panel');
+    await expect(libraryPanel).toBeVisible();
+
+    // Check toolbar buttons are visible
+    const searchInput = page.locator('.library-panel input[placeholder*="Search"]');
+    await expect(searchInput).toBeVisible();
+
+    // Check audiobook list
+    const audiobookList = page.locator('#audiobook-list');
+    await expect(audiobookList).toBeVisible();
+  });
+
+  test('settings button with directory badge visible in dark theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Dark');
+
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await expect(settingsButton).toBeVisible();
+
+    // Badge should be visible if directories exist
+    const badge = settingsButton.locator('.badge');
+    if (await badge.count() > 0) {
+      await expect(badge.first()).toBeVisible();
+    }
+  });
+
+  test('settings button with directory badge visible in light theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Light');
+
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await expect(settingsButton).toBeVisible();
+
+    // Badge should be visible if directories exist
+    const badge = settingsButton.locator('.badge');
+    if (await badge.count() > 0) {
+      await expect(badge.first()).toBeVisible();
+    }
+  });
+
+  test('error banners visible in dark theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Dark');
+
+    // Check if error banners are present and visible
+    const errorBanners = page.locator('.library-panel .alert-warning');
+    if (await errorBanners.count() > 0) {
+      await expect(errorBanners.first()).toBeVisible();
+    }
+  });
+
+  test('error banners visible in light theme', async ({ page }) => {
+    await gotoAndWait(page);
+    await setTheme(page, 'Light');
+
+    // Check if error banners are present and visible
+    const errorBanners = page.locator('.library-panel .alert-warning');
+    if (await errorBanners.count() > 0) {
+      await expect(errorBanners.first()).toBeVisible();
+    }
+  });
+
+  test('theme preference can be changed and applied', async ({ page }) => {
+    await gotoAndWait(page);
+
+    // Get initial theme
+    const html = page.locator('html');
+    const initialTheme = await html.getAttribute('data-theme');
+
+    // Set to dark theme
+    await setTheme(page, 'Dark');
+    await page.waitForTimeout(300);
+
+    // Theme should now be dark
+    let theme = await html.getAttribute('data-theme');
+    expect(theme?.toLowerCase()).toBe('dark');
+
+    // Set to light theme
+    await setTheme(page, 'Light');
+    await page.waitForTimeout(300);
+
+    // Theme should now be light
+    theme = await html.getAttribute('data-theme');
+    expect(theme?.toLowerCase()).toBe('light');
+  });
+});
