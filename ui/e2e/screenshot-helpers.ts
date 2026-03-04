@@ -21,7 +21,7 @@ export async function setPlayerState(
         paused: 'Paused',
       }[targetState];
       store.dispatch({
-        type: 'player/setPlaybackState',
+        type: 'player/setPlayback',
         payload: playbackState,
       });
     }
@@ -39,11 +39,11 @@ export async function setPlayerProgress(page: Page, percent: number): Promise<vo
       const duration = 1800000; // 30 minutes
       const position = (duration * progress) / 100;
       store.dispatch({
-        type: 'player/setCurrentPosition',
+        type: 'player/setCurrentTime',
         payload: position,
       });
       store.dispatch({
-        type: 'player/setDuration',
+        type: 'player/setTotalDuration',
         payload: duration,
       });
     }
@@ -107,7 +107,7 @@ export async function selectAudiobook(page: Page, id: number): Promise<void> {
     const store = (window as any).__REDUX_STORE__;
     if (store) {
       store.dispatch({
-        type: 'app/setSelectedAudiobookId',
+        type: 'library/setSelectedAudiobook',
         payload: audiobookId,
       });
     }
@@ -207,16 +207,16 @@ export async function setSleepTimerState(
   await page.evaluate((timerState) => {
     const store = (window as any).__REDUX_STORE__;
     if (store) {
-      const payloads: Record<string, any> = {
-        inactive: { active: false, mode: null, remainingSeconds: null },
-        duration: { active: true, mode: 'Duration', remainingSeconds: 1800 },
-        'end-of-chapter': { active: true, mode: 'EndOfChapter', remainingSeconds: null },
-        active: { active: true, mode: 'Duration', remainingSeconds: 300 },
-      };
-      store.dispatch({
-        type: 'sleepTimer/setState',
-        payload: payloads[timerState],
-      });
+      if (timerState === 'inactive') {
+        store.dispatch({ type: 'player/clearSleepTimer' });
+      } else {
+        const mode = timerState === 'end-of-chapter' ? 'EndOfChapter' : 'Duration';
+        const durationMinutes = timerState === 'active' ? 5 : 30;
+        store.dispatch({
+          type: 'player/setSleepTimer',
+          payload: { mode, durationMinutes },
+        });
+      }
     }
   }, state);
   await page.waitForTimeout(200);
@@ -281,8 +281,12 @@ export async function setDirectoryScanProgress(
     const store = (window as any).__REDUX_STORE__;
     if (store) {
       store.dispatch({
-        type: 'app/setScanProgress',
-        payload: scanProgress,
+        type: 'library/startScanProgress',
+        payload: { path: scanProgress.status, totalCount: scanProgress.total },
+      });
+      store.dispatch({
+        type: 'library/updateScanProgress',
+        payload: { foundCount: scanProgress.current },
       });
     }
   }, progress);
@@ -309,7 +313,7 @@ export async function setSortOrder(
     const store = (window as any).__REDUX_STORE__;
     if (store) {
       store.dispatch({
-        type: 'app/setSortOrder',
+        type: 'library/setSortOrder',
         payload: sortOrder,
       });
     }
@@ -356,8 +360,8 @@ export async function forceLoadingState(page: Page, isLoading: boolean): Promise
     const store = (window as any).__REDUX_STORE__;
     if (store) {
       store.dispatch({
-        type: 'app/setLoadState',
-        payload: loading ? 'Loading' : 'Ready',
+        type: 'app/setLoading',
+        payload: loading,
       });
     }
   }, isLoading);

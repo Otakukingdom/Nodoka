@@ -2,7 +2,7 @@
  * Keyboard help modal component
  */
 
-import { X, Keyboard } from 'lucide-react';
+import { X, Keyboard, PlayCircle, FolderOpen, Settings2 } from 'lucide-react';
 import { useAppDispatch } from '../../hooks/useRedux';
 import { closeModal } from '../../store/slices/appSlice';
 
@@ -11,22 +11,46 @@ interface KeyboardShortcut {
   action: string;
 }
 
-const shortcuts: KeyboardShortcut[] = [
-  { key: 'Space', action: 'Play/Pause' },
-  { key: '←', action: 'Seek backward 30s' },
-  { key: '→', action: 'Seek forward 30s' },
-  { key: '↑', action: 'Previous file' },
-  { key: '↓', action: 'Next file' },
-  { key: 'M', action: 'Mute/Unmute' },
-  { key: '+ / =', action: 'Volume up' },
-  { key: '-', action: 'Volume down' },
-  { key: 'Ctrl/Cmd + D', action: 'Add audiobook folder' },
-  { key: 'Ctrl/Cmd + R', action: 'Rescan current folder' },
-  { key: 'Ctrl/Cmd + Shift + R', action: 'Rescan all folders' },
-  { key: 'Ctrl/Cmd + B', action: 'Create bookmark' },
-  { key: 'Ctrl/Cmd + ,', action: 'Open settings' },
-  { key: 'F1', action: 'Show keyboard help' },
-  { key: 'Escape', action: 'Close modal' },
+interface ShortcutGroup {
+  title: string;
+  icon: typeof PlayCircle;
+  shortcuts: KeyboardShortcut[];
+}
+
+const shortcutGroups: ShortcutGroup[] = [
+  {
+    title: 'Playback',
+    icon: PlayCircle,
+    shortcuts: [
+      { key: 'Space', action: 'Play/Pause' },
+      { key: '←', action: 'Seek back 30s' },
+      { key: '→', action: 'Seek forward 30s' },
+      { key: 'M', action: 'Mute/Unmute' },
+      { key: '+ / =', action: 'Volume up' },
+      { key: '-', action: 'Volume down' },
+    ],
+  },
+  {
+    title: 'Navigation',
+    icon: FolderOpen,
+    shortcuts: [
+      { key: '↑', action: 'Previous file' },
+      { key: '↓', action: 'Next file' },
+    ],
+  },
+  {
+    title: 'Library & Settings',
+    icon: Settings2,
+    shortcuts: [
+      { key: 'Ctrl/Cmd + D', action: 'Add folder' },
+      { key: 'Ctrl/Cmd + R', action: 'Rescan folder' },
+      { key: 'Ctrl/Cmd + Shift + R', action: 'Rescan all' },
+      { key: 'Ctrl/Cmd + B', action: 'Create bookmark' },
+      { key: 'Ctrl/Cmd + ,', action: 'Open settings' },
+      { key: 'F1', action: 'Keyboard help' },
+      { key: 'Escape', action: 'Close modal' },
+    ],
+  },
 ];
 
 export default function KeyboardHelpModal() {
@@ -37,10 +61,10 @@ export default function KeyboardHelpModal() {
   };
 
   return (
-    <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm">
+    <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[85vh] overflow-y-auto">
       {/* Close button with enhanced hover state */}
       <button
-        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary z-10"
         onClick={handleClose}
         aria-label="Close"
       >
@@ -63,38 +87,38 @@ export default function KeyboardHelpModal() {
         </div>
       </div>
 
-      {/* Shortcuts table */}
-      <div className="overflow-x-auto">
-        <table className="table table-sm">
-          <thead>
-            <tr className="border-b border-base-300">
-              <th className="text-base-content/70 font-medium py-3">Key</th>
-              <th className="text-base-content/70 font-medium py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shortcuts.map((shortcut, index) => (
-              <tr
-                key={index}
-                className="hover:bg-base-200/50 transition-colors duration-150"
-              >
-                <td className="py-3">
-                  <kbd className="kbd kbd-sm bg-base-200 border-base-300 font-mono text-xs px-2.5 py-1.5 shadow-sm">
+      {/* Grouped shortcuts */}
+      <div className="space-y-5">
+        {shortcutGroups.map((group) => (
+          <div key={group.title}>
+            {/* Group header */}
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-base-300/50">
+              <group.icon className="h-4 w-4 text-primary/70" />
+              <span className="text-sm font-semibold text-base-content/80">{group.title}</span>
+            </div>
+            {/* Shortcuts grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {group.shortcuts.map((shortcut, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-base-200/50 transition-colors duration-150"
+                >
+                  <kbd className="kbd kbd-sm bg-base-200 border-base-300 font-mono text-xs px-2 py-1 shadow-sm min-w-[60px] text-center">
                     {shortcut.key}
                   </kbd>
-                </td>
-                <td className="py-3 text-sm">{shortcut.action}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <span className="text-sm text-base-content/80">{shortcut.action}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Tip section for drag-and-drop */}
       <div className="mt-6 p-4 bg-base-200/50 rounded-lg border border-base-300/50">
         <p className="text-sm text-base-content/80">
           <span className="font-medium">Tip:</span> You can also{' '}
-          <span className="font-semibold">drag and drop folders</span> directly onto the window to add
+          <span className="font-semibold text-primary">drag and drop folders</span> directly onto the window to add
           audiobook directories.
         </p>
       </div>

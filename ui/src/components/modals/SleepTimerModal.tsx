@@ -115,35 +115,41 @@ export default function SleepTimerModal() {
         </div>
       )}
 
-      {/* Duration options */}
-      <div className="space-y-3 mb-6">
-        <label className="label">
-          <span className="label-text font-medium">Set Duration</span>
-        </label>
+      {/* Duration options - grouped in a card-like container */}
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-base-300/50">
+          <Timer className="h-4 w-4 text-primary/70" />
+          <span className="text-sm font-semibold text-base-content/80">Set Duration</span>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           {DURATION_OPTIONS.map((option) => (
             <button
               key={option.value}
-              className="btn btn-outline btn-sm justify-start hover:bg-primary/10 hover:border-primary hover:text-primary transition-all duration-200"
+              className="btn btn-outline btn-sm justify-start gap-2 hover:bg-primary/10 hover:border-primary hover:text-primary transition-all duration-200 group"
               onClick={() => handleDurationSelect(option.value)}
               aria-label={`Set sleep timer for ${option.label}`}
             >
-              <Timer className="h-4 w-4 mr-2" />
-              {option.label}
+              <Timer className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span>{option.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* End of chapter option */}
-      <div className="mb-6">
+      {/* End of chapter option - visually distinct */}
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-base-300/50">
+          <BookOpen className="h-4 w-4 text-primary/70" />
+          <span className="text-sm font-semibold text-base-content/80">Smart Stop</span>
+        </div>
         <button
-          className="btn btn-outline btn-sm w-full justify-start hover:bg-primary/10 hover:border-primary hover:text-primary transition-all duration-200"
+          className="btn btn-outline btn-sm w-full justify-start gap-2 hover:bg-primary/10 hover:border-primary hover:text-primary transition-all duration-200 group"
           onClick={handleEndOfChapter}
           aria-label="Set sleep timer for end of chapter"
         >
-          <BookOpen className="h-4 w-4 mr-2" />
-          End of Chapter
+          <BookOpen className="h-4 w-4 group-hover:scale-110 transition-transform" />
+          <span>End of Chapter</span>
+          <span className="text-xs text-base-content/50 ml-auto">Stops after current file</span>
         </button>
       </div>
 

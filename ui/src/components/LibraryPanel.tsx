@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useCallback, useRef, useEffect, useState } from 'react';
-import { Check, BookOpen, Search, FolderPlus, ExternalLink, AlertTriangle, FolderSearch, RefreshCw } from 'lucide-react';
+import { Check, BookOpen, Search, FolderPlus, ExternalLink, AlertTriangle, FolderSearch, RefreshCw, Volume2 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { setSearchQuery, setSortOrder } from '../store/slices/librarySlice';
 import { selectAudiobook, addDirectory, removeDirectory, updateDirectoryPath } from '../store/thunks/libraryThunks';
@@ -14,6 +14,7 @@ export default function LibraryPanel() {
   const dispatch = useAppDispatch();
   const { audiobooks, selectedAudiobook, searchQuery, sortOrder, filterStatus, isLibraryLoading, isAddingDirectory, directories, scanningPaths, scanProgress } =
     useAppSelector(state => state.library);
+  const { playback } = useAppSelector(state => state.player);
 
   // Debounce timer ref for search input
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -264,6 +265,7 @@ export default function LibraryPanel() {
                 key={book.id ?? book.fullPath}
                 book={book}
                 isSelected={selectedAudiobook === book.id}
+                isPlaying={selectedAudiobook === book.id && playback === 'Playing'}
                 onClick={() => handleBookClick(book)}
               />
             ))}
@@ -287,10 +289,11 @@ export default function LibraryPanel() {
 interface AudiobookCardProps {
   book: Audiobook;
   isSelected: boolean;
+  isPlaying: boolean;
   onClick: () => void;
 }
 
-function AudiobookCard({ book, isSelected, onClick }: AudiobookCardProps) {
+function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardProps) {
   return (
     <div
       className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group card-performance ${
@@ -305,9 +308,14 @@ function AudiobookCard({ book, isSelected, onClick }: AudiobookCardProps) {
     >
       <div className="card-body p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="card-title text-sm font-semibold text-truncate leading-tight group-hover:text-primary transition-colors">
-            {book.name}
-          </h3>
+          <div className="flex items-center gap-2 min-w-0">
+            {isPlaying && (
+              <Volume2 className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
+            )}
+            <h3 className="card-title text-sm font-semibold text-truncate leading-tight group-hover:text-primary transition-colors">
+              {book.name}
+            </h3>
+          </div>
           {book.completeness === 100 && (
             <Check className="h-3.5 w-3.5 text-success shrink-0" />
           )}

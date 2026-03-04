@@ -821,7 +821,7 @@ test.describe('Directory Scanning - Behavioral Tests', () => {
 
     test('scanning indicator appears when directory is being scanned', async ({ page }) => {
       // Check if scanning indicator exists
-      const scanningIndicator = page.locator('text=/Scanning/);
+      const scanningIndicator = page.locator('text=/Scanning/');
 
       // May or may not be visible depending on scan state
       const indicatorCount = await scanningIndicator.count();

@@ -34,11 +34,14 @@ export default function DetailsPanel() {
               <div className="relative w-16 h-16 mx-auto mb-4">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                 <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
-                  <FileText className="w-6 h-6 text-base-content/40" />
+                  <FileText className="w-6 h-6 text-primary/60" />
                 </div>
               </div>
-              <div className="text-base-content/70 font-medium">No files available</div>
-              <div className="text-sm text-base-content/50 mt-1.5 leading-relaxed">Select an audiobook from the library to view its files</div>
+              <div className="text-base-content/80 font-semibold">No files available</div>
+              <div className="text-sm text-base-content/60 mt-1.5 leading-relaxed">Click an audiobook in your library to view its chapters</div>
+              <div className="mt-4 text-xs text-base-content/50 flex items-center justify-center gap-1.5">
+                <span>← Click a book to start</span>
+              </div>
             </div>
           ) : (
             currentFiles.map(file => (
@@ -73,11 +76,19 @@ export default function DetailsPanel() {
               <div className="relative w-14 h-14 mx-auto mb-3">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                 <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
-                  <Bookmark className="w-5 h-5 text-base-content/40" />
+                  <Bookmark className="w-5 h-5 text-primary/60" />
                 </div>
               </div>
-              <div className="text-sm text-base-content/60 font-medium">No bookmarks yet</div>
-              <div className="text-xs text-base-content/45 mt-1.5">Press Ctrl+B during playback to save your place</div>
+              <div className="text-sm text-base-content/70 font-semibold">No bookmarks yet</div>
+              <div className="text-xs text-base-content/55 mt-2 leading-relaxed">
+                Save your place during playback
+              </div>
+              <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-base-content/50 bg-base-200/50 px-3 py-1.5 rounded-full">
+                <span>Press</span>
+                <kbd className="kbd kbd-xs px-1.5 bg-base-300 border-base-content/20 font-mono">Ctrl</kbd>
+                <span>+</span>
+                <kbd className="kbd kbd-xs px-1.5 bg-base-300 border-base-content/20 font-mono">B</kbd>
+              </div>
             </div>
           ) : (
             bookmarks.map(bookmark => (

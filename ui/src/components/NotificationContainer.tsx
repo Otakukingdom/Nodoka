@@ -40,15 +40,20 @@ interface NotificationToastProps {
 }
 
 function NotificationToast({ notification, onDismiss }: NotificationToastProps) {
-  const alertClass = getAlertClass(notification.kind);
+  const { bgClass, borderClass, iconColor } = getNotificationStyles(notification.kind);
   const Icon = getIcon(notification.kind);
 
   return (
     <div
-      className={`alert ${alertClass} shadow-xl border border-base-content/10 toast-slide-in min-w-[300px] max-w-md`}
+      className={`alert ${bgClass} shadow-xl toast-slide-in min-w-[300px] max-w-md relative overflow-hidden border-l-4 ${borderClass}`}
     >
-      <div className="flex items-start gap-3">
-        <Icon className="h-5 w-5 shrink-0 mt-0.5" />
+      {/* Colored accent bar on left */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />
+
+      <div className="flex items-start gap-3 pl-1">
+        <div className={`p-1 rounded-full ${iconColor} bg-base-100/30`}>
+          <Icon className="h-4 w-4" />
+        </div>
         <div className="flex-1 min-w-0">
           {notification.title && (
             <div className="font-semibold text-sm mb-0.5">{notification.title}</div>
@@ -67,18 +72,38 @@ function NotificationToast({ notification, onDismiss }: NotificationToastProps) 
   );
 }
 
-function getAlertClass(kind: NotificationKind): string {
+function getNotificationStyles(kind: NotificationKind): { bgClass: string; borderClass: string; iconColor: string } {
   switch (kind) {
     case 'Success':
-      return 'alert-success bg-success/90';
+      return {
+        bgClass: 'bg-success/15 border-success',
+        borderClass: 'border-l-success',
+        iconColor: 'text-success',
+      };
     case 'Info':
-      return 'alert-info bg-info/90';
+      return {
+        bgClass: 'bg-info/15 border-info',
+        borderClass: 'border-l-info',
+        iconColor: 'text-info',
+      };
     case 'Warning':
-      return 'alert-warning bg-warning/90';
+      return {
+        bgClass: 'bg-warning/15 border-warning',
+        borderClass: 'border-l-warning',
+        iconColor: 'text-warning',
+      };
     case 'Error':
-      return 'alert-error bg-error/90';
+      return {
+        bgClass: 'bg-error/15 border-error',
+        borderClass: 'border-l-error',
+        iconColor: 'text-error',
+      };
     default:
-      return 'bg-base-200';
+      return {
+        bgClass: 'bg-base-200 border-base-300',
+        borderClass: 'border-l-base-300',
+        iconColor: 'text-base-content',
+      };
   }
 }
 
