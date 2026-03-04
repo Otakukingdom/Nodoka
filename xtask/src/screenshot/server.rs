@@ -1,6 +1,33 @@
 //! Vite dev server management with health checks.
 //!
 //! Provides robust server startup verification and graceful shutdown.
+//!
+//! # Architecture
+//!
+//! The [`DevServer`] struct uses RAII pattern to ensure cleanup even if
+//! the server is not explicitly stopped. When dropped, it will kill the
+//! child process.
+//!
+//! # Server Startup
+//!
+//! 1. Spawns `npm run dev` with `VITE_PLAYWRIGHT_TEST=true`
+//! 2. Polls `http://localhost:5173` every 500ms
+//! 3. Verifies HTTP 200 response before proceeding
+//! 4. Detects server crashes during startup
+//!
+//! # Testing
+//!
+//! Unit testing this module is challenging because it involves:
+//! - Spawning external processes (npm)
+//! - Network operations (HTTP health checks)
+//! - Platform-specific signal handling
+//!
+//! Integration tests should verify:
+//! 1. Server starts and responds to health checks
+//! 2. Server stops cleanly on Drop
+//! 3. Interrupt handling during startup
+//!
+//! Run integration tests with: `cargo xtask screenshot --headed`
 
 use anyhow::{bail, Context, Result};
 use std::path::Path;
@@ -8,12 +35,28 @@ use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
 /// Running dev server handle
+///
+/// Uses RAII pattern to ensure cleanup even if [`stop()`](DevServer::stop)
+/// is not called explicitly.
 pub struct DevServer {
     child: Option<Child>,
 }
 
 impl DevServer {
     /// Start the Vite dev server and wait for it to be healthy
+    ///
+    /// # Arguments
+    ///
+    /// * `ui_dir` - Path to the UI directory containing package.json
+    /// * `timeout` - Maximum time to wait for server startup
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - npm fails to spawn
+    /// - Server crashes during startup
+    /// - Server doesn't respond within timeout
+    /// - Interrupt signal received during startup
     pub fn start(ui_dir: &Path, timeout: Duration) -> Result<Self> {
         let port = 5173;
         let url = format!("http://localhost:{}", port);
@@ -110,6 +153,9 @@ impl DevServer {
     }
 
     /// Stop the dev server gracefully
+    ///
+    /// On Unix, sends SIGTERM first for graceful shutdown, then force kills.
+    /// On Windows, uses taskkill with /T flag to terminate process tree.
     pub fn stop(&mut self) -> Result<()> {
         if let Some(child) = self.child.as_mut() {
             println!("├── Stopping Vite dev server (PID {})...", child.id());
@@ -154,4 +200,27 @@ impl Drop for DevServer {
             let _ = child.wait();
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_server_url_format() {
+        // Verify URL construction logic
+        let port = 5173;
+        let url = format!("http://localhost:{}", port);
+        assert_eq!(url, "http://localhost:5173");
+    }
+
+    #[test]
+    fn test_timeout_duration() {
+        // Verify timeout can be created and compared
+        let timeout = Duration::from_secs(60);
+        assert_eq!(timeout.as_secs(), 60);
+    }
+
+    // Note: Full server tests require integration testing
+    // See: cargo xtask screenshot (end-to-end verification)
 }

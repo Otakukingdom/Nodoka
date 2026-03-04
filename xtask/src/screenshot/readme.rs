@@ -193,3 +193,150 @@ fn generate_readme_content(manifest: &Manifest) -> String {
 
     content
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_build_manifest_empty() {
+        let temp = TempDir::new().unwrap();
+        let manifest = build_manifest(temp.path()).unwrap();
+
+        assert_eq!(manifest.total_count, 0);
+        assert!(manifest.categories.is_empty());
+    }
+
+    #[test]
+    fn test_build_manifest_with_screenshots() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("app-shell");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("empty-library-light.png"), "").unwrap();
+        fs::write(category_dir.join("empty-library-dark.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+
+        assert_eq!(manifest.total_count, 2);
+        assert!(manifest.categories.contains_key("app-shell"));
+        assert_eq!(manifest.categories["app-shell"].len(), 2);
+    }
+
+    #[test]
+    fn test_theme_detection_light() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("state-light.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+        let entry = &manifest.categories["test"][0];
+
+        assert_eq!(entry.theme, Some("light".to_string()));
+        assert_eq!(entry.name, "state-light");
+    }
+
+    #[test]
+    fn test_theme_detection_dark() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("state-dark.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+        let entry = &manifest.categories["test"][0];
+
+        assert_eq!(entry.theme, Some("dark".to_string()));
+        assert_eq!(entry.name, "state-dark");
+    }
+
+    #[test]
+    fn test_theme_detection_none() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("notheme.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+        let entry = &manifest.categories["test"][0];
+
+        assert!(entry.theme.is_none());
+        assert_eq!(entry.name, "notheme");
+    }
+
+    #[test]
+    fn test_generate_creates_files() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("screenshot.png"), "").unwrap();
+
+        generate(temp.path()).unwrap();
+
+        assert!(temp.path().join("manifest.json").exists());
+        assert!(temp.path().join("README.md").exists());
+    }
+
+    #[test]
+    fn test_generate_readme_content() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("app-shell");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("test-light.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+        let content = generate_readme_content(&manifest);
+
+        assert!(content.contains("# Nodoka UI Screenshots"));
+        assert!(content.contains("## Categories"));
+        assert!(content.contains("app-shell"));
+    }
+
+    #[test]
+    fn test_manifest_json_is_valid() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("screenshot.png"), "").unwrap();
+
+        generate(temp.path()).unwrap();
+
+        let manifest_content = fs::read_to_string(temp.path().join("manifest.json")).unwrap();
+        let parsed: serde_json::Value =
+            serde_json::from_str(&manifest_content).expect("manifest.json should be valid JSON");
+
+        assert!(parsed.is_object());
+        assert!(parsed["generated_at"].is_string());
+        assert!(parsed["total_count"].is_number());
+    }
+
+    #[test]
+    fn test_nested_category_path() {
+        let temp = TempDir::new().unwrap();
+        let nested_dir = temp.path().join("modals").join("settings");
+        fs::create_dir_all(&nested_dir).unwrap();
+        fs::write(nested_dir.join("dialog.png"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+
+        // Category should be the relative path
+        assert!(manifest.categories.contains_key("modals/settings"));
+        assert_eq!(manifest.total_count, 1);
+    }
+
+    #[test]
+    fn test_ignores_non_png_files() {
+        let temp = TempDir::new().unwrap();
+        let category_dir = temp.path().join("test");
+        fs::create_dir_all(&category_dir).unwrap();
+        fs::write(category_dir.join("screenshot.png"), "").unwrap();
+        fs::write(category_dir.join("readme.txt"), "").unwrap();
+        fs::write(category_dir.join("data.json"), "").unwrap();
+
+        let manifest = build_manifest(temp.path()).unwrap();
+
+        assert_eq!(manifest.total_count, 1);
+    }
+}

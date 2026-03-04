@@ -36,3 +36,56 @@ pub fn create_directory_structure(output_dir: &Path) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_create_directory_structure() {
+        let temp = TempDir::new().unwrap();
+        let output_dir = temp.path().join("screenshots");
+
+        create_directory_structure(&output_dir).unwrap();
+
+        assert!(output_dir.exists());
+        for category in CATEGORIES {
+            assert!(
+                output_dir.join(category).exists(),
+                "Category directory '{}' should exist",
+                category
+            );
+        }
+    }
+
+    #[test]
+    fn test_create_existing_directory() {
+        let temp = TempDir::new().unwrap();
+        let output_dir = temp.path().join("screenshots");
+
+        // Create twice - should not fail
+        create_directory_structure(&output_dir).unwrap();
+        create_directory_structure(&output_dir).unwrap();
+
+        assert!(output_dir.exists());
+    }
+
+    #[test]
+    fn test_categories_not_empty() {
+        // Ensure we have categories defined
+        assert!(!CATEGORIES.is_empty(), "CATEGORIES should not be empty");
+    }
+
+    #[test]
+    fn test_nested_category_directories() {
+        let temp = TempDir::new().unwrap();
+        let output_dir = temp.path().join("screenshots");
+
+        create_directory_structure(&output_dir).unwrap();
+
+        // Check nested directories like modals/settings
+        assert!(output_dir.join("modals/settings").exists());
+        assert!(output_dir.join("modals/keyboard-help").exists());
+    }
+}

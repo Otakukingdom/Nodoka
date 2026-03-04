@@ -80,11 +80,14 @@ mod server;
 mod signal;
 mod state;
 
+#[cfg(test)]
+mod integration_test;
+
 use anyhow::{bail, Context, Result};
 use clap::Args as ClapArgs;
 use std::path::Path;
 use std::process::Command;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// Screenshot generation arguments
 #[derive(ClapArgs, Debug)]
@@ -123,14 +126,20 @@ pub fn run(args: Args) -> Result<()> {
     // Register UI directory for emergency cleanup on interrupt
     state::register_ui_dir(ui_dir.clone());
 
+    let total_start = Instant::now();
+
     println!("Screenshot Generation for Nodoka");
     println!("==================================");
     println!();
 
     // === PHASE 1: PRE-FLIGHT CHECKS ===
     println!("Pre-flight checks...");
+    let phase_start = Instant::now();
     preflight::run_preflight_checks(&project_root)?;
-    println!("Pre-flight checks passed");
+    println!(
+        "Pre-flight checks passed ({:.1}s)",
+        phase_start.elapsed().as_secs_f64()
+    );
     println!();
 
     // === PHASE 2: DEPENDENCY SETUP ===
@@ -171,8 +180,13 @@ pub fn run(args: Args) -> Result<()> {
 
     // === PHASE 8: PLAYWRIGHT EXECUTION ===
     println!("Step 7: Running Playwright screenshot generation...");
+    let playwright_start = Instant::now();
     let playwright_result =
         run_playwright_screenshots(&ui_dir, &output_dir, &args);
+    println!(
+        "└── Playwright completed ({:.1}s)",
+        playwright_start.elapsed().as_secs_f64()
+    );
     println!();
 
     // === PHASE 9: CLEANUP ===
@@ -209,6 +223,7 @@ pub fn run(args: Args) -> Result<()> {
 
     println!();
     println!("Screenshot generation complete!");
+    println!("Total time: {:.1}s", total_start.elapsed().as_secs_f64());
     println!("Screenshots saved to: {}", output_dir.display());
 
     Ok(())
@@ -220,6 +235,8 @@ fn run_playwright_screenshots(
     output_dir: &Path,
     args: &Args,
 ) -> Result<()> {
+    println!("├── Executing screenshot tests...");
+
     let mut cmd = Command::new("npx");
     cmd.args([
         "playwright",
@@ -227,6 +244,7 @@ fn run_playwright_screenshots(
         "--config=playwright.screenshot.config.ts",
         "--project",
         &args.project,
+        "--reporter=line", // Line reporter shows progress
     ])
     .env(
         "SCREENSHOT_OUTPUT_DIR",
@@ -238,11 +256,27 @@ fn run_playwright_screenshots(
         cmd.arg("--headed");
     }
 
-    let status = cmd.status().context("Failed to run Playwright tests")?;
+    // Capture output for progress display
+    let output = cmd.output().context("Failed to run Playwright tests")?;
 
-    if status.success() {
+    // Display stdout for progress information
+    if !output.stdout.is_empty() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            println!("│   {}", line);
+        }
+    }
+
+    if output.status.success() {
         Ok(())
     } else {
-        bail!("Playwright tests failed with status: {}", status)
+        // Display stderr on failure
+        if !output.stderr.is_empty() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            for line in stderr.lines() {
+                eprintln!("│   {}", line);
+            }
+        }
+        bail!("Playwright tests failed with status: {}", output.status)
     }
 }

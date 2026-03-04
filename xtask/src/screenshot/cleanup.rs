@@ -243,3 +243,114 @@ fn find_playwright_processes() -> Result<Vec<u32>> {
     // For simplicity, return empty - Windows handles process cleanup differently
     Ok(Vec::new())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_cleanup_previous_artifacts_nonexistent() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path().join("ui");
+
+        // Should not fail even if artifacts don't exist
+        cleanup_previous_artifacts(temp.path(), &ui_dir).unwrap();
+    }
+
+    #[test]
+    fn test_cleanup_previous_artifacts_removes_screenshots() {
+        let temp = TempDir::new().unwrap();
+        let screenshots = temp.path().join("screenshots");
+        fs::create_dir_all(&screenshots).unwrap();
+        fs::write(screenshots.join("test.png"), "data").unwrap();
+
+        let ui_dir = temp.path().join("ui");
+        cleanup_previous_artifacts(temp.path(), &ui_dir).unwrap();
+
+        assert!(!screenshots.exists());
+    }
+
+    #[test]
+    fn test_cleanup_previous_artifacts_removes_test_results() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path().join("ui");
+        let test_results = ui_dir.join("test-results-screenshots");
+        fs::create_dir_all(&test_results).unwrap();
+        fs::write(test_results.join("result.txt"), "data").unwrap();
+
+        cleanup_previous_artifacts(temp.path(), &ui_dir).unwrap();
+
+        assert!(!test_results.exists());
+    }
+
+    #[test]
+    fn test_cleanup_previous_artifacts_removes_playwright_report() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path().join("ui");
+        let report = ui_dir.join("playwright-report-screenshots");
+        fs::create_dir_all(&report).unwrap();
+
+        cleanup_previous_artifacts(temp.path(), &ui_dir).unwrap();
+
+        assert!(!report.exists());
+    }
+
+    #[test]
+    fn test_remove_partial_files() {
+        let temp = TempDir::new().unwrap();
+        let dir = temp.path().join("screenshots");
+        fs::create_dir_all(&dir).unwrap();
+
+        fs::write(dir.join("good.png"), "data").unwrap();
+        fs::write(dir.join("partial.png.tmp"), "partial").unwrap();
+
+        remove_partial_files(&dir).unwrap();
+
+        assert!(dir.join("good.png").exists());
+        assert!(!dir.join("partial.png.tmp").exists());
+    }
+
+    #[test]
+    fn test_remove_partial_files_nested() {
+        let temp = TempDir::new().unwrap();
+        let nested = temp.path().join("screenshots").join("category");
+        fs::create_dir_all(&nested).unwrap();
+
+        fs::write(nested.join("partial.png.tmp"), "partial").unwrap();
+        fs::write(nested.join("complete.png"), "data").unwrap();
+
+        remove_partial_files(temp.path().join("screenshots").as_path()).unwrap();
+
+        assert!(!nested.join("partial.png.tmp").exists());
+        assert!(nested.join("complete.png").exists());
+    }
+
+    #[test]
+    fn test_remove_partial_files_nonexistent_dir() {
+        let temp = TempDir::new().unwrap();
+        let nonexistent = temp.path().join("nonexistent");
+
+        // Should not fail on nonexistent directory
+        remove_partial_files(&nonexistent).unwrap();
+    }
+
+    #[test]
+    fn test_remove_partial_files_multiple_tmp() {
+        let temp = TempDir::new().unwrap();
+        let dir = temp.path().join("screenshots");
+        fs::create_dir_all(&dir).unwrap();
+
+        fs::write(dir.join("file1.png.tmp"), "partial").unwrap();
+        fs::write(dir.join("file2.png.tmp"), "partial").unwrap();
+        fs::write(dir.join("file3.txt.tmp"), "partial").unwrap();
+        fs::write(dir.join("good.png"), "data").unwrap();
+
+        remove_partial_files(&dir).unwrap();
+
+        assert!(!dir.join("file1.png.tmp").exists());
+        assert!(!dir.join("file2.png.tmp").exists());
+        assert!(!dir.join("file3.txt.tmp").exists());
+        assert!(dir.join("good.png").exists());
+    }
+}

@@ -113,3 +113,89 @@ fn is_process_running(pid: u32) -> Result<bool> {
 
 #[cfg(windows)]
 use std::process::Command;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_lock_file_creates_on_acquire() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path();
+        let lock_path = ui_dir.join(".screenshot.lock");
+
+        assert!(!lock_path.exists());
+
+        let lock = LockFile::acquire(ui_dir).unwrap();
+
+        assert!(lock_path.exists());
+        let contents = std::fs::read_to_string(&lock_path).unwrap();
+        assert!(!contents.is_empty());
+
+        drop(lock);
+        assert!(!lock_path.exists());
+    }
+
+    #[test]
+    fn test_stale_lock_removed() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path();
+        let lock_path = ui_dir.join(".screenshot.lock");
+
+        // Create stale lock with non-existent PID (use a very high PID that's unlikely to exist)
+        std::fs::write(&lock_path, "99999999").unwrap();
+        assert!(lock_path.exists());
+
+        let lock = LockFile::acquire(ui_dir).unwrap();
+
+        // Should have replaced with our PID
+        let contents = std::fs::read_to_string(&lock_path).unwrap();
+        assert_ne!(contents, "99999999");
+
+        drop(lock);
+        assert!(!lock_path.exists());
+    }
+
+    #[test]
+    fn test_lock_raii_cleanup() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path();
+        let lock_path = ui_dir.join(".screenshot.lock");
+
+        {
+            let _lock = LockFile::acquire(ui_dir).unwrap();
+            assert!(lock_path.exists());
+        }
+
+        // Lock should be released when dropped
+        assert!(!lock_path.exists());
+    }
+
+    #[test]
+    fn test_lock_release_explicit() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path();
+        let lock_path = ui_dir.join(".screenshot.lock");
+
+        let lock = LockFile::acquire(ui_dir).unwrap();
+        assert!(lock_path.exists());
+
+        lock.release();
+
+        assert!(!lock_path.exists());
+    }
+
+    #[test]
+    fn test_lock_contents_is_valid_pid() {
+        let temp = TempDir::new().unwrap();
+        let ui_dir = temp.path();
+        let lock_path = ui_dir.join(".screenshot.lock");
+
+        let _lock = LockFile::acquire(ui_dir).unwrap();
+
+        let contents = std::fs::read_to_string(&lock_path).unwrap();
+        let parsed_pid: u32 = contents.trim().parse().expect("Lock should contain valid PID");
+        assert!(parsed_pid > 0);
+    }
+}
