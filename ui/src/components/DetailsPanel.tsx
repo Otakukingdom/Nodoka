@@ -123,21 +123,23 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      aria-label={`${file.name}, chapter ${file.position + 1}${file.completeness > 0 ? `, ${file.completeness}% complete` : ''}${isSelected ? ', selected' : ''}`}
+      aria-pressed={isSelected}
     >
       <div className="card-body p-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-base-content/50 w-6">#{file.position + 1}</span>
+          <span className="text-xs font-mono text-base-content/50 w-6" aria-hidden="true">#{file.position + 1}</span>
           <span className="text-sm font-medium text-truncate flex-1">{file.name}</span>
         </div>
         {file.completeness > 0 && (
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2" role="progressbar" aria-valuenow={file.completeness} aria-valuemin={0} aria-valuemax={100} aria-label={`${file.completeness}% complete`}>
             <div className="flex-1 h-1.5 bg-base-300/70 rounded-full overflow-hidden progress-bar-enhanced">
               <div
                 className="h-full gradient-premium rounded-full transition-all duration-300"
                 style={{ width: `${file.completeness}%` }}
               />
             </div>
-            <span className="text-xs text-base-content/60 tabular-nums w-8 text-right">{file.completeness}%</span>
+            <span className="text-xs text-base-content/60 tabular-nums w-8 text-right" aria-hidden="true">{file.completeness}%</span>
           </div>
         )}
       </div>
@@ -159,10 +161,15 @@ function BookmarkCard({ bookmark }: { bookmark: BookmarkType }) {
   };
 
   return (
-    <div className="card card-compact bg-base-100 border border-base-300/50 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 card-elevated card-interactive cursor-pointer group">
+    <div
+      className="card card-compact bg-base-100 border border-base-300/50 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 card-elevated card-interactive cursor-pointer group"
+      role="button"
+      tabIndex={0}
+      aria-label={`${bookmark.label} at ${formatTime(bookmark.positionMs)}${bookmark.note ? `, note: ${bookmark.note}` : ''}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-medium text-truncate flex-1 group-hover:text-primary transition-colors">{bookmark.label}</span>
-        <span className="badge badge-primary/20 text-primary text-xs font-mono shrink-0 border-primary/30 min-w-fit">
+        <span className="badge badge-primary/20 text-primary text-xs font-mono shrink-0 border-primary/30 min-w-fit" aria-label={`Position: ${formatTime(bookmark.positionMs)}`}>
           {formatTime(bookmark.positionMs)}
         </span>
       </div>

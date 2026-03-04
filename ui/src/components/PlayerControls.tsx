@@ -79,6 +79,11 @@ export default function PlayerControls() {
       role="region"
       aria-label="Audio player controls"
     >
+      {/* Screen reader time announcements */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isPlaying && `Playing: ${formatTime(currentTime)} of ${formatTime(totalDuration)}`}
+      </div>
+
       {/* Left controls */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Skip backward button */}
@@ -131,16 +136,21 @@ export default function PlayerControls() {
 
       {/* Center - Seek bar */}
       <div className="flex-1 flex items-center gap-1 sm:gap-3">
-        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 text-right tabular-nums text-base-content/70 select-none">
+        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 text-right tabular-nums text-base-content/70 select-none" aria-label={`Current time: ${formatTime(currentTime)}`}>
           {formatTime(currentTime)}
         </span>
-        <div className="flex-1 relative group h-8 sm:h-6 flex items-center">
+        <div className="flex-1 relative group h-8 sm:h-6 flex items-center" role="group" aria-label="Seek bar">
           {/* Background track with enhanced visibility */}
-          <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" />
+          <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" aria-hidden="true" />
           {/* Progress track with premium gradient */}
           <div
             className="absolute left-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-fill transition-all duration-100 group-hover:h-3"
             style={{ width: `${progress}%` }}
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${Math.round(progress)}% complete`}
           />
           <input
             type="range"
@@ -157,7 +167,7 @@ export default function PlayerControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 tabular-nums text-base-content/70 select-none">
+        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 tabular-nums text-base-content/70 select-none" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
           {formatTime(totalDuration)}
         </span>
       </div>

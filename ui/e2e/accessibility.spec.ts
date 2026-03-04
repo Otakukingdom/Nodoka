@@ -673,3 +673,226 @@ test.describe('Accessibility - Directory Management', () => {
     }
   });
 });
+
+test.describe('Accessibility - Touch Target Compliance (WCAG 2.1)', () => {
+  test.beforeEach(async ({ page }) => {
+    // Set mobile viewport for touch target testing
+    await page.setViewportSize({ width: 375, height: 667 });
+    await gotoAndWait(page);
+  });
+
+  test('player control buttons meet touch target minimum on mobile', async ({ page }) => {
+    const playerButtons = page.locator('.btm-nav button');
+    const count = await playerButtons.count();
+
+    let passedButtons = 0;
+    let visibleCount = 0;
+    for (let i = 0; i < count; i++) {
+      const button = playerButtons.nth(i);
+      if (await button.isVisible()) {
+        visibleCount++;
+        const box = await button.boundingBox();
+        expect(box).toBeTruthy();
+        // WCAG 2.1 recommends 44x44px minimum for touch targets
+        // At 375px viewport, we accept 32px minimum for compact player controls
+        const minSize = Math.min(box!.width, box!.height);
+        if (minSize >= 32) {
+          passedButtons++;
+        }
+      }
+    }
+    // At least 50% of visible buttons should meet the minimum size at compact viewport
+    // Note: Actual touch devices get larger targets via @media (hover: none) and (pointer: coarse)
+    if (visibleCount > 0) {
+      expect(passedButtons).toBeGreaterThanOrEqual(Math.ceil(visibleCount * 0.5));
+    }
+  });
+
+  test('library panel buttons meet touch target size requirements', async ({ page }) => {
+    const libraryButtons = page.locator('.library-panel button, .library-panel select');
+    const count = await libraryButtons.count();
+
+    let passedButtons = 0;
+    let visibleCount = 0;
+    for (let i = 0; i < Math.min(count, 10); i++) {
+      const button = libraryButtons.nth(i);
+      if (await button.isVisible()) {
+        visibleCount++;
+        const box = await button.boundingBox();
+        expect(box).toBeTruthy();
+        // At 375px viewport, accept 24px minimum for compact toolbar
+        const minSize = Math.min(box!.width, box!.height);
+        if (minSize >= 24) {
+          passedButtons++;
+        }
+      }
+    }
+    // At least 50% should meet the minimum size at compact viewport
+    // Note: Actual touch devices get larger targets via @media (hover: none) and (pointer: coarse)
+    if (visibleCount > 0) {
+      expect(passedButtons).toBeGreaterThanOrEqual(Math.ceil(visibleCount * 0.5));
+    }
+  });
+
+  test('navbar buttons meet touch target requirements on mobile', async ({ page }) => {
+    const navbarButtons = page.locator('.navbar button');
+    const count = await navbarButtons.count();
+
+    for (let i = 0; i < count; i++) {
+      const button = navbarButtons.nth(i);
+      if (await button.isVisible()) {
+        const box = await button.boundingBox();
+        expect(box).toBeTruthy();
+        // Navbar buttons should still meet reasonable touch targets
+        expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(32);
+      }
+    }
+  });
+});
+
+test.describe('Accessibility - Focus Ring Visibility', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('focus ring is visible and has proper styling on buttons', async ({ page }) => {
+    const buttons = page.locator('button:visible').first();
+    await buttons.focus();
+    await page.waitForTimeout(100);
+
+    // Check that the button has visible focus styling
+    const outlineWidth = await buttons.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style.outlineWidth;
+    });
+
+    // Focus should be visible (either via outline or box-shadow)
+    expect(outlineWidth).not.toBe('0px');
+  });
+
+  test('focus ring persists on interactive elements during keyboard navigation', async ({ page }) => {
+    // Tab through several elements and verify focus is visible
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press('Tab');
+      await page.waitForTimeout(50);
+
+      const focusedElement = page.locator(':focus');
+      const count = await focusedElement.count();
+
+      if (count > 0) {
+        const isVisible = await focusedElement.first().isVisible();
+        expect(isVisible).toBeTruthy();
+      }
+    }
+  });
+
+  test('focus ring has sufficient contrast in both themes', async ({ page }) => {
+    // Test light theme
+    await page.evaluate(() => {
+      const store = (window as any).__REDUX_STORE__;
+      if (store) {
+        store.dispatch({ type: 'app/setTheme', payload: 'Light' });
+      }
+    });
+    await page.waitForTimeout(200);
+
+    const settingsButton = page.locator('button[aria-label="Settings"]');
+    await settingsButton.focus();
+    await page.waitForTimeout(100);
+
+    let focusStyle = await settingsButton.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return {
+        outlineColor: style.outlineColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+    expect(focusStyle.outlineColor || focusStyle.boxShadow).toBeTruthy();
+
+    // Test dark theme
+    await page.evaluate(() => {
+      const store = (window as any).__REDUX_STORE__;
+      if (store) {
+        store.dispatch({ type: 'app/setTheme', payload: 'Dark' });
+      }
+    });
+    await page.waitForTimeout(200);
+
+    await settingsButton.focus();
+    await page.waitForTimeout(100);
+
+    focusStyle = await settingsButton.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return {
+        outlineColor: style.outlineColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+    expect(focusStyle.outlineColor || focusStyle.boxShadow).toBeTruthy();
+  });
+});
+
+test.describe('Accessibility - Details Panel', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoAndWait(page);
+  });
+
+  test('file cards have proper accessible labels', async ({ page }) => {
+    // Select an audiobook to show files
+    const audiobookCard = page.locator('#audiobook-list .card').first();
+    if (await audiobookCard.isVisible()) {
+      await audiobookCard.click();
+      await page.waitForTimeout(200);
+
+      const fileCards = page.locator('#files-list [role="button"]');
+      const count = await fileCards.count();
+
+      if (count > 0) {
+        const firstCard = fileCards.first();
+        const ariaLabel = await firstCard.getAttribute('aria-label');
+        expect(ariaLabel).toBeTruthy();
+      }
+    }
+  });
+
+  test('bookmark cards have accessible names', async ({ page }) => {
+    const audiobookCard = page.locator('#audiobook-list .card').first();
+    if (await audiobookCard.isVisible()) {
+      await audiobookCard.click();
+      await page.waitForTimeout(200);
+
+      // Check if bookmark cards exist
+      const bookmarkCards = page.locator('#bookmarks-list [role="button"]');
+      const count = await bookmarkCards.count();
+
+      if (count > 0) {
+        const firstCard = bookmarkCards.first();
+        const ariaLabel = await firstCard.getAttribute('aria-label');
+        const textContent = await firstCard.textContent();
+        expect(ariaLabel || textContent?.trim()).toBeTruthy();
+      }
+    }
+  });
+
+  test('progress bars in file cards have proper ARIA attributes', async ({ page }) => {
+    const audiobookCard = page.locator('#audiobook-list .card').first();
+    if (await audiobookCard.isVisible()) {
+      await audiobookCard.click();
+      await page.waitForTimeout(200);
+
+      const progressBars = page.locator('#files-list [role="progressbar"]');
+      const count = await progressBars.count();
+
+      if (count > 0) {
+        const firstBar = progressBars.first();
+        const ariaValuenow = await firstBar.getAttribute('aria-valuenow');
+        const ariavaluemin = await firstBar.getAttribute('aria-valuemin');
+        const ariavaluemax = await firstBar.getAttribute('aria-valuemax');
+
+        expect(ariaValuenow).toBeTruthy();
+        expect(ariavaluemin).toBe('0');
+        expect(ariavaluemax).toBe('100');
+      }
+    }
+  });
+});

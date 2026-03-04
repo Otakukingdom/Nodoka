@@ -132,9 +132,10 @@ export default function LibraryPanel() {
           />
         </div>
         <select
-          className="select select-bordered select-sm bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
+          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive"
           value={sortOrder}
           onChange={handleSortChange}
+          aria-label="Sort audiobooks"
         >
           <option value="RecentlyPlayed">Recent</option>
           <option value="Title">Title</option>
