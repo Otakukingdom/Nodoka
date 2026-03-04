@@ -30,20 +30,20 @@ export default function DetailsPanel() {
         </div>
         <div className="flex flex-col gap-2" id="files-list">
           {currentFiles.length === 0 ? (
-            <div className="text-center py-12 px-6 animate-fade-in">
-              <div className="relative w-16 h-16 mx-auto mb-4">
+            <div className="text-center py-12 px-6 animate-fade-in empty-state-container">
+              <div className="relative w-16 h-16 mx-auto mb-4 empty-state-icon">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                 <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
                   <FileText className="w-6 h-6 text-primary/60" />
                 </div>
               </div>
-              <div className="text-base-content/80 font-semibold">No files available</div>
-              <div className="text-sm text-base-content/60 mt-1.5 leading-relaxed max-w-xs mx-auto">Click an audiobook in your library to view its chapters</div>
-              <div className="mt-4 flex items-center justify-center gap-1.5">
-                <span className="inline-flex items-center gap-1.5 text-xs text-base-content/50 bg-base-200/50 px-3 py-1.5 rounded-full">
-                  <span className="text-primary">←</span>
-                  <span>Select an audiobook</span>
-                </span>
+              <div className="text-base-content/80 font-semibold empty-state-title">No files available</div>
+              <div className="text-sm text-base-content/60 mt-1.5 leading-relaxed max-w-xs mx-auto empty-state-description">Select an audiobook from your library to view its chapters</div>
+              <div className="mt-5 flex items-center justify-center">
+                <div className="select-hint-prominent cursor-default">
+                  <span className="text-primary font-semibold">←</span>
+                  <span className="font-medium">Click an audiobook</span>
+                </div>
               </div>
             </div>
           ) : (
@@ -114,10 +114,10 @@ interface FileCardProps {
 function FileCard({ file, isSelected, onClick }: FileCardProps) {
   return (
     <div
-      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 card-elevated ${
+      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 card-elevated card-interactive ${
         isSelected
-          ? 'ring-2 ring-primary shadow-md bg-primary/5 border-primary/30'
-          : 'border border-base-300/50 hover:border-primary/30'
+          ? 'ring-[3px] ring-primary shadow-md bg-primary/5 border-primary/30 file-card-selected'
+          : 'border border-base-300/50 hover:border-primary/40'
       }`}
       onClick={onClick}
       role="button"
@@ -126,18 +126,18 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
     >
       <div className="card-body p-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-base-content/40 w-6">#{file.position + 1}</span>
+          <span className="text-xs font-mono text-base-content/50 w-6">#{file.position + 1}</span>
           <span className="text-sm font-medium text-truncate flex-1">{file.name}</span>
         </div>
         {file.completeness > 0 && (
           <div className="flex items-center gap-2 mt-2">
-            <div className="flex-1 h-1.5 bg-base-200 rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 bg-base-300/70 rounded-full overflow-hidden progress-bar-enhanced">
               <div
                 className="h-full gradient-premium rounded-full transition-all duration-300"
                 style={{ width: `${file.completeness}%` }}
               />
             </div>
-            <span className="text-xs text-base-content/50 tabular-nums w-8 text-right">{file.completeness}%</span>
+            <span className="text-xs text-base-content/60 tabular-nums w-8 text-right">{file.completeness}%</span>
           </div>
         )}
       </div>
@@ -159,10 +159,10 @@ function BookmarkCard({ bookmark }: { bookmark: BookmarkType }) {
   };
 
   return (
-    <div className="card card-compact bg-base-100 border border-base-300/50 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/20 card-elevated cursor-pointer group">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-truncate group-hover:text-primary transition-colors">{bookmark.label}</span>
-        <span className="badge badge-primary/20 text-primary text-xs font-mono shrink-0 border-primary/30">
+    <div className="card card-compact bg-base-100 border border-base-300/50 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 card-elevated card-interactive cursor-pointer group">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-truncate flex-1 group-hover:text-primary transition-colors">{bookmark.label}</span>
+        <span className="badge badge-primary/20 text-primary text-xs font-mono shrink-0 border-primary/30 min-w-fit">
           {formatTime(bookmark.positionMs)}
         </span>
       </div>

@@ -554,7 +554,7 @@ export default function SettingsModal() {
         {/* Reset to Defaults */}
         <div className="mt-6">
           <button
-            className="btn btn-outline btn-error btn-sm w-full hover:bg-error hover:text-error-content transition-all duration-200"
+            className="btn btn-outline btn-error btn-sm w-full hover:bg-error hover:text-error-content transition-all duration-200 border-2 hover:border-error"
             onClick={handleResetDefaults}
           >
             <RotateCcw className="w-4 h-4" />

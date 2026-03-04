@@ -296,10 +296,10 @@ interface AudiobookCardProps {
 function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardProps) {
   return (
     <div
-      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group card-performance ${
+      className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group card-performance card-interactive ${
         isSelected
-          ? 'ring-2 ring-primary shadow-lg bg-primary/5 scale-[1.01]'
-          : 'shadow-sm border border-base-300/50 hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5 hover:bg-primary/5'
+          ? 'ring-[3px] ring-primary shadow-lg bg-primary/5 scale-[1.01] shadow-primary/10'
+          : 'shadow-sm border border-base-300/50 hover:border-primary/50 hover:shadow-lg hover:bg-primary/5'
       }`}
       onClick={onClick}
       role="button"
@@ -321,10 +321,10 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
           )}
         </div>
         {book.author && (
-          <span className="text-xs text-base-content/50 -mt-1 text-truncate group-hover:text-base-content/60 transition-colors">{book.author}</span>
+          <span className="text-xs text-base-content/60 -mt-1 text-truncate group-hover:text-base-content/70 transition-colors">{book.author}</span>
         )}
         <div className="flex items-center gap-2 mt-1.5">
-          <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden group-hover:bg-base-300/50 transition-colors">
+          <div className="flex-1 h-2 bg-base-300/70 rounded-full overflow-hidden group-hover:bg-base-300 transition-colors progress-bar-enhanced">
             <div
               className="h-full gradient-premium rounded-full transition-all duration-500 ease-out"
               style={{ width: `${book.completeness}%` }}

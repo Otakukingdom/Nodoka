@@ -259,19 +259,29 @@ function App() {
     <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
       <TopBar />
       <main className="flex flex-1 overflow-hidden" role="main" ref={mainRef}>
-        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0">
+        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-[180px] max-w-[400px] sm:min-w-[220px] sm:max-w-none">
           <LibraryPanel />
         </div>
         <div
-          className={`w-1 bg-base-300 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 ${panelDividerDragging ? 'bg-primary/60' : ''}`}
+          className={`w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation ${
+            panelDividerDragging ? 'bg-primary/70 shadow-[2px_0_12px_rgba(225,29,72,0.3)]' : ''
+          }`}
           onMouseDown={handleDividerMouseDown}
           onDoubleClick={handleDividerDoubleClick}
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize panels"
+          aria-valuenow={Math.round(panelRatio * 100)}
           tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft') {
+              dispatch(setPanelRatio(Math.max(0.2, panelRatio - 0.05)));
+            } else if (e.key === 'ArrowRight') {
+              dispatch(setPanelRatio(Math.min(0.8, panelRatio + 0.05)));
+            }
+          }}
         />
-        <div className="flex-1">
+        <div className="flex-1 min-w-[240px] sm:min-w-[300px]">
           <DetailsPanel />
         </div>
       </main>

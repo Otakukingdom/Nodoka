@@ -724,3 +724,329 @@ html {
 [data-theme="dark"] .btm-nav {
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
 }
+
+/* ============================================
+   Enhanced Selection States
+   ============================================ */
+
+/* Audiobook card selection - more prominent ring */
+.audiobook-card-selected {
+  ring-width: 3px;
+  box-shadow:
+    0 0 0 3px rgba(225, 29, 72, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .audiobook-card-selected {
+  box-shadow:
+    0 0 0 3px rgba(251, 113, 133, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced progress bar contrast */
+.progress-bar-enhanced {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] .progress-bar-enhanced {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* File card selection - improved visibility */
+.file-card-selected {
+  box-shadow:
+    0 0 0 2px rgba(225, 29, 72, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .file-card-selected {
+  box-shadow:
+    0 0 0 2px rgba(251, 113, 133, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Enhanced hover state for cards */
+.card-interactive {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .card-interactive:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   Improved Empty State Messaging
+   ============================================ */
+
+/* Empty state container with better visual hierarchy */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  min-height: 280px;
+}
+
+.empty-state-icon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1.25rem;
+}
+
+.empty-state-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: oklch(var(--bc) / 0.85);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.empty-state-description {
+  font-size: 0.875rem;
+  color: oklch(var(--bc) / 0.65);
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Enhanced Interactive Cues
+   ============================================ */
+
+/* More prominent "select" hint */
+.select-hint-prominent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.1) 0%, rgba(251, 113, 133, 0.05) 100%);
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: oklch(var(--bc) / 0.7);
+  transition: all 0.2s ease;
+}
+
+.select-hint-prominent:hover {
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.15) 0%, rgba(251, 113, 133, 0.1) 100%);
+  border-color: rgba(225, 29, 72, 0.3);
+}
+
+[data-theme="dark"] .select-hint-prominent {
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.15) 0%, rgba(251, 113, 133, 0.05) 100%);
+  border-color: rgba(251, 113, 133, 0.25);
+}
+
+[data-theme="dark"] .select-hint-prominent:hover {
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.2) 0%, rgba(251, 113, 133, 0.1) 100%);
+  border-color: rgba(251, 113, 133, 0.35);
+}
+
+/* ============================================
+   Enhanced Dark Mode Contrast
+   ============================================ */
+
+/* Improved secondary text contrast in dark mode */
+[data-theme="dark"] .text-base-content\/50 {
+  color: oklch(var(--bc) / 0.6);
+}
+
+[data-theme="dark"] .text-base-content\/60 {
+  color: oklch(var(--bc) / 0.7);
+}
+
+/* Better visibility for disabled states */
+[data-theme="dark"] .btn-disabled {
+  opacity: 0.5;
+}
+
+/* ============================================
+   Seek Bar Enhanced Visibility
+   ============================================ */
+
+/* Seek bar with more visible progress */
+.seek-bar-track {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 9999px;
+  height: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .seek-bar-track {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.seek-bar-fill {
+  background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.1s ease;
+}
+
+.seek-bar-thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(225, 29, 72, 0.3);
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.seek-bar-thumb:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 0 0 3px rgba(225, 29, 72, 0.4);
+}
+
+[data-theme="dark"] .seek-bar-thumb {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(251, 113, 133, 0.4);
+}
+
+[data-theme="dark"] .seek-bar-thumb:hover {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(251, 113, 133, 0.5);
+}
+
+/* ============================================
+   Touch-Friendly Panel Divider
+   ============================================ */
+
+/* Larger hit area for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .cursor-col-resize {
+    min-width: 12px;
+    margin-left: -4px;
+    margin-right: -4px;
+    position: relative;
+  }
+
+  .cursor-col-resize::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+  }
+
+  .cursor-col-resize:active {
+    background: rgba(225, 29, 72, 0.4);
+  }
+}
+
+/* ============================================
+   Compact Viewport Responsive Fixes
+   ============================================ */
+
+/* Improve layout at small viewports (640px and below) */
+@media (max-width: 640px) {
+  /* Ensure library panel content doesn't overflow */
+  .library-panel {
+    min-width: 0;
+  }
+
+  /* Reduce padding in toolbar for compact screens */
+  .library-panel .p-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Improve audiobook card text truncation */
+  .library-panel .card-title {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  /* Smaller but still visible progress bars */
+  .library-panel .progress-bar-enhanced {
+    height: 6px;
+  }
+
+  /* Reduce player control padding */
+  .btm-nav {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Ensure time displays are readable */
+  .btm-nav .font-mono {
+    font-size: 0.6875rem;
+  }
+}
+
+/* Extra small viewport fixes (480px and below) */
+@media (max-width: 480px) {
+  /* Further reduce padding */
+  .library-panel .p-3 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Compact audiobook cards */
+  .library-panel .card-body {
+    padding: 0.625rem;
+  }
+
+  /* Smaller gap between cards */
+  .library-panel .flex.flex-col.gap-2 {
+    gap: 0.375rem;
+  }
+}
+
+/* Panel divider keyboard focus indicator */
+.cursor-col-resize:focus-visible {
+  outline: 2px solid var(--fallback-p, #E11D48);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Notification Enhancements
+   ============================================ */
+
+/* Toast notification improvements */
+.toast {
+  pointer-events: none;
+}
+
+.toast > * {
+  pointer-events: auto;
+}
+
+/* Stacked notification hover effect */
+.toast .alert:hover {
+  transform: translateX(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Notification backdrop blur support */
+[data-theme="dark"] .alert {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
