@@ -52,8 +52,8 @@ export default function TopBar() {
           <span className="drop-shadow-sm">♪</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Nodoka</span>
-          <span className="text-xs text-base-content/60 leading-tight">Audiobook Reader</span>
+          <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Nodoka</h1>
+          <span className="text-xs text-base-content/70 leading-tight">Audiobook Reader</span>
         </div>
       </div>
       <div className="flex-1" />

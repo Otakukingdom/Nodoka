@@ -254,7 +254,7 @@ export default function SettingsModal() {
         </div>
         <div>
           <h3 className="font-bold text-xl">Settings</h3>
-          <p className="text-xs text-base-content/60">Customize your experience</p>
+          <p className="text-xs text-description">Customize your experience</p>
         </div>
       </div>
 
@@ -264,12 +264,13 @@ export default function SettingsModal() {
         <div className="form-control">
           <label className="label py-2">
             <span className="label-text font-medium text-base">Theme</span>
-            <span className="label-text-alt text-base-content/60">Choose your preferred appearance</span>
+            <span className="label-text-alt">Choose your preferred appearance</span>
           </label>
           <select
             className="select select-bordered w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
             value={theme}
             onChange={handleThemeChange}
+            aria-label="Select theme"
           >
             <option value="Light">Light</option>
             <option value="Dark">Dark</option>
@@ -281,7 +282,7 @@ export default function SettingsModal() {
         <div className="form-control">
           <label className="label py-2">
             <span className="label-text font-medium text-base">Audiobook Directories</span>
-            <span className="label-text-alt text-base-content/60">Manage your library folders</span>
+            <span className="label-text-alt">Manage your library folders</span>
           </label>
           <div className="space-y-2">
             {/* Directory list */}
@@ -345,20 +346,20 @@ export default function SettingsModal() {
                               )}
                             </div>
                             {hasError && dir.error ? (
-                              <span className="text-xs text-warning/80">
+                              <span className="text-xs text-warning font-medium">
                                 {getErrorMessage(dir.error)}
                               </span>
                             ) : (
-                              <div className="flex items-center gap-2 text-xs text-base-content/50">
+                              <div className="flex items-center gap-2 text-xs text-base-content/70">
                                 <span
-                                  className="truncate"
+                                  className="truncate directory-item-path"
                                   title={truncatedPath.tooltip}
                                 >
                                   {truncatedPath.display}
                                 </span>
                                 {relativeTime && (
                                   <>
-                                    <span className="text-base-content/30">•</span>
+                                    <span className="text-base-content/40">•</span>
                                     <span className="shrink-0">{relativeTime}</span>
                                   </>
                                 )}
@@ -439,6 +440,7 @@ export default function SettingsModal() {
             className="peer"
             checked={expandedSection === 'playback'}
             onChange={() => toggleSection('playback')}
+            aria-label="Toggle playback settings section"
           />
           <div className="collapse-title flex items-center gap-2 font-medium">
             <Gauge className="w-4 h-4" />
@@ -449,12 +451,13 @@ export default function SettingsModal() {
             <div className="form-control">
               <label className="label py-1">
                 <span className="label-text font-medium text-sm">Skip Forward Duration</span>
-                <span className="label-text-alt text-base-content/60">Seconds to skip ahead</span>
+                <span className="label-text-alt">Seconds to skip ahead</span>
               </label>
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={skipForwardDuration}
                 onChange={(e) => setSkipForwardDuration(parseInt(e.target.value))}
+                aria-label="Select skip forward duration"
               >
                 {SKIP_DURATIONS.map((duration) => (
                   <option key={duration} value={duration}>
@@ -468,12 +471,13 @@ export default function SettingsModal() {
             <div className="form-control">
               <label className="label py-1">
                 <span className="label-text font-medium text-sm">Skip Backward Duration</span>
-                <span className="label-text-alt text-base-content/60">Seconds to skip back</span>
+                <span className="label-text-alt">Seconds to skip back</span>
               </label>
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={skipBackwardDuration}
                 onChange={(e) => setSkipBackwardDuration(parseInt(e.target.value))}
+                aria-label="Select skip backward duration"
               >
                 {SKIP_BACKWARD_DURATIONS.map((duration) => (
                   <option key={duration} value={duration}>
@@ -487,12 +491,13 @@ export default function SettingsModal() {
             <div className="form-control">
               <label className="label py-1">
                 <span className="label-text font-medium text-sm">Auto-save Interval</span>
-                <span className="label-text-alt text-base-content/60">How often to save progress</span>
+                <span className="label-text-alt">How often to save progress</span>
               </label>
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={autoSaveInterval}
                 onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
+                aria-label="Select auto-save interval"
               >
                 {AUTO_SAVE_INTERVALS.map((interval) => (
                   <option key={interval} value={interval}>
@@ -511,6 +516,7 @@ export default function SettingsModal() {
             className="peer"
             checked={expandedSection === 'accessibility'}
             onChange={() => toggleSection('accessibility')}
+            aria-label="Toggle accessibility settings section"
           />
           <div className="collapse-title flex items-center gap-2 font-medium">
             <Accessibility className="w-4 h-4" />
@@ -528,7 +534,7 @@ export default function SettingsModal() {
                 />
                 <div className="flex flex-col">
                   <span className="label-text font-medium">Focus Mode</span>
-                  <span className="text-xs text-base-content/60">Minimize distractions while listening</span>
+                  <span className="text-xs text-description">Minimize distractions while listening</span>
                 </div>
               </label>
             </div>
@@ -544,7 +550,7 @@ export default function SettingsModal() {
                 />
                 <div className="flex flex-col">
                   <span className="label-text font-medium">Reduced Motion</span>
-                  <span className="text-xs text-base-content/60">Minimize animations</span>
+                  <span className="text-xs text-description">Minimize animations</span>
                 </div>
               </label>
             </div>
@@ -554,7 +560,7 @@ export default function SettingsModal() {
         {/* Reset to Defaults */}
         <div className="mt-6">
           <button
-            className="btn btn-outline btn-error btn-sm w-full hover:bg-error hover:text-error-content transition-all duration-200 border-2 hover:border-error"
+            className="btn btn-ghost btn-sm w-full text-base-content/70 hover:text-error hover:bg-error/10 border-2 hover:border-error/50 transition-all duration-200"
             onClick={handleResetDefaults}
           >
             <RotateCcw className="w-4 h-4" />
@@ -566,7 +572,7 @@ export default function SettingsModal() {
       {/* Footer */}
       <div className="modal-action mt-8">
         <button
-          className="btn btn-primary shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-premium shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={handleClose}
         >
           Done

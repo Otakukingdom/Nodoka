@@ -169,7 +169,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await closeButton.focus();
       await expect(closeButton).toBeFocused();
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.locator('.modal-box select').first();
       await themeSelect.focus();
       await expect(themeSelect).toBeFocused();
 
@@ -193,13 +193,13 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       const doneButton = page.locator('.modal-box button:has-text("Done")');
-      await expect(doneButton).toHaveClass(/btn-primary/);
+      await expect(doneButton).toHaveClass(/btn-premium/);
     });
 
     test('theme select has focus styling', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.locator('.modal-box select').first();
       await themeSelect.focus();
       await page.waitForTimeout(200);
 
@@ -212,12 +212,12 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('preferences persist within session', async ({ page }) => {
       // Set theme to Dark
       await openSettingsModal(page);
-      await page.locator('.modal-box select').selectOption('Dark');
+      await page.locator('.modal-box select').first().selectOption('Dark');
       await closeModal(page);
 
       // Open modal again without reload
       await openSettingsModal(page);
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.locator('.modal-box select').first();
 
       // Theme should still be Dark within the same session
       await expect(themeSelect).toHaveValue('Dark');

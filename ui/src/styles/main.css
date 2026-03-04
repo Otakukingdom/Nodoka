@@ -103,23 +103,35 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Premium button with gradient */
+  /* Premium button with gradient - improved contrast for better accessibility */
   .btn-premium {
-    background: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+    background: linear-gradient(135deg, #BE123C 0%, #E11D48 100%);
     color: white;
     border: none;
-    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);
+    box-shadow: 0 4px 14px rgba(190, 18, 46, 0.25);
     transition: all 0.2s ease;
   }
 
   .btn-premium:hover {
-    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.35);
+    background: linear-gradient(135deg, #9F1239 0%, #BE123C 0%);
+    box-shadow: 0 6px 20px rgba(190, 18, 46, 0.35);
     transform: translateY(-1px);
   }
 
   .btn-premium:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
+    box-shadow: 0 2px 8px rgba(190, 18, 46, 0.25);
+  }
+
+  /* Dark mode premium button - darker gradient for better contrast */
+  [data-theme="dark"] .btn-premium {
+    background: linear-gradient(135deg, #9F1239 0%, #B91C1C 100%);
+    box-shadow: 0 4px 14px rgba(159, 27, 41, 0.25);
+  }
+
+  [data-theme="dark"] .btn-premium:hover {
+    background: linear-gradient(135deg, #881337 0%, #9F1239 0%);
+    box-shadow: 0 6px 20px rgba(159, 27, 41, 0.35);
   }
 
   /* Panel divider with gradient */
@@ -388,14 +400,40 @@ html {
   animation: scale-in 0.2s ease-out;
 }
 
-/* Reduced motion support */
+/* Reduced motion support - WCAG 2.1 AAA and axe-core motion rule compliance */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Remove all animations */
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-fade-in,
+  .toast-slide-in,
+  .pulse-playing,
+  .fade-in,
+  .scale-in,
+  .shimmer,
+  .card-animate-in,
+  .logo-hover-pulse,
+  .skeleton-shimmer::after {
+    animation: none !important;
+  }
+
+  /* Remove transforms that could cause motion */
+  .card-hover-lift:hover,
+  .interaction-scale:hover,
+  .btn-press:active {
+    transform: none !important;
   }
 }
 
@@ -832,11 +870,11 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.375rem 0.75rem;
   background: linear-gradient(135deg, rgba(225, 29, 72, 0.1) 0%, rgba(251, 113, 133, 0.05) 100%);
   border: 1px solid rgba(225, 29, 72, 0.2);
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: oklch(var(--bc) / 0.7);
   transition: all 0.2s ease;
 }
@@ -857,6 +895,21 @@ html {
 }
 
 /* ============================================
+   Keyboard Shortcut Hint Styling
+   ============================================ */
+
+/* Ensure kbd elements have sufficient color contrast - WCAG 2.1 AA (4.5:1) */
+.kbd.kbd-xs,
+.kbd.kbd-sm {
+  color: #111827 !important; /* Nearly black for sufficient contrast on light backgrounds */
+}
+
+[data-theme="dark"] .kbd.kbd-xs,
+[data-theme="dark"] .kbd.kbd-sm {
+  color: #f9fafb !important; /* Nearly white for dark mode contrast */
+}
+
+/* ============================================
    Enhanced Dark Mode Contrast
    ============================================ */
 
@@ -867,6 +920,71 @@ html {
 
 [data-theme="dark"] .text-base-content\/60 {
   color: oklch(var(--bc) / 0.7);
+}
+
+/* WCAG 2.1 AA: Ensure label-text-alt has sufficient contrast */
+.label-text-alt {
+  color: oklch(var(--bc) / 0.75);
+}
+
+[data-theme="dark"] .label-text-alt {
+  color: oklch(var(--bc) / 0.8);
+}
+
+/* Secondary/descriptive text in forms - improved contrast */
+.text-description {
+  color: oklch(var(--bc) / 0.75);
+}
+
+[data-theme="dark"] .text-description {
+  color: oklch(var(--bc) / 0.8);
+}
+
+/* ============================================
+   Warning Text Contrast Fix
+   ============================================ */
+
+/* Ensure warning text has sufficient contrast on light backgrounds */
+.text-warning {
+  color: #b45309 !important; /* Darker amber for 4.5:1 contrast */
+}
+
+[data-theme="dark"] .text-warning {
+  color: #fbbf24 !important; /* Lighter amber for dark mode contrast */
+}
+
+/* Warning text on tinted backgrounds needs even darker color */
+.bg-warning\/5 .text-warning,
+[class*="bg-warning"] .text-warning {
+  color: #92400e !important; /* Even darker for tinted backgrounds */
+}
+
+[data-theme="dark"] .bg-warning\/5 .text-warning,
+[data-theme="dark"] [class*="bg-warning"] .text-warning {
+  color: #fcd34d !important;
+}
+
+/* Secondary text in directory items - improved contrast */
+.text-base-content\/50 {
+  color: oklch(var(--bc) / 0.7);
+}
+
+.text-base-content\/30 {
+  color: oklch(var(--bc) / 0.5);
+}
+
+/* Ensure text-base-content/80 is properly contrasted */
+.text-base-content\/80 {
+  color: oklch(var(--bc) / 0.85);
+}
+
+/* Ensure path text in directory items is readable */
+.directory-item-path {
+  color: oklch(var(--bc) / 0.75);
+}
+
+[data-theme="dark"] .directory-item-path {
+  color: oklch(var(--bc) / 0.8);
 }
 
 /* Better visibility for disabled states */
@@ -965,9 +1083,13 @@ html {
 
 /* Improve layout at small viewports (640px and below) */
 @media (max-width: 640px) {
-  /* Ensure library panel content doesn't overflow */
+  /* Ensure library panel takes full width */
   .library-panel {
     min-width: 0;
+    width: 100% !important;
+    border-right: none;
+    border-bottom: 1px solid oklch(var(--b3) / 0.5);
+    max-height: 45vh;
   }
 
   /* Reduce padding in toolbar for compact screens */
@@ -1014,6 +1136,78 @@ html {
   .btm-nav .flex.items-center.gap-0\.5 {
     gap: 0.25rem;
   }
+
+  /* Details panel takes remaining space */
+  .details-panel-container {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Hide panel divider on mobile */
+  .panel-divider-mobile-hide {
+    display: none;
+  }
+}
+
+/* ============================================
+   Visual Hierarchy Enhancements
+   ============================================ */
+
+/* Panel background differentiation */
+.details-panel-container {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b1) / 1) 0%,
+    oklch(var(--b2) / 0.3) 100%
+  );
+}
+
+[data-theme="dark"] .details-panel-container {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b1) / 1) 0%,
+    oklch(var(--b2) / 0.2) 100%
+  );
+}
+
+/* Section header styling - more prominent */
+.section-header-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid oklch(var(--b3) / 0.5);
+  margin-bottom: 0.75rem;
+}
+
+/* Improved empty state - more compact */
+.empty-state-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  min-height: 180px;
+}
+
+.empty-state-compact .empty-state-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state-compact .empty-state-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: oklch(var(--bc) / 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.empty-state-compact .empty-state-description {
+  font-size: 0.75rem;
+  color: oklch(var(--bc) / 0.6);
+  max-width: 200px;
+  line-height: 1.4;
 }
 
 /* Extra small viewport fixes (480px and below) */

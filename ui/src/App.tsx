@@ -258,12 +258,12 @@ function App() {
   return (
     <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
       <TopBar />
-      <main className="flex flex-1 overflow-hidden" role="main" ref={mainRef}>
-        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-[180px] max-w-[400px] sm:min-w-[220px] sm:max-w-none">
+      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row" role="main" ref={mainRef}>
+        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px]">
           <LibraryPanel />
         </div>
         <div
-          className={`w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation ${
+          className={`hidden sm:block w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation ${
             panelDividerDragging ? 'bg-primary/70 shadow-[2px_0_12px_rgba(225,29,72,0.3)]' : ''
           }`}
           onMouseDown={handleDividerMouseDown}
@@ -281,7 +281,9 @@ function App() {
             }
           }}
         />
-        <div className="flex-1 min-w-[240px] sm:min-w-[300px]">
+        {/* Horizontal divider for mobile */}
+        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" role="separator" aria-orientation="horizontal" />
+        <div className="flex-1 min-w-0 sm:min-w-[240px]">
           <DetailsPanel />
         </div>
       </main>

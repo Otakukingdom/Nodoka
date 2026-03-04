@@ -108,7 +108,7 @@ export default function LibraryPanel() {
 
   return (
     <div
-      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100"
+      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100 sm:border-r border-b-0"
       style={{ width: `${panelWidth}%` }}
       role="navigation"
       aria-label="Audiobook library"
@@ -120,7 +120,7 @@ export default function LibraryPanel() {
       </div>
 
       {/* Toolbar */}
-      <div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/50">
+      <div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/30">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none" />
           <input
@@ -246,9 +246,9 @@ export default function LibraryPanel() {
                 {/* Keyboard shortcut hint - secondary visual element */}
                 <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/70">
                   <span>or press</span>
-                  <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">Ctrl</kbd>
+                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium" style={{ color: '#404040' }}>Ctrl</kbd>
                   <span className="text-base-content/50">+</span>
-                  <kbd className="kbd kbd-sm px-2 bg-base-200 border-base-300">D</kbd>
+                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium" style={{ color: '#404040' }}>D</kbd>
                 </div>
 
                 {/* Drag and drop hint - tertiary visual element */}
@@ -423,7 +423,7 @@ function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: Directory
           </button>
         )}
         <button
-          className="btn btn-xs btn-ghost text-error hover:bg-error/10 gap-1"
+          className="btn btn-xs btn-ghost hover:bg-error/10 hover:text-error gap-1"
           onClick={() => void onRemove(directory.fullPath)}
           aria-label="Remove folder from library"
         >

@@ -83,7 +83,7 @@ export default function KeyboardHelpModal() {
         </div>
         <div>
           <h3 className="font-bold text-xl">Keyboard Shortcuts</h3>
-          <p className="text-xs text-base-content/60">Quick navigation tips</p>
+          <p className="text-xs text-description">Quick navigation tips</p>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default function KeyboardHelpModal() {
                   key={index}
                   className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-base-200/50 transition-colors duration-150"
                 >
-                  <kbd className="kbd kbd-sm bg-base-200 border-base-300 font-mono text-xs px-2 py-1 shadow-sm min-w-[60px] text-center">
+                  <kbd className="kbd kbd-sm bg-base-200 border-base-300 font-mono text-xs px-2 py-1 shadow-sm min-w-[60px] text-center" style={{ color: '#404040' }}>
                     {shortcut.key}
                   </kbd>
                   <span className="text-sm text-base-content/80">{shortcut.action}</span>
@@ -126,7 +126,7 @@ export default function KeyboardHelpModal() {
       {/* Footer */}
       <div className="modal-action mt-6">
         <button
-          className="btn btn-primary shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-premium shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={handleClose}
         >
           Got it

@@ -85,7 +85,7 @@ export default function SleepTimerModal() {
         </div>
         <div>
           <h3 className="font-bold text-xl">Sleep Timer</h3>
-          <p className="text-xs text-base-content/60">Stop playback automatically</p>
+          <p className="text-xs text-description">Stop playback automatically</p>
         </div>
       </div>
 
@@ -149,7 +149,7 @@ export default function SleepTimerModal() {
         >
           <BookOpen className="h-4 w-4 group-hover:scale-110 transition-transform" />
           <span>End of Chapter</span>
-          <span className="text-xs text-base-content/50 ml-auto">Stops after current file</span>
+          <span className="text-xs text-base-content/70 ml-auto">Stops after current file</span>
         </button>
       </div>
 
@@ -157,7 +157,7 @@ export default function SleepTimerModal() {
       <div className="form-control mb-6">
         <label className="label py-2">
           <span className="label-text font-medium">Fade Out Duration</span>
-          <span className="label-text-alt text-base-content/60">Gradually lower volume</span>
+          <span className="label-text-alt">Gradually lower volume</span>
         </label>
         <select
           className="select select-bordered w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
