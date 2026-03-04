@@ -97,7 +97,7 @@ fn store_lock_hash(ui_dir: &Path) -> Result<()> {
 
 fn run_npm_install(ui_dir: &Path) -> Result<()> {
     let status = Command::new("npm")
-        .arg("install")
+        .args(["install", "--include=dev"])
         .current_dir(ui_dir)
         .status()
         .context("Failed to run npm install")?;
