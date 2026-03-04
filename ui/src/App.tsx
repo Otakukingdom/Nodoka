@@ -257,6 +257,8 @@ function App() {
 
   return (
     <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
+      {/* Visually hidden h1 for screen reader navigation - WCAG 2.1 accessibility */}
+      <h1 className="sr-only">Nodoka Audiobook Player</h1>
       <TopBar />
       <main className="flex flex-1 overflow-hidden flex-col sm:flex-row" role="main" ref={mainRef}>
         <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px]">

@@ -191,9 +191,9 @@ export default function LibraryPanel() {
                     <Search className="w-7 h-7 text-base-content/40" />
                   </div>
                 </div>
-                <div className="text-title text-base-content/80 mb-2 text-center">
+                <h2 className="text-title text-base-content/80 mb-2 text-center">
                   No matches found
-                </div>
+                </h2>
                 <div className="text-body text-base-content/60 max-w-xs mx-auto text-center leading-relaxed">
                   Try adjusting your search terms or clear the search
                 </div>
@@ -221,9 +221,9 @@ export default function LibraryPanel() {
                 </div>
 
                 {/* Clear visual hierarchy: title > description > action */}
-                <div className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold">
+                <h2 className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold">
                   Add Your Audiobooks
-                </div>
+                </h2>
                 <div className="text-body text-base-content/70 mb-5 max-w-xs mx-auto text-center leading-relaxed">
                   Select a folder containing your audiobook files to get started
                 </div>
