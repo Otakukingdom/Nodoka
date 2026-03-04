@@ -30,7 +30,7 @@ export default function DetailsPanel() {
         </div>
         <div className="flex flex-col gap-2" id="files-list">
           {currentFiles.length === 0 ? (
-            <div className="text-center py-12 px-6">
+            <div className="text-center py-12 px-6 animate-fade-in">
               <div className="relative w-16 h-16 mx-auto mb-4">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                 <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
@@ -38,9 +38,12 @@ export default function DetailsPanel() {
                 </div>
               </div>
               <div className="text-base-content/80 font-semibold">No files available</div>
-              <div className="text-sm text-base-content/60 mt-1.5 leading-relaxed">Click an audiobook in your library to view its chapters</div>
-              <div className="mt-4 text-xs text-base-content/50 flex items-center justify-center gap-1.5">
-                <span>← Click a book to start</span>
+              <div className="text-sm text-base-content/60 mt-1.5 leading-relaxed max-w-xs mx-auto">Click an audiobook in your library to view its chapters</div>
+              <div className="mt-4 flex items-center justify-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-xs text-base-content/50 bg-base-200/50 px-3 py-1.5 rounded-full">
+                  <span className="text-primary">←</span>
+                  <span>Select an audiobook</span>
+                </span>
               </div>
             </div>
           ) : (
@@ -72,7 +75,7 @@ export default function DetailsPanel() {
         </div>
         <div className="flex flex-col gap-2" id="bookmarks-list">
           {bookmarks.length === 0 ? (
-            <div className="text-center py-8 px-6">
+            <div className="text-center py-8 px-6 animate-fade-in">
               <div className="relative w-14 h-14 mx-auto mb-3">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
                 <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
@@ -88,6 +91,7 @@ export default function DetailsPanel() {
                 <kbd className="kbd kbd-xs px-1.5 bg-base-300 border-base-content/20 font-mono">Ctrl</kbd>
                 <span>+</span>
                 <kbd className="kbd kbd-xs px-1.5 bg-base-300 border-base-content/20 font-mono">B</kbd>
+                <span>to create</span>
               </div>
             </div>
           ) : (

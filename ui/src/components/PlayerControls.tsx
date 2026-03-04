@@ -74,7 +74,11 @@ export default function PlayerControls() {
   const progress = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
 
   return (
-    <div className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4" role="region" aria-label="Audio player controls">
+    <div
+      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
+      role="region"
+      aria-label="Audio player controls"
+    >
       {/* Left controls */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Skip backward button */}

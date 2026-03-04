@@ -715,3 +715,12 @@ html {
   contain: layout style;
   will-change: transform;
 }
+
+/* ============================================
+   Player Controls Visual Integration
+   ============================================ */
+
+/* Dark mode shadow for player controls */
+[data-theme="dark"] .btm-nav {
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
+}

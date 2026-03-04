@@ -299,7 +299,7 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
       className={`card card-compact bg-base-100 cursor-pointer transition-all duration-200 group card-performance ${
         isSelected
           ? 'ring-2 ring-primary shadow-lg bg-primary/5 scale-[1.01]'
-          : 'shadow-sm border border-base-300/50 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5'
+          : 'shadow-sm border border-base-300/50 hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5 hover:bg-primary/5'
       }`}
       onClick={onClick}
       role="button"
@@ -321,16 +321,16 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
           )}
         </div>
         {book.author && (
-          <span className="text-xs text-base-content/50 -mt-1 text-truncate">{book.author}</span>
+          <span className="text-xs text-base-content/50 -mt-1 text-truncate group-hover:text-base-content/60 transition-colors">{book.author}</span>
         )}
         <div className="flex items-center gap-2 mt-1.5">
-          <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden group-hover:bg-base-300/50 transition-colors">
             <div
               className="h-full gradient-premium rounded-full transition-all duration-500 ease-out"
               style={{ width: `${book.completeness}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-base-content/70 w-9 text-right tabular-nums">
+          <span className="text-xs font-medium text-base-content/70 w-9 text-right tabular-nums group-hover:text-base-content/80 transition-colors">
             {book.completeness}%
           </span>
         </div>
