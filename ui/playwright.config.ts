@@ -31,13 +31,14 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    reducedMotion: 'reduce',
     // Consistent viewport for screenshot tests
     viewport: { width: 1280, height: 720 },
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], reducedMotion: 'reduce' },
     },
   ],
   webServer: {

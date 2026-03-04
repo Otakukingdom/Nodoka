@@ -19,28 +19,29 @@ export default function DetailsPanel() {
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container" role="complementary" aria-label="File and bookmark details">
       {/* Files section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
-            <FileText className="w-3.5 h-3.5 text-primary" />
+        {/* Section header with consistent alignment */}
+        <div className="section-header-enhanced">
+          <div className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-3 h-3 text-primary" />
           </div>
-          <h2 className="text-sm font-bold text-base-content/90 tracking-wide uppercase">Files</h2>
+          <h2 className="text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Files</h2>
           {currentFiles.length > 0 && (
-            <span className="text-xs text-primary/70 ml-auto font-semibold">{currentFiles.length} files</span>
+            <span className="text-xs text-primary font-semibold tabular-nums">{currentFiles.length}</span>
           )}
         </div>
         <div className="flex flex-col gap-2" id="files-list">
           {currentFiles.length === 0 ? (
-            <div className="text-center py-8 px-4 animate-fade-in">
-              <div className="relative w-14 h-14 mx-auto mb-3">
+            <div className="empty-state-compact animate-fade-in">
+              <div className="relative w-10 h-10 mx-auto mb-2">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
-                <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
-                  <FileText className="w-5 h-5 text-primary/60" />
+                <div className="absolute inset-1 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
+                  <FileText className="w-4 h-4 text-primary/60" />
                 </div>
               </div>
-              <div className="text-sm text-base-content/80 font-semibold">No files available</div>
-              <div className="text-xs text-base-content/60 mt-1 leading-relaxed">Select an audiobook to view chapters</div>
-              <div className="mt-4 flex items-center justify-center">
-                <div className="select-hint-prominent cursor-default text-xs">
+              <div className="empty-state-title">No files available</div>
+              <div className="empty-state-description">Select an audiobook to view chapters</div>
+              <div className="mt-3 flex items-center justify-center">
+                <div className="select-hint-prominent cursor-default">
                   <span className="text-primary font-semibold">←</span>
                   <span className="font-medium">Click an audiobook</span>
                 </div>
@@ -63,35 +64,28 @@ export default function DetailsPanel() {
       <div className="h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" />
 
       {/* Bookmarks section */}
-      <div className="h-1/3 min-h-[120px] overflow-y-auto custom-scrollbar p-4 bg-base-200/30">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
-            <Bookmark className="w-3.5 h-3.5 text-primary" />
+      <div className="h-1/3 min-h-[120px] overflow-y-auto custom-scrollbar p-4 bg-base-100">
+        {/* Section header with consistent alignment - matches Files header */}
+        <div className="section-header-enhanced">
+          <div className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Bookmark className="w-3 h-3 text-primary" />
           </div>
-          <h2 className="text-sm font-bold text-base-content/90 tracking-wide uppercase">Bookmarks</h2>
+          <h2 className="text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Bookmarks</h2>
           {bookmarks.length > 0 && (
-            <span className="text-xs text-primary/70 ml-auto font-semibold">{bookmarks.length}</span>
+            <span className="text-xs text-primary font-semibold tabular-nums">{bookmarks.length}</span>
           )}
         </div>
         <div className="flex flex-col gap-2" id="bookmarks-list">
           {bookmarks.length === 0 ? (
-            <div className="text-center py-6 px-4 animate-fade-in">
-              <div className="relative w-12 h-12 mx-auto mb-2">
+            <div className="empty-state-compact animate-fade-in">
+              <div className="relative w-10 h-10 mx-auto mb-2">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 to-primary/5" />
-                <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
+                <div className="absolute inset-1 rounded-full bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center shadow-depth-1">
                   <Bookmark className="w-4 h-4 text-primary/60" />
                 </div>
               </div>
-              <div className="text-xs text-base-content/70 font-semibold">No bookmarks yet</div>
-              <div className="text-xs text-base-content/55 mt-1 leading-relaxed">
-                Save your place during playback
-              </div>
-              <div className="mt-2 inline-flex items-center gap-1 text-xs text-base-content/50 bg-base-200/50 px-2 py-1 rounded-full">
-                <span>Press</span>
-                <kbd className="kbd kbd-xs px-1 bg-base-300 border-base-400 font-mono font-medium" style={{ color: '#111827' }}>Ctrl</kbd>
-                <span>+</span>
-                <kbd className="kbd kbd-xs px-1 bg-base-300 border-base-400 font-mono font-medium" style={{ color: '#111827' }}>B</kbd>
-              </div>
+              <div className="empty-state-title">No bookmarks yet</div>
+              <div className="empty-state-description">Press F1 for keyboard shortcuts</div>
             </div>
           ) : (
             bookmarks.map(bookmark => (

@@ -92,7 +92,8 @@ test.describe('Bookmark Management - Behavioral Tests', () => {
     });
 
     test('bookmarks section has icon', async ({ page }) => {
-      const icon = page.locator('#bookmarks-list').locator('..').locator('.bg-primary\\/10');
+      // Updated selector to match new section-header-enhanced styling with bg-primary/15
+      const icon = page.locator('#bookmarks-list').locator('..').locator('.bg-primary\\/15');
       await expect(icon.first()).toBeVisible();
     });
   });

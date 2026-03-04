@@ -703,11 +703,9 @@ html {
 /* Fade-in animation for empty state */
 @keyframes fade-in-up {
   from {
-    opacity: 0;
     transform: translateY(8px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -897,6 +895,49 @@ html {
 /* ============================================
    Keyboard Shortcut Hint Styling
    ============================================ */
+
+/* High contrast kbd styling for WCAG 2.1 AA compliance (4.5:1 minimum) */
+/* Use solid white background with dark text for guaranteed 18:1 contrast ratio */
+/* Ultra-specific selectors to override all DaisyUI defaults */
+.empty-state-compact .kbd-high-contrast,
+.empty-state-compact .kbd.kbd-high-contrast,
+#bookmarks-list .kbd-high-contrast,
+#bookmarks-list .kbd.kbd-high-contrast,
+div[class*="bg-base-200"] .kbd-high-contrast,
+div[class*="bg-base-200"] .kbd.kbd-high-contrast,
+.kbd.kbd-xs.kbd-high-contrast,
+.kbd.kbd-sm.kbd-high-contrast,
+.kbd-high-contrast.kbd,
+.kbd-high-contrast {
+  background-color: #ffffff !important; /* Pure white background */
+  border: 1px solid #9ca3af !important; /* gray-400 border for visibility */
+  color: #111827 !important; /* gray-900 - nearly black for maximum contrast (18:1 ratio) */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  isolation: isolate !important; /* Prevent background blending */
+  display: inline-block !important;
+  padding: 0.125rem 0.375rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.6875rem !important;
+  line-height: 1 !important;
+}
+
+[data-theme="dark"] .empty-state-compact .kbd-high-contrast,
+[data-theme="dark"] .empty-state-compact .kbd.kbd-high-contrast,
+[data-theme="dark"] #bookmarks-list .kbd-high-contrast,
+[data-theme="dark"] #bookmarks-list .kbd.kbd-high-contrast,
+[data-theme="dark"] div[class*="bg-base-200"] .kbd-high-contrast,
+[data-theme="dark"] div[class*="bg-base-200"] .kbd.kbd-high-contrast,
+[data-theme="dark"] .kbd.kbd-xs.kbd-high-contrast,
+[data-theme="dark"] .kbd.kbd-sm.kbd-high-contrast,
+[data-theme="dark"] .kbd-high-contrast.kbd,
+[data-theme="dark"] .kbd-high-contrast {
+  background-color: #111827 !important; /* gray-900 - dark background for dark mode */
+  border: 1px solid #6b7280 !important; /* gray-500 border */
+  color: #f9fafb !important; /* gray-50 - nearly white for maximum contrast (15:1 ratio) */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
 
 /* Ensure kbd elements have sufficient color contrast - WCAG 2.1 AA (4.5:1) */
 .kbd.kbd-xs,
@@ -1170,14 +1211,29 @@ html {
   );
 }
 
-/* Section header styling - more prominent */
+/* Section header styling - more prominent and consistent */
 .section-header-enhanced {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid oklch(var(--b3) / 0.5);
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid oklch(var(--b3) / 0.6);
   margin-bottom: 0.75rem;
+}
+
+/* Ensure section header icons are perfectly aligned */
+.section-header-enhanced > div:first-child {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-header-enhanced h2 {
+  line-height: 1;
+  margin: 0;
 }
 
 /* Improved empty state - more compact */
@@ -1199,15 +1255,23 @@ html {
 .empty-state-compact .empty-state-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: oklch(var(--bc) / 0.8);
+  color: #1f2937; /* gray-800 for high contrast */
   margin-bottom: 0.25rem;
 }
 
 .empty-state-compact .empty-state-description {
   font-size: 0.75rem;
-  color: oklch(var(--bc) / 0.6);
+  color: #374151; /* gray-700 for sufficient contrast */
   max-width: 200px;
   line-height: 1.4;
+}
+
+[data-theme="dark"] .empty-state-compact .empty-state-title {
+  color: #f3f4f6; /* gray-100 for dark mode */
+}
+
+[data-theme="dark"] .empty-state-compact .empty-state-description {
+  color: #d1d5db; /* gray-300 for dark mode */
 }
 
 /* Extra small viewport fixes (480px and below) */
