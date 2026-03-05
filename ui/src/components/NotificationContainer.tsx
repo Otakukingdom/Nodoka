@@ -6,18 +6,43 @@ import { X, CheckCircle, Info, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../hooks/useRedux';
 import { removeNotification } from '../store/slices/appSlice';
 import type { Notification, NotificationKind } from '../store/types';
+import { useWindowSize } from '../hooks/useWindowSize';
 
 export default function NotificationContainer() {
   const { notifications } = useAppSelector(state => state.app);
   const dispatch = useAppDispatch();
+  const { width, height } = useWindowSize();
 
   const handleDismiss = (id: number) => {
     dispatch(removeNotification(id));
   };
 
+  // Calculate safe positioning based on viewport
+  // Mobile (<640px): Position at bottom, above player controls
+  // Desktop (>=640px): Position at top, below topbar
+  const isMobile = width < 640;
+  const isLandscape = width > height;
+
+  // Safe offsets to prevent overlap with app chrome
+  const topBarHeight = isMobile ? 56 : 64;
+  const playerControlsHeight = isMobile ? (isLandscape ? 56 : 64) : 72;
+  const padding = 8;
+
+  const toastStyle: React.CSSProperties = {
+    position: 'fixed',
+    // On mobile: position at bottom, above player controls
+    // On desktop: position at top, below topbar
+    ...(isMobile
+      ? { bottom: playerControlsHeight + padding }
+      : { top: topBarHeight + padding }),
+    right: 0,
+    zIndex: 50,
+  };
+
   return (
     <div
-      className="toast toast-top toast-end z-50 gap-3 p-4 pt-16 max-h-screen overflow-hidden"
+      className="toast toast-end gap-3 p-4 max-h-screen overflow-hidden notification-container"
+      style={toastStyle}
       role="region"
       aria-label="Notifications"
       aria-live="polite"
@@ -58,11 +83,11 @@ function NotificationToast({ notification, onDismiss }: NotificationToastProps) 
           {notification.title && (
             <div className="font-semibold text-sm mb-0.5">{notification.title}</div>
           )}
-          <div className="text-sm opacity-90 leading-snug">{notification.message}</div>
+          <div className="text-sm opacity-90 leading-snug break-words">{notification.message}</div>
         </div>
       </div>
       <button
-        className="btn btn-ghost btn-sm btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0"
+        className="btn btn-ghost btn-sm btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 min-w-[44px] min-h-[44px]"
         onClick={onDismiss}
         aria-label="Dismiss"
       >

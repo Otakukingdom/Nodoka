@@ -60,7 +60,7 @@ export default function TopBar() {
       <div className="flex items-center gap-1">
         <div className="tooltip tooltip-bottom" data-tip="Add Folder (Ctrl+D)">
           <button
-            className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 min-w-[44px] min-h-[44px]"
             onClick={() => void handleAddDirectory()}
             disabled={isAddingDirectory || isLibraryLoading}
             aria-label="Add audiobook folder"
@@ -70,7 +70,7 @@ export default function TopBar() {
         </div>
         <div className="tooltip tooltip-bottom" data-tip="Settings (Ctrl+,)">
           <button
-            className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative"
+            className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative min-w-[44px] min-h-[44px]"
             onClick={handleSettingsClick}
             aria-label="Settings"
             title="Settings (Ctrl+,)"

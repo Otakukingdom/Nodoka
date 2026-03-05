@@ -400,7 +400,7 @@ function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: Directory
 
   return (
     <div
-      className="alert alert-warning alert-sm py-2 px-3 shadow-sm"
+      className="alert alert-warning alert-sm py-2 px-3 shadow-sm flex-wrap sm:flex-nowrap"
       role="alert"
       aria-label={`Error for folder ${folderName}`}
     >
@@ -411,10 +411,10 @@ function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: Directory
         </p>
         <p className="text-xs opacity-80">{getErrorMessage(directory.error)}</p>
       </div>
-      <div className="flex gap-1.5 shrink-0">
+      <div className="flex gap-1.5 shrink-0 w-full sm:w-auto mt-2 sm:mt-0 justify-end">
         {directory.error === 'NotFound' && (
           <button
-            className="btn btn-xs btn-ghost gap-1"
+            className="btn btn-xs btn-ghost gap-1 min-h-[36px] sm:min-h-[28px]"
             onClick={() => void handleLocate()}
             aria-label="Locate folder"
           >
@@ -423,7 +423,7 @@ function DirectoryErrorBannerInline({ directory, onLocate, onRemove }: Directory
           </button>
         )}
         <button
-          className="btn btn-xs btn-ghost hover:bg-error/10 hover:text-error gap-1"
+          className="btn btn-xs btn-ghost hover:bg-error/10 hover:text-error gap-1 min-h-[36px] sm:min-h-[28px]"
           onClick={() => void onRemove(directory.fullPath)}
           aria-label="Remove folder from library"
         >

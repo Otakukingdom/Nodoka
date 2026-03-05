@@ -809,6 +809,50 @@ test.describe.parallel('Screenshot Generation', () => {
       await triggerStackedNotifications(page);
       await takeScreenshot(page, 'notifications', 'multiple-stacked');
     });
+
+    test('toast-mobile-viewport', async ({ page }) => {
+      // Test toast positioning on mobile - should be at bottom, above player controls
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({
+            type: 'app/addNotification',
+            payload: {
+              id: Date.now(),
+              kind: 'Success',
+              message: 'Audiobook added successfully',
+              durationMs: 10000,
+              createdAt: Date.now(),
+            },
+          });
+        }
+      });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'notifications', 'toast-mobile-viewport');
+    });
+
+    test('toast-tablet-viewport', async ({ page }) => {
+      // Test toast positioning on tablet - should be at top, below topbar
+      await page.setViewportSize({ width: 768, height: 1024 });
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({
+            type: 'app/addNotification',
+            payload: {
+              id: Date.now(),
+              kind: 'Info',
+              message: 'Sync completed',
+              durationMs: 10000,
+              createdAt: Date.now(),
+            },
+          });
+        }
+      });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'notifications', 'toast-tablet-viewport');
+    });
   });
 
   // ========================================

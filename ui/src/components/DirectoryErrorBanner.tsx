@@ -79,7 +79,7 @@ export default function DirectoryErrorBanner({
       <div className="flex gap-2 shrink-0">
         {directory.error === 'NotFound' && (
           <button
-            className="btn btn-sm btn-ghost"
+            className="btn btn-sm btn-ghost min-h-[44px]"
             onClick={() => void handleLocate()}
             disabled={isLoading || isLocating}
             aria-label="Locate folder"
@@ -93,7 +93,7 @@ export default function DirectoryErrorBanner({
           </button>
         )}
         <button
-          className="btn btn-sm btn-ghost text-error hover:bg-error/10"
+          className="btn btn-sm btn-ghost text-error hover:bg-error/10 min-h-[44px]"
           onClick={() => onRemove(directory.fullPath)}
           disabled={isLoading}
           aria-label="Remove folder from library"

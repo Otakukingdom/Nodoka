@@ -1245,6 +1245,13 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
     max-height: 45vh;
   }
 
+  /* Toolbar z-index to stay above error banners */
+  .library-panel > .flex-shrink-0 {
+    position: relative;
+    z-index: 10;
+    background: inherit;
+  }
+
   /* Reduce padding in toolbar for compact screens */
   .library-panel .p-3 {
     padding-left: 0.75rem;
@@ -1273,10 +1280,10 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
     font-size: 0.6875rem;
   }
 
-  /* Improve player controls button spacing */
+  /* WCAG 2.1 AA: Maintain 44px minimum touch targets */
   .btm-nav .btn-circle {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   /* Ensure seek bar remains usable */
@@ -1300,6 +1307,53 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
   .panel-divider-mobile-hide {
     display: none;
   }
+
+  /* Ensure content is not obscured by bottom navigation */
+  .details-panel-container {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Add padding to bookmarks section to prevent bottom nav overlap */
+  .details-panel-container > div:last-child {
+    padding-bottom: calc(1rem + 60px);
+  }
+
+  /* Ensure TopBar buttons meet touch target requirements */
+  .navbar .btn-circle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Fix error banner overflow on mobile */
+  .alert {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .alert > div {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .alert .flex.gap-1\.5 {
+    flex-shrink: 0;
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+
+  /* Fix error banner overlap with toolbar in compact viewports */
+  .library-panel .overflow-y-auto > .space-y-2 {
+    margin-top: 0.5rem;
+    padding-top: 0.25rem;
+  }
+
+  /* Ensure error banners don't overlap toolbar */
+  .library-panel .alert-sm {
+    margin-top: 0.25rem;
+    position: relative;
+    z-index: 1;
+  }
 }
 
 /* ============================================
@@ -1316,9 +1370,20 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
     gap: 0.125rem;
   }
 
+  /* WCAG 2.1 AA: Maintain 44px minimum touch targets even on small screens */
   .btm-nav .btn-circle {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Add safe area padding for bottom navigation on mobile */
+  .details-panel-container {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Ensure bookmarks section has enough space above bottom nav */
+  .details-panel-container > div:last-child {
+    padding-bottom: calc(1rem + 60px);
   }
 }
 
@@ -1667,6 +1732,37 @@ body.focus-mode .btm-nav {
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* Responsive notification adjustments */
+@media (max-width: 640px) {
+  /* Position notifications below TopBar and library toolbar on compact/mobile */
+  :root {
+    --notification-top: 110px;
+  }
+
+  /* Full-width toasts on mobile to prevent truncation */
+  .toast.toast-top {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem; /* Small internal padding */
+  }
+
+  .toast .alert {
+    min-width: auto;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Ensure notification close button meets touch target */
+  .toast .btn-circle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 /* ============================================
    Progress Bar Enhanced Visibility
    ============================================ */
@@ -1802,16 +1898,16 @@ body.focus-mode .btm-nav {
     gap: 0.125rem;
   }
 
-  /* Smaller but still touch-friendly buttons */
+  /* WCAG 2.1 AA: All buttons must meet 44px minimum touch target */
   .btm-nav .btn-circle {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
-  /* Play button remains prominent */
+  /* Play button remains prominent at full touch target size */
   .btm-nav .btn-circle.btn-primary {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   /* Compact time display */
@@ -1819,12 +1915,12 @@ body.focus-mode .btm-nav {
     font-size: 0.625rem;
   }
 
-  /* Compact speed button */
+  /* Compact speed button - maintain touch target */
   .btm-nav .btn-ghost:not(.btn-circle) {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     font-size: 0.6875rem;
-    min-width: auto;
+    min-height: 44px;
   }
 
   /* Ensure seek bar is still usable */
@@ -1838,5 +1934,144 @@ body.focus-mode .btm-nav {
   .group\/volume .relative.w-16,
   .group\/volume .relative.w-20 {
     display: none;
+  }
+
+  /* Ensure TopBar buttons meet touch target requirements */
+  .navbar .btn-circle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ============================================
+   Mobile Landscape Orientation Fixes
+   ============================================ */
+
+/* Fix bottom navigation obscuring content in landscape on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reduce player control height in landscape */
+  .btm-nav {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    min-height: 48px;
+  }
+
+  /* Ensure touch targets still meet minimum 44px */
+  .btm-nav .btn-circle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Add padding to entire details panel to prevent bottom nav obscuring content */
+  .details-panel-container {
+    padding-bottom: 100px;
+  }
+
+  /* Ensure bookmarks section has extra scrollable padding */
+  .details-panel-container > div:last-child {
+    padding-bottom: 120px;
+    min-height: 160px;
+  }
+
+  /* Reduce section header sizes */
+  .section-header-enhanced {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Reduce navbar height in landscape */
+  .navbar {
+    min-height: 48px;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Ensure TopBar buttons meet touch target requirements */
+  .navbar .btn-circle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Reduce library panel max height in landscape */
+  .library-panel {
+    max-height: 50vh;
+  }
+
+  /* Ensure error banners wrap properly */
+  .alert {
+    flex-wrap: wrap;
+  }
+
+  .alert > div:first-of-type {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .alert .flex.gap-1\.5 {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+
+  /* Notification fixes for landscape - position below TopBar */
+  :root {
+    --notification-top: 60px;
+  }
+
+  .toast.toast-top {
+    padding-top: 0.25rem;
+  }
+
+  .toast .alert {
+    flex-wrap: nowrap;
+    min-width: auto;
+    max-width: 400px;
+  }
+}
+
+/* ============================================
+   Toast Positioning Fixes - Prevent Overlap
+   ============================================ */
+
+/* Root variables for toast positioning - can be adjusted per breakpoint */
+:root {
+  --toast-top-offset: 72px;
+  --toast-bottom-offset: 80px;
+}
+
+/* Desktop: Position toasts below TopBar (64px) and above PlayerControls (72px) */
+.notification-container.toast,
+.notification-container.toast-top,
+.notification-container.toast-bottom {
+  position: fixed !important;
+}
+
+.notification-container.toast-top {
+  top: var(--toast-top-offset) !important;
+}
+
+.notification-container.toast-bottom {
+  bottom: var(--toast-bottom-offset) !important;
+}
+
+/* Mobile (< 640px): Adjust for smaller TopBar and compact PlayerControls */
+@media (max-width: 639px) {
+  :root {
+    --toast-top-offset: 64px;
+    --toast-bottom-offset: 72px;
+  }
+}
+
+/* Mobile landscape: Minimal vertical space, position carefully */
+@media (max-width: 639px) and (orientation: landscape) {
+  :root {
+    --toast-top-offset: 56px;
+    --toast-bottom-offset: 64px;
+  }
+
+  .notification-container .alert {
+    padding: 0.5rem;
+    font-size: 0.75rem;
   }
 }
