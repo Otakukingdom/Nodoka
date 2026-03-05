@@ -555,7 +555,7 @@ When('I clear the search', async function (this: NodokaWorld) {
 // ==================== When Steps - Settings Modal ====================
 
 When('I view the theme options', async function (this: NodokaWorld) {
-  const themeSelect = this.page.locator('.modal-box select').first();
+  const themeSelect = this.page.getByLabel('Select theme');
   await expect(themeSelect).toBeVisible();
 });
 
@@ -607,7 +607,7 @@ When('I view the options', async function (this: NodokaWorld) {
 });
 
 When('I view the fade options', async function (this: NodokaWorld) {
-  const fadeSelect = this.page.locator('.modal-box select').filter({ hasText: 'Fade' });
+  const fadeSelect = this.page.getByLabel('Select fade out duration');
   if (await fadeSelect.count() > 0) {
     await expect(fadeSelect.first()).toBeVisible();
   }
@@ -1069,7 +1069,7 @@ Then('only audiobooks by {string} should be displayed', async function (this: No
 // ==================== Then Steps - Settings Modal ====================
 
 Then('Light, Dark, and System options should be available', async function (this: NodokaWorld) {
-  const themeSelect = this.page.locator('.modal-box select').first();
+  const themeSelect = this.page.getByLabel('Select theme');
   const options = await themeSelect.locator('option').allTextContents();
   expect(options).toContain('Light');
   expect(options).toContain('Dark');

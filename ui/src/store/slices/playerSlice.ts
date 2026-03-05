@@ -15,6 +15,12 @@ interface PlayerState {
   isMuted: boolean;
   volumeExpanded: VolumeExpansion;
   speed: number;
+
+  // Playback preferences
+  skipForwardDurationSeconds: number;
+  skipBackwardDurationSeconds: number;
+  autoSaveIntervalSeconds: number;
+
   // Sleep timer state
   sleepTimer: SleepTimerMode | null;
   sleepTimerStartMs: number | null;
@@ -31,6 +37,12 @@ const initialState: PlayerState = {
   isMuted: false,
   volumeExpanded: 'Collapsed',
   speed: 1.0,
+
+  // Playback preferences
+  skipForwardDurationSeconds: 30,
+  skipBackwardDurationSeconds: 15,
+  autoSaveIntervalSeconds: 5,
+
   // Sleep timer
   sleepTimer: null,
   sleepTimerStartMs: null,
@@ -63,6 +75,15 @@ const playerSlice = createSlice({
     },
     setSpeed: (state, action: PayloadAction<number>) => {
       state.speed = Math.max(0.5, Math.min(2.0, action.payload));
+    },
+    setSkipForwardDurationSeconds: (state, action: PayloadAction<number>) => {
+      state.skipForwardDurationSeconds = Math.max(1, Math.min(120, action.payload));
+    },
+    setSkipBackwardDurationSeconds: (state, action: PayloadAction<number>) => {
+      state.skipBackwardDurationSeconds = Math.max(1, Math.min(120, action.payload));
+    },
+    setAutoSaveIntervalSeconds: (state, action: PayloadAction<number>) => {
+      state.autoSaveIntervalSeconds = Math.max(1, Math.min(60, action.payload));
     },
     cycleSpeed: (state) => {
       state.speed = state.speed >= 2.0 ? 0.5 : state.speed + 0.25;
@@ -109,6 +130,9 @@ export const {
   setVolumeExpanded,
   toggleVolumeExpanded,
   setSpeed,
+  setSkipForwardDurationSeconds,
+  setSkipBackwardDurationSeconds,
+  setAutoSaveIntervalSeconds,
   cycleSpeed,
   toggleMute,
   setMuted,

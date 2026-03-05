@@ -2,7 +2,7 @@
  * Settings modal component
  */
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   X,
   Settings,
@@ -19,6 +19,7 @@ import {
 import { useAppSelector, useAppDispatch } from '../../hooks/useRedux';
 import { closeModal, setFocusMode, setPrefersReducedMotion } from '../../store/slices/appSlice';
 import { updateTheme } from '../../store/thunks/libraryThunks';
+import { updateSpeed, updateVolume } from '../../store/thunks/playerThunks';
 import {
   addDirectory,
   removeDirectory,
@@ -26,6 +27,14 @@ import {
 } from '../../store/thunks/libraryThunks';
 import type { ThemeMode, Directory } from '../../store/types';
 import ConfirmationDialog from './ConfirmationDialog';
+import * as TauriCommands from '../../commands/tauri';
+import {
+  setSkipForwardDurationSeconds,
+  setSkipBackwardDurationSeconds,
+  setAutoSaveIntervalSeconds,
+  setVolume,
+  setSpeed,
+} from '../../store/slices/playerSlice';
 
 const SKIP_DURATIONS = [15, 30, 60];
 const SKIP_BACKWARD_DURATIONS = [15, 30];
@@ -75,10 +84,15 @@ export default function SettingsModal() {
   const dispatch = useAppDispatch();
   const { theme, focusMode, prefersReducedMotion } = useAppSelector(state => state.app);
   const { directories, isLibraryLoading, audiobooks } = useAppSelector(state => state.library);
+  const {
+    skipForwardDurationSeconds,
+    skipBackwardDurationSeconds,
+    autoSaveIntervalSeconds,
+  } = useAppSelector(state => state.player);
 
-  const [skipForwardDuration, setSkipForwardDuration] = useState(30);
-  const [skipBackwardDuration, setSkipBackwardDuration] = useState(30);
-  const [autoSaveInterval, setAutoSaveInterval] = useState(10);
+  const [skipForwardDuration, setSkipForwardDuration] = useState(skipForwardDurationSeconds);
+  const [skipBackwardDuration, setSkipBackwardDuration] = useState(skipBackwardDurationSeconds);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(autoSaveIntervalSeconds);
   const [scanningPaths, setScanningPaths] = useState<Set<string>>(new Set());
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [pendingRemoval, setPendingRemoval] = useState<Directory | null>(null);
@@ -219,16 +233,63 @@ export default function SettingsModal() {
 
   const handleResetDefaults = () => {
     setSkipForwardDuration(30);
-    setSkipBackwardDuration(30);
-    setAutoSaveInterval(10);
+    setSkipBackwardDuration(15);
+    setAutoSaveInterval(5);
+
+    dispatch(setSkipForwardDurationSeconds(30));
+    dispatch(setSkipBackwardDurationSeconds(15));
+    dispatch(setAutoSaveIntervalSeconds(5));
+
+    void TauriCommands.setSkipForwardDuration(30);
+    void TauriCommands.setSkipBackwardDuration(15);
+    void TauriCommands.setAutoSaveInterval(5);
+
+    dispatch(setVolume(100));
+    void dispatch(updateVolume(100));
+
+    dispatch(setSpeed(1.0));
+    void dispatch(updateSpeed());
+
     void dispatch(updateTheme('Light'));
     dispatch(setFocusMode('Disabled'));
     dispatch(setPrefersReducedMotion(false));
+
+    void TauriCommands.setVolumePreference(100);
+    void TauriCommands.setSpeedPreference(1.0);
+    void TauriCommands.setFocusMode(false);
+    void TauriCommands.setPrefersReducedMotion(false);
   };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
+
+  // Load persisted playback preferences when opening the modal
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [skipFwd, skipBack, interval, savedVolume, savedSpeed] = await Promise.all([
+          TauriCommands.getSkipForwardDuration().catch(() => 30),
+          TauriCommands.getSkipBackwardDuration().catch(() => 15),
+          TauriCommands.getAutoSaveInterval().catch(() => 5),
+          TauriCommands.getVolume().catch(() => 100),
+          TauriCommands.getSpeed().catch(() => 1.0),
+        ]);
+
+        dispatch(setSkipForwardDurationSeconds(skipFwd));
+        dispatch(setSkipBackwardDurationSeconds(skipBack));
+        dispatch(setAutoSaveIntervalSeconds(interval));
+        dispatch(setVolume(savedVolume));
+        dispatch(setSpeed(savedSpeed));
+
+        setSkipForwardDuration(skipFwd);
+        setSkipBackwardDuration(skipBack);
+        setAutoSaveInterval(interval);
+      } catch {
+        // Keep current Redux defaults if settings cannot be loaded
+      }
+    })();
+  }, [dispatch]);
 
   return (
     <>
@@ -446,9 +507,11 @@ export default function SettingsModal() {
             <Gauge className="w-4 h-4" />
             <span>Playback Settings</span>
           </div>
-          <div className="collapse-content space-y-4 peer-checked:pt-4">
-            {/* Skip Forward Duration */}
-            <div className="form-control">
+          <div className="collapse-content space-y-4 peer-checked:pt-4" aria-hidden={expandedSection !== 'playback'}>
+            {expandedSection === 'playback' ? (
+              <>
+                {/* Skip Forward Duration */}
+                <div className="form-control">
               <label className="label py-1">
                 <span className="label-text font-medium text-sm">Skip Forward Duration</span>
                 <span className="label-text-alt">Seconds to skip ahead</span>
@@ -456,7 +519,12 @@ export default function SettingsModal() {
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={skipForwardDuration}
-                onChange={(e) => setSkipForwardDuration(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const seconds = parseInt(e.target.value);
+                  setSkipForwardDuration(seconds);
+                  dispatch(setSkipForwardDurationSeconds(seconds));
+                  void TauriCommands.setSkipForwardDuration(seconds);
+                }}
                 aria-label="Select skip forward duration"
               >
                 {SKIP_DURATIONS.map((duration) => (
@@ -476,7 +544,12 @@ export default function SettingsModal() {
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={skipBackwardDuration}
-                onChange={(e) => setSkipBackwardDuration(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const seconds = parseInt(e.target.value);
+                  setSkipBackwardDuration(seconds);
+                  dispatch(setSkipBackwardDurationSeconds(seconds));
+                  void TauriCommands.setSkipBackwardDuration(seconds);
+                }}
                 aria-label="Select skip backward duration"
               >
                 {SKIP_BACKWARD_DURATIONS.map((duration) => (
@@ -496,7 +569,12 @@ export default function SettingsModal() {
               <select
                 className="select select-bordered select-sm w-full bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                 value={autoSaveInterval}
-                onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const interval = parseInt(e.target.value);
+                  setAutoSaveInterval(interval);
+                  dispatch(setAutoSaveIntervalSeconds(interval));
+                  void TauriCommands.setAutoSaveInterval(interval);
+                }}
                 aria-label="Select auto-save interval"
               >
                 {AUTO_SAVE_INTERVALS.map((interval) => (
@@ -506,6 +584,8 @@ export default function SettingsModal() {
                 ))}
               </select>
             </div>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -522,38 +602,42 @@ export default function SettingsModal() {
             <Accessibility className="w-4 h-4" />
             <span>Accessibility</span>
           </div>
-          <div className="collapse-content space-y-4 peer-checked:pt-4">
-            {/* Focus Mode */}
-            <div className="form-control">
-              <label className="label cursor-pointer justify-start gap-4 py-2">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-primary checkbox-sm"
-                  checked={focusMode === 'Enabled'}
-                  onChange={(e) => handleFocusModeChange(e.target.checked ? 'Enabled' : 'Disabled')}
-                />
-                <div className="flex flex-col">
-                  <span className="label-text font-medium">Focus Mode</span>
-                  <span className="text-xs text-description">Minimize distractions while listening</span>
+          <div className="collapse-content space-y-4 peer-checked:pt-4" aria-hidden={expandedSection !== 'accessibility'}>
+            {expandedSection === 'accessibility' ? (
+              <>
+                {/* Focus Mode */}
+                <div className="form-control">
+                  <label className="label cursor-pointer justify-start gap-4 py-2">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary checkbox-sm"
+                      checked={focusMode === 'Enabled'}
+                      onChange={(e) => handleFocusModeChange(e.target.checked ? 'Enabled' : 'Disabled')}
+                    />
+                    <div className="flex flex-col">
+                      <span className="label-text font-medium">Focus Mode</span>
+                      <span className="text-xs text-description">Minimize distractions while listening</span>
+                    </div>
+                  </label>
                 </div>
-              </label>
-            </div>
 
-            {/* Reduced Motion */}
-            <div className="form-control">
-              <label className="label cursor-pointer justify-start gap-4 py-2">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-primary checkbox-sm"
-                  checked={prefersReducedMotion}
-                  onChange={(e) => handleReducedMotionChange(e.target.checked)}
-                />
-                <div className="flex flex-col">
-                  <span className="label-text font-medium">Reduced Motion</span>
-                  <span className="text-xs text-description">Minimize animations</span>
+                {/* Reduced Motion */}
+                <div className="form-control">
+                  <label className="label cursor-pointer justify-start gap-4 py-2">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary checkbox-sm"
+                      checked={prefersReducedMotion}
+                      onChange={(e) => handleReducedMotionChange(e.target.checked)}
+                    />
+                    <div className="flex flex-col">
+                      <span className="label-text font-medium">Reduced Motion</span>
+                      <span className="text-xs text-description">Minimize animations</span>
+                    </div>
+                  </label>
                 </div>
-              </label>
-            </div>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -572,7 +656,7 @@ export default function SettingsModal() {
       {/* Footer */}
       <div className="modal-action mt-8">
         <button
-          className="btn btn-premium shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-primary btn-premium shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={handleClose}
         >
           Done

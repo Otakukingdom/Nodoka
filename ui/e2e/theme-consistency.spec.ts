@@ -175,7 +175,7 @@ test.describe('Theme Consistency - System Theme Detection', () => {
     await openSettingsModal(page);
 
     // Find theme selector
-    const themeSelect = page.locator('.modal-box select').first();
+    const themeSelect = page.getByLabel('Select theme');
 
     if (await themeSelect.isVisible()) {
       // Switch to dark theme

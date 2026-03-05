@@ -90,6 +90,12 @@ pub fn run(db: Database) -> ! {
             crate::tauri::commands::set_speed_preference,
             crate::tauri::commands::get_prefers_reduced_motion,
             crate::tauri::commands::set_prefers_reduced_motion,
+            crate::tauri::commands::get_skip_forward_duration,
+            crate::tauri::commands::set_skip_forward_duration,
+            crate::tauri::commands::get_skip_backward_duration,
+            crate::tauri::commands::set_skip_backward_duration,
+            crate::tauri::commands::get_auto_save_interval,
+            crate::tauri::commands::set_auto_save_interval,
         ])
         .run(tauri::generate_context!());
 

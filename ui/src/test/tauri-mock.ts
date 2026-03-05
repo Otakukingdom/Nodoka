@@ -201,6 +201,21 @@ export function createMockInvoke() {
         return false;
       case 'set_prefers_reduced_motion':
         return undefined;
+      case 'get_skip_forward_duration':
+        return 30;
+      case 'set_skip_forward_duration':
+        return undefined;
+      case 'get_skip_backward_duration':
+        return 15;
+      case 'set_skip_backward_duration':
+        return undefined;
+      case 'get_auto_save_interval':
+        return 5;
+      case 'set_auto_save_interval':
+        if ((args?.['interval'] as number) < 1 || (args?.['interval'] as number) > 60) {
+          throw new Error('Invalid auto-save interval');
+        }
+        return undefined;
 
       default:
         console.warn(`Unknown Tauri command: ${cmd}`);

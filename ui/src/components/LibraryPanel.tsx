@@ -119,8 +119,8 @@ export default function LibraryPanel() {
         {isScanning && scanProgress && `Scanning: ${scanProgress.foundCount} audiobooks found`}
       </div>
 
-      {/* Toolbar */}
-      <div className="p-3 border-b border-base-300 flex gap-2 bg-base-200/30">
+      {/* Toolbar - consistent spacing and alignment */}
+      <div className="px-3 py-2.5 border-b border-base-300 flex gap-2 bg-base-200/30 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none" />
           <input
@@ -313,7 +313,7 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
             {isPlaying && (
               <Volume2 className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
             )}
-            <h3 className="card-title text-sm font-semibold text-truncate leading-tight group-hover:text-primary transition-colors">
+            <h3 className="card-title text-sm font-semibold truncate leading-tight group-hover:text-primary transition-colors" title={book.name}>
               {book.name}
             </h3>
           </div>
@@ -322,7 +322,7 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
           )}
         </div>
         {book.author && (
-          <span className="text-xs text-base-content/60 -mt-1 text-truncate group-hover:text-base-content/70 transition-colors">{book.author}</span>
+          <span className="text-xs text-base-content/60 -mt-1 truncate group-hover:text-base-content/70 transition-colors" title={book.author}>{book.author}</span>
         )}
         <div className="flex items-center gap-2 mt-1.5">
           <div className="flex-1 h-2 bg-base-300/70 rounded-full overflow-hidden group-hover:bg-base-300 transition-colors progress-bar-enhanced">

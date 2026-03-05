@@ -131,7 +131,7 @@ test.describe('Accessibility - Settings Modal', () => {
   test('settings select has associated label', async ({ page }) => {
     await openSettingsModal(page);
 
-    const select = page.locator('.modal-box select').first();
+    const select = page.getByLabel('Select theme');
     if (await select.isVisible()) {
       const ariaLabel = await select.getAttribute('aria-label');
       const id = await select.getAttribute('id');

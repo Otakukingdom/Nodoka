@@ -24,7 +24,7 @@ export class SettingsPage extends BasePage {
     this.modalBox = page.locator('.modal-box');
     this.closeButton = page.locator('.modal-box button[aria-label="Close"]');
     this.doneButton = page.locator('.modal-box button:has-text("Done")');
-    this.themeSelect = page.locator('.modal-box select');
+    this.themeSelect = page.getByLabel('Select theme');
     this.themeLabel = page.locator('.modal-box .label-text:has-text("Theme")');
     this.resetButton = page.locator('.modal-box button').filter({ hasText: /reset/i });
   }

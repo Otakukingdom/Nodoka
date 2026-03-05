@@ -32,7 +32,7 @@ test.describe('Settings Modal Screenshots', () => {
 
   test('settings modal with dropdown open', async ({ page }) => {
     await openSettingsModal(page);
-    const select = page.locator('.modal-box select');
+    const select = page.getByLabel('Select theme');
     await select.click();
     await page.waitForTimeout(200);
     await expect(page.locator('.modal-box')).toHaveScreenshot(
@@ -43,7 +43,7 @@ test.describe('Settings Modal Screenshots', () => {
 
   test('settings modal theme options visible', async ({ page }) => {
     await openSettingsModal(page);
-    const select = page.locator('.modal-box select');
+    const select = page.getByLabel('Select theme');
     await select.selectOption({ label: 'Dark' });
     await page.waitForTimeout(300);
     const modal = page.locator('.modal-box');
@@ -137,7 +137,7 @@ test.describe('Modal Focus States', () => {
 
   test('settings modal select focus', async ({ page }) => {
     await openSettingsModal(page);
-    const select = page.locator('.modal-box select');
+    const select = page.getByLabel('Select theme');
     await select.focus();
     await page.waitForTimeout(200);
     await expect(select).toHaveScreenshot('modal-select-focus.png', screenshotConfig);

@@ -717,6 +717,106 @@ pub async fn set_prefers_reduced_motion(
     state: State<'_, AppState>,
 ) -> std::result::Result<(), String> {
     let db = state.db.lock();
-    queries::set_metadata(db.connection(), "prefers_reduced_motion", if prefers { "true" } else { "false" })
+    queries::set_metadata(
+        db.connection(),
+        "prefers_reduced_motion",
+        if prefers { "true" } else { "false" },
+    )
+    .map_err(|e| e.to_string())
+}
+
+/// Get skip forward duration in seconds
+///
+/// # Errors
+/// Returns an error string if the database query fails
+#[tauri::command]
+pub async fn get_skip_forward_duration(state: State<'_, AppState>) -> std::result::Result<i32, String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .get_skip_forward_duration()
+        .map_err(|e| e.to_string())
+        .map(|v| v.unwrap_or(30))
+}
+
+/// Set skip forward duration in seconds
+///
+/// # Errors
+/// Returns an error string if the database update fails
+#[tauri::command]
+pub async fn set_skip_forward_duration(
+    seconds: i32,
+    state: State<'_, AppState>,
+) -> std::result::Result<(), String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .set_skip_forward_duration(seconds)
+        .map_err(|e| e.to_string())
+}
+
+/// Get skip backward duration in seconds
+///
+/// # Errors
+/// Returns an error string if the database query fails
+#[tauri::command]
+pub async fn get_skip_backward_duration(state: State<'_, AppState>) -> std::result::Result<i32, String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .get_skip_backward_duration()
+        .map_err(|e| e.to_string())
+        .map(|v| v.unwrap_or(15))
+}
+
+/// Set skip backward duration in seconds
+///
+/// # Errors
+/// Returns an error string if the database update fails
+#[tauri::command]
+pub async fn set_skip_backward_duration(
+    seconds: i32,
+    state: State<'_, AppState>,
+) -> std::result::Result<(), String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .set_skip_backward_duration(seconds)
+        .map_err(|e| e.to_string())
+}
+
+/// Get auto-save interval in seconds
+///
+/// # Errors
+/// Returns an error string if the database query fails
+#[tauri::command]
+pub async fn get_auto_save_interval(state: State<'_, AppState>) -> std::result::Result<i32, String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .get_auto_save_interval()
+        .map_err(|e| e.to_string())
+        .map(|v| v.unwrap_or(5))
+}
+
+/// Set auto-save interval in seconds
+///
+/// # Errors
+/// Returns an error string if the database update fails or interval is out of range
+#[tauri::command]
+pub async fn set_auto_save_interval(
+    interval: i32,
+    state: State<'_, AppState>,
+) -> std::result::Result<(), String> {
+    let db = state.db.lock();
+    let settings = Settings::new(db.connection());
+
+    settings
+        .set_auto_save_interval(interval)
         .map_err(|e| e.to_string())
 }

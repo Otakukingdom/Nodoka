@@ -1,10 +1,9 @@
 /**
  * Test setup for Vitest with React Testing Library
  */
-
 import '@testing-library/jest-dom';
 import * as React from 'react';
-import { act } from 'react';
+import { act } from 'react-dom/test-utils';
 
 // Make React.act available globally for testing-library (React 19 compatibility)
 // testing-library expects globalThis.React.act

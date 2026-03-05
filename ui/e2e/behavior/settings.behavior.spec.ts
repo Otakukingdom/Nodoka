@@ -49,14 +49,14 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('theme dropdown is visible', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await expect(themeSelect).toBeVisible();
     });
 
     test('theme dropdown has options', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       const options = await themeSelect.locator('option').allTextContents();
 
       expect(options).toContain('Light');
@@ -67,7 +67,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('theme can be changed to Dark', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
 
       // Value should be Dark
@@ -77,7 +77,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('theme can be changed to Light', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Light');
 
       await expect(themeSelect).toHaveValue('Light');
@@ -86,7 +86,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('theme can be changed to System', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('System');
 
       await expect(themeSelect).toHaveValue('System');
@@ -191,7 +191,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('theme select is focusable', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.focus();
 
       await expect(themeSelect).toBeFocused();
@@ -266,7 +266,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Change theme to Dark
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
 
       // Close modal
@@ -304,7 +304,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
 
       // Check if skip forward duration control exists
       const skipForwardInput = page.locator('.modal-box input[type="number"]').filter({ hasText: /skip/i });
-      const skipForwardSelect = page.locator('.modal-box select').filter({ has: page.locator('option:has-text("30")') });
+      const skipForwardSelect = page.getByLabel('Select skip forward duration');
 
       // If skip duration controls exist, test them
       if (await skipForwardSelect.count() > 0) {
@@ -322,7 +322,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Check if skip backward duration control exists
-      const skipBackwardSelect = page.locator('.modal-box select').filter({ has: page.locator('option:has-text("15")') });
+      const skipBackwardSelect = page.getByLabel('Select skip backward duration');
 
       if (await skipBackwardSelect.count() > 0) {
         await skipBackwardSelect.selectOption('15');
@@ -360,7 +360,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
 
       // Look for auto-save interval control
       const autoSaveInput = page.locator('.modal-box input[type="number"]').filter({ hasText: /save/i });
-      const autoSaveSelect = page.locator('.modal-box select').filter({ has: page.locator('option:has-text("10")') });
+      const autoSaveSelect = page.getByLabel('Select auto-save interval');
 
       if (await autoSaveSelect.count() > 0) {
         await autoSaveSelect.selectOption('10');
@@ -665,7 +665,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('reset button restores all defaults', async ({ page }) => {
       // 1. Change theme
       await openSettingsModal(page);
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
       await page.waitForTimeout(200);
 
@@ -1097,7 +1097,7 @@ test.describe('Settings Management - Behavioral Tests', () => {
     test('settings persist within session', async ({ page }) => {
       // 1. Change theme
       await openSettingsModal(page);
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
       await closeModal(page);
 

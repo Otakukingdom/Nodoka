@@ -122,10 +122,12 @@ const librarySlice = createSlice({
     removeScanningPath: (state, action: PayloadAction<string>) => {
       state.scanningPaths = state.scanningPaths.filter(p => p !== action.payload);
     },
-    setDirectoryError: (state, action: PayloadAction<{ path: string; error: string | null }>) => {
+    setDirectoryError: (state, action: PayloadAction<{ path: string; error: Directory['error'] | null }>) => {
       const dir = state.directories.find(d => d.fullPath === action.payload.path);
       if (dir) {
-        dir.error = action.payload.error as 'NotFound' | 'PermissionDenied' | 'Unknown' | undefined;
+        // Normalize `null` (no error) to `undefined` so UI can reliably treat
+        // `error !== undefined` as “has an error”.
+        dir.error = action.payload.error ?? undefined;
       }
     },
     setIsAddingDirectory: (state, action: PayloadAction<boolean>) => {

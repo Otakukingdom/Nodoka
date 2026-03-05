@@ -18,7 +18,7 @@ export default function DetailsPanel() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container" role="complementary" aria-label="File and bookmark details">
       {/* Files section */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4">
         {/* Section header with consistent alignment */}
         <div className="section-header-enhanced">
           <div className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center flex-shrink-0">
@@ -85,7 +85,7 @@ export default function DetailsPanel() {
                 </div>
               </div>
               <div className="empty-state-title">No bookmarks yet</div>
-              <div className="empty-state-description">Press F1 for keyboard shortcuts</div>
+              <div className="empty-state-description">Press Ctrl + B to add a bookmark</div>
             </div>
           ) : (
             bookmarks.map(bookmark => (
@@ -122,7 +122,7 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
       <div className="card-body p-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-base-content/50 w-6" aria-hidden="true">#{file.position + 1}</span>
-          <span className="text-sm font-medium text-truncate flex-1">{file.name}</span>
+          <span className="text-sm font-medium truncate flex-1" title={file.name}>{file.name}</span>
         </div>
         {file.completeness > 0 && (
           <div className="flex items-center gap-2 mt-2" role="progressbar" aria-valuenow={file.completeness} aria-valuemin={0} aria-valuemax={100} aria-label={`${file.completeness}% complete`}>

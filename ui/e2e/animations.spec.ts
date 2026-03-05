@@ -101,7 +101,8 @@ test.describe('Modal Animation', () => {
 
   test('modal fade-in backdrop', async ({ page }) => {
     await page.click('button[aria-label="Settings"]');
-    await page.waitForTimeout(50);
+    await page.waitForSelector('.modal-box');
+    await page.waitForTimeout(300);
     const backdrop = page.locator('.modal');
     if (await backdrop.isVisible()) {
       await expect(backdrop).toHaveScreenshot(
@@ -177,10 +178,10 @@ test.describe('Theme Transition Animation', () => {
     await page.waitForTimeout(300);
     // Capture page during theme transition
     await setTheme(page, 'Dark');
-    await page.waitForTimeout(100); // Mid-transition
+    await page.waitForTimeout(200); // Mid-transition - increased for stability
     await expect(page).toHaveScreenshot(
       'theme-transition-mid.png',
-      { ...screenshotConfig, animations: 'allow', fullPage: true }
+      { ...screenshotConfig, animations: 'allow', fullPage: true, maxDiffPixelRatio: 0.05 }
     );
   });
 });

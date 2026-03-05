@@ -97,7 +97,7 @@ test.describe('Complete User Workflows', () => {
       await expect(page.locator('.modal-box')).toBeVisible();
 
       // 2. Change theme
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
       await expect(themeSelect).toHaveValue('Dark');
 
@@ -116,7 +116,7 @@ test.describe('Complete User Workflows', () => {
 
       // 6. Reopen settings and verify persistence
       await openSettingsModal(page);
-      await expect(page.locator('.modal-box select')).toHaveValue('Dark');
+      await expect(page.getByLabel('Select theme')).toHaveValue('Dark');
       await closeModal(page);
     });
 

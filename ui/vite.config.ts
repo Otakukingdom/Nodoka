@@ -46,6 +46,9 @@ export default defineConfig(async () => {
     test: {
       globals: true,
       environment: 'jsdom',
+      env: {
+        NODE_ENV: 'development',
+      },
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.test.{ts,tsx}'],
       coverage: {

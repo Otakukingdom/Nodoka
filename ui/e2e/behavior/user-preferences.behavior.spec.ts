@@ -15,7 +15,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('theme preference can be changed', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
 
       await expect(themeSelect).toHaveValue('Dark');
@@ -24,19 +24,19 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('theme preference persists after modal close', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
       await closeModal(page);
 
       await openSettingsModal(page);
-      const themeSelectAgain = page.locator('.modal-box select');
+      const themeSelectAgain = page.getByLabel('Select theme');
       await expect(themeSelectAgain).toHaveValue('Dark');
     });
 
     test('Light theme is available', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Light');
 
       await expect(themeSelect).toHaveValue('Light');
@@ -45,7 +45,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('System theme is available', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('System');
 
       await expect(themeSelect).toHaveValue('System');
@@ -119,7 +119,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await expect(page.locator('.modal-box h3:has-text("Settings")')).toBeVisible();
 
       // Should have theme select
-      await expect(page.locator('.modal-box select')).toBeVisible();
+      await expect(page.getByLabel('Select theme')).toBeVisible();
 
       // Should have close button
       await expect(page.locator('.modal-box button[aria-label="Close"]')).toBeVisible();
@@ -169,7 +169,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await closeButton.focus();
       await expect(closeButton).toBeFocused();
 
-      const themeSelect = page.locator('.modal-box select').first();
+      const themeSelect = page.getByLabel('Select theme').first();
       await themeSelect.focus();
       await expect(themeSelect).toBeFocused();
 
@@ -199,7 +199,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('theme select has focus styling', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select').first();
+      const themeSelect = page.getByLabel('Select theme').first();
       await themeSelect.focus();
       await page.waitForTimeout(200);
 
@@ -212,12 +212,12 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('preferences persist within session', async ({ page }) => {
       // Set theme to Dark
       await openSettingsModal(page);
-      await page.locator('.modal-box select').first().selectOption('Dark');
+      await page.getByLabel('Select theme').first().selectOption('Dark');
       await closeModal(page);
 
       // Open modal again without reload
       await openSettingsModal(page);
-      const themeSelect = page.locator('.modal-box select').first();
+      const themeSelect = page.getByLabel('Select theme').first();
 
       // Theme should still be Dark within the same session
       await expect(themeSelect).toHaveValue('Dark');
@@ -226,7 +226,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('theme changes are immediately reflected', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
 
       // Change to Dark
       await themeSelect.selectOption('Dark');
@@ -249,7 +249,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
 
       // Look for preference controls (language, region, etc.)
       const preferenceInputs = page.locator('.modal-box input[type="text"]');
-      const preferenceSelects = page.locator('.modal-box select');
+      const preferenceSelects = page.getByLabel('Select theme');
 
       // At least theme select should exist
       await expect(preferenceSelects.first()).toBeVisible();
@@ -259,7 +259,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Look for language select
-      const languageSelect = page.locator('.modal-box select').filter({ has: page.locator('option:has-text("en"), option:has-text("English")') });
+      const languageSelect = page.getByLabel('Select theme').filter({ has: page.locator('option:has-text("en"), option:has-text("English")') });
 
       if (await languageSelect.count() > 0) {
         await languageSelect.selectOption('en');
@@ -292,7 +292,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Theme select should show current value
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       const value = await themeSelect.inputValue();
 
       // Should have a valid value
@@ -319,7 +319,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Theme preference
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await expect(themeSelect).toBeVisible();
 
       // Volume preference
@@ -335,7 +335,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Count visible preference controls
-      const selects = page.locator('.modal-box select');
+      const selects = page.getByLabel('Select theme');
       const inputs = page.locator('.modal-box input');
 
       const selectCount = await selects.count();
@@ -351,7 +351,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
       await openSettingsModal(page);
 
       // Change theme
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       await themeSelect.selectOption('Dark');
       await page.waitForTimeout(200);
 
@@ -384,7 +384,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('preference can be updated multiple times', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
 
       // Update to Dark
       await themeSelect.selectOption('Dark');
@@ -402,7 +402,7 @@ test.describe('User Preferences - Behavioral Tests', () => {
     test('preference update is immediate', async ({ page }) => {
       await openSettingsModal(page);
 
-      const themeSelect = page.locator('.modal-box select');
+      const themeSelect = page.getByLabel('Select theme');
       const initialValue = await themeSelect.inputValue();
 
       // Change value

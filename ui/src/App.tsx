@@ -25,9 +25,9 @@ import { toggleMute, setVolume } from './store/slices/playerSlice';
 
 function App() {
   const dispatch = useAppDispatch();
-  const { theme, isLoading, panelRatio, panelDividerDragging } = useAppSelector(state => state.app);
+  const { theme, isLoading, panelRatio, panelDividerDragging, focusMode, prefersReducedMotion } = useAppSelector(state => state.app);
   const { currentFiles, selectedFile, isLibraryLoading, isAddingDirectory, audiobooks, selectedAudiobook, directories } = useAppSelector(state => state.library);
-  const { volume } = useAppSelector(state => state.player);
+  const { volume, skipForwardDurationSeconds, skipBackwardDurationSeconds } = useAppSelector(state => state.player);
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -70,6 +70,12 @@ function App() {
 
     return () => clearInterval(interval);
   }, [dispatch]);
+
+  // Apply focus mode + reduced motion as body classes
+  useEffect(() => {
+    document.body.classList.toggle('focus-mode', focusMode === 'Enabled');
+    document.body.classList.toggle('reduced-motion', prefersReducedMotion);
+  }, [focusMode, prefersReducedMotion]);
 
   // Panel resize handlers
   const handleDividerMouseDown = useCallback((e: React.MouseEvent) => {
@@ -131,11 +137,11 @@ function App() {
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        void dispatch(seekBackward(30));
+        void dispatch(seekBackward(skipBackwardDurationSeconds));
         break;
       case 'ArrowRight':
         e.preventDefault();
-        void dispatch(seekForward(30));
+        void dispatch(seekForward(skipForwardDurationSeconds));
         break;
       case 'ArrowUp': {
         e.preventDefault();

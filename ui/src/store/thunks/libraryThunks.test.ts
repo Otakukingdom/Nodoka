@@ -289,7 +289,8 @@ describe('library thunks', () => {
 
       const state = store.getState();
       const dir = state.library.directories.find((d) => d.fullPath === '/Users/test/audiobooks');
-      expect(dir?.error).toBeNull();
+      // Error is normalized to undefined when cleared (null -> undefined for consistent UI checks)
+      expect(dir?.error).toBeUndefined();
     });
 
     it('removes path from scanningPaths even when scan fails', async () => {
@@ -483,7 +484,8 @@ describe('library thunks', () => {
 
       const state = store.getState();
       const dir = state.library.directories.find((d) => d.fullPath === '/Users/test/audiobooks');
-      expect(dir?.error).toBeNull();
+      // Error is normalized to undefined when cleared (null -> undefined for consistent UI checks)
+      expect(dir?.error).toBeUndefined();
     });
 
     it('handles validation errors gracefully', async () => {

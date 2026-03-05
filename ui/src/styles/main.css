@@ -402,6 +402,53 @@ html {
 
 /* Reduced motion support - WCAG 2.1 AAA and axe-core motion rule compliance */
 @media (prefers-reduced-motion: reduce) {
+  body:not(.reduced-motion) {
+    /* Keep OS preference authoritative, but allow test helpers to force reduced motion via body class. */
+  }
+}
+
+/* Reduced motion support (manual preference toggle) */
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+body.reduced-motion .animate-spin,
+body.reduced-motion .animate-pulse,
+body.reduced-motion .animate-bounce,
+body.reduced-motion .animate-fade-in,
+body.reduced-motion .toast-slide-in,
+body.reduced-motion .pulse-playing,
+body.reduced-motion .fade-in,
+body.reduced-motion .scale-in,
+body.reduced-motion .shimmer,
+body.reduced-motion .card-animate-in,
+body.reduced-motion .logo-hover-pulse,
+body.reduced-motion .skeleton-shimmer::after {
+  animation: none !important;
+}
+
+body.reduced-motion .card-hover-lift:hover,
+body.reduced-motion .interaction-scale:hover,
+body.reduced-motion .btn-press:active {
+  transform: none !important;
+}
+
+/* `backdrop-filter` is visually nice, but it is extremely sensitive to minor
+   render timing differences (and to whatever is happening behind the overlay).
+   Under reduced motion we prefer a crisp, deterministic scrim. */
+body.reduced-motion .modal.backdrop-blur-sm {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
@@ -434,6 +481,11 @@ html {
   .interaction-scale:hover,
   .btn-press:active {
     transform: none !important;
+  }
+
+  .modal.backdrop-blur-sm {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 
@@ -893,6 +945,59 @@ html {
 }
 
 /* ============================================
+   Interaction Affordance Enhancements
+   ============================================ */
+
+/* Clear hover state for all interactive elements */
+.btn-ghost:hover {
+  background-color: oklch(var(--p) / 0.1);
+}
+
+/* Skip buttons - clear association with player */
+.btn-circle.btn-ghost:hover svg {
+  transform: scale(1.1);
+}
+
+/* Speed button - enhanced visual feedback */
+.btm-nav .btn-ghost:not(.btn-circle):hover {
+  background-color: oklch(var(--p) / 0.15);
+}
+
+/* Volume slider expansion affordance */
+.volume-slider-trigger {
+  position: relative;
+}
+
+.volume-slider-trigger::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.volume-slider-trigger:hover::after {
+  opacity: 0.5;
+}
+
+/* Empty state layout stability */
+.empty-state-container,
+.empty-state-compact {
+  min-height: 180px;
+}
+
+/* Loading state layout stability */
+.skeleton-shimmer {
+  min-height: 1em;
+}
+
+/* ============================================
    Keyboard Shortcut Hint Styling
    ============================================ */
 
@@ -1191,6 +1296,88 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
 }
 
 /* ============================================
+   Responsive Breakpoint Enhancements
+   ============================================ */
+
+/* Mobile (375px) - ensure no clipping or overlap */
+@media (max-width: 375px) {
+  .library-panel .card-body {
+    padding: var(--space-2);
+  }
+
+  .btm-nav {
+    gap: 0.125rem;
+  }
+
+  .btm-nav .btn-circle {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* Tablet (768px) - intentional reflow */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .library-panel {
+    min-width: 200px;
+    max-width: 320px;
+  }
+
+  .details-panel-container {
+    min-width: 300px;
+  }
+}
+
+/* Desktop (1024px+) - readable line length */
+@media (min-width: 1024px) {
+  .details-panel-container {
+    max-width: 600px;
+  }
+}
+
+/* Large desktop (1440px+) - content remains appropriately dense */
+@media (min-width: 1440px) {
+  .library-panel {
+    max-width: 380px;
+  }
+
+  .details-panel-container {
+    max-width: 700px;
+  }
+}
+
+/* ============================================
+   Focus Mode (distraction-free)
+   ============================================ */
+
+/* Hide or de-emphasize library UI when focus mode is enabled */
+body.focus-mode .library-panel {
+  opacity: 0.06;
+  filter: blur(2px) saturate(0.7);
+  pointer-events: none;
+  user-select: none;
+}
+
+body.focus-mode .library-panel * {
+  pointer-events: none;
+}
+
+/* Keep details panel fully readable */
+body.focus-mode .details-panel-container {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b1) / 1) 0%,
+    oklch(var(--b2) / 0.15) 100%
+  );
+}
+
+/* Provide a subtle vignette behind player controls */
+body.focus-mode .btm-nav {
+  box-shadow:
+    0 -12px 22px rgba(0, 0, 0, 0.18),
+    0 -4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
    Visual Hierarchy Enhancements
    ============================================ */
 
@@ -1209,6 +1396,75 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
     oklch(var(--b1) / 1) 0%,
     oklch(var(--b2) / 0.2) 100%
   );
+}
+
+/* ============================================
+   Spacing System (4px base unit)
+   ============================================ */
+
+/* Consistent spacing scale for components */
+:root {
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+}
+
+/* Panel gutters - consistent horizontal padding */
+.library-panel,
+.details-panel-container {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+/* Section spacing - consistent vertical rhythm */
+.section-header-enhanced {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+}
+
+/* Card spacing - internal padding consistency */
+.card-compact .card-body {
+  padding: var(--space-3);
+}
+
+/* ============================================
+   Primary Action Visual Prominence
+   ============================================ */
+
+/* Primary action buttons - more prominent */
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Play button - focal point enhancement */
+.btn-primary.btn-circle {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure primary actions have clear visual weight */
+.btn-primary {
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 /* Section header styling - more prominent and consistent */

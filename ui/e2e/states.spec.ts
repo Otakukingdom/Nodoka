@@ -105,7 +105,7 @@ test.describe('Theme Transition States', () => {
     await gotoAndWait(page);
     await page.click('button[aria-label="Settings"]');
     await page.waitForSelector('.modal-box');
-    await page.selectOption('.modal-box select', 'System');
+    await page.selectOption('select[aria-label="Select theme"]', 'System');
     await page.waitForTimeout(500);
     await page.click('.modal-box button:has-text("Done")');
     await page.waitForTimeout(300);

@@ -180,26 +180,26 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('empty-library-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'empty');
+      await setThemeViaRedux(page, 'Light');
       await takeScreenshot(page, 'app-shell', 'empty-library', 'light');
     });
 
     test('empty-library-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'empty');
+      await setThemeViaRedux(page, 'Dark');
       await takeScreenshot(page, 'app-shell', 'empty-library', 'dark');
     });
 
     test('populated-library-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Light');
       await takeScreenshot(page, 'app-shell', 'populated-library', 'light');
     });
 
     test('populated-library-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Dark');
       await takeScreenshot(page, 'app-shell', 'populated-library', 'dark');
     });
   });
@@ -262,27 +262,27 @@ test.describe.parallel('Screenshot Generation', () => {
   // ========================================
   test.describe('details-panel', () => {
     test('no-selection-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Light');
       await takeScreenshot(page, 'details-panel', 'no-selection', 'light');
     });
 
     test('no-selection-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Dark');
       await takeScreenshot(page, 'details-panel', 'no-selection', 'dark');
     });
 
     test('audiobook-details-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Light');
       await selectAudiobook(page, 1);
       await takeScreenshot(page, 'details-panel', 'audiobook-details', 'light');
     });
 
     test('audiobook-details-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Dark');
       await selectAudiobook(page, 1);
       await takeScreenshot(page, 'details-panel', 'audiobook-details', 'dark');
     });
@@ -436,12 +436,14 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('default-light', async ({ page }) => {
+      await injectScenarioData(page, 'default');
       await setThemeViaRedux(page, 'Light');
       await openModal(page, 'settings');
       await takeScreenshot(page, 'modals/settings', 'default', 'light');
     });
 
     test('default-dark', async ({ page }) => {
+      await injectScenarioData(page, 'default');
       await setThemeViaRedux(page, 'Dark');
       await openModal(page, 'settings');
       await takeScreenshot(page, 'modals/settings', 'default', 'dark');
@@ -473,6 +475,83 @@ test.describe.parallel('Screenshot Generation', () => {
       await openModal(page, 'settings');
       await takeScreenshot(page, 'modals/settings', 'theme-option-system');
     });
+
+    test('playback-settings-expanded-light', async ({ page }) => {
+      // Keep modal compact so playback controls are visible without scrolling.
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({ type: 'library/setDirectories', payload: [] });
+        }
+      });
+      await page.waitForTimeout(200);
+
+      await setThemeViaRedux(page, 'Light');
+      await openModal(page, 'settings');
+
+      const playbackToggle = page.locator('input[aria-label="Toggle playback settings section"]');
+      await playbackToggle.check({ force: true });
+      await page.waitForTimeout(200);
+
+      await page.locator('select[aria-label="Select skip forward duration"]').selectOption('60');
+      await page.locator('select[aria-label="Select skip backward duration"]').selectOption('15');
+      await page.locator('select[aria-label="Select auto-save interval"]').selectOption('1');
+      await page.waitForTimeout(200);
+
+      await takeScreenshot(page, 'modals/settings', 'playback-settings-expanded', 'light');
+    });
+
+    test('playback-settings-expanded-dark', async ({ page }) => {
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({ type: 'library/setDirectories', payload: [] });
+        }
+      });
+      await page.waitForTimeout(200);
+
+      await setThemeViaRedux(page, 'Dark');
+      await openModal(page, 'settings');
+
+      const playbackToggle = page.locator('input[aria-label="Toggle playback settings section"]');
+      await playbackToggle.check({ force: true });
+      await page.waitForTimeout(200);
+
+      await page.locator('select[aria-label="Select skip forward duration"]').selectOption('60');
+      await page.locator('select[aria-label="Select skip backward duration"]').selectOption('15');
+      await page.locator('select[aria-label="Select auto-save interval"]').selectOption('1');
+      await page.waitForTimeout(200);
+
+      await takeScreenshot(page, 'modals/settings', 'playback-settings-expanded', 'dark');
+    });
+
+    test('accessibility-settings-expanded', async ({ page }) => {
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({ type: 'library/setDirectories', payload: [] });
+        }
+      });
+      await page.waitForTimeout(200);
+
+      await setThemeViaRedux(page, 'Light');
+      await setFocusMode(page, true);
+      await setReducedMotion(page, true);
+      await openModal(page, 'settings');
+
+      const accessibilityToggle = page.locator('input[aria-label="Toggle accessibility settings section"]');
+      await accessibilityToggle.check({ force: true });
+      await page.waitForTimeout(200);
+
+      await takeScreenshot(page, 'modals/settings', 'accessibility-settings-expanded');
+    });
+
+    test('directories-with-error', async ({ page }) => {
+      await injectScenarioData(page, 'edge-cases');
+      await setThemeViaRedux(page, 'Light');
+      await openModal(page, 'settings');
+      await takeScreenshot(page, 'modals/settings', 'directories-with-error', 'light');
+    });
   });
 
   // ========================================
@@ -480,15 +559,15 @@ test.describe.parallel('Screenshot Generation', () => {
   // ========================================
   test.describe('modals/keyboard-help', () => {
     test('keyboard-help-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Light');
       await openModal(page, 'keyboard-help');
       await takeScreenshot(page, 'modals/keyboard-help', 'keyboard-help', 'light');
     });
 
     test('keyboard-help-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Dark');
       await openModal(page, 'keyboard-help');
       await takeScreenshot(page, 'modals/keyboard-help', 'keyboard-help', 'dark');
     });
@@ -578,8 +657,8 @@ test.describe.parallel('Screenshot Generation', () => {
   // ========================================
   test.describe('modals/confirmation', () => {
     test('confirmation-dialog-light', async ({ page }) => {
-      await setThemeViaRedux(page, 'Light');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Light');
       // Trigger a confirmation dialog - typically via delete action
       await selectAudiobook(page, 1);
       const deleteButton = page.locator('[data-testid="delete-audiobook"], button[aria-label="Delete"]');
@@ -608,8 +687,8 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('confirmation-dialog-dark', async ({ page }) => {
-      await setThemeViaRedux(page, 'Dark');
       await injectScenarioData(page, 'default');
+      await setThemeViaRedux(page, 'Dark');
       // Trigger confirmation via Redux
       await page.evaluate(() => {
         const store = (window as any).__REDUX_STORE__;
@@ -765,9 +844,16 @@ test.describe.parallel('Screenshot Generation', () => {
       await takeScreenshot(page, 'special-states', 'focus-mode-enabled', 'dark');
     });
 
-    test('reduced-motion-preference', async ({ page }) => {
+    test('reduced-motion-preference-light', async ({ page }) => {
+      await setThemeViaRedux(page, 'Light');
       await setReducedMotion(page, true);
-      await takeScreenshot(page, 'special-states', 'reduced-motion-preference');
+      await takeScreenshot(page, 'special-states', 'reduced-motion-preference', 'light');
+    });
+
+    test('reduced-motion-preference-dark', async ({ page }) => {
+      await setThemeViaRedux(page, 'Dark');
+      await setReducedMotion(page, true);
+      await takeScreenshot(page, 'special-states', 'reduced-motion-preference', 'dark');
     });
   });
 

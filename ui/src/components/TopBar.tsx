@@ -73,6 +73,7 @@ export default function TopBar() {
             className="btn btn-ghost btn-circle group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative"
             onClick={handleSettingsClick}
             aria-label="Settings"
+            title="Settings (Ctrl+,)"
           >
             <Settings className="h-5 w-5 transition-transform duration-200 group-hover:rotate-45" />
             {directories.length > 0 && (

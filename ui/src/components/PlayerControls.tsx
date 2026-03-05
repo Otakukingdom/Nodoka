@@ -15,11 +15,21 @@ const DEFAULT_SKIP_BACKWARD = 15;
 
 export default function PlayerControls() {
   const dispatch = useAppDispatch();
-  const { playback, currentTime, totalDuration, speed, volume, isMuted, sleepTimer, sleepTimerRemainingMs } = useAppSelector(state => state.player);
+  const {
+    playback,
+    currentTime,
+    totalDuration,
+    speed,
+    volume,
+    isMuted,
+    sleepTimer,
+    sleepTimerRemainingMs,
+    skipForwardDurationSeconds,
+    skipBackwardDurationSeconds,
+  } = useAppSelector(state => state.player);
 
-  // Get skip durations from settings (could be stored in app state in future)
-  const skipForwardDuration = DEFAULT_SKIP_FORWARD;
-  const skipBackwardDuration = DEFAULT_SKIP_BACKWARD;
+  const skipForwardDuration = skipForwardDurationSeconds || DEFAULT_SKIP_FORWARD;
+  const skipBackwardDuration = skipBackwardDurationSeconds || DEFAULT_SKIP_BACKWARD;
 
   const handlePlayPause = () => {
     void dispatch(playPause());
@@ -84,8 +94,8 @@ export default function PlayerControls() {
         {isPlaying && `Playing: ${formatTime(currentTime)} of ${formatTime(totalDuration)}`}
       </div>
 
-      {/* Left controls */}
-      <div className="flex items-center gap-1 sm:gap-2">
+      {/* Left controls - grouped for clear association */}
+      <div className="flex items-center gap-0.5 sm:gap-1">
         {/* Skip backward button */}
         <button
           className="btn btn-circle btn-ghost btn-sm hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -104,25 +114,29 @@ export default function PlayerControls() {
         >
           <Square className="h-4 w-4" />
         </button>
-        {/* Play/Pause button - focal point with enhanced styling */}
-        <button
-          className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press ${
-            isPlaying ? 'pulse-playing' : ''
-          }`}
-          style={{
-            background: 'linear-gradient(135deg, #E11D48 0%, #FB7185 100%)',
-            border: 'none',
-          }}
-          onClick={handlePlayPause}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-          title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-        >
-          {isPlaying ? (
-            <Pause className="h-5 w-5" />
-          ) : (
-            <Play className="h-5 w-5 ml-0.5" />
-          )}
-        </button>
+      </div>
+      {/* Play/Pause button - focal point with enhanced styling, centered prominence */}
+      <button
+        className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press mx-1 ${
+          isPlaying ? 'pulse-playing' : ''
+        }`}
+        style={{
+          background: 'linear-gradient(135deg, #E11D48 0%, #FB7185 100%)',
+          border: 'none',
+          minWidth: '44px',
+          minHeight: '44px',
+        }}
+        onClick={handlePlayPause}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+        title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+      >
+        {isPlaying ? (
+          <Pause className="h-5 w-5" />
+        ) : (
+          <Play className="h-5 w-5 ml-0.5" />
+        )}
+      </button>
+      <div className="flex items-center gap-0.5 sm:gap-1">
         {/* Skip forward button */}
         <button
           className="btn btn-circle btn-ghost btn-sm hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -172,7 +186,7 @@ export default function PlayerControls() {
         </span>
       </div>
 
-      {/* Right controls */}
+      {/* Right controls - grouped for clear association */}
       <div className="flex items-center gap-0.5 sm:gap-1">
         {/* Sleep Timer button with enhanced active state */}
         <button
@@ -192,7 +206,7 @@ export default function PlayerControls() {
         </button>
         {/* Speed button with enhanced visual feedback */}
         <button
-          className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full"
+          className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full min-w-[3rem]"
           onClick={handleSpeedClick}
           aria-label={`Playback speed: ${speed}x. Click to cycle`}
           title="Playback speed (click to cycle)"

@@ -20,8 +20,15 @@ import {
   updateScanProgress,
   clearScanProgress,
 } from '../slices/librarySlice';
-import { setTheme, setPanelRatio, setLoading, addNotification } from '../slices/appSlice';
-import { setVolume, setSpeed, setPlayback } from '../slices/playerSlice';
+import { setTheme, setPanelRatio, setLoading, addNotification, setFocusMode, setPrefersReducedMotion } from '../slices/appSlice';
+import {
+  setVolume,
+  setSpeed,
+  setPlayback,
+  setSkipForwardDurationSeconds,
+  setSkipBackwardDurationSeconds,
+  setAutoSaveIntervalSeconds,
+} from '../slices/playerSlice';
 import * as TauriCommands from '../../commands/tauri';
 import type { AudiobookSortOrder, ThemeMode, Audiobook, Bookmark } from '../types';
 import type { RootState } from '../index';
@@ -30,21 +37,43 @@ export const loadInitialData = createAsyncThunk(
   'library/loadInitialData',
   async (_, { dispatch }) => {
     try {
-      const [audiobooks, directories, theme, panelRatio, volume, speed] = await Promise.all([
+      const [
+        audiobooks,
+        directories,
+        theme,
+        panelRatio,
+        volume,
+        speed,
+        focusMode,
+        prefersReducedMotion,
+        skipForwardDurationSeconds,
+        skipBackwardDurationSeconds,
+        autoSaveIntervalSeconds,
+      ] = await Promise.all([
         TauriCommands.getAllAudiobooks(),
         TauriCommands.getDirectories(),
         TauriCommands.getTheme().catch(() => 'Light'),
         TauriCommands.getPanelRatio().catch(() => 0.4),
         TauriCommands.getVolume().catch(() => 100),
         TauriCommands.getSpeed().catch(() => 1.0),
+        TauriCommands.getFocusMode().catch(() => false),
+        TauriCommands.getPrefersReducedMotion().catch(() => false),
+        TauriCommands.getSkipForwardDuration().catch(() => 30),
+        TauriCommands.getSkipBackwardDuration().catch(() => 15),
+        TauriCommands.getAutoSaveInterval().catch(() => 5),
       ]);
 
       dispatch(setAudiobooks(audiobooks));
       dispatch(setDirectories(directories));
       dispatch(setTheme(theme as ThemeMode));
       dispatch(setPanelRatio(panelRatio));
+      dispatch(setFocusMode(focusMode ? 'Enabled' : 'Disabled'));
+      dispatch(setPrefersReducedMotion(prefersReducedMotion));
       dispatch(setVolume(volume));
       dispatch(setSpeed(speed));
+      dispatch(setSkipForwardDurationSeconds(skipForwardDurationSeconds));
+      dispatch(setSkipBackwardDurationSeconds(skipBackwardDurationSeconds));
+      dispatch(setAutoSaveIntervalSeconds(autoSaveIntervalSeconds));
       dispatch(setLibraryLoading(false));
       dispatch(setLoading(false));
 

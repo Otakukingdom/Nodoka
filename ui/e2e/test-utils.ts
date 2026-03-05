@@ -53,7 +53,7 @@ export async function closeModal(page: Page): Promise<void> {
  */
 export async function setTheme(page: Page, theme: 'Light' | 'Dark' | 'System'): Promise<void> {
   await openSettingsModal(page);
-  await page.selectOption('.modal-box select', theme);
+  await page.selectOption('select[aria-label="Select theme"]', theme);
   await page.waitForTimeout(500);
   await closeModal(page);
 }
