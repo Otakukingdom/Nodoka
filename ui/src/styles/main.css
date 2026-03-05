@@ -831,13 +831,14 @@ body.reduced-motion .modal.backdrop-blur-sm {
     0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Enhanced progress bar contrast */
+/* Enhanced progress bar contrast - consistent across all panels */
 .progress-bar-enhanced {
-  background-color: rgba(0, 0, 0, 0.12);
+  background-color: rgba(0, 0, 0, 0.14);
+  border-radius: 9999px;
 }
 
 [data-theme="dark"] .progress-bar-enhanced {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.18);
 }
 
 /* File card selection - improved visibility */
@@ -915,33 +916,39 @@ body.reduced-motion .modal.backdrop-blur-sm {
    Enhanced Interactive Cues
    ============================================ */
 
-/* More prominent "select" hint */
+/* More prominent "select" hint - enhanced contrast for WCAG AA compliance */
 .select-hint-prominent {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background: linear-gradient(135deg, rgba(225, 29, 72, 0.1) 0%, rgba(251, 113, 133, 0.05) 100%);
-  border: 1px solid rgba(225, 29, 72, 0.2);
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.18) 0%, rgba(251, 113, 133, 0.12) 100%);
+  border: 1px solid rgba(225, 29, 72, 0.35);
   border-radius: 9999px;
-  font-size: 0.6875rem;
-  color: oklch(var(--bc) / 0.7);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151; /* gray-700 for 4.5:1 contrast */
   transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .select-hint-prominent:hover {
-  background: linear-gradient(135deg, rgba(225, 29, 72, 0.15) 0%, rgba(251, 113, 133, 0.1) 100%);
-  border-color: rgba(225, 29, 72, 0.3);
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.25) 0%, rgba(251, 113, 133, 0.18) 100%);
+  border-color: rgba(225, 29, 72, 0.45);
+  box-shadow: 0 2px 4px rgba(225, 29, 72, 0.1);
 }
 
 [data-theme="dark"] .select-hint-prominent {
-  background: linear-gradient(135deg, rgba(251, 113, 133, 0.15) 0%, rgba(251, 113, 133, 0.05) 100%);
-  border-color: rgba(251, 113, 133, 0.25);
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.25) 0%, rgba(251, 113, 133, 0.15) 100%);
+  border-color: rgba(251, 113, 133, 0.4);
+  color: #e5e7eb; /* gray-200 for dark mode contrast */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .select-hint-prominent:hover {
-  background: linear-gradient(135deg, rgba(251, 113, 133, 0.2) 0%, rgba(251, 113, 133, 0.1) 100%);
-  border-color: rgba(251, 113, 133, 0.35);
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.35) 0%, rgba(251, 113, 133, 0.22) 100%);
+  border-color: rgba(251, 113, 133, 0.55);
+  box-shadow: 0 2px 6px rgba(251, 113, 133, 0.15);
 }
 
 /* ============================================
@@ -1422,11 +1429,7 @@ body.focus-mode .btm-nav {
   padding-right: var(--space-4);
 }
 
-/* Section spacing - consistent vertical rhythm */
-.section-header-enhanced {
-  margin-bottom: var(--space-3);
-  padding-bottom: var(--space-2);
-}
+/* Section spacing - consistent vertical rhythm (consolidated with section-header-enhanced below) */
 
 /* Card spacing - internal padding consistency */
 .card-compact .card-body {
@@ -1467,14 +1470,15 @@ body.focus-mode .btm-nav {
   letter-spacing: 0.01em;
 }
 
-/* Section header styling - more prominent and consistent */
+/* Section header styling - prominent and consistent across all panels */
 .section-header-enhanced {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding-top: 0.125rem;
   padding-bottom: 0.625rem;
-  border-bottom: 1px solid oklch(var(--b3) / 0.6);
   margin-bottom: 0.75rem;
+  border-bottom: 1px solid oklch(var(--b3) / 0.5);
 }
 
 /* Ensure section header icons are perfectly aligned */
@@ -1667,13 +1671,14 @@ body.focus-mode .btm-nav {
    Progress Bar Enhanced Visibility
    ============================================ */
 
-/* Enhanced progress bar with better visibility */
+/* Enhanced progress bar - additional properties for shimmer effect */
+/* Note: Base background-color defined earlier in file for consolidation */
 .progress-bar-enhanced {
   position: relative;
   overflow: hidden;
 }
 
-/* Ensure progress bars are visible in both themes */
+/* Shimmer overlay effect for visual polish */
 .progress-bar-enhanced::before {
   content: '';
   position: absolute;
@@ -1681,21 +1686,17 @@ body.focus-mode .btm-nav {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.12) 50%,
     transparent 100%
   );
   pointer-events: none;
-}
-
-[data-theme="dark"] .progress-bar-enhanced {
-  background-color: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] .progress-bar-enhanced::before {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.1) 50%,
     transparent 100%
   );
 }
