@@ -85,7 +85,7 @@ export default function PlayerControls() {
 
   return (
     <div
-      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
+      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-1 sm:gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden"
       role="region"
       aria-label="Audio player controls"
     >
@@ -95,7 +95,7 @@ export default function PlayerControls() {
       </div>
 
       {/* Left controls - grouped for clear association */}
-      <div className="flex items-center gap-0.5 sm:gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
         {/* Skip backward button */}
         <button
           className="btn btn-circle btn-ghost btn-sm hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -117,7 +117,7 @@ export default function PlayerControls() {
       </div>
       {/* Play/Pause button - focal point with enhanced styling, centered prominence */}
       <button
-        className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press mx-1 ${
+        className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press flex-shrink-0 ${
           isPlaying ? 'pulse-playing' : ''
         }`}
         style={{
@@ -136,7 +136,7 @@ export default function PlayerControls() {
           <Play className="h-5 w-5 ml-0.5" />
         )}
       </button>
-      <div className="flex items-center gap-0.5 sm:gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
         {/* Skip forward button */}
         <button
           className="btn btn-circle btn-ghost btn-sm hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -148,12 +148,12 @@ export default function PlayerControls() {
         </button>
       </div>
 
-      {/* Center - Seek bar */}
-      <div className="flex-1 flex items-center gap-1 sm:gap-3">
-        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 text-right tabular-nums text-base-content/70 select-none" aria-label={`Current time: ${formatTime(currentTime)}`}>
+      {/* Center - Seek bar (flexible with min-width:0 to allow shrinking) */}
+      <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2">
+        <span className="font-mono text-xs sm:text-sm w-8 sm:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0" aria-label={`Current time: ${formatTime(currentTime)}`}>
           {formatTime(currentTime)}
         </span>
-        <div className="flex-1 relative group h-8 sm:h-6 flex items-center" role="group" aria-label="Seek bar">
+        <div className="flex-1 min-w-0 relative group h-8 sm:h-6 flex items-center" role="group" aria-label="Seek bar">
           {/* Background track with enhanced visibility */}
           <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" aria-hidden="true" />
           {/* Progress track with premium gradient */}
@@ -181,13 +181,13 @@ export default function PlayerControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        <span className="font-mono text-xs sm:text-sm w-10 sm:w-14 tabular-nums text-base-content/70 select-none" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
+        <span className="font-mono text-xs sm:text-sm w-8 sm:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
           {formatTime(totalDuration)}
         </span>
       </div>
 
-      {/* Right controls - grouped for clear association */}
-      <div className="flex items-center gap-0.5 sm:gap-1">
+      {/* Right controls - grouped for clear association, flex-shrink-0 to prevent collapsing */}
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
         {/* Sleep Timer button with enhanced active state */}
         <button
           className={`btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative ${
@@ -206,7 +206,7 @@ export default function PlayerControls() {
         </button>
         {/* Speed button with enhanced visual feedback */}
         <button
-          className="btn btn-ghost btn-sm px-2 sm:px-3 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full min-w-[3rem]"
+          className="btn btn-ghost btn-sm px-2 font-mono text-xs sm:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full min-w-[2.5rem] sm:min-w-[3rem]"
           onClick={handleSpeedClick}
           aria-label={`Playback speed: ${speed}x. Click to cycle`}
           title="Playback speed (click to cycle)"

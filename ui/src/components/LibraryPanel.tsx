@@ -108,7 +108,7 @@ export default function LibraryPanel() {
 
   return (
     <div
-      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100 sm:border-r border-b-0"
+      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100 sm:border-r border-b-0 h-full"
       style={{ width: `${panelWidth}%` }}
       role="navigation"
       aria-label="Audiobook library"
@@ -120,19 +120,19 @@ export default function LibraryPanel() {
       </div>
 
       {/* Toolbar - consistent spacing and alignment */}
-      <div className="px-3 py-2.5 border-b border-base-300 flex gap-2 bg-base-200/30 items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none" />
+      <div className="px-3 py-2.5 border-b border-base-300 flex gap-2 bg-base-200/30 items-center flex-shrink-0">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" />
           <input
             type="text"
             placeholder="Search audiobooks..."
-            className="input input-bordered input-sm w-full pl-9 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+            className="input input-bordered input-sm w-full pl-9 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-0"
             value={searchQuery}
             onChange={handleSearchChange}
           />
         </div>
         <select
-          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive"
+          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0"
           value={sortOrder}
           onChange={handleSortChange}
           aria-label="Sort audiobooks"
@@ -144,7 +144,7 @@ export default function LibraryPanel() {
         {/* Add folder button - visible when audiobooks exist (returning user) */}
         {audiobooks.length > 0 && (
           <button
-            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex-shrink-0"
             onClick={() => void handleAddDirectory()}
             disabled={isAddingDirectory || isLibraryLoading || isScanning}
             aria-label="Add audiobook folder"
@@ -156,7 +156,7 @@ export default function LibraryPanel() {
       </div>
 
       {/* Audiobook list */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-3" id="audiobook-list">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 min-h-0" id="audiobook-list">
         {/* Directory error banners - show at top when directories have issues */}
         {!isLibraryLoading && directoriesWithErrors.length > 0 && (
           <div className="mb-3 space-y-2">

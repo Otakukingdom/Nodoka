@@ -1662,3 +1662,180 @@ body.focus-mode .btm-nav {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
+/* ============================================
+   Progress Bar Enhanced Visibility
+   ============================================ */
+
+/* Enhanced progress bar with better visibility */
+.progress-bar-enhanced {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ensure progress bars are visible in both themes */
+.progress-bar-enhanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+[data-theme="dark"] .progress-bar-enhanced {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .progress-bar-enhanced::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   Seek Bar Track and Fill Enhancements
+   ============================================ */
+
+/* Seek bar track with improved visibility */
+.seek-bar-track {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .seek-bar-track {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Seek bar fill with premium gradient */
+.seek-bar-fill {
+  background: linear-gradient(90deg, #E11D48 0%, #FB7185 100%);
+}
+
+[data-theme="dark"] .seek-bar-fill {
+  background: linear-gradient(90deg, #BE123C 0%, #E11D48 100%);
+}
+
+/* Seek bar thumb */
+.seek-bar-thumb {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(225, 29, 72, 0.3);
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.seek-bar-thumb:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.2),
+    0 0 0 3px rgba(225, 29, 72, 0.4);
+}
+
+[data-theme="dark"] .seek-bar-thumb {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(251, 113, 133, 0.4);
+}
+
+[data-theme="dark"] .seek-bar-thumb:hover {
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(251, 113, 133, 0.5);
+}
+
+/* ============================================
+   Button Press Animation Enhancement
+   ============================================ */
+
+/* Button press animation for tactile feedback */
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* ============================================
+   File Card Selected State Enhancement
+   ============================================ */
+
+/* File card selected state with improved visibility */
+.file-card-selected {
+  position: relative;
+}
+
+.file-card-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #E11D48 0%, #FB7185 100%);
+  border-radius: 3px 0 0 3px;
+}
+
+[data-theme="dark"] .file-card-selected::before {
+  background: linear-gradient(180deg, #BE123C 0%, #E11D48 100%);
+}
+
+/* ============================================
+   Extra Compact Viewport Fixes (320px)
+   ============================================ */
+
+@media (max-width: 380px) {
+  /* Ensure player controls remain usable */
+  .btm-nav {
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+    gap: 0.125rem;
+  }
+
+  /* Smaller but still touch-friendly buttons */
+  .btm-nav .btn-circle {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* Play button remains prominent */
+  .btm-nav .btn-circle.btn-primary {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Compact time display */
+  .btm-nav .font-mono {
+    font-size: 0.625rem;
+  }
+
+  /* Compact speed button */
+  .btm-nav .btn-ghost:not(.btn-circle) {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    font-size: 0.6875rem;
+    min-width: auto;
+  }
+
+  /* Ensure seek bar is still usable */
+  .btm-nav .h-8,
+  .btm-nav .h-6 {
+    height: 1.25rem;
+  }
+
+  /* Hide volume slider on very small screens, keep mute button */
+  .group\/volume .relative.w-12,
+  .group\/volume .relative.w-16,
+  .group\/volume .relative.w-20 {
+    display: none;
+  }
+}

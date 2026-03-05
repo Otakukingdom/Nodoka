@@ -425,6 +425,14 @@ test.describe.parallel('Screenshot Generation', () => {
       await setPlaybackSpeed(page, 2.0);
       await takeScreenshot(page, 'player-controls', 'speed-2.0x');
     });
+
+    test('compact-viewport-375px', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 200 });
+      await setPlayerState(page, 'paused');
+      await setPlayerProgress(page, 50);
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'player-controls', 'compact-viewport-375px');
+    });
   });
 
   // ========================================
@@ -895,6 +903,18 @@ test.describe.parallel('Screenshot Generation', () => {
       await page.setViewportSize({ width: 640, height: 480 });
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'responsive', 'compact-640x480');
+    });
+
+    test('mobile-375x667', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'responsive', 'mobile-375x667');
+    });
+
+    test('mobile-landscape-667x375', async ({ page }) => {
+      await page.setViewportSize({ width: 667, height: 375 });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'responsive', 'mobile-landscape-667x375');
     });
   });
 

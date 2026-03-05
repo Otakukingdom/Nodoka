@@ -262,16 +262,16 @@ function App() {
   }
 
   return (
-    <div className={`flex flex-col h-screen ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
+    <div className={`flex flex-col h-screen overflow-hidden ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
       {/* Visually hidden h1 for screen reader navigation - WCAG 2.1 accessibility */}
       <h1 className="sr-only">Nodoka Audiobook Player</h1>
       <TopBar />
-      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row" role="main" ref={mainRef}>
-        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px]">
+      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0" role="main" ref={mainRef}>
+        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px] overflow-hidden">
           <LibraryPanel />
         </div>
         <div
-          className={`hidden sm:block w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation ${
+          className={`hidden sm:flex w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation items-center justify-center ${
             panelDividerDragging ? 'bg-primary/70 shadow-[2px_0_12px_rgba(225,29,72,0.3)]' : ''
           }`}
           onMouseDown={handleDividerMouseDown}
@@ -290,8 +290,8 @@ function App() {
           }}
         />
         {/* Horizontal divider for mobile */}
-        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" role="separator" aria-orientation="horizontal" />
-        <div className="flex-1 min-w-0 sm:min-w-[240px]">
+        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0" role="separator" aria-orientation="horizontal" />
+        <div className="flex-1 min-w-0 sm:min-w-[240px] overflow-hidden">
           <DetailsPanel />
         </div>
       </main>

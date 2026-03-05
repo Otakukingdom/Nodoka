@@ -95,6 +95,10 @@ export async function setPlaybackSpeed(page: Page, speed: number): Promise<void>
  */
 export async function expandVolumeSlider(page: Page): Promise<void> {
   const volumeGroup = page.locator('.group\\/volume, [data-testid="volume-control"]');
+  // First scroll the element into view to ensure it's within viewport bounds
+  await volumeGroup.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
+  // Then hover to trigger the expanded state
   await volumeGroup.hover();
   await page.waitForTimeout(300);
 }

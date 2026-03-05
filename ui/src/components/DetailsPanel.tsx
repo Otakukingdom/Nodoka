@@ -16,9 +16,9 @@ export default function DetailsPanel() {
   };
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container" role="complementary" aria-label="File and bookmark details">
+    <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container h-full" role="complementary" aria-label="File and bookmark details">
       {/* Files section */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 min-h-0">
         {/* Section header with consistent alignment */}
         <div className="section-header-enhanced">
           <div className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center flex-shrink-0">
