@@ -314,7 +314,7 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
             {isPlaying && (
               <Volume2 className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
             )}
-            <h3 className="card-title text-sm font-semibold truncate leading-tight group-hover:text-primary transition-colors" title={book.name}>
+            <h3 className="card-title text-sm font-semibold line-clamp-2 leading-tight group-hover:text-primary transition-colors" title={book.name}>
               {book.name}
             </h3>
           </div>

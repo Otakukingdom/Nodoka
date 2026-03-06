@@ -85,7 +85,7 @@ export default function PlayerControls() {
 
   return (
     <div
-      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 gap-1 sm:gap-1.5 md:gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden player-controls-bar"
+      className="btm-nav bg-base-200 border-t border-base-300 px-1.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 gap-1.5 sm:gap-1.5 md:gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden player-controls-bar"
       role="region"
       aria-label="Audio player controls"
     >

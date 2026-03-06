@@ -62,7 +62,7 @@ export default function TopBar() {
       {/* Action buttons group */}
       <div className="flex items-center gap-0.5 sm:gap-1">
         <button
-          className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
           onClick={() => void handleAddDirectory()}
           disabled={isAddingDirectory || isLibraryLoading}
           aria-label="Add audiobook folder"
@@ -71,7 +71,7 @@ export default function TopBar() {
           <FolderPlus className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200 group-hover:scale-110 ${isAddingDirectory ? 'animate-pulse' : ''}`} />
         </button>
         <button
-          className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative"
+          className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative touch-target-min"
           onClick={handleSettingsClick}
           aria-label="Settings"
           title="Settings (Ctrl+,)"

@@ -33,17 +33,23 @@ export default function NotificationContainer() {
 
   // Position toasts to avoid overlapping core content:
   // - Desktop: Top-right corner (doesn't block library/details panels)
-  // - Mobile Portrait: Bottom-center above player controls
-  // - Mobile Landscape: Top-right (avoids player controls, limited vertical space)
+  // - Mobile Portrait: Bottom-center above player controls with max-height constraint
+  // - Mobile Landscape: Bottom positioning above player controls (avoids panel content overlap)
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
+    // Max height constraint prevents toast container from occupying too much screen space
+    // Enables scrolling when multiple toasts stack
+    maxHeight: isMobile ? '40vh' : '60vh',
+    overflowY: 'auto' as const,
     ...(isMobileLandscape
       ? {
-          // Mobile landscape: top-right to avoid player controls
-          top: topBarHeight + padding / 2,
+          // Mobile landscape: bottom positioning to avoid panel content overlap
+          // Spans width with safe margins, sits above player controls
+          bottom: playerControlsHeight + padding / 2,
+          left: sidePadding,
           right: sidePadding,
-          maxWidth: 'min(360px, calc(100vw - 32px))',
+          maxWidth: '100%',
         }
       : isMobile
         ? {
@@ -74,8 +80,8 @@ export default function NotificationContainer() {
 
   return (
     <div
-      className={`toast gap-3 p-4 max-h-screen overflow-hidden notification-container flex flex-col ${positionClass}`}
-      style={toastStyle}
+      className={`toast gap-2 sm:gap-3 p-3 sm:p-4 overflow-y-auto notification-container flex flex-col ${positionClass}`}
+      style={{ ...toastStyle, maxHeight: isMobile ? '40vh' : '50vh' }}
       role="region"
       aria-label="Notifications"
       aria-live="polite"
@@ -105,20 +111,20 @@ function NotificationToast({ notification, onDismiss, animationClass = 'toast-sl
 
   return (
     <div
-      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px]`}
+      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px] p-3 sm:p-4`}
     >
       {/* Colored accent bar on left */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />
 
-      <div className="flex items-start gap-3 pl-1">
-        <div className={`p-1.5 rounded-full ${iconColor} bg-base-100/50 shadow-sm`}>
-          <Icon className="h-4 w-4" />
+      <div className="flex items-start gap-2 sm:gap-3 pl-1">
+        <div className={`p-1 sm:p-1.5 rounded-full ${iconColor} bg-base-100/50 shadow-sm shrink-0`}>
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </div>
         <div className="flex-1 min-w-0">
           {notification.title && (
-            <div className="font-semibold text-sm mb-0.5">{notification.title}</div>
+            <div className="font-semibold text-xs sm:text-sm mb-0.5">{notification.title}</div>
           )}
-          <div className="text-sm opacity-90 leading-snug break-words">{notification.message}</div>
+          <div className="text-xs sm:text-sm opacity-90 leading-snug break-words">{notification.message}</div>
         </div>
       </div>
       <button

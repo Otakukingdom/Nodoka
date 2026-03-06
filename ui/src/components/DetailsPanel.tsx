@@ -125,7 +125,7 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
       <div className="card-body p-2.5 sm:p-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] sm:text-xs font-mono text-base-content/50 w-5 sm:w-6 shrink-0" aria-hidden="true">#{file.position + 1}</span>
-          <span className="text-xs sm:text-sm font-medium truncate flex-1 min-w-0" title={file.name}>{file.name}</span>
+          <span className="text-xs sm:text-sm font-medium line-clamp-2 flex-1 min-w-0" title={file.name}>{file.name}</span>
         </div>
         {file.completeness > 0 && (
           <div className="flex items-center gap-2 mt-1.5 sm:mt-2" role="progressbar" aria-valuenow={file.completeness} aria-valuemin={0} aria-valuemax={100} aria-label={`${file.completeness}% complete`}>
@@ -164,7 +164,7 @@ function BookmarkCard({ bookmark }: { bookmark: BookmarkType }) {
       aria-label={`${bookmark.label} at ${formatTime(bookmark.positionMs)}${bookmark.note ? `, note: ${bookmark.note}` : ''}`}
     >
       <div className="flex items-center justify-between gap-2 sm:gap-3">
-        <span className="text-xs sm:text-sm font-medium truncate flex-1 min-w-0 group-hover:text-primary transition-colors" title={bookmark.label}>{bookmark.label}</span>
+        <span className="text-xs sm:text-sm font-medium line-clamp-2 flex-1 min-w-0 group-hover:text-primary transition-colors" title={bookmark.label}>{bookmark.label}</span>
         <span className="badge badge-primary/20 text-primary text-[10px] sm:text-xs font-mono shrink-0 border-primary/30" aria-label={`Position: ${formatTime(bookmark.positionMs)}`}>
           {formatTime(bookmark.positionMs)}
         </span>
