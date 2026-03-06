@@ -293,10 +293,10 @@ export default function SettingsModal() {
 
   return (
     <>
-      <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[90vh] overflow-y-auto">
+      <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[90vh] overflow-y-auto overscroll-contain">
       {/* Close button with enhanced hover state */}
       <button
-        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         onClick={handleClose}
         aria-label="Close"
       >
@@ -462,7 +462,7 @@ export default function SettingsModal() {
             {/* Action buttons */}
             <div className="flex gap-2 mt-2">
               <button
-                className="btn btn-outline btn-sm flex-1 gap-2 hover:bg-primary hover:text-primary-content hover:border-primary transition-all duration-200"
+                className="btn btn-outline btn-sm flex-1 gap-2 hover:bg-primary hover:text-primary-content hover:border-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 onClick={() => void handleAddDirectory()}
                 disabled={isLibraryLoading || isRescanningAll}
                 aria-label="Add directory"
@@ -472,7 +472,7 @@ export default function SettingsModal() {
               </button>
               {directories.length > 1 && (
                 <button
-                  className="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                  className="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   onClick={() => void handleRescanAll()}
                   disabled={isLibraryLoading || isRescanningAll}
                   aria-label="Rescan all directories"
@@ -644,7 +644,7 @@ export default function SettingsModal() {
         {/* Reset to Defaults */}
         <div className="mt-6">
           <button
-            className="btn btn-ghost btn-sm w-full text-base-content/70 hover:text-error hover:bg-error/10 border-2 hover:border-error/50 transition-all duration-200"
+            className="btn btn-ghost btn-sm w-full text-base-content/70 hover:text-error hover:bg-error/10 border-2 hover:border-error/50 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
             onClick={handleResetDefaults}
           >
             <RotateCcw className="w-4 h-4" />

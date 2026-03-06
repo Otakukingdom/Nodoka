@@ -11,72 +11,38 @@ import { useWindowSize } from '../hooks/useWindowSize';
 export default function NotificationContainer() {
   const { notifications } = useAppSelector(state => state.app);
   const dispatch = useAppDispatch();
-  const { width, height } = useWindowSize();
+  const { width } = useWindowSize();
 
   const handleDismiss = (id: number) => {
     dispatch(removeNotification(id));
   };
 
-  // Calculate safe positioning based on viewport
-  // Mobile (<640px) Portrait: Position at bottom-center, above player controls
-  // Mobile (<640px) Landscape: Position at top-right to avoid player controls overlap
-  // Desktop (>=640px): Position at top-right to avoid overlapping content panels
+  // Calculate safe positioning based on viewport.
+  // We keep notifications away from the player controls and list content by pinning them
+  // to the top-right across breakpoints.
   const isMobile = width < 640;
-  const isLandscape = width > height;
-  const isMobileLandscape = isMobile && isLandscape;
 
-  // Safe offsets to prevent overlap with app chrome
+  // Safe offsets to prevent overlap with app chrome.
   const topBarHeight = isMobile ? 56 : 64;
-  const playerControlsHeight = isMobile ? (isLandscape ? 48 : 64) : 72;
   const padding = 16;
   const sidePadding = 16;
 
   // Position toasts to avoid overlapping core content:
-  // - Desktop: Top-right corner (doesn't block library/details panels)
-  // - Mobile Portrait: Bottom-center above player controls with max-height constraint
-  // - Mobile Landscape: Bottom positioning above player controls (avoids panel content overlap)
+  // - All viewports: top-right corner below the top bar.
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
-    // Max height constraint prevents toast container from occupying too much screen space
-    // Enables scrolling when multiple toasts stack
+    // Max height constraint prevents the toast container from occupying too much space.
     maxHeight: isMobile ? '40vh' : '60vh',
     overflowY: 'auto' as const,
-    ...(isMobileLandscape
-      ? {
-          // Mobile landscape: bottom positioning to avoid panel content overlap
-          // Spans width with safe margins, sits above player controls
-          bottom: playerControlsHeight + padding / 2,
-          left: sidePadding,
-          right: sidePadding,
-          maxWidth: '100%',
-        }
-      : isMobile
-        ? {
-            // Mobile portrait: bottom-center above player
-            bottom: playerControlsHeight + padding,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            maxWidth: 'calc(100vw - 32px)',
-          }
-        : {
-            // Desktop: top-right corner
-            top: topBarHeight + padding,
-            right: sidePadding,
-            maxWidth: '480px',
-          }),
-    width: isMobile && !isMobileLandscape ? 'auto' : undefined,
+    top: topBarHeight + padding,
+    right: sidePadding,
+    maxWidth: isMobile ? 'calc(100vw - 32px)' : '480px',
   };
 
-  // Determine animation class based on position
-  // Right-aligned: slide in from right
-  // Center-aligned (mobile portrait): slide up from bottom
-  const positionClass = isMobile && !isMobileLandscape
-    ? 'toast-center items-center'
-    : 'items-end';
-  const animationClass = isMobile && !isMobileLandscape
-    ? 'toast-slide-up'
-    : 'toast-slide-in';
+  // Right-aligned: slide in from right.
+  const positionClass = 'items-end';
+  const animationClass = 'toast-slide-in';
 
   return (
     <div

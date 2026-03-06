@@ -2789,3 +2789,215 @@ body.reduced-motion .empty-state-icon-wrapper::before {
   z-index: 1;
   margin-top: auto;
 }
+
+/* ============================================
+   Enhanced Interaction Affordances v2
+   ============================================ */
+
+/* More prominent hover states for all interactive cards */
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.12),
+    0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .card-interactive:hover {
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Active/pressed state for cards */
+.card-interactive:active {
+  transform: translateY(0);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Enhanced button hover scale for clarity */
+.btn-circle.btn-ghost:hover {
+  transform: scale(1.08);
+  background-color: oklch(var(--p) / 0.12);
+}
+
+.btn-circle.btn-ghost:active {
+  transform: scale(0.96);
+}
+
+/* Volume slider enhanced touch target */
+.volume-control-wrapper {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Volume slider thumb visibility enhancement */
+.volume-slider-track:hover .gradient-premium,
+.volume-slider-track:focus-within .gradient-premium {
+  height: 6px;
+}
+
+/* ============================================
+   Section Header Sticky Enhancement
+   ============================================ */
+
+/* Ensure section headers stay sticky with proper z-index layering */
+.section-header-enhanced {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Add subtle shadow to sticky headers for depth */
+.section-header-enhanced::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .section-header-enhanced::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), transparent);
+}
+
+/* ============================================
+   Time Display Overflow Protection
+   ============================================ */
+
+/* Ensure long duration times don't overflow at 375px */
+@media (max-width: 400px) {
+  .btm-nav .time-display {
+    font-size: 0.625rem;
+    min-width: 1.75rem;
+    max-width: 2.25rem;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  /* Ensure seek bar has priority for remaining space */
+  .seek-bar-container {
+    min-width: 60px;
+    flex: 1 1 auto;
+  }
+
+  /* Compact volume slider on very small screens */
+  .volume-slider-track {
+    width: 48px !important;
+    min-width: 48px;
+  }
+
+  /* Hide volume slider on very compact viewports, keep mute button */
+  @media (max-width: 360px) {
+    .volume-slider-track {
+      display: none;
+    }
+  }
+}
+
+/* ============================================
+   Enhanced Focus Visibility
+   ============================================ */
+
+/* More prominent focus ring for keyboard navigation */
+.card-interactive:focus-visible,
+.audiobook-card-interactive:focus-visible {
+  outline: 3px solid var(--fallback-p, #E11D48);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 5px rgba(225, 29, 72, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .card-interactive:focus-visible,
+[data-theme="dark"] .audiobook-card-interactive:focus-visible {
+  outline-color: #FB7185;
+  box-shadow:
+    0 0 0 5px rgba(251, 113, 133, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ============================================
+   Primary Action Prominence
+   ============================================ */
+
+/* Enhanced play button visual prominence */
+.play-button-primary {
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(225, 29, 72, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.play-button-primary:hover {
+  box-shadow:
+    0 6px 20px rgba(225, 29, 72, 0.45),
+    0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.play-button-primary::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ============================================
+   Scrollbar Enhancement for Better Visibility
+   ============================================ */
+
+/* Slightly more visible scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: oklch(var(--b2) / 0.5);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(var(--b3) / 0.9);
+  border-radius: 9999px;
+  border: 2px solid oklch(var(--b2) / 0.5);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--bc) / 0.3);
+}
+
+/* ============================================
+   Spacing Consistency Enhancements
+   ============================================ */
+
+/* Ensure consistent spacing in library panel cards */
+.library-panel .card-body {
+  padding: 0.625rem 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .library-panel .card-body {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Ensure consistent gap between cards */
+.library-panel .audiobook-card-container {
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .library-panel .audiobook-card-container {
+    gap: 0.625rem;
+  }
+}

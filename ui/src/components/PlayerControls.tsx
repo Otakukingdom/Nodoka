@@ -153,17 +153,17 @@ export default function PlayerControls() {
 
       {/* Center - Seek bar (flexible with min-width:0 to allow shrinking, min-width enforced via CSS for 375px) */}
       <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2 seek-bar-container overflow-hidden">
-        {/* Current time - readable monospace - minimum 12px for accessibility */}
-        <span className="font-mono text-xs sm:text-xs md:text-sm w-10 sm:w-11 md:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Current time: ${formatTime(currentTime)}`}>
+        {/* Current time - readable monospace with clear visual weight */}
+        <span className="font-mono text-[11px] sm:text-xs md:text-sm w-10 sm:w-11 md:w-12 text-right tabular-nums text-base-content/80 select-none flex-shrink-0 time-display font-medium" aria-label={`Current time: ${formatTime(currentTime)}`}>
           {formatTime(currentTime)}
         </span>
-        {/* Seek bar with enhanced interaction clarity */}
-        <div className="flex-1 min-w-0 relative group h-8 sm:h-6 flex items-center seek-bar-wrapper" role="group" aria-label="Seek bar">
-          {/* Background track with enhanced visibility */}
-          <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" aria-hidden="true" />
+        {/* Seek bar with enhanced interaction clarity - larger touch target */}
+        <div className="flex-1 min-w-0 relative group h-10 sm:h-8 flex items-center seek-bar-wrapper" role="group" aria-label="Seek bar">
+          {/* Background track with enhanced visibility - always visible */}
+          <div className="absolute inset-x-0 h-2.5 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" aria-hidden="true" />
           {/* Progress track with premium gradient */}
           <div
-            className="absolute left-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-fill transition-all duration-100 group-hover:h-3"
+            className="absolute left-0 h-2.5 top-1/2 -translate-y-1/2 rounded-full seek-bar-fill transition-all duration-100 group-hover:h-3"
             style={{ width: `${progress}%` }}
             role="progressbar"
             aria-valuenow={Math.round(progress)}
@@ -186,8 +186,8 @@ export default function PlayerControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        {/* Total duration */}
-        <span className="font-mono text-xs sm:text-xs md:text-sm w-9 sm:w-10 md:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
+        {/* Total duration with clear visual weight */}
+        <span className="font-mono text-[11px] sm:text-xs md:text-sm w-9 sm:w-10 md:w-12 tabular-nums text-base-content/80 select-none flex-shrink-0 time-display font-medium" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
           {formatTime(totalDuration)}
         </span>
       </div>

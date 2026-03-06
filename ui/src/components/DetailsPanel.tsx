@@ -17,14 +17,14 @@ export default function DetailsPanel() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container h-full" role="complementary" aria-label="File and bookmark details">
-      {/* Files section - primary content area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3 sm:py-4 min-h-0" role="region" aria-label="Files list">
-        {/* Section header with clear visual hierarchy - using section-header-enhanced class */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1.5 z-10 section-header-enhanced border-b-0">
+      {/* Files section - primary content area with proper scroll containment */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3 sm:py-4 min-h-0 overscroll-contain" role="region" aria-label="Files list">
+        {/* Section header with clear visual hierarchy - sticky with enhanced visibility */}
+        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2 -mt-1 z-10 section-header-enhanced border-b border-base-300/50">
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
           </div>
-          <h2 className="text-xs sm:text-xs font-bold text-base-content/70 tracking-wide uppercase flex-1">Files</h2>
+          <h2 className="text-xs sm:text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Files</h2>
           {currentFiles.length > 0 && (
             <span className="badge badge-primary badge-sm px-1.5 sm:px-2 font-medium border-0 text-[11px]">{currentFiles.length}</span>
           )}
@@ -62,13 +62,13 @@ export default function DetailsPanel() {
       <div className="h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" />
 
       {/* Bookmarks section - secondary content area with scroll containment */}
-      <div className="h-1/3 min-h-[120px] max-h-[200px] sm:max-h-none overflow-y-auto custom-scrollbar p-3 sm:p-4 bg-base-100 details-section-bookmarks" role="region" aria-label="Bookmarks list" tabIndex={0}>
-        {/* Section header - matches Files header style with section-header-enhanced class */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1.5 z-10 section-header-enhanced border-b-0">
+      <div className="h-1/3 min-h-[140px] max-h-[220px] sm:max-h-none overflow-y-auto custom-scrollbar p-3 sm:p-4 bg-base-100 details-section-bookmarks overscroll-contain" role="region" aria-label="Bookmarks list" tabIndex={0}>
+        {/* Section header - sticky with enhanced visibility */}
+        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2 -mt-1 z-10 section-header-enhanced border-b border-base-300/50">
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Bookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
           </div>
-          <h2 className="text-xs sm:text-xs font-bold text-base-content/70 tracking-wide uppercase flex-1">Bookmarks</h2>
+          <h2 className="text-xs sm:text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Bookmarks</h2>
           {bookmarks.length > 0 && (
             <span className="badge badge-primary badge-sm px-1.5 sm:px-2 font-medium border-0 text-[11px]">{bookmarks.length}</span>
           )}

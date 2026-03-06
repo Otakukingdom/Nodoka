@@ -119,7 +119,7 @@ export default function LibraryPanel() {
       {/* Toolbar - consistent spacing and alignment with clear grouping, responsive wrap for compact viewports */}
       <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-center flex-shrink-0 toolbar-container flex-wrap sm:flex-nowrap" role="toolbar" aria-label="Library tools">
         {/* Search input - primary tool, takes available space */}
-        <div className="relative flex-1 min-w-0 search-input-wrapper">
+        <div className="relative w-full sm:flex-1 sm:w-auto min-w-0 search-input-wrapper">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" aria-hidden="true" />
           <input
             type="search"
@@ -133,7 +133,7 @@ export default function LibraryPanel() {
         </div>
         {/* Sort control - secondary tool */}
         <select
-          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0 sort-control"
+          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0 sort-control w-full sm:w-auto"
           value={sortOrder}
           onChange={handleSortChange}
           aria-label="Sort audiobooks"
@@ -154,6 +154,9 @@ export default function LibraryPanel() {
             <FolderPlus className="h-4 w-4" />
           </button>
         )}
+
+        {/* Fill row remainder on small screens to avoid awkward centered/overhanging controls */}
+        <div className="flex-1 sm:hidden" aria-hidden="true" />
       </div>
 
       {/* Audiobook list - scrollable content area */}
