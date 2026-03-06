@@ -442,16 +442,18 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('compact-viewport-375px', async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 200 });
+      await page.setViewportSize({ width: 375, height: 300 });
       await setPlayerState(page, 'paused');
       await setPlayerProgress(page, 50);
+      // Scroll player controls into view to ensure they're captured
+      await page.locator('.player-controls-bar').scrollIntoViewIfNeeded();
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'player-controls', 'compact-viewport-375px');
     });
 
     test('compact-viewport-375px-long-duration', async ({ page }) => {
       // Test with long duration to verify time display overflow handling
-      await page.setViewportSize({ width: 375, height: 200 });
+      await page.setViewportSize({ width: 375, height: 300 });
       await setPlayerState(page, 'paused');
       // Set a long duration (3+ hours) to test time display formatting
       await page.evaluate(() => {
@@ -461,14 +463,18 @@ test.describe.parallel('Screenshot Generation', () => {
           store.dispatch({ type: 'player/setCurrentTime', payload: 6250000 }); // 50% progress
         }
       });
+      // Scroll player controls into view to ensure they're captured
+      await page.locator('.player-controls-bar').scrollIntoViewIfNeeded();
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'player-controls', 'compact-viewport-375px-long-duration');
     });
 
     test('compact-viewport-volume-expanded', async ({ page }) => {
       // Test volume slider expansion on compact viewport
-      await page.setViewportSize({ width: 375, height: 200 });
+      await page.setViewportSize({ width: 375, height: 300 });
       await setPlayerState(page, 'paused');
+      // Scroll player controls into view to ensure they're captured
+      await page.locator('.player-controls-bar').scrollIntoViewIfNeeded();
       await expandVolumeSlider(page);
       await takeScreenshot(page, 'player-controls', 'compact-viewport-volume-expanded');
     });

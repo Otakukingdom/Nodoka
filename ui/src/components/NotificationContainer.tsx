@@ -20,24 +20,22 @@ export default function NotificationContainer() {
   // Calculate safe positioning based on viewport.
   // Notifications are centered at the bottom above the player controls
   // to avoid overlapping with content headers and interactive elements.
-  const isMobile = width < 640;
+  // Uses CSS calc() with safe-area-inset for mobile device compatibility.
 
-  // Player controls height: btm-nav with py-2.5/py-3, 44px touch targets, seek bar h-12
-  // Mobile viewport: btm-nav ~110-130px total height with compact padding
-  // Desktop viewport: larger controls ~140-160px total height
-  // Adding generous padding to ensure clear separation and prevent any overlap
-  const playerControlsHeight = isMobile ? 130 : 160;
-  const bottomPadding = 24;
+  // Player controls bar: 64px min-height + padding + safe-area-inset
+  // Add 1rem (16px) extra padding for visual separation
+  const bottomOffset = 'calc(64px + env(safe-area-inset-bottom, 0px) + 1rem)';
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements
+  const isMobile = width < 640;
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
     // Max height constraint prevents the toast container from occupying too much space.
     maxHeight: isMobile ? '30vh' : '40vh',
     overflowY: 'auto' as const,
-    bottom: playerControlsHeight + bottomPadding,
+    bottom: bottomOffset,
     left: '50%',
     transform: 'translateX(-50%)',
     maxWidth: isMobile ? 'calc(100vw - 16px)' : '420px',

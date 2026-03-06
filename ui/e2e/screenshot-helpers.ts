@@ -405,6 +405,40 @@ export const screenshotConfig = {
 };
 
 /**
+ * Ensure player controls are visible and in view for screenshot capture
+ */
+export async function ensurePlayerControlsVisible(page: Page): Promise<void> {
+  // Scroll player controls into view
+  const playerControls = page.locator('.player-controls-bar, .btm-nav, footer.player-controls-region');
+  await playerControls.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200);
+}
+
+/**
+ * Take screenshot focused on player controls area
+ */
+export async function takePlayerControlsScreenshot(
+  page: Page,
+  outputPath: string
+): Promise<void> {
+  await ensurePlayerControlsVisible(page);
+  const playerControls = page.locator('.player-controls-bar, .btm-nav');
+  if (await playerControls.isVisible()) {
+    await playerControls.screenshot({
+      path: outputPath,
+      animations: 'disabled',
+    });
+  } else {
+    // Fallback to full page screenshot
+    await page.screenshot({
+      path: outputPath,
+      animations: 'disabled',
+      fullPage: false,
+    });
+  }
+}
+
+/**
  * Full page screenshot configuration
  */
 export const fullPageScreenshotConfig = {
