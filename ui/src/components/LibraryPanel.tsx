@@ -306,7 +306,7 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
     >
       <div className="card-body p-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {isPlaying && (
               <Volume2 className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
             )}

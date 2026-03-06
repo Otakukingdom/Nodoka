@@ -1395,14 +1395,38 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
     padding: var(--space-2);
   }
 
+  /* Player controls - ensure adequate spacing and touch targets */
   .btm-nav {
-    gap: 0.125rem;
+    gap: 0.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    min-height: 64px;
   }
 
   /* WCAG 2.1 AA: Maintain 44px minimum touch targets even on small screens */
   .btm-nav .btn-circle {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* Make seek bar more touch-friendly */
+  .btm-nav .seek-bar-track,
+  .btm-nav .seek-bar-fill {
+    height: 8px;
+    min-height: 8px;
+  }
+
+  .btm-nav input[type="range"] {
+    height: 32px;
+    min-height: 32px;
+  }
+
+  /* Ensure time displays are readable but not too large */
+  .btm-nav .font-mono {
+    font-size: 0.625rem;
+    min-width: 2rem;
   }
 
   /* Add safe area padding for bottom navigation on mobile */
@@ -1785,6 +1809,12 @@ body.focus-mode .btm-nav {
   pointer-events: none;
 }
 
+/* Ensure toast close button meets 44px touch target on all viewports */
+.toast .btn-circle {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
 .toast > * {
   pointer-events: auto;
 }
@@ -2105,23 +2135,21 @@ body.focus-mode .btm-nav {
 
 /* Root variables for toast positioning - can be adjusted per breakpoint */
 :root {
-  --toast-top-offset: 72px;
+  --toast-top-offset: 80px;
   --toast-bottom-offset: 80px;
 }
 
-/* Desktop: Position toasts below TopBar (64px) and above PlayerControls (72px) */
-.notification-container.toast,
-.notification-container.toast-top,
-.notification-container.toast-bottom {
-  position: fixed !important;
+/* Desktop: Center toasts below TopBar to avoid panel overlap */
+.notification-container {
+  width: auto;
+  max-width: calc(100vw - 32px);
 }
 
-.notification-container.toast-top {
-  top: var(--toast-top-offset) !important;
-}
-
-.notification-container.toast-bottom {
-  bottom: var(--toast-bottom-offset) !important;
+.notification-container .alert {
+  /* Ensure consistent width for centered toasts */
+  width: auto;
+  min-width: 320px;
+  max-width: 480px;
 }
 
 /* Mobile (< 640px): Adjust for smaller TopBar and compact PlayerControls */
@@ -2129,6 +2157,11 @@ body.focus-mode .btm-nav {
   :root {
     --toast-top-offset: 64px;
     --toast-bottom-offset: 72px;
+  }
+
+  .notification-container .alert {
+    min-width: 280px;
+    max-width: calc(100vw - 32px);
   }
 }
 
@@ -2142,5 +2175,7 @@ body.focus-mode .btm-nav {
   .notification-container .alert {
     padding: 0.5rem;
     font-size: 0.75rem;
+    min-width: 260px;
+    max-width: 360px;
   }
 }

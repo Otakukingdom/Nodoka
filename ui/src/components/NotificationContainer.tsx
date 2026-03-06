@@ -18,30 +18,31 @@ export default function NotificationContainer() {
   };
 
   // Calculate safe positioning based on viewport
-  // Mobile (<640px): Position at bottom, above player controls
-  // Desktop (>=640px): Position at top, below topbar
+  // Mobile (<640px): Position at bottom-center, above player controls
+  // Desktop (>=640px): Position at top-center, below topbar (avoids overlapping panels)
   const isMobile = width < 640;
   const isLandscape = width > height;
 
   // Safe offsets to prevent overlap with app chrome
   const topBarHeight = isMobile ? 56 : 64;
   const playerControlsHeight = isMobile ? (isLandscape ? 56 : 64) : 72;
-  const padding = 8;
+  const padding = 16;
 
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
-    // On mobile: position at bottom, above player controls
-    // On desktop: position at top, below topbar
+    // On mobile: position at bottom-center, above player controls
+    // On desktop: position at top-center, below topbar
     ...(isMobile
       ? { bottom: playerControlsHeight + padding }
       : { top: topBarHeight + padding }),
-    right: 0,
+    left: '50%',
+    transform: 'translateX(-50%)',
     zIndex: 50,
   };
 
   return (
     <div
-      className="toast toast-end gap-3 p-4 max-h-screen overflow-hidden notification-container"
+      className="toast toast-center gap-3 p-4 max-h-screen overflow-hidden notification-container flex flex-col items-center"
       style={toastStyle}
       role="region"
       aria-label="Notifications"

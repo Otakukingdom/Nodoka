@@ -266,15 +266,17 @@ function App() {
       {/* Visually hidden h1 for screen reader navigation - WCAG 2.1 accessibility */}
       <h1 className="sr-only">Nodoka Audiobook Player</h1>
       <TopBar />
-      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0" role="main" ref={mainRef}>
+      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 gap-0" role="main" ref={mainRef}>
+        {/* Library panel - responsive width with mobile-first approach */}
         <div
-          className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px] overflow-hidden library-panel-wrapper"
+          className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] overflow-hidden library-panel-wrapper"
           style={{ '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
         >
           <LibraryPanel />
         </div>
+        {/* Vertical panel divider - desktop only */}
         <div
-          className={`hidden sm:flex w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation items-center justify-center ${
+          className={`hidden sm:flex w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation items-center justify-center self-stretch ${
             panelDividerDragging ? 'bg-primary/70 shadow-[2px_0_12px_rgba(225,29,72,0.3)]' : ''
           }`}
           onMouseDown={handleDividerMouseDown}
@@ -292,9 +294,10 @@ function App() {
             }
           }}
         />
-        {/* Horizontal divider for mobile */}
-        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0" role="separator" aria-orientation="horizontal" />
-        <div className="flex-1 min-w-0 sm:min-w-[240px] overflow-hidden">
+        {/* Horizontal divider for mobile - subtle separation */}
+        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0 w-full" role="separator" aria-orientation="horizontal" />
+        {/* Details panel - flexible width, minimum readable width */}
+        <div className="flex-1 min-w-0 sm:min-w-[280px] h-auto sm:h-full overflow-hidden">
           <DetailsPanel />
         </div>
       </main>
