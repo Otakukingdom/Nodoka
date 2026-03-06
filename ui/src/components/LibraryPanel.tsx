@@ -116,8 +116,8 @@ export default function LibraryPanel() {
         {isScanning && scanProgress && `Scanning: ${scanProgress.foundCount} audiobooks found`}
       </div>
 
-      {/* Toolbar - consistent spacing and alignment with clear grouping */}
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-center flex-shrink-0 toolbar-container" role="toolbar" aria-label="Library tools">
+      {/* Toolbar - consistent spacing and alignment with clear grouping, responsive wrap for compact viewports */}
+      <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-center flex-shrink-0 toolbar-container flex-wrap sm:flex-nowrap" role="toolbar" aria-label="Library tools">
         {/* Search input - primary tool, takes available space */}
         <div className="relative flex-1 min-w-0 search-input-wrapper">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" aria-hidden="true" />

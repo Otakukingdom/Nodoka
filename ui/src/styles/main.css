@@ -2666,3 +2666,126 @@ body.reduced-motion .empty-state-icon-wrapper::before {
     padding-right: 1.25rem;
   }
 }
+
+/* ============================================
+   Extra Compact Viewport Fixes (320px-375px)
+   ============================================ */
+
+@media (max-width: 375px) {
+  /* Player controls: ensure minimum usable seek bar width */
+  .player-controls-bar {
+    gap: 0.25rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  /* Reduce control button sizes slightly while maintaining touch targets */
+  .player-controls-bar .btn-circle.btn-sm {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  /* Ensure seek bar has minimum usable width */
+  .seek-bar-container {
+    min-width: 80px;
+  }
+
+  /* Time displays - maintain readability */
+  .time-display {
+    font-size: 0.6875rem;
+    min-width: 2rem;
+  }
+
+  /* Compact speed button */
+  .speed-control {
+    min-width: 2.5rem;
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+}
+
+/* ============================================
+   Mobile Landscape Orientation Fixes
+   ============================================ */
+
+@media (max-width: 640px) and (orientation: landscape) {
+  /* Reduce vertical padding in landscape */
+  .player-controls-bar {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+
+  /* Compact main content area */
+  .library-panel {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .details-panel-container {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* ============================================
+   Details Panel Section Improvements
+   ============================================ */
+
+/* Ensure bookmarks section has proper scroll containment */
+.details-section-bookmarks {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* Prevent sticky header overlap in scrollable sections */
+.details-panel-container .sticky {
+  position: sticky;
+  z-index: 5;
+}
+
+/* Ensure files section gets adequate space when bookmarks are empty */
+@media (max-width: 640px) {
+  .details-section-bookmarks:empty,
+  .details-section-bookmarks:has(.animate-fade-in:only-child) {
+    min-height: 100px;
+    flex-shrink: 1;
+  }
+}
+
+/* ============================================
+   Player Controls Overflow Prevention
+   ============================================ */
+
+/* Ensure seek bar container doesn't cause horizontal overflow */
+.seek-bar-container {
+  contain: layout;
+  overflow: hidden;
+}
+
+/* Time display overflow handling */
+.time-display {
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+/* ============================================
+   Library Panel Toolbar Alignment
+   ============================================ */
+
+/* Ensure toolbar items align properly at all breakpoints */
+.toolbar-container {
+  align-items: center;
+}
+
+/* Error banner wrapping on compact viewports */
+.error-banners-group .alert {
+  flex-wrap: wrap;
+}
+
+/* Ensure scan progress doesn't overlap content */
+.library-panel .animate-fade-in[class*="bg-primary/5"] {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}

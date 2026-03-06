@@ -255,6 +255,21 @@ test.describe.parallel('Screenshot Generation', () => {
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'library-panel', 'sort-dropdown-open');
     });
+
+    test('toolbar-compact-375px', async ({ page }) => {
+      // Test toolbar alignment at compact viewport
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'library-panel', 'toolbar-compact-375px');
+    });
+
+    test('error-banner-wrapping', async ({ page }) => {
+      // Test error banner wrapping at compact viewport
+      await injectScenarioData(page, 'edge-cases');
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'library-panel', 'error-banner-wrapping');
+    });
   });
 
   // ========================================
@@ -432,6 +447,30 @@ test.describe.parallel('Screenshot Generation', () => {
       await setPlayerProgress(page, 50);
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'player-controls', 'compact-viewport-375px');
+    });
+
+    test('compact-viewport-375px-long-duration', async ({ page }) => {
+      // Test with long duration to verify time display overflow handling
+      await page.setViewportSize({ width: 375, height: 200 });
+      await setPlayerState(page, 'paused');
+      // Set a long duration (3+ hours) to test time display formatting
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({ type: 'player/setTotalDuration', payload: 12500000 }); // ~3.5 hours in ms
+          store.dispatch({ type: 'player/setCurrentTime', payload: 6250000 }); // 50% progress
+        }
+      });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'player-controls', 'compact-viewport-375px-long-duration');
+    });
+
+    test('compact-viewport-volume-expanded', async ({ page }) => {
+      // Test volume slider expansion on compact viewport
+      await page.setViewportSize({ width: 375, height: 200 });
+      await setPlayerState(page, 'paused');
+      await expandVolumeSlider(page);
+      await takeScreenshot(page, 'player-controls', 'compact-viewport-volume-expanded');
     });
   });
 

@@ -54,7 +54,7 @@ export default function TopBar() {
         </div>
         <div className="flex flex-col min-w-0">
           <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent truncate">Nodoka</h1>
-          <span className="text-[9px] sm:text-[10px] md:text-xs text-base-content/60 leading-tight hidden sm:inline">Audiobook Reader</span>
+          <span className="text-[10px] sm:text-xs text-base-content/60 leading-tight hidden sm:inline">Audiobook Reader</span>
         </div>
       </div>
       {/* Spacer */}
@@ -78,7 +78,7 @@ export default function TopBar() {
         >
           <Settings className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200 group-hover:rotate-45" />
           {directories.length > 0 && (
-            <span className="badge badge-xs badge-primary absolute -top-0.5 -right-0.5 px-1 font-medium border border-primary/30">
+            <span className="badge badge-xs badge-primary absolute -top-0.5 -right-0.5 px-1 min-w-[1rem] h-4 flex items-center justify-center font-medium border border-primary/30">
               {directories.length}
             </span>
           )}

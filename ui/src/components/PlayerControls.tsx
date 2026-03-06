@@ -151,10 +151,10 @@ export default function PlayerControls() {
         </button>
       </div>
 
-      {/* Center - Seek bar (flexible with min-width:0 to allow shrinking) */}
-      <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2 seek-bar-container">
-        {/* Current time - readable monospace */}
-        <span className="font-mono text-[11px] sm:text-xs md:text-sm w-9 sm:w-11 md:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Current time: ${formatTime(currentTime)}`}>
+      {/* Center - Seek bar (flexible with min-width:0 to allow shrinking, min-width enforced via CSS for 375px) */}
+      <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2 seek-bar-container overflow-hidden">
+        {/* Current time - readable monospace - minimum 12px for accessibility */}
+        <span className="font-mono text-xs sm:text-xs md:text-sm w-10 sm:w-11 md:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Current time: ${formatTime(currentTime)}`}>
           {formatTime(currentTime)}
         </span>
         {/* Seek bar with enhanced interaction clarity */}
@@ -187,7 +187,7 @@ export default function PlayerControls() {
           />
         </div>
         {/* Total duration */}
-        <span className="font-mono text-[10px] sm:text-xs md:text-sm w-8 sm:w-10 md:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
+        <span className="font-mono text-xs sm:text-xs md:text-sm w-9 sm:w-10 md:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
           {formatTime(totalDuration)}
         </span>
       </div>
