@@ -415,6 +415,78 @@ html {
   animation: scale-in 0.2s ease-out;
 }
 
+/* Mobile modal improvements - better fit and touch targets */
+@media (max-width: 480px) {
+  .modal-box {
+    max-width: calc(100vw - 24px);
+    margin: 12px;
+    max-height: calc(100vh - 24px);
+    padding: 1rem;
+  }
+
+  /* Ensure modal content is scrollable on mobile */
+  .modal-box.max-h-\[90vh\] {
+    max-height: calc(100vh - 24px);
+  }
+
+  /* Modal form controls - better touch targets */
+  .modal-box .form-control {
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-box .select {
+    min-height: 44px;
+  }
+
+  .modal-box .btn {
+    min-height: 44px;
+  }
+
+  /* Modal header adjustments */
+  .modal-box h3 {
+    font-size: 1.125rem;
+  }
+
+  /* Collapse/accordion improvements */
+  .modal-box .collapse-title {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Directory list improvements */
+  .modal-box .max-h-52 {
+    max-height: 180px;
+  }
+
+  /* Modal action buttons - ensure proper touch targets */
+  .modal-action {
+    padding-top: 1rem;
+    gap: 0.5rem;
+  }
+
+  .modal-action .btn {
+    min-width: 80px;
+  }
+}
+
+/* Very small viewport fixes (320px) */
+@media (max-width: 360px) {
+  .modal-box {
+    margin: 8px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 0.875rem;
+  }
+
+  .modal-box h3 {
+    font-size: 1rem;
+  }
+
+  .modal-box .text-xs {
+    font-size: 0.6875rem;
+  }
+}
+
 /* Reduced motion support - WCAG 2.1 AAA and axe-core motion rule compliance */
 @media (prefers-reduced-motion: reduce) {
   body:not(.reduced-motion) {
