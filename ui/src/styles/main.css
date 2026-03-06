@@ -2112,7 +2112,14 @@ body.focus-mode .btm-nav {
 /* Mobile: adjust bottom offset for smaller player controls */
 @media (max-width: 639px) {
   .notification-toast-container {
-    bottom: 104px !important; /* 88px player controls + 16px padding */
+    bottom: 155px !important; /* 130px player controls + 25px padding */
+  }
+}
+
+/* Desktop: ensure notifications clear larger player controls */
+@media (min-width: 640px) {
+  .notification-toast-container {
+    bottom: 185px !important; /* 160px player controls + 25px padding */
   }
 }
 
@@ -2120,6 +2127,8 @@ body.focus-mode .btm-nav {
 .notification-toast-container .btn-circle {
   min-width: 44px !important;
   min-height: 44px !important;
+  width: 44px !important;
+  height: 44px !important;
 }
 
 .notification-toast-container > * {

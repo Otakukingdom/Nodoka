@@ -22,11 +22,12 @@ export default function NotificationContainer() {
   // to avoid overlapping with content headers and interactive elements.
   const isMobile = width < 640;
 
-  // Player controls height: approximately 80-88px mobile (with touch targets), 92-100px desktop
-  // Account for compact viewport touch targets and ensure clear separation
-  // Adding extra padding to prevent any overlap with player controls
-  const playerControlsHeight = isMobile ? 88 : 100;
-  const bottomPadding = 16;
+  // Player controls height: btm-nav with py-2.5/py-3, 44px touch targets, seek bar h-12
+  // Mobile viewport: btm-nav ~110-130px total height with compact padding
+  // Desktop viewport: larger controls ~140-160px total height
+  // Adding generous padding to ensure clear separation and prevent any overlap
+  const playerControlsHeight = isMobile ? 130 : 160;
+  const bottomPadding = 24;
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements
@@ -83,7 +84,7 @@ function NotificationToast({ notification, onDismiss, animationClass = 'toast-sl
 
   return (
     <div
-      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px] p-2 sm:p-4 toast-notification`}
+      className={`alert ${bgClass} shadow-xl ${animationClass} relative border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[320px] p-3 sm:p-4 toast-notification`}
     >
       {/* Colored accent bar on left */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />
@@ -100,11 +101,12 @@ function NotificationToast({ notification, onDismiss, animationClass = 'toast-sl
         </div>
       </div>
       <button
-        className="btn btn-ghost btn-circle btn-xs sm:btn-sm hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 toast-dismiss-btn"
+        className="btn btn-ghost btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 toast-dismiss-btn"
+        style={{ minWidth: '44px', minHeight: '44px', width: '44px', height: '44px' }}
         onClick={onDismiss}
         aria-label="Dismiss notification"
       >
-        <X className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+        <X className="h-5 w-5" />
       </button>
     </div>
   );

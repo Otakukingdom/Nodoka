@@ -892,6 +892,58 @@ test.describe.parallel('Screenshot Generation', () => {
       await page.waitForTimeout(300);
       await takeScreenshot(page, 'notifications', 'toast-tablet-viewport');
     });
+
+    test('toast-with-playing-player-no-overlap', async ({ page }) => {
+      // Test that notifications do not overlap player controls when playing
+      // This is a critical test to verify player controls remain accessible
+      await selectAudiobook(page, 1);
+      await setPlayerState(page, 'playing');
+      await setPlayerProgress(page, 50);
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({
+            type: 'app/addNotification',
+            payload: {
+              id: Date.now(),
+              kind: 'Success',
+              title: 'Chapter Complete',
+              message: 'Moving to next chapter',
+              durationMs: 10000,
+              createdAt: Date.now(),
+            },
+          });
+        }
+      });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'notifications', 'toast-with-playing-player-no-overlap');
+    });
+
+    test('toast-mobile-with-playing-player-no-overlap', async ({ page }) => {
+      // Critical test: verify notifications don't overlap player controls on mobile
+      await page.setViewportSize({ width: 375, height: 667 });
+      await selectAudiobook(page, 1);
+      await setPlayerState(page, 'playing');
+      await setPlayerProgress(page, 30);
+      await page.evaluate(() => {
+        const store = (window as any).__REDUX_STORE__;
+        if (store) {
+          store.dispatch({
+            type: 'app/addNotification',
+            payload: {
+              id: Date.now(),
+              kind: 'Warning',
+              title: 'Low Battery',
+              message: 'Connect charger to continue playback',
+              durationMs: 10000,
+              createdAt: Date.now(),
+            },
+          });
+        }
+      });
+      await page.waitForTimeout(300);
+      await takeScreenshot(page, 'notifications', 'toast-mobile-with-playing-player-no-overlap');
+    });
   });
 
   // ========================================
