@@ -273,7 +273,7 @@ function App() {
       <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 gap-0 content-region" role="main" ref={mainRef}>
         {/* Library panel - secondary navigation, responsive width with mobile-first approach */}
         <aside
-          className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] overflow-hidden library-panel-wrapper secondary-region"
+          className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] lg:max-w-[450px] overflow-hidden library-panel-wrapper secondary-region"
           style={{ '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
           aria-label="Audiobook library"
         >

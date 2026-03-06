@@ -18,36 +18,63 @@ export default function NotificationContainer() {
   };
 
   // Calculate safe positioning based on viewport
-  // Mobile (<640px): Position at bottom-center, above player controls
-  // Desktop (>=640px): Position at top-center, below topbar (avoids overlapping panels)
+  // Mobile (<640px) Portrait: Position at bottom-center, above player controls
+  // Mobile (<640px) Landscape: Position at top-right to avoid player controls overlap
+  // Desktop (>=640px): Position at top-right to avoid overlapping content panels
   const isMobile = width < 640;
   const isLandscape = width > height;
+  const isMobileLandscape = isMobile && isLandscape;
 
   // Safe offsets to prevent overlap with app chrome
-  // Increase offsets to ensure toasts don't overlap with scrollable content
   const topBarHeight = isMobile ? 56 : 64;
   const playerControlsHeight = isMobile ? (isLandscape ? 48 : 64) : 72;
   const padding = 16;
-  // Extra buffer to ensure toast doesn't block content interaction
-  const contentBuffer = isMobile ? 8 : 0;
+  const sidePadding = 16;
 
+  // Position toasts to avoid overlapping core content:
+  // - Desktop: Top-right corner (doesn't block library/details panels)
+  // - Mobile Portrait: Bottom-center above player controls
+  // - Mobile Landscape: Top-right (avoids player controls, limited vertical space)
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
-    // On mobile: position at bottom-center, above player controls with extra buffer
-    // On desktop: position at top-center, below topbar
-    ...(isMobile
-      ? { bottom: playerControlsHeight + padding + contentBuffer }
-      : { top: topBarHeight + padding }),
-    left: '50%',
-    transform: 'translateX(-50%)',
     zIndex: 45, // Below modals (z-50), above content
-    maxWidth: isMobile ? 'calc(100vw - 32px)' : undefined,
-    width: isMobile ? 'auto' : undefined,
+    ...(isMobileLandscape
+      ? {
+          // Mobile landscape: top-right to avoid player controls
+          top: topBarHeight + padding / 2,
+          right: sidePadding,
+          maxWidth: 'min(360px, calc(100vw - 32px))',
+        }
+      : isMobile
+        ? {
+            // Mobile portrait: bottom-center above player
+            bottom: playerControlsHeight + padding,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            maxWidth: 'calc(100vw - 32px)',
+          }
+        : {
+            // Desktop: top-right corner
+            top: topBarHeight + padding,
+            right: sidePadding,
+            maxWidth: '480px',
+          }),
+    width: isMobile && !isMobileLandscape ? 'auto' : undefined,
   };
+
+  // Determine animation class based on position
+  // Right-aligned: slide in from right
+  // Center-aligned (mobile portrait): slide up from bottom
+  const positionClass = isMobile && !isMobileLandscape
+    ? 'toast-center items-center'
+    : 'items-end';
+  const animationClass = isMobile && !isMobileLandscape
+    ? 'toast-slide-up'
+    : 'toast-slide-in';
 
   return (
     <div
-      className="toast toast-center gap-3 p-4 max-h-screen overflow-hidden notification-container flex flex-col items-center"
+      className={`toast gap-3 p-4 max-h-screen overflow-hidden notification-container flex flex-col ${positionClass}`}
       style={toastStyle}
       role="region"
       aria-label="Notifications"
@@ -59,6 +86,7 @@ export default function NotificationContainer() {
           key={notification.id}
           notification={notification}
           onDismiss={() => handleDismiss(notification.id)}
+          animationClass={animationClass}
         />
       ))}
     </div>
@@ -68,15 +96,16 @@ export default function NotificationContainer() {
 interface NotificationToastProps {
   notification: Notification;
   onDismiss: () => void;
+  animationClass?: string;
 }
 
-function NotificationToast({ notification, onDismiss }: NotificationToastProps) {
+function NotificationToast({ notification, onDismiss, animationClass = 'toast-slide-in' }: NotificationToastProps) {
   const { bgClass, borderClass, iconColor } = getNotificationStyles(notification.kind);
   const Icon = getIcon(notification.kind);
 
   return (
     <div
-      className={`alert ${bgClass} shadow-xl toast-slide-in max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px]`}
+      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px]`}
     >
       {/* Colored accent bar on left */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />

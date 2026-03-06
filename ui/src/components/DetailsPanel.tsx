@@ -19,8 +19,8 @@ export default function DetailsPanel() {
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container h-full" role="complementary" aria-label="File and bookmark details">
       {/* Files section - primary content area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3 sm:py-4 min-h-0" role="region" aria-label="Files list">
-        {/* Section header with clear visual hierarchy */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1 z-10">
+        {/* Section header with clear visual hierarchy - using section-header-enhanced class */}
+        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1.5 z-10 section-header-enhanced border-b-0">
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
           </div>
@@ -63,8 +63,8 @@ export default function DetailsPanel() {
 
       {/* Bookmarks section - secondary content area */}
       <div className="h-1/3 min-h-[120px] max-h-[200px] sm:max-h-none overflow-y-auto custom-scrollbar p-3 sm:p-4 bg-base-100" role="region" aria-label="Bookmarks list" tabIndex={0}>
-        {/* Section header - matches Files header style */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1 z-10">
+        {/* Section header - matches Files header style with section-header-enhanced class */}
+        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/95 backdrop-blur-sm py-1.5 z-10 section-header-enhanced border-b-0">
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Bookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
           </div>

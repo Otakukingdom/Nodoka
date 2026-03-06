@@ -267,6 +267,17 @@
   }
 }
 
+@keyframes slide-up-fade {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes pulse-ring {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
@@ -328,6 +339,10 @@
 /* Animation utility classes */
 .toast-slide-in {
   animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.toast-slide-up {
+  animation: slide-up-fade 0.3s ease-out forwards;
 }
 
 .pulse-playing {
@@ -424,6 +439,7 @@ body.reduced-motion .animate-pulse,
 body.reduced-motion .animate-bounce,
 body.reduced-motion .animate-fade-in,
 body.reduced-motion .toast-slide-in,
+body.reduced-motion .toast-slide-up,
 body.reduced-motion .pulse-playing,
 body.reduced-motion .fade-in,
 body.reduced-motion .scale-in,
@@ -466,6 +482,7 @@ body.reduced-motion .modal.backdrop-blur-sm {
   .animate-bounce,
   .animate-fade-in,
   .toast-slide-in,
+  .toast-slide-up,
   .pulse-playing,
   .fade-in,
   .scale-in,
@@ -2319,17 +2336,24 @@ body.focus-mode .btm-nav {
   --toast-bottom-offset: 80px;
 }
 
-/* Desktop: Center toasts below TopBar to avoid panel overlap */
+/* Desktop: Right-aligned toasts to avoid panel overlap */
 .notification-container {
   width: auto;
   max-width: calc(100vw - 32px);
 }
 
 .notification-container .alert {
-  /* Ensure consistent width for centered toasts */
+  /* Ensure consistent width for toasts with enough room for text */
   width: auto;
-  min-width: 320px;
+  min-width: 300px;
   max-width: 480px;
+}
+
+/* Ensure toast text content has room to breathe */
+.notification-container .alert .flex-1 {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Mobile (< 640px): Adjust for smaller TopBar and compact PlayerControls */
@@ -2340,12 +2364,12 @@ body.focus-mode .btm-nav {
   }
 
   .notification-container .alert {
-    min-width: 280px;
+    min-width: 260px;
     max-width: calc(100vw - 32px);
   }
 }
 
-/* Mobile landscape: Minimal vertical space, position carefully */
+/* Mobile landscape: Top-right positioning, compact styling */
 @media (max-width: 639px) and (orientation: landscape) {
   :root {
     --toast-top-offset: 56px;
@@ -2355,7 +2379,7 @@ body.focus-mode .btm-nav {
   .notification-container .alert {
     padding: 0.5rem;
     font-size: 0.75rem;
-    min-width: 260px;
+    min-width: 240px;
     max-width: 360px;
   }
 }
@@ -2388,13 +2412,8 @@ a.touch-target-min,
   z-index: 45 !important;
 }
 
-/* Mobile: Ensure notifications don't overlap with player controls content area */
-@media (max-width: 639px) {
-  .notification-container {
-    /* Position above player controls but with safe spacing */
-    bottom: calc(var(--toast-bottom-offset, 72px) + 16px) !important;
-  }
-
+/* Mobile portrait: Ensure notifications don't overlap with player controls */
+@media (max-width: 639px) and (orientation: portrait) {
   /* Ensure notification doesn't block scrollable content */
   .notification-container .alert {
     max-height: 120px;
@@ -2402,9 +2421,176 @@ a.touch-target-min,
   }
 }
 
-/* Desktop: Ensure notifications don't overlap with panels */
-@media (min-width: 640px) {
-  .notification-container {
-    top: calc(var(--toast-top-offset, 80px) + 8px) !important;
+/* Mobile landscape: Compact notifications at top-right */
+@media (max-width: 639px) and (orientation: landscape) {
+  .notification-container .alert {
+    max-height: 100px;
+    overflow: hidden;
+  }
+}
+
+/* ============================================
+   Enhanced Interaction Clarity and Affordances
+   ============================================ */
+
+/* Clear hover state for audiobook cards */
+.audiobook-card-interactive {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.audiobook-card-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .audiobook-card-interactive:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Clear focus state for keyboard navigation */
+.audiobook-card-interactive:focus-visible {
+  outline: 3px solid var(--fallback-p, #E11D48);
+  outline-offset: 2px;
+}
+
+/* Enhanced button affordances - subtle lift on hover */
+.btn-affordance {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-affordance:hover {
+  transform: translateY(-1px);
+}
+
+.btn-affordance:active {
+  transform: translateY(0);
+}
+
+/* Control grouping visual separator */
+.controls-group {
+  position: relative;
+}
+
+.controls-group::after {
+  content: '';
+  position: absolute;
+  right: -0.5rem;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: oklch(var(--b3) / 0.5);
+}
+
+.controls-group:last-child::after {
+  display: none;
+}
+
+/* Primary action visual prominence enhancement */
+.play-button-primary {
+  position: relative;
+  z-index: 10;
+}
+
+.play-button-primary::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Time display enhancement - clear readability */
+.time-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Seek bar interaction enhancement */
+.seek-bar-wrapper:hover .seek-bar-track,
+.seek-bar-wrapper:focus-within .seek-bar-track {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .seek-bar-wrapper:hover .seek-bar-track,
+[data-theme="dark"] .seek-bar-wrapper:focus-within .seek-bar-track {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Section title typography scale */
+.section-title-primary {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: oklch(var(--bc) / 0.9);
+}
+
+.section-title-secondary {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: oklch(var(--bc) / 0.7);
+}
+
+/* Empty state visual enhancement */
+.empty-state-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-icon-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.08) 0%, transparent 70%);
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+[data-theme="dark"] .empty-state-icon-wrapper::before {
+  background: radial-gradient(circle, rgba(251, 113, 133, 0.1) 0%, transparent 70%);
+}
+
+/* Reduced motion - disable empty state animation */
+@media (prefers-reduced-motion: reduce) {
+  .empty-state-icon-wrapper::before {
+    animation: none;
+  }
+}
+
+body.reduced-motion .empty-state-icon-wrapper::before {
+  animation: none;
+}
+
+/* ============================================
+   Large Desktop Enhancements (1440px+)
+   ============================================ */
+
+@media (min-width: 1440px) {
+  /* Ensure content remains appropriately dense */
+  .library-panel {
+    max-width: 380px;
+  }
+
+  /* Increase max width for details panel */
+  .details-panel-container {
+    max-width: 700px;
+  }
+
+  /* Slightly larger touch targets for comfort */
+  .btn-circle {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  /* More generous spacing in toolbars */
+  .toolbar-container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 }
