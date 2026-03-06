@@ -172,7 +172,7 @@ export default function PlayerControls() {
             max={totalDuration || 100}
             value={currentTime}
             onChange={handleSeek}
-            className="range range-primary range-sm w-full seek-bar-styled relative z-10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
+            className="range range-primary range-sm w-full seek-bar-styled relative z-10 cursor-pointer"
             aria-label="Seek"
           />
           {/* Visible thumb on hover/focus with enhanced shadow */}

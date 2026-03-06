@@ -104,12 +104,9 @@ export default function LibraryPanel() {
     }
   };
 
-  const panelWidth = useAppSelector(state => state.app.panelRatio) * 100;
-
   return (
     <div
-      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100 sm:border-r border-b-0 h-full"
-      style={{ width: `${panelWidth}%` }}
+      className="flex flex-col border-r border-base-300 overflow-hidden library-panel bg-base-100 sm:border-r border-b-0 h-full w-full"
       role="navigation"
       aria-label="Audiobook library"
     >
@@ -260,7 +257,7 @@ export default function LibraryPanel() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 audiobook-card-container">
             {filteredBooks.map(book => (
               <AudiobookCard
                 key={book.id ?? book.fullPath}

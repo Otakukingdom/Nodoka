@@ -1360,6 +1360,35 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
    Responsive Breakpoint Enhancements
    ============================================ */
 
+/* Library panel wrapper - respects responsive constraints while allowing user adjustment */
+.library-panel-wrapper {
+  width: var(--panel-ratio, 40%);
+  /* Clamp width to readable range on desktop */
+  max-width: 400px;
+  min-width: 220px;
+}
+
+/* Tablet and above - allow full panel ratio control */
+@media (min-width: 641px) {
+  .library-panel-wrapper {
+    max-width: min(var(--panel-ratio), 400px);
+  }
+}
+
+/* Desktop - more flexible sizing */
+@media (min-width: 1024px) {
+  .library-panel-wrapper {
+    max-width: min(var(--panel-ratio), 450px);
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1440px) {
+  .library-panel-wrapper {
+    max-width: min(var(--panel-ratio), 500px);
+  }
+}
+
 /* Mobile (375px) - ensure no clipping or overlap */
 @media (max-width: 375px) {
   .library-panel .card-body {
@@ -1618,6 +1647,46 @@ body.focus-mode .btm-nav {
   .library-panel .flex.flex-col.gap-2 {
     gap: 0.375rem;
   }
+}
+
+/* ============================================
+   Enhanced Card Spacing Consistency
+   ============================================ */
+
+/* Consistent audiobook card spacing across all viewports */
+.library-panel .audiobook-card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px - consistent gap */
+}
+
+/* Desktop - slightly larger gaps for better readability */
+@media (min-width: 1024px) {
+  .library-panel .audiobook-card-container {
+    gap: 0.625rem; /* 10px */
+  }
+}
+
+/* Ensure consistent card internal spacing */
+.library-panel .card .card-body {
+  gap: 0.25rem;
+}
+
+/* Consistent title line height for better truncation */
+.library-panel .card-title {
+  line-height: 1.4;
+  max-height: 2.8em; /* 2 lines max */
+}
+
+/* Ensure author text has consistent spacing */
+.library-panel .card-body > span {
+  margin-top: 0;
+  line-height: 1.3;
+}
+
+/* Progress bar container - consistent spacing */
+.library-panel .card-body > .flex.items-center.gap-2 {
+  margin-top: 0.375rem;
 }
 
 /* ============================================

@@ -267,7 +267,10 @@ function App() {
       <h1 className="sr-only">Nodoka Audiobook Player</h1>
       <TopBar />
       <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0" role="main" ref={mainRef}>
-        <div style={{ width: `${panelRatio * 100}%` }} className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px] overflow-hidden">
+        <div
+          className="flex-shrink-0 min-w-0 w-full sm:w-auto sm:min-w-[220px] sm:max-w-[400px] overflow-hidden library-panel-wrapper"
+          style={{ '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
+        >
           <LibraryPanel />
         </div>
         <div
