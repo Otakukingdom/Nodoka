@@ -18,40 +18,45 @@ export default function NotificationContainer() {
   };
 
   // Calculate safe positioning based on viewport.
-  // We keep notifications away from the player controls and list content by pinning them
-  // to the top-right across breakpoints.
+  // Notifications are centered at the bottom above the player controls
+  // to avoid overlapping with content headers and interactive elements.
   const isMobile = width < 640;
 
-  // Safe offsets to prevent overlap with app chrome.
-  const topBarHeight = isMobile ? 56 : 64;
-  const padding = 16;
-  const sidePadding = 16;
+  // Player controls height: approximately 64px mobile, 72-80px desktop
+  const playerControlsHeight = isMobile ? 64 : 80;
+  const bottomPadding = 16;
 
-  // Position toasts to avoid overlapping core content:
-  // - All viewports: top-right corner below the top bar.
+  // Position toasts centered at bottom above player controls
+  // This ensures they never overlap with content headers or main UI elements
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
     // Max height constraint prevents the toast container from occupying too much space.
-    maxHeight: isMobile ? '40vh' : '60vh',
+    maxHeight: isMobile ? '30vh' : '40vh',
     overflowY: 'auto' as const,
-    top: topBarHeight + padding,
-    right: sidePadding,
+    bottom: playerControlsHeight + bottomPadding,
+    left: '50%',
+    transform: 'translateX(-50%)',
     maxWidth: isMobile ? 'calc(100vw - 32px)' : '480px',
+    width: isMobile ? 'calc(100vw - 32px)' : 'auto',
   };
 
-  // Right-aligned: slide in from right.
-  const positionClass = 'items-end';
-  const animationClass = 'toast-slide-in';
+  // Center-aligned for balanced, non-intrusive placement
+  const positionClass = 'items-center';
+  const animationClass = 'toast-slide-up';
 
   return (
     <div
-      className={`toast gap-2 sm:gap-3 p-3 sm:p-4 overflow-y-auto notification-container flex flex-col ${positionClass}`}
-      style={{ ...toastStyle, maxHeight: isMobile ? '40vh' : '50vh' }}
+      className={`notification-toast-container gap-2 sm:gap-3 p-3 sm:p-4 overflow-y-auto flex flex-col ${positionClass}`}
+      style={{
+        ...toastStyle,
+        maxHeight: isMobile ? '40vh' : '50vh',
+      }}
       role="region"
       aria-label="Notifications"
       aria-live="polite"
       aria-atomic="false"
+      data-testid="notification-container"
     >
       {notifications.map(notification => (
         <NotificationToast
@@ -94,11 +99,12 @@ function NotificationToast({ notification, onDismiss, animationClass = 'toast-sl
         </div>
       </div>
       <button
-        className="btn btn-ghost btn-sm btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 min-w-[44px] min-h-[44px]"
+        className="btn btn-ghost btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 touch-target-min"
+        style={{ minWidth: '44px', minHeight: '44px' }}
         onClick={onDismiss}
-        aria-label="Dismiss"
+        aria-label="Dismiss notification"
       >
-        <X className="h-4 w-4" />
+        <X className="h-5 w-5" />
       </button>
     </div>
   );
