@@ -116,36 +116,40 @@ export default function LibraryPanel() {
         {isScanning && scanProgress && `Scanning: ${scanProgress.foundCount} audiobooks found`}
       </div>
 
-      {/* Toolbar - consistent spacing and alignment with clear grouping, responsive wrap for compact viewports */}
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-center flex-shrink-0 toolbar-container flex-wrap sm:flex-nowrap" role="toolbar" aria-label="Library tools">
-        {/* Search input - primary tool, takes available space */}
-        <div className="relative w-full sm:flex-1 sm:w-auto min-w-0 search-input-wrapper">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" aria-hidden="true" />
-          <input
-            type="search"
-            placeholder="Search audiobooks..."
-            className="input input-bordered input-sm w-full pl-9 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-0 search-input-enhanced"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            aria-label="Search audiobooks"
-            data-testid="search-input"
-          />
+      {/* Toolbar - consistent spacing with clear visual grouping and responsive layout */}
+      <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-start sm:items-center flex-shrink-0 toolbar-container flex-col sm:flex-row" role="toolbar" aria-label="Library tools">
+        {/* Primary tools row - search and sort */}
+        <div className="flex gap-2 sm:gap-3 items-center w-full sm:flex-1 min-w-0">
+          {/* Search input - primary tool with enhanced touch target */}
+          <div className="relative flex-1 min-w-0 search-input-wrapper">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Search audiobooks..."
+              className="input input-bordered input-sm w-full pl-9 pr-3 h-10 sm:h-8 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-0 search-input-enhanced"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              aria-label="Search audiobooks"
+              data-testid="search-input"
+            />
+          </div>
+          {/* Sort control - compact with clear affordance */}
+          <select
+            className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0 sort-control h-10 sm:h-8 min-w-[100px]"
+            value={sortOrder}
+            onChange={handleSortChange}
+            aria-label="Sort audiobooks"
+          >
+            <option value="RecentlyPlayed">Recent</option>
+            <option value="Title">Title</option>
+            <option value="Progress">Progress</option>
+          </select>
         </div>
-        {/* Sort control - secondary tool */}
-        <select
-          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0 sort-control w-full sm:w-auto"
-          value={sortOrder}
-          onChange={handleSortChange}
-          aria-label="Sort audiobooks"
-        >
-          <option value="RecentlyPlayed">Recent</option>
-          <option value="Title">Title</option>
-          <option value="Progress">Progress</option>
-        </select>
-        {/* Add folder button - visible when audiobooks exist (returning user) */}
+        {/* Secondary tools - add folder button with enhanced touch target */}
         {audiobooks.length > 0 && (
           <button
-            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex-shrink-0 touch-target-min"
+            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex-shrink-0 touch-target-min self-center"
+            style={{ minWidth: '44px', minHeight: '44px' }}
             onClick={() => void handleAddDirectory()}
             disabled={isAddingDirectory || isLibraryLoading || isScanning}
             aria-label="Add audiobook folder"
@@ -154,9 +158,6 @@ export default function LibraryPanel() {
             <FolderPlus className="h-4 w-4" />
           </button>
         )}
-
-        {/* Fill row remainder on small screens to avoid awkward centered/overhanging controls */}
-        <div className="flex-1 sm:hidden" aria-hidden="true" />
       </div>
 
       {/* Audiobook list - scrollable content area */}
@@ -310,8 +311,9 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      style={{ minHeight: '72px' }}
     >
-      <div className="card-body p-3">
+      <div className="card-body p-3 sm:p-3.5">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {isPlaying && (
@@ -322,20 +324,20 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
             </h3>
           </div>
           {book.completeness === 100 && (
-            <Check className="h-3.5 w-3.5 text-success shrink-0" />
+            <Check className="h-4 w-4 text-success shrink-0" />
           )}
         </div>
         {book.author && (
           <span className="text-xs text-base-content/60 -mt-1 truncate group-hover:text-base-content/70 transition-colors" title={book.author}>{book.author}</span>
         )}
-        <div className="flex items-center gap-2 mt-1.5">
-          <div className="flex-1 h-2 bg-base-300/70 rounded-full overflow-hidden group-hover:bg-base-300 transition-colors progress-bar-enhanced">
+        <div className="flex items-center gap-2 mt-1.5 sm:mt-2">
+          <div className="flex-1 h-2 sm:h-2.5 bg-base-300/70 rounded-full overflow-hidden group-hover:bg-base-300 transition-colors progress-bar-enhanced">
             <div
               className="h-full gradient-premium rounded-full transition-all duration-500 ease-out"
               style={{ width: `${book.completeness}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-base-content/70 w-9 text-right tabular-nums group-hover:text-base-content/80 transition-colors">
+          <span className="text-xs font-medium text-base-content/70 w-9 sm:w-10 text-right tabular-nums group-hover:text-base-content/80 transition-colors">
             {book.completeness}%
           </span>
         </div>

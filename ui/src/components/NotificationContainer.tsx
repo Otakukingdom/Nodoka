@@ -22,9 +22,10 @@ export default function NotificationContainer() {
   // to avoid overlapping with content headers and interactive elements.
   const isMobile = width < 640;
 
-  // Player controls height: approximately 64px mobile, 72-80px desktop
-  const playerControlsHeight = isMobile ? 64 : 80;
-  const bottomPadding = 16;
+  // Player controls height: approximately 72px mobile (h-12 seek bar), 80px desktop
+  // Updated to account for enhanced seek bar touch targets
+  const playerControlsHeight = isMobile ? 72 : 88;
+  const bottomPadding = 12;
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements
@@ -32,13 +33,13 @@ export default function NotificationContainer() {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
     // Max height constraint prevents the toast container from occupying too much space.
-    maxHeight: isMobile ? '30vh' : '40vh',
+    maxHeight: isMobile ? '35vh' : '45vh',
     overflowY: 'auto' as const,
     bottom: playerControlsHeight + bottomPadding,
     left: '50%',
     transform: 'translateX(-50%)',
-    maxWidth: isMobile ? 'calc(100vw - 32px)' : '480px',
-    width: isMobile ? 'calc(100vw - 32px)' : 'auto',
+    maxWidth: isMobile ? 'calc(100vw - 24px)' : '440px',
+    width: isMobile ? 'calc(100vw - 24px)' : 'auto',
   };
 
   // Center-aligned for balanced, non-intrusive placement
@@ -47,10 +48,9 @@ export default function NotificationContainer() {
 
   return (
     <div
-      className={`notification-toast-container gap-2 sm:gap-3 p-3 sm:p-4 overflow-y-auto flex flex-col ${positionClass}`}
+      className={`notification-toast-container gap-2 sm:gap-2.5 p-2 sm:p-3 overflow-y-auto flex flex-col ${positionClass}`}
       style={{
         ...toastStyle,
-        maxHeight: isMobile ? '40vh' : '50vh',
       }}
       role="region"
       aria-label="Notifications"

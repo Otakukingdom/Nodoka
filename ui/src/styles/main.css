@@ -2998,3 +2998,102 @@ body.reduced-motion .empty-state-icon-wrapper::before {
     gap: 0.625rem;
   }
 }
+
+/* ============================================
+   Enhanced Seek Bar Visibility v2
+   ============================================ */
+
+/* More visible seek bar track with enhanced contrast */
+.seek-bar-track {
+  background-color: rgba(0, 0, 0, 0.12);
+  height: 12px;
+}
+
+[data-theme="dark"] .seek-bar-track {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Enhanced seek bar fill with stronger gradient */
+.seek-bar-fill {
+  box-shadow: 0 1px 3px rgba(225, 29, 72, 0.3);
+}
+
+/* Larger seek bar thumb for easier interaction */
+.seek-bar-thumb {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border: 2px solid #E11D48;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transform: translate(-50%, -50%);
+  position: absolute;
+  top: 50%;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.seek-bar-thumb:hover,
+.seek-bar-wrapper:focus-within .seek-bar-thumb {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 3px 10px rgba(225, 29, 72, 0.35);
+}
+
+[data-theme="dark"] .seek-bar-thumb {
+  background: #1f2937;
+  border-color: #FB7185;
+}
+
+/* ============================================
+   Enhanced Spacing Rhythm
+   ============================================ */
+
+/* Consistent section spacing */
+.section-spacing-enhanced {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .section-spacing-enhanced {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Improved gap rhythm for card lists */
+.card-list-enhanced {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .card-list-enhanced {
+    gap: 0.75rem;
+  }
+}
+
+/* ============================================
+   Enhanced Input Touch Targets
+   ============================================ */
+
+/* Ensure all interactive inputs meet minimum touch targets */
+@media (max-width: 640px) {
+  /* Search input enhanced touch target */
+  .search-input-wrapper input {
+    min-height: 44px;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  /* Select dropdowns enhanced touch target */
+  .sort-control {
+    min-height: 44px;
+  }
+
+  /* Toolbar button enhanced touch targets */
+  .toolbar-container .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

@@ -57,12 +57,15 @@ export default function TopBar() {
           <span className="text-[10px] sm:text-xs text-base-content/60 leading-tight hidden sm:inline">Audiobook Reader</span>
         </div>
       </div>
+      {/* Visual separator - subtle divider between brand and actions */}
+      <div className="w-px h-6 bg-base-300/60 mx-1 sm:mx-2 hidden sm:block" aria-hidden="true" />
       {/* Spacer */}
       <div className="flex-1" />
-      {/* Action buttons group */}
-      <div className="flex items-center gap-0.5 sm:gap-1">
+      {/* Action buttons group - improved spacing for touch targets */}
+      <div className="flex items-center gap-1 sm:gap-1.5">
         <button
           className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
+          style={{ minWidth: '44px', minHeight: '44px' }}
           onClick={() => void handleAddDirectory()}
           disabled={isAddingDirectory || isLibraryLoading}
           aria-label="Add audiobook folder"
@@ -72,13 +75,14 @@ export default function TopBar() {
         </button>
         <button
           className="btn btn-ghost btn-circle btn-sm sm:btn-md group hover:bg-primary/10 hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative touch-target-min"
+          style={{ minWidth: '44px', minHeight: '44px' }}
           onClick={handleSettingsClick}
           aria-label="Settings"
           title="Settings (Ctrl+,)"
         >
           <Settings className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200 group-hover:rotate-45" />
           {directories.length > 0 && (
-            <span className="badge badge-xs badge-primary absolute -top-0.5 -right-0.5 px-1 min-w-[1rem] h-4 flex items-center justify-center font-medium border border-primary/30">
+            <span className="badge badge-xs badge-primary absolute -top-1 -right-1 px-1 min-w-[1.25rem] h-4 flex items-center justify-center font-medium border border-primary/30 shadow-sm">
               {directories.length}
             </span>
           )}

@@ -19,14 +19,14 @@ export default function DetailsPanel() {
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container h-full" role="complementary" aria-label="File and bookmark details">
       {/* Files section - primary content area with proper scroll containment */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3 sm:py-4 min-h-0 overscroll-contain" role="region" aria-label="Files list">
-        {/* Section header with clear visual hierarchy - sticky with enhanced visibility */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2 -mt-1 z-10 section-header-enhanced border-b border-base-300/50">
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+        {/* Section header with enhanced visual weight and clear hierarchy */}
+        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2.5 sm:py-3 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
           </div>
-          <h2 className="text-xs sm:text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Files</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-base-content/90 tracking-wide uppercase flex-1">Files</h2>
           {currentFiles.length > 0 && (
-            <span className="badge badge-primary badge-sm px-1.5 sm:px-2 font-medium border-0 text-[11px]">{currentFiles.length}</span>
+            <span className="badge badge-primary badge-sm px-2 sm:px-2.5 font-semibold border-0 text-[11px] sm:text-xs shadow-sm">{currentFiles.length}</span>
           )}
         </div>
         <div className="flex flex-col gap-1.5 sm:gap-2" id="files-list">
@@ -63,14 +63,14 @@ export default function DetailsPanel() {
 
       {/* Bookmarks section - secondary content area with scroll containment */}
       <div className="h-1/3 min-h-[140px] max-h-[220px] sm:max-h-none overflow-y-auto custom-scrollbar p-3 sm:p-4 bg-base-100 details-section-bookmarks overscroll-contain" role="region" aria-label="Bookmarks list" tabIndex={0}>
-        {/* Section header - sticky with enhanced visibility */}
-        <div className="flex items-center gap-2 mb-3 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2 -mt-1 z-10 section-header-enhanced border-b border-base-300/50">
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Bookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+        {/* Section header - enhanced visual weight for clear hierarchy */}
+        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2.5 sm:py-3 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
           </div>
-          <h2 className="text-xs sm:text-xs font-bold text-base-content/80 tracking-wide uppercase flex-1">Bookmarks</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-base-content/90 tracking-wide uppercase flex-1">Bookmarks</h2>
           {bookmarks.length > 0 && (
-            <span className="badge badge-primary badge-sm px-1.5 sm:px-2 font-medium border-0 text-[11px]">{bookmarks.length}</span>
+            <span className="badge badge-primary badge-sm px-2 sm:px-2.5 font-semibold border-0 text-[11px] sm:text-xs shadow-sm">{bookmarks.length}</span>
           )}
         </div>
         <div className="flex flex-col gap-1.5 sm:gap-2" id="bookmarks-list">
@@ -121,15 +121,16 @@ function FileCard({ file, isSelected, onClick }: FileCardProps) {
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       aria-label={`${file.name}, chapter ${file.position + 1}${file.completeness > 0 ? `, ${file.completeness}% complete` : ''}${isSelected ? ', selected' : ''}`}
       aria-pressed={isSelected}
+      style={{ minHeight: '48px' }}
     >
-      <div className="card-body p-2.5 sm:p-3">
-        <div className="flex items-center gap-2">
+      <div className="card-body p-3 sm:p-3.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <span className="text-[11px] sm:text-xs font-mono text-base-content/50 w-5 sm:w-6 shrink-0" aria-hidden="true">#{file.position + 1}</span>
           <span className="text-xs sm:text-sm font-medium line-clamp-2 flex-1 min-w-0" title={file.name}>{file.name}</span>
         </div>
         {file.completeness > 0 && (
           <div className="flex items-center gap-2 mt-1.5 sm:mt-2" role="progressbar" aria-valuenow={file.completeness} aria-valuemin={0} aria-valuemax={100} aria-label={`${file.completeness}% complete`}>
-            <div className="flex-1 h-1 sm:h-1.5 bg-base-300/70 rounded-full overflow-hidden progress-bar-enhanced">
+            <div className="flex-1 h-1.5 sm:h-2 bg-base-300/70 rounded-full overflow-hidden progress-bar-enhanced">
               <div
                 className="h-full gradient-premium rounded-full transition-all duration-300"
                 style={{ width: `${file.completeness}%` }}
@@ -158,14 +159,15 @@ function BookmarkCard({ bookmark }: { bookmark: BookmarkType }) {
 
   return (
     <div
-      className="card card-compact bg-base-100 border border-base-300/50 p-2.5 sm:p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 card-elevated card-interactive cursor-pointer group"
+      className="card card-compact bg-base-100 border border-base-300/50 p-3 sm:p-3.5 transition-all duration-200 hover:shadow-md hover:border-primary/30 card-elevated card-interactive cursor-pointer group"
       role="button"
       tabIndex={0}
       aria-label={`${bookmark.label} at ${formatTime(bookmark.positionMs)}${bookmark.note ? `, note: ${bookmark.note}` : ''}`}
+      style={{ minHeight: '48px' }}
     >
       <div className="flex items-center justify-between gap-2 sm:gap-3">
         <span className="text-xs sm:text-sm font-medium line-clamp-2 flex-1 min-w-0 group-hover:text-primary transition-colors" title={bookmark.label}>{bookmark.label}</span>
-        <span className="badge badge-primary/20 text-primary text-[11px] sm:text-xs font-mono shrink-0 border-primary/30" aria-label={`Position: ${formatTime(bookmark.positionMs)}`}>
+        <span className="badge badge-primary/20 text-primary text-[11px] sm:text-xs font-mono shrink-0 border-primary/30 shadow-sm" aria-label={`Position: ${formatTime(bookmark.positionMs)}`}>
           {formatTime(bookmark.positionMs)}
         </span>
       </div>
