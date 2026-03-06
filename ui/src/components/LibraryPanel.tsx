@@ -128,6 +128,7 @@ export default function LibraryPanel() {
             value={searchQuery}
             onChange={handleSearchChange}
             aria-label="Search audiobooks"
+            data-testid="search-input"
           />
         </div>
         {/* Sort control - secondary tool */}

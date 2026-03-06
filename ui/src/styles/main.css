@@ -2359,3 +2359,52 @@ body.focus-mode .btm-nav {
     max-width: 360px;
   }
 }
+
+/* ============================================
+   Touch Target Minimum (WCAG 2.1 AA)
+   ============================================ */
+
+/* Minimum touch target size utility class - 44x44px per WCAG 2.1 */
+.touch-target-min {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Ensure touch-target-min works on all interactive elements */
+button.touch-target-min,
+a.touch-target-min,
+[role="button"].touch-target-min {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   Enhanced Notification Z-Index and Positioning
+   ============================================ */
+
+/* Ensure notifications always appear above content but below modals */
+.notification-container {
+  z-index: 45 !important;
+}
+
+/* Mobile: Ensure notifications don't overlap with player controls content area */
+@media (max-width: 639px) {
+  .notification-container {
+    /* Position above player controls but with safe spacing */
+    bottom: calc(var(--toast-bottom-offset, 72px) + 16px) !important;
+  }
+
+  /* Ensure notification doesn't block scrollable content */
+  .notification-container .alert {
+    max-height: 120px;
+    overflow: hidden;
+  }
+}
+
+/* Desktop: Ensure notifications don't overlap with panels */
+@media (min-width: 640px) {
+  .notification-container {
+    top: calc(var(--toast-top-offset, 80px) + 8px) !important;
+  }
+}

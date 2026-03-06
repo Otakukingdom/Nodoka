@@ -111,9 +111,8 @@ describe('TopBar', () => {
       </Provider>
     );
     const addFolderButton = screen.getByRole('button', { name: 'Add audiobook folder' });
-    // DaisyUI tooltip uses data-tip on wrapper element
-    const tooltipWrapper = addFolderButton.closest('.tooltip');
-    expect(tooltipWrapper).toHaveAttribute('data-tip', 'Add Folder (Ctrl+D)');
+    // Native HTML title attribute for tooltip
+    expect(addFolderButton).toHaveAttribute('title', 'Add Folder (Ctrl+D)');
   });
 
   it('add folder button is disabled while library is loading', () => {
@@ -135,8 +134,7 @@ describe('TopBar', () => {
       </Provider>
     );
     const settingsButton = screen.getByRole('button', { name: 'Settings' });
-    // DaisyUI tooltip uses data-tip on wrapper element
-    const tooltipWrapper = settingsButton.closest('.tooltip');
-    expect(tooltipWrapper).toHaveAttribute('data-tip', 'Settings (Ctrl+,)');
+    // Native HTML title attribute for tooltip
+    expect(settingsButton).toHaveAttribute('title', 'Settings (Ctrl+,)');
   });
 });

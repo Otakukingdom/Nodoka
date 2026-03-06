@@ -301,7 +301,7 @@ export async function setDirectoryScanProgress(
  * Set search query in library
  */
 export async function setSearchQuery(page: Page, query: string): Promise<void> {
-  const searchInput = page.locator('.library-panel input[type="text"]');
+  const searchInput = page.locator('.library-panel input[type="search"], .library-panel input[type="text"], [data-testid="search-input"]');
   await searchInput.fill(query);
   await page.waitForTimeout(300);
 }

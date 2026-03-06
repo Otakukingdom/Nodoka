@@ -85,9 +85,9 @@ export default function DetailsPanel() {
               <p className="text-sm font-semibold text-base-content/80 text-center">No bookmarks yet</p>
               <p className="text-xs text-base-content/50 text-center max-w-[180px]">Save your place in the audiobook for later</p>
               <div className="mt-3 flex items-center gap-1.5">
-                <kbd className="kbd kbd-sm px-1.5 text-[10px] font-semibold bg-base-200 border-base-300">Ctrl</kbd>
+                <kbd className="kbd kbd-sm px-1.5 text-[10px] font-semibold bg-base-200 border-base-300 kbd-high-contrast">Ctrl</kbd>
                 <span className="text-xs text-base-content/40">+</span>
-                <kbd className="kbd kbd-sm px-1.5 text-[10px] font-semibold bg-base-200 border-base-300">B</kbd>
+                <kbd className="kbd kbd-sm px-1.5 text-[10px] font-semibold bg-base-200 border-base-300 kbd-high-contrast">B</kbd>
               </div>
             </div>
           ) : (

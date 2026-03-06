@@ -233,7 +233,7 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('search-empty', async ({ page }) => {
-      const searchInput = page.locator('.library-panel input[type="text"], [data-testid="search-input"]');
+      const searchInput = page.locator('.library-panel input[type="search"], [data-testid="search-input"]');
       await searchInput.click();
       await takeScreenshot(page, 'library-panel', 'search-empty');
     });
@@ -983,7 +983,7 @@ test.describe.parallel('Screenshot Generation', () => {
     });
 
     test('focus-ring-search-input', async ({ page }) => {
-      await focusElement(page, '.library-panel input[type="text"], [data-testid="search-input"]');
+      await focusElement(page, '.library-panel input[type="search"], [data-testid="search-input"]');
       await takeScreenshot(page, 'accessibility', 'focus-ring-search-input');
     });
 

@@ -24,20 +24,25 @@ export default function NotificationContainer() {
   const isLandscape = width > height;
 
   // Safe offsets to prevent overlap with app chrome
+  // Increase offsets to ensure toasts don't overlap with scrollable content
   const topBarHeight = isMobile ? 56 : 64;
-  const playerControlsHeight = isMobile ? (isLandscape ? 56 : 64) : 72;
+  const playerControlsHeight = isMobile ? (isLandscape ? 48 : 64) : 72;
   const padding = 16;
+  // Extra buffer to ensure toast doesn't block content interaction
+  const contentBuffer = isMobile ? 8 : 0;
 
   const toastStyle: React.CSSProperties = {
     position: 'fixed',
-    // On mobile: position at bottom-center, above player controls
+    // On mobile: position at bottom-center, above player controls with extra buffer
     // On desktop: position at top-center, below topbar
     ...(isMobile
-      ? { bottom: playerControlsHeight + padding }
+      ? { bottom: playerControlsHeight + padding + contentBuffer }
       : { top: topBarHeight + padding }),
     left: '50%',
     transform: 'translateX(-50%)',
-    zIndex: 50,
+    zIndex: 45, // Below modals (z-50), above content
+    maxWidth: isMobile ? 'calc(100vw - 32px)' : undefined,
+    width: isMobile ? 'auto' : undefined,
   };
 
   return (
@@ -71,7 +76,7 @@ function NotificationToast({ notification, onDismiss }: NotificationToastProps) 
 
   return (
     <div
-      className={`alert ${bgClass} shadow-xl toast-slide-in min-w-[300px] max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30`}
+      className={`alert ${bgClass} shadow-xl toast-slide-in max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px]`}
     >
       {/* Colored accent bar on left */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />
