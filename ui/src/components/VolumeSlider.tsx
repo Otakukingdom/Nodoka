@@ -25,16 +25,16 @@ export default function VolumeSlider({
   };
 
   return (
-    <div className="flex items-center gap-1 group/volume flex-shrink-0" data-testid="volume-control">
+    <div className="flex items-center gap-1 group/volume flex-shrink-0 volume-control-wrapper" data-testid="volume-control" role="group" aria-label="Volume control">
       <button
-        className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+        className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
         onClick={onMuteToggle}
         aria-label={isMuted ? 'Unmute' : 'Mute'}
         title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
       >
         <VolumeIcon className="h-4 w-4" />
       </button>
-      <div className="relative w-12 sm:w-16 lg:w-20 h-8 flex items-center flex-shrink-0">
+      <div className="relative w-16 sm:w-20 lg:w-24 h-8 flex items-center flex-shrink-0 volume-slider-track">
         {/* Background track */}
         <div className="absolute inset-x-0 h-1.5 top-1/2 -translate-y-1/2 rounded-full bg-base-300 transition-all duration-200 group-hover/volume:h-2" />
         {/* Progress track */}

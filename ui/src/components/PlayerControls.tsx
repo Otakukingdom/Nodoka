@@ -85,7 +85,7 @@ export default function PlayerControls() {
 
   return (
     <div
-      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-0.5 sm:gap-2 md:gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden"
+      className="btm-nav bg-base-200 border-t border-base-300 px-2 sm:px-4 py-2 sm:py-3 gap-0.5 sm:gap-2 md:gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden player-controls-bar"
       role="region"
       aria-label="Audio player controls"
     >
@@ -94,11 +94,11 @@ export default function PlayerControls() {
         {isPlaying && `Playing: ${formatTime(currentTime)} of ${formatTime(totalDuration)}`}
       </div>
 
-      {/* Left controls - playback navigation group */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-        {/* Skip backward button */}
+      {/* Left controls - playback navigation group with clear grouping */}
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group navigation-controls" role="group" aria-label="Playback navigation">
+        {/* Skip backward button - clear affordance */}
         <button
-          className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
           onClick={handleSkipBackward}
           aria-label={`Skip backward ${skipBackwardDuration} seconds`}
           title={`Skip backward ${skipBackwardDuration}s (←)`}
@@ -107,7 +107,7 @@ export default function PlayerControls() {
         </button>
         {/* Stop button - desktop only for space efficiency */}
         <button
-          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hidden md:flex"
+          className="btn btn-circle btn-ghost btn-sm hover:bg-base-300 hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hidden md:flex touch-target-min"
           onClick={handleStop}
           aria-label="Stop"
           title="Stop playback"
@@ -115,9 +115,10 @@ export default function PlayerControls() {
           <Square className="h-4 w-4" />
         </button>
       </div>
-      {/* Play/Pause button - primary action, prominently styled */}
+
+      {/* Play/Pause button - PRIMARY ACTION with maximum visual prominence */}
       <button
-        className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press flex-shrink-0 ${
+        className={`btn btn-circle btn-primary shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press flex-shrink-0 play-button-primary ${
           isPlaying ? 'pulse-playing' : ''
         }`}
         style={{
@@ -136,11 +137,12 @@ export default function PlayerControls() {
           <Play className="h-5 w-5 ml-0.5" />
         )}
       </button>
+
       {/* Right navigation - skip forward */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group" role="group" aria-label="Skip forward">
         {/* Skip forward button */}
         <button
-          className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
           onClick={handleSkipForward}
           aria-label={`Skip forward ${skipForwardDuration} seconds`}
           title={`Skip forward ${skipForwardDuration}s (→)`}
@@ -150,11 +152,13 @@ export default function PlayerControls() {
       </div>
 
       {/* Center - Seek bar (flexible with min-width:0 to allow shrinking) */}
-      <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2">
-        <span className="font-mono text-[10px] sm:text-xs md:text-sm w-8 sm:w-10 md:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0" aria-label={`Current time: ${formatTime(currentTime)}`}>
+      <div className="flex-1 min-w-0 flex items-center gap-1 sm:gap-2 seek-bar-container">
+        {/* Current time - readable monospace */}
+        <span className="font-mono text-[11px] sm:text-xs md:text-sm w-9 sm:w-11 md:w-12 text-right tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Current time: ${formatTime(currentTime)}`}>
           {formatTime(currentTime)}
         </span>
-        <div className="flex-1 min-w-0 relative group h-8 sm:h-6 flex items-center" role="group" aria-label="Seek bar">
+        {/* Seek bar with enhanced interaction clarity */}
+        <div className="flex-1 min-w-0 relative group h-8 sm:h-6 flex items-center seek-bar-wrapper" role="group" aria-label="Seek bar">
           {/* Background track with enhanced visibility */}
           <div className="absolute inset-x-0 h-2 top-1/2 -translate-y-1/2 rounded-full seek-bar-track transition-all duration-200 group-hover:h-3" aria-hidden="true" />
           {/* Progress track with premium gradient */}
@@ -182,16 +186,17 @@ export default function PlayerControls() {
             style={{ left: `${progress}%` }}
           />
         </div>
-        <span className="font-mono text-[10px] sm:text-xs md:text-sm w-8 sm:w-10 md:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
+        {/* Total duration */}
+        <span className="font-mono text-[10px] sm:text-xs md:text-sm w-8 sm:w-10 md:w-12 tabular-nums text-base-content/70 select-none flex-shrink-0 time-display" aria-label={`Total duration: ${formatTime(totalDuration)}`}>
           {formatTime(totalDuration)}
         </span>
       </div>
 
-      {/* Right controls - settings and volume group */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+      {/* Right controls - settings and volume group with clear grouping */}
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group settings-controls" role="group" aria-label="Player settings">
         {/* Sleep Timer button with enhanced active state */}
         <button
-          className={`btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative ${
+          className={`btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative touch-target-min ${
             sleepTimer ? 'text-primary bg-primary/10 ring-1 ring-primary/30' : ''
           }`}
           onClick={handleSleepTimer}
@@ -205,9 +210,9 @@ export default function PlayerControls() {
             </span>
           )}
         </button>
-        {/* Speed button with enhanced visual feedback */}
+        {/* Speed button with enhanced visual feedback and clear affordance */}
         <button
-          className="btn btn-ghost btn-sm px-1.5 sm:px-2 font-mono text-[10px] sm:text-xs md:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full min-w-[2rem] sm:min-w-[2.5rem] md:min-w-[3rem]"
+          className="btn btn-ghost btn-sm px-2 sm:px-2.5 font-mono text-[11px] sm:text-xs md:text-sm hover:bg-primary/10 hover:text-primary hover:scale-105 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 group relative border border-transparent hover:border-primary/20 rounded-full min-w-[2.75rem] sm:min-w-[3rem] md:min-w-[3.5rem] speed-control touch-target-min"
           onClick={handleSpeedClick}
           aria-label={`Playback speed: ${speed}x. Click to cycle`}
           title="Playback speed (click to cycle)"

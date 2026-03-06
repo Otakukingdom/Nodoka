@@ -1357,6 +1357,186 @@ div[class*="bg-base-200"] .kbd.kbd-high-contrast,
 }
 
 /* ============================================
+   Visual Hierarchy System
+   ============================================ */
+
+/* Content regions with intentional visual hierarchy */
+.content-region {
+  /* Base container for main content */
+  contain: layout;
+}
+
+/* Primary region - main content focus */
+.primary-region {
+  background: oklch(var(--b1) / 1);
+  position: relative;
+}
+
+/* Secondary region - supporting navigation */
+.secondary-region {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b2) / 0.4) 0%,
+    oklch(var(--b1) / 1) 100%
+  );
+}
+
+[data-theme="dark"] .secondary-region {
+  background: linear-gradient(
+    180deg,
+    oklch(var(--b2) / 0.25) 0%,
+    oklch(var(--b1) / 1) 100%
+  );
+}
+
+/* Panel divider with clear affordance */
+.panel-divider-handle {
+  position: relative;
+}
+
+.panel-divider-handle::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: 0;
+  bottom: 0;
+}
+
+.panel-divider-handle:hover::before {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(225, 29, 72, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+/* Player controls region - distinct visual weight */
+.player-controls-region {
+  position: relative;
+  z-index: 40;
+}
+
+.player-controls-region::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(var(--b3) / 0.8) 20%,
+    oklch(var(--b3) / 0.8) 80%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   Enhanced Spacing Rhythm
+   ============================================ */
+
+/* Consistent vertical rhythm for sections */
+.section-rhythm {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+/* Grouped items - clear visual separation */
+.group-separated + .group-separated {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid oklch(var(--b3) / 0.5);
+}
+
+/* ============================================
+   Improved Focus Indicators
+   ============================================ */
+
+/* High visibility focus ring for all interactive elements */
+.focus-visible-enhanced:focus-visible {
+  outline: 3px solid var(--fallback-p, #E11D48);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px rgba(225, 29, 72, 0.15),
+    0 0 0 6px rgba(225, 29, 72, 0.1);
+  border-radius: inherit;
+}
+
+[data-theme="dark"] .focus-visible-enhanced:focus-visible {
+  outline-color: #FB7185;
+  box-shadow:
+    0 0 0 4px rgba(251, 113, 133, 0.2),
+    0 0 0 6px rgba(251, 113, 133, 0.1);
+}
+
+/* Keyboard navigation highlight */
+.keyboard-nav-highlight {
+  position: relative;
+}
+
+.keyboard-nav-highlight:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--fallback-p, #E11D48);
+  border-radius: calc(inherit + 4px);
+  pointer-events: none;
+}
+
+/* ============================================
+   Heading Scale for Section Recognition
+   ============================================ */
+
+/* WCAG 2.1 compliant heading scale */
+.heading-display {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: oklch(var(--bc) / 0.95);
+}
+
+.heading-section {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: oklch(var(--bc) / 0.7);
+}
+
+.heading-subsection {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: oklch(var(--bc) / 0.8);
+}
+
+/* ============================================
+   Motion and Transition Preferences
+   ============================================ */
+
+/* Smooth transitions that respect reduced motion */
+.transition-respect-motion {
+  transition-property: transform, opacity, background-color, border-color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-respect-motion {
+    transition-duration: 0ms;
+  }
+}
+
+body.reduced-motion .transition-respect-motion {
+  transition-duration: 0ms;
+}
+
+/* ============================================
    Responsive Breakpoint Enhancements
    ============================================ */
 

@@ -265,18 +265,23 @@ function App() {
     <div className={`flex flex-col h-screen overflow-hidden ${theme === 'Dark' ? 'dark' : ''}`} data-testid="app-container">
       {/* Visually hidden h1 for screen reader navigation - WCAG 2.1 accessibility */}
       <h1 className="sr-only">Nodoka Audiobook Player</h1>
-      <TopBar />
-      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 gap-0" role="main" ref={mainRef}>
-        {/* Library panel - responsive width with mobile-first approach */}
-        <div
-          className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] overflow-hidden library-panel-wrapper"
+      {/* Header landmark - primary navigation region */}
+      <header className="flex-shrink-0">
+        <TopBar />
+      </header>
+      {/* Main content area with intentional visual hierarchy */}
+      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 gap-0 content-region" role="main" ref={mainRef}>
+        {/* Library panel - secondary navigation, responsive width with mobile-first approach */}
+        <aside
+          className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] overflow-hidden library-panel-wrapper secondary-region"
           style={{ '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
+          aria-label="Audiobook library"
         >
           <LibraryPanel />
-        </div>
-        {/* Vertical panel divider - desktop only */}
+        </aside>
+        {/* Vertical panel divider - desktop only, clear affordance for resize */}
         <div
-          className={`hidden sm:flex w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation items-center justify-center self-stretch ${
+          className={`hidden sm:flex w-1.5 bg-base-300 cursor-col-resize hover:bg-primary/50 active:bg-primary/70 transition-all duration-200 hover:shadow-[2px_0_8px_rgba(225,29,72,0.2)] flex-shrink-0 touch-manipulation items-center justify-center self-stretch panel-divider-handle ${
             panelDividerDragging ? 'bg-primary/70 shadow-[2px_0_12px_rgba(225,29,72,0.3)]' : ''
           }`}
           onMouseDown={handleDividerMouseDown}
@@ -293,15 +298,21 @@ function App() {
               dispatch(setPanelRatio(Math.min(0.8, panelRatio + 0.05)));
             }
           }}
-        />
-        {/* Horizontal divider for mobile - subtle separation */}
-        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0 w-full" role="separator" aria-orientation="horizontal" />
-        {/* Details panel - flexible width, minimum readable width */}
-        <div className="flex-1 min-w-0 sm:min-w-[280px] h-auto sm:h-full overflow-hidden">
-          <DetailsPanel />
+        >
+          {/* Visual grip pattern for affordance */}
+          <div className="w-0.5 h-8 rounded-full bg-base-content/20 group-hover:bg-primary/30" aria-hidden="true" />
         </div>
+        {/* Horizontal divider for mobile - clear separation */}
+        <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0 w-full" role="separator" aria-orientation="horizontal" />
+        {/* Details panel - primary content area, flexible width */}
+        <section className="flex-1 min-w-0 sm:min-w-[280px] h-auto sm:h-full overflow-hidden primary-region" aria-label="Content details">
+          <DetailsPanel />
+        </section>
       </main>
-      <PlayerControls />
+      {/* Player controls - persistent footer with clear visual weight */}
+      <footer className="flex-shrink-0 player-controls-region">
+        <PlayerControls />
+      </footer>
       <ModalContainer />
       <NotificationContainer />
       <DragDropOverlay

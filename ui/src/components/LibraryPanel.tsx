@@ -116,20 +116,23 @@ export default function LibraryPanel() {
         {isScanning && scanProgress && `Scanning: ${scanProgress.foundCount} audiobooks found`}
       </div>
 
-      {/* Toolbar - consistent spacing and alignment */}
-      <div className="px-3 py-2.5 border-b border-base-300 flex gap-2 bg-base-200/30 items-center flex-shrink-0">
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" />
+      {/* Toolbar - consistent spacing and alignment with clear grouping */}
+      <div className="px-3 py-2.5 border-b border-base-300 flex gap-2 bg-base-200/30 items-center flex-shrink-0 toolbar-container" role="toolbar" aria-label="Library tools">
+        {/* Search input - primary tool, takes available space */}
+        <div className="relative flex-1 min-w-0 search-input-wrapper">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-base-content/50 pointer-events-none flex-shrink-0" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
             placeholder="Search audiobooks..."
-            className="input input-bordered input-sm w-full pl-9 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-0"
+            className="input input-bordered input-sm w-full pl-9 bg-base-100 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-w-0 search-input-enhanced"
             value={searchQuery}
             onChange={handleSearchChange}
+            aria-label="Search audiobooks"
           />
         </div>
+        {/* Sort control - secondary tool */}
         <select
-          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0"
+          className="select select-bordered select-sm bg-base-100 transition-all duration-200 select-interactive flex-shrink-0 sort-control"
           value={sortOrder}
           onChange={handleSortChange}
           aria-label="Sort audiobooks"
@@ -141,7 +144,7 @@ export default function LibraryPanel() {
         {/* Add folder button - visible when audiobooks exist (returning user) */}
         {audiobooks.length > 0 && (
           <button
-            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex-shrink-0"
+            className="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 flex-shrink-0 touch-target-min"
             onClick={() => void handleAddDirectory()}
             disabled={isAddingDirectory || isLibraryLoading || isScanning}
             aria-label="Add audiobook folder"
@@ -152,11 +155,11 @@ export default function LibraryPanel() {
         )}
       </div>
 
-      {/* Audiobook list */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 min-h-0" id="audiobook-list">
+      {/* Audiobook list - scrollable content area */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 min-h-0 content-scroll-area" id="audiobook-list">
         {/* Directory error banners - show at top when directories have issues */}
         {!isLibraryLoading && directoriesWithErrors.length > 0 && (
-          <div className="mb-3 space-y-2">
+          <div className="mb-3 space-y-2 error-banners-group" role="region" aria-label="Directory errors">
             {directoriesWithErrors.map((dir) => (
               <DirectoryErrorBannerInline
                 key={dir.fullPath}
@@ -173,32 +176,32 @@ export default function LibraryPanel() {
         )}
 
         {isLibraryLoading ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 skeleton-container" role="status" aria-label="Loading audiobooks">
             {Array.from({ length: 4 }).map((_, i) => (
               <AudiobookCardSkeleton key={i} />
             ))}
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[300px] animate-fade-in">
+          <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[300px] animate-fade-in empty-state-container" role="status">
             {searchQuery ? (
               <>
-                <div className="relative w-16 h-16 mb-5">
+                <div className="relative w-16 h-16 mb-5 empty-state-icon-wrapper">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-base-300/50 to-base-200/30" />
                   <div className="absolute inset-2 rounded-full bg-gradient-to-br from-base-100 to-base-200 flex items-center justify-center shadow-depth-1 border border-base-300/30">
                     <Search className="w-7 h-7 text-base-content/40" />
                   </div>
                 </div>
-                <h2 className="text-title text-base-content/80 mb-2 text-center">
+                <h2 className="text-title text-base-content/80 mb-2 text-center empty-state-title">
                   No matches found
                 </h2>
-                <div className="text-body text-base-content/60 max-w-xs mx-auto text-center leading-relaxed">
+                <div className="text-body text-base-content/60 max-w-xs mx-auto text-center leading-relaxed empty-state-description">
                   Try adjusting your search terms or clear the search
                 </div>
               </>
             ) : (
               <>
                 {/* Prominent empty state with animated icon */}
-                <div className="relative w-24 h-24 mb-5">
+                <div className="relative w-24 h-24 mb-5 empty-state-icon-wrapper">
                   {/* Outer pulse ring - draws attention */}
                   <div
                     className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5"
@@ -218,16 +221,16 @@ export default function LibraryPanel() {
                 </div>
 
                 {/* Clear visual hierarchy: title > description > action */}
-                <h2 className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold">
+                <h2 className="text-title-lg text-base-content/90 mb-1.5 text-center font-semibold empty-state-title">
                   Add Your Audiobooks
                 </h2>
-                <div className="text-body text-base-content/70 mb-5 max-w-xs mx-auto text-center leading-relaxed">
+                <div className="text-body text-base-content/70 mb-5 max-w-xs mx-auto text-center leading-relaxed empty-state-description">
                   Select a folder containing your audiobook files to get started
                 </div>
 
                 {/* Primary action - large touch target (min-h-12 = 48px) */}
                 <button
-                  className="btn btn-premium min-h-12 h-12 px-8 shadow-lg hover:shadow-xl transition-all duration-200 gap-2.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 text-base"
+                  className="btn btn-premium min-h-12 h-12 px-8 shadow-lg hover:shadow-xl transition-all duration-200 gap-2.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 text-base primary-action-button"
                   onClick={() => void handleAddDirectory()}
                   disabled={isAddingDirectory || isLibraryLoading}
                   aria-label="Add audiobook folder"
@@ -241,15 +244,15 @@ export default function LibraryPanel() {
                 </button>
 
                 {/* Keyboard shortcut hint - secondary visual element */}
-                <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/70">
+                <div className="text-caption mt-4 flex items-center gap-1.5 text-base-content/70 keyboard-hint">
                   <span>or press</span>
-                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium" style={{ color: '#404040' }}>Ctrl</kbd>
+                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium kbd-high-contrast" style={{ color: '#404040' }}>Ctrl</kbd>
                   <span className="text-base-content/50">+</span>
-                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium" style={{ color: '#404040' }}>D</kbd>
+                  <kbd className="kbd kbd-sm px-2 bg-base-300 border-base-400 font-medium kbd-high-contrast" style={{ color: '#404040' }}>D</kbd>
                 </div>
 
                 {/* Drag and drop hint - tertiary visual element */}
-                <div className="mt-3 flex items-center gap-2 text-xs text-base-content/60">
+                <div className="mt-3 flex items-center gap-2 text-xs text-base-content/60 drag-drop-hint">
                   <ExternalLink className="w-3 h-3" />
                   <span>Drag and drop a folder also works</span>
                 </div>
@@ -257,7 +260,7 @@ export default function LibraryPanel() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-2 audiobook-card-container">
+          <div className="flex flex-col gap-2 audiobook-card-container" role="list" aria-label="Audiobook list">
             {filteredBooks.map(book => (
               <AudiobookCard
                 key={book.id ?? book.fullPath}
