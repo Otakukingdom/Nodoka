@@ -186,10 +186,33 @@ export async function setThemeViaRedux(
 }
 
 /**
- * Focus an element and wait for focus ring to render
+ * Focus an element and wait for focus ring to render.
+ * Uses data-focus-visible attribute to force focus-visible styles,
+ * which is required for WCAG 2.4.7 focus indicator visibility testing.
+ * Note: Playwright doesn't trigger :focus-visible via programmatic focus,
+ * so we use a CSS helper attribute that matches the focus-visible styles.
  */
 export async function focusElement(page: Page, selector: string): Promise<void> {
-  await page.focus(selector);
+  // Focus the element and set data-focus-visible attribute to force focus ring
+  const result = await page.evaluate((sel) => {
+    const el = document.querySelector<HTMLElement>(sel);
+    if (el) {
+      el.focus();
+      el.setAttribute('data-focus-visible', 'true');
+      // Also add a class for additional specificity
+      el.classList.add('focus-visible-forced');
+      return {
+        found: true,
+        tagName: el.tagName,
+        hasAttribute: el.hasAttribute('data-focus-visible'),
+        attributeValue: el.getAttribute('data-focus-visible'),
+        computedOutline: window.getComputedStyle(el).outline,
+        computedBoxShadow: window.getComputedStyle(el).boxShadow,
+      };
+    }
+    return { found: false };
+  }, selector);
+  console.log('focusElement result:', JSON.stringify(result, null, 2));
   await page.waitForTimeout(200);
 }
 

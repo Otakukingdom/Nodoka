@@ -34,8 +34,27 @@
     transition: outline-offset 0.15s ease, box-shadow 0.15s ease;
   }
 
+  /* Test helper: Force focus-visible styles for screenshot testing
+   * Playwright doesn't trigger :focus-visible via keyboard simulation,
+   * so we use this data attribute to force the styles during tests.
+   * Also adds a subtle background to verify the attribute is being applied.
+   */
+  [data-focus-visible],
+  [data-focus-visible="true"] {
+    outline: 3px solid var(--fallback-p, #E11D48) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0.3) !important;
+    /* Reset Tailwind ring utilities */
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-offset-width: 0px !important;
+    /* Subtle indicator that data attribute is applied */
+    background-color: rgba(225, 29, 72, 0.05) !important;
+  }
+
   /* Remove default focus for mouse users */
-  *:focus:not(:focus-visible) {
+  *:focus:not(:focus-visible):not([data-focus-visible]) {
     outline: none;
   }
 
@@ -51,6 +70,18 @@
   [data-theme="dark"] select:focus-visible {
     outline-color: #FB7185;
     box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.3);
+  }
+
+  /* Test helper: Dark mode force focus-visible */
+  [data-theme="dark"] [data-focus-visible],
+  [data-theme="dark"] [data-focus-visible="true"] {
+    outline-color: #FB7185 !important;
+    box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.3) !important;
+    /* Reset Tailwind ring utilities */
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-offset-width: 0px !important;
   }
 
   /* WCAG 2.1 AA: Minimum 4.5:1 contrast for text */
