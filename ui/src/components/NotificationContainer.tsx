@@ -22,10 +22,11 @@ export default function NotificationContainer() {
   // to avoid overlapping with content headers and interactive elements.
   const isMobile = width < 640;
 
-  // Player controls height: approximately 72-76px mobile, 88px desktop
-  // Account for compact viewport touch targets
-  const playerControlsHeight = isMobile ? 76 : 88;
-  const bottomPadding = 8;
+  // Player controls height: approximately 80-88px mobile (with touch targets), 92-100px desktop
+  // Account for compact viewport touch targets and ensure clear separation
+  // Adding extra padding to prevent any overlap with player controls
+  const playerControlsHeight = isMobile ? 88 : 100;
+  const bottomPadding = 16;
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements

@@ -66,7 +66,8 @@ export default function SleepTimerModal() {
     <div className="modal-box shadow-2xl border border-base-300/50 max-w-md backdrop-blur-sm">
       {/* Close button */}
       <button
-        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
+        style={{ minWidth: '44px', minHeight: '44px' }}
         onClick={handleClose}
         aria-label="Close"
       >

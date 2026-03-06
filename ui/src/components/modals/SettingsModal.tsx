@@ -296,7 +296,8 @@ export default function SettingsModal() {
       <div className="modal-box shadow-2xl border border-base-300/50 max-w-lg backdrop-blur-sm max-h-[90vh] overflow-y-auto overscroll-contain">
       {/* Close button with enhanced hover state */}
       <button
-        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 hover:bg-base-200 hover:rotate-90 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
+        style={{ minWidth: '44px', minHeight: '44px' }}
         onClick={handleClose}
         aria-label="Close"
       >

@@ -270,11 +270,11 @@ function App() {
         <TopBar />
       </header>
       {/* Main content area with intentional visual hierarchy */}
-      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 gap-0 content-region" role="main" ref={mainRef}>
+      <main className="flex flex-1 overflow-hidden flex-col sm:flex-row min-h-0 content-region" role="main" ref={mainRef}>
         {/* Library panel - secondary navigation, responsive width with mobile-first approach */}
         <aside
           className="flex-shrink-0 min-w-0 h-auto sm:h-full w-full sm:w-auto sm:min-w-[240px] sm:max-w-[400px] lg:max-w-[450px] overflow-hidden library-panel-wrapper secondary-region"
-          style={{ '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
+          style={{ width: `calc(${panelRatio * 100}% - 6px)`, '--panel-ratio': `${panelRatio * 100}%` } as React.CSSProperties}
           aria-label="Audiobook library"
         >
           <LibraryPanel />
@@ -305,7 +305,7 @@ function App() {
         {/* Horizontal divider for mobile - clear separation */}
         <div className="sm:hidden h-px bg-gradient-to-r from-transparent via-base-300 to-transparent flex-shrink-0 w-full" role="separator" aria-orientation="horizontal" />
         {/* Details panel - primary content area, flexible width */}
-        <section className="flex-1 min-w-0 sm:min-w-[280px] h-auto sm:h-full overflow-hidden primary-region" aria-label="Content details">
+        <section className="flex-1 min-w-0 sm:min-w-[280px] h-auto sm:h-full overflow-hidden primary-region details-panel-overflow" aria-label="Content details">
           <DetailsPanel />
         </section>
       </main>

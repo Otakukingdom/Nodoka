@@ -85,7 +85,7 @@ export default function PlayerControls() {
 
   return (
     <div
-      className="btm-nav bg-base-200 border-t border-base-300 px-1.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 gap-1.5 sm:gap-1.5 md:gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden player-controls-bar"
+      className="btm-nav bg-base-200 border-t border-base-300 px-1.5 sm:px-3 md:px-4 py-2.5 sm:py-2.5 md:py-3 gap-1 sm:gap-1.5 md:gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] overflow-x-hidden player-controls-bar"
       role="region"
       aria-label="Audio player controls"
     >
@@ -95,7 +95,7 @@ export default function PlayerControls() {
       </div>
 
       {/* Left controls - playback navigation group with clear grouping */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group navigation-controls" role="group" aria-label="Playback navigation">
+      <div className="flex items-center gap-1 sm:gap-1 flex-shrink-0 controls-group navigation-controls" role="group" aria-label="Playback navigation">
         {/* Skip backward button - clear affordance */}
         <button
           className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
@@ -141,7 +141,7 @@ export default function PlayerControls() {
       </button>
 
       {/* Right navigation - skip forward */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group" role="group" aria-label="Skip forward">
+      <div className="flex items-center gap-1 sm:gap-1 flex-shrink-0 controls-group" role="group" aria-label="Skip forward">
         {/* Skip forward button */}
         <button
           className="btn btn-circle btn-ghost btn-sm sm:btn-md hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 touch-target-min"
@@ -196,7 +196,7 @@ export default function PlayerControls() {
       </div>
 
       {/* Right controls - settings and volume group with clear grouping */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 controls-group settings-controls" role="group" aria-label="Player settings">
+      <div className="flex items-center gap-1 sm:gap-1 flex-shrink-0 controls-group settings-controls" role="group" aria-label="Player settings">
         {/* Sleep Timer button with enhanced active state */}
         <button
           className={`btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative touch-target-min ${

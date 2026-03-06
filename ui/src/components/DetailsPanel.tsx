@@ -18,9 +18,9 @@ export default function DetailsPanel() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-base-100 details-panel-container h-full" role="complementary" aria-label="File and bookmark details">
       {/* Files section - primary content area with proper scroll containment */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3 sm:py-4 min-h-0 overscroll-contain" role="region" aria-label="Files list">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 sm:px-4 py-3.5 sm:py-4 min-h-0 overscroll-contain" role="region" aria-label="Files list">
         {/* Section header with enhanced visual weight and clear hierarchy */}
-        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2.5 sm:py-3 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
+        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-3 sm:py-3.5 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0 shadow-sm">
             <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
           </div>
@@ -62,9 +62,9 @@ export default function DetailsPanel() {
       <div className="h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" />
 
       {/* Bookmarks section - secondary content area with scroll containment */}
-      <div className="h-1/3 min-h-[140px] max-h-[220px] sm:max-h-none overflow-y-auto custom-scrollbar p-3 sm:p-4 bg-base-100 details-section-bookmarks overscroll-contain" role="region" aria-label="Bookmarks list" tabIndex={0}>
+      <div className="h-1/3 min-h-[140px] max-h-[220px] sm:max-h-none overflow-y-auto custom-scrollbar p-3.5 sm:p-4 bg-base-100 details-section-bookmarks overscroll-contain" role="region" aria-label="Bookmarks list" tabIndex={0}>
         {/* Section header - enhanced visual weight for clear hierarchy */}
-        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-2.5 sm:py-3 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
+        <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4 sticky top-0 bg-base-100/98 backdrop-blur-sm py-3 sm:py-3.5 -mt-1 z-10 section-header-enhanced border-b-2 border-base-300/60">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0 shadow-sm">
             <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
           </div>

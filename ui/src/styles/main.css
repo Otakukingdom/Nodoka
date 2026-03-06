@@ -2112,7 +2112,7 @@ body.focus-mode .btm-nav {
 /* Mobile: adjust bottom offset for smaller player controls */
 @media (max-width: 639px) {
   .notification-toast-container {
-    bottom: 80px !important;
+    bottom: 104px !important; /* 88px player controls + 16px padding */
   }
 }
 
@@ -2490,8 +2490,8 @@ body.focus-mode .btm-nav {
 
 /* Minimum touch target size utility class - 44x44px per WCAG 2.1 */
 .touch-target-min {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 44px !important;
+  min-height: 44px !important;
 }
 
 /* Ensure touch-target-min works on all interactive elements */
@@ -2501,6 +2501,22 @@ a.touch-target-min,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Override DaisyUI btn-sm for proper touch targets on mobile */
+@media (max-width: 639px) {
+  .btn.touch-target-min,
+  .btn-circle.touch-target-min {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Ensure icon buttons have proper touch targets */
+  .btn-circle.btn-sm.touch-target-min {
+    width: 44px !important;
+    height: 44px !important;
+  }
 }
 
 /* ============================================
@@ -2528,26 +2544,26 @@ a.touch-target-min,
 
 /* Mobile portrait: Ensure notifications don't overlap with player controls */
 @media (max-width: 639px) and (orientation: portrait) {
-  /* Compact notification toasts on mobile */
+  /* Compact notification toasts on mobile - allow content to flow naturally */
   .notification-toast-container .alert {
-    max-height: 90px;
-    overflow: hidden;
-    font-size: 0.6875rem;
-    padding: 0.5rem 0.625rem;
+    max-height: none; /* Remove height restriction to prevent truncation */
+    overflow: visible;
+    font-size: 0.75rem; /* Slightly larger for readability */
+    padding: 0.625rem 0.75rem;
   }
 
   /* Ensure title doesn't get cut off */
   .notification-toast-container .alert .font-semibold {
-    font-size: 0.625rem;
-    line-height: 1.2;
-    margin-bottom: 0.125rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
   }
 
-  /* Compact dismiss button on mobile - maintain touch target via padding */
+  /* Dismiss button on mobile - maintain 44px touch target */
   .toast-dismiss-btn,
   .notification-toast-container .alert .btn-circle {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 8px;
   }
 }
@@ -2555,9 +2571,10 @@ a.touch-target-min,
 /* Mobile landscape: Compact notifications */
 @media (max-width: 639px) and (orientation: landscape) {
   .notification-toast-container .alert {
-    max-height: 80px;
-    overflow: hidden;
-    font-size: 0.6875rem;
+    max-height: none; /* Remove height restriction to prevent truncation */
+    overflow: visible;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.625rem;
   }
 }
 

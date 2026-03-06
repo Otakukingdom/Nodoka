@@ -40,7 +40,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="navbar bg-base-200 border-b border-base-300 px-2 sm:px-3 md:px-4 shadow-sm min-h-[52px] sm:min-h-[56px] md:min-h-[60px]" role="banner">
+    <div className="navbar bg-base-200 border-b border-base-300 px-2.5 sm:px-3 md:px-4 shadow-sm min-h-[56px] sm:min-h-[56px] md:min-h-[60px]" role="banner">
       {/* Logo and title group */}
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
         {/* Logo with enhanced gradient and subtle glow */}

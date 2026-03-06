@@ -117,7 +117,7 @@ export default function LibraryPanel() {
       </div>
 
       {/* Toolbar - consistent spacing with clear visual grouping and responsive layout */}
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-start sm:items-center flex-shrink-0 toolbar-container flex-col sm:flex-row" role="toolbar" aria-label="Library tools">
+      <div className="px-3 py-3 sm:px-4 sm:py-3 border-b border-base-300 flex gap-2 sm:gap-3 bg-base-200/30 items-start sm:items-center flex-shrink-0 toolbar-container flex-col sm:flex-row" role="toolbar" aria-label="Library tools">
         {/* Primary tools row - search and sort */}
         <div className="flex gap-2 sm:gap-3 items-center w-full sm:flex-1 min-w-0">
           {/* Search input - primary tool with enhanced touch target */}
@@ -311,9 +311,9 @@ function AudiobookCard({ book, isSelected, isPlaying, onClick }: AudiobookCardPr
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      style={{ minHeight: '72px' }}
+      style={{ minHeight: '76px' }}
     >
-      <div className="card-body p-3 sm:p-3.5">
+      <div className="card-body p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {isPlaying && (
