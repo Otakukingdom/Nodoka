@@ -22,10 +22,10 @@ export default function NotificationContainer() {
   // to avoid overlapping with content headers and interactive elements.
   const isMobile = width < 640;
 
-  // Player controls height: approximately 72px mobile (h-12 seek bar), 80px desktop
-  // Updated to account for enhanced seek bar touch targets
-  const playerControlsHeight = isMobile ? 72 : 88;
-  const bottomPadding = 12;
+  // Player controls height: approximately 72-76px mobile, 88px desktop
+  // Account for compact viewport touch targets
+  const playerControlsHeight = isMobile ? 76 : 88;
+  const bottomPadding = 8;
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements
@@ -33,13 +33,13 @@ export default function NotificationContainer() {
     position: 'fixed',
     zIndex: 45, // Below modals (z-50), above content
     // Max height constraint prevents the toast container from occupying too much space.
-    maxHeight: isMobile ? '35vh' : '45vh',
+    maxHeight: isMobile ? '30vh' : '40vh',
     overflowY: 'auto' as const,
     bottom: playerControlsHeight + bottomPadding,
     left: '50%',
     transform: 'translateX(-50%)',
-    maxWidth: isMobile ? 'calc(100vw - 24px)' : '440px',
-    width: isMobile ? 'calc(100vw - 24px)' : 'auto',
+    maxWidth: isMobile ? 'calc(100vw - 16px)' : '420px',
+    width: isMobile ? 'calc(100vw - 16px)' : 'auto',
   };
 
   // Center-aligned for balanced, non-intrusive placement
@@ -82,29 +82,28 @@ function NotificationToast({ notification, onDismiss, animationClass = 'toast-sl
 
   return (
     <div
-      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px] p-3 sm:p-4`}
+      className={`alert ${bgClass} shadow-xl ${animationClass} max-w-md relative overflow-hidden border-l-4 ${borderClass} backdrop-blur-sm border border-base-300/30 w-full sm:min-w-[300px] p-2 sm:p-4 toast-notification`}
     >
       {/* Colored accent bar on left */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${borderClass.replace('border-l-', 'bg-')}`} />
 
-      <div className="flex items-start gap-2 sm:gap-3 pl-1">
-        <div className={`p-1 sm:p-1.5 rounded-full ${iconColor} bg-base-100/50 shadow-sm shrink-0`}>
-          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+      <div className="flex items-start gap-1.5 sm:gap-3 pl-1">
+        <div className={`p-0.5 sm:p-1.5 rounded-full ${iconColor} bg-base-100/50 shadow-sm shrink-0`}>
+          <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
         </div>
         <div className="flex-1 min-w-0">
           {notification.title && (
-            <div className="font-semibold text-xs sm:text-sm mb-0.5">{notification.title}</div>
+            <div className="font-semibold text-[11px] sm:text-sm mb-0.5">{notification.title}</div>
           )}
-          <div className="text-xs sm:text-sm opacity-90 leading-snug break-words">{notification.message}</div>
+          <div className="text-[11px] sm:text-sm opacity-90 leading-snug break-words">{notification.message}</div>
         </div>
       </div>
       <button
-        className="btn btn-ghost btn-circle hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 touch-target-min"
-        style={{ minWidth: '44px', minHeight: '44px' }}
+        className="btn btn-ghost btn-circle btn-xs sm:btn-sm hover:bg-base-content/10 hover:scale-110 active:scale-95 transition-all shrink-0 toast-dismiss-btn"
         onClick={onDismiss}
         aria-label="Dismiss notification"
       >
-        <X className="h-5 w-5" />
+        <X className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
       </button>
     </div>
   );

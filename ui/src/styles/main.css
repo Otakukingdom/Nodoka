@@ -2481,20 +2481,52 @@ a.touch-target-min,
   z-index: 45 !important;
 }
 
+/* Notification toast container: proper stacking and spacing */
+.notification-toast-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual toast: prevent text truncation and ensure readability */
+.notification-toast-container .alert {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Mobile portrait: Ensure notifications don't overlap with player controls */
 @media (max-width: 639px) and (orientation: portrait) {
-  /* Ensure notification doesn't block scrollable content */
-  .notification-container .alert {
-    max-height: 120px;
+  /* Compact notification toasts on mobile */
+  .notification-toast-container .alert {
+    max-height: 90px;
     overflow: hidden;
+    font-size: 0.6875rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  /* Ensure title doesn't get cut off */
+  .notification-toast-container .alert .font-semibold {
+    font-size: 0.625rem;
+    line-height: 1.2;
+    margin-bottom: 0.125rem;
+  }
+
+  /* Compact dismiss button on mobile - maintain touch target via padding */
+  .toast-dismiss-btn,
+  .notification-toast-container .alert .btn-circle {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
   }
 }
 
-/* Mobile landscape: Compact notifications at top-right */
+/* Mobile landscape: Compact notifications */
 @media (max-width: 639px) and (orientation: landscape) {
-  .notification-container .alert {
-    max-height: 100px;
+  .notification-toast-container .alert {
+    max-height: 80px;
     overflow: hidden;
+    font-size: 0.6875rem;
   }
 }
 
@@ -2669,35 +2701,52 @@ body.reduced-motion .empty-state-icon-wrapper::before {
    ============================================ */
 
 @media (max-width: 375px) {
-  /* Player controls: ensure minimum usable seek bar width */
+  /* Player controls: tighter spacing to maximize seek bar width */
   .player-controls-bar {
-    gap: 0.25rem;
+    gap: 0.125rem;
+    padding-left: 0.125rem;
+    padding-right: 0.125rem;
+  }
+
+  /* Control buttons: maintain 44px touch targets via padding expansion */
+  .player-controls-bar .btn-circle.btn-sm {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 10px;
+    margin: -2px;
+  }
+
+  /* Primary play button: ensure prominence even at compact size */
+  .player-controls-bar .btn-circle.btn-primary {
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+  }
+
+  /* Seek bar: prioritize for remaining space with usable minimum */
+  .seek-bar-container {
+    min-width: 100px;
+    flex: 1 1 auto;
+  }
+
+  /* Time displays: compact but readable */
+  .time-display {
+    font-size: 0.625rem;
+    min-width: 1.75rem;
+    max-width: 2.5rem;
+  }
+
+  /* Speed control: compact with touch target maintained */
+  .speed-control {
+    min-width: 2.25rem;
     padding-left: 0.25rem;
     padding-right: 0.25rem;
   }
 
-  /* Reduce control button sizes slightly while maintaining touch targets */
-  .player-controls-bar .btn-circle.btn-sm {
-    min-width: 36px;
-    min-height: 36px;
-  }
-
-  /* Ensure seek bar has minimum usable width */
-  .seek-bar-container {
-    min-width: 80px;
-  }
-
-  /* Time displays - maintain readability */
-  .time-display {
-    font-size: 0.6875rem;
-    min-width: 2rem;
-  }
-
-  /* Compact speed button */
-  .speed-control {
-    min-width: 2.5rem;
-    padding-left: 0.375rem;
-    padding-right: 0.375rem;
+  /* Hide sleep timer badge text on very compact screens */
+  .player-controls-bar .btn-circle span[class*="text-[8px]"] {
+    font-size: 0.5rem;
+    padding: 0.125rem 0.25rem;
   }
 }
 
@@ -2879,9 +2928,9 @@ body.reduced-motion .empty-state-icon-wrapper::before {
     text-overflow: clip;
   }
 
-  /* Ensure seek bar has priority for remaining space */
+  /* Seek bar: ensure usable width for precise seeking */
   .seek-bar-container {
-    min-width: 60px;
+    min-width: 90px;
     flex: 1 1 auto;
   }
 
@@ -2890,12 +2939,23 @@ body.reduced-motion .empty-state-icon-wrapper::before {
     width: 48px !important;
     min-width: 48px;
   }
+}
 
-  /* Hide volume slider on very compact viewports, keep mute button */
-  @media (max-width: 360px) {
-    .volume-slider-track {
-      display: none;
-    }
+/* Hide volume slider on very compact viewports, keep mute button */
+@media (max-width: 360px) {
+  .volume-slider-track {
+    display: none;
+  }
+
+  /* Even tighter player controls at 360px */
+  .player-controls-bar {
+    gap: 0.0625rem;
+    padding-left: 0.0625rem;
+    padding-right: 0.0625rem;
+  }
+
+  .seek-bar-container {
+    min-width: 80px;
   }
 }
 
@@ -3095,5 +3155,31 @@ body.reduced-motion .empty-state-icon-wrapper::before {
   .toolbar-container .btn {
     min-height: 44px;
     min-width: 44px;
+  }
+}
+
+/* Extra compact toolbar adjustments at 375px */
+@media (max-width: 375px) {
+  /* Compact toolbar padding */
+  .toolbar-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  /* Sort control: narrower to fit alongside search */
+  .sort-control {
+    min-width: 80px;
+    font-size: 0.75rem;
+    padding-left: 0.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Search input compact */
+  .search-input-wrapper input {
+    font-size: 0.8125rem;
+    padding-left: 0.75rem;
   }
 }

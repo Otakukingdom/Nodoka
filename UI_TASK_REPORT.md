@@ -1,5 +1,6 @@
 UI_TASK_REPORT
 STATUS: PASS
+LAST UPDATED: 2026-03-06
 
 SCOPE
 - screens/components: TopBar, LibraryPanel, DetailsPanel, PlayerControls, ModalContainer, NotificationContainer
@@ -11,11 +12,18 @@ CHANGES
 - responsive behavior: Mobile-first approach with flex-col on small screens, flex-row on sm+. Panel widths adapt via min-width/max-width constraints. Toast notifications positioned at bottom on mobile (above player controls), top on desktop (below topbar).
 - accessibility/readability: Focus indicators enhanced (3px solid primary ring with offset). Touch targets meet 44x44px minimum via touch-target-min class. Keyboard hints use kbd-high-contrast class. Screen reader announcements for async operations.
 
+LATEST FIXES (2026-03-06)
+- player controls at 375px: Touch targets expanded via padding (40px base + 10px padding = 44px effective)
+- seek bar at 375px/400px: Min-width increased from 60-80px to 90-100px for precise seeking
+- notification positioning: Reduced max-height to 30vh mobile, bottom offset 84px above player controls
+- notification toasts: Compact design with 36px dismiss buttons (maintains touch target via padding)
+- library toolbar at 375px: Sort control reduced to 80px min-width for better fit
+
 SCREENSHOT_VALIDATION
-- baseline captured: YES (previous session)
-- after captured: YES (current session)
-- command: cargo xtask screenshot (PASS - 88 passed, 3 skipped)
-- scenarios added/updated: All 88 scenarios captured across 13 categories (app-shell, library-panel, details-panel, player-controls, modals, notifications, special-states, responsive, accessibility, edge-cases)
+- baseline captured: YES
+- after captured: YES (2026-03-06)
+- command: cargo xtask screenshot (PASS - 92 passed, 3 skipped)
+- scenarios added/updated: All 92 scenarios captured across 13 categories
 - regressions found: NONE
 
 CHECKLIST_RESULTS
@@ -102,11 +110,70 @@ DECISION
     bottom: calc(var(--toast-bottom-offset, 72px) + 16px) !important;
   }
 }
+
+/* Player controls at 375px - touch targets via padding expansion */
+@media (max-width: 375px) {
+  .player-controls-bar .btn-circle.btn-sm {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 10px;
+    margin: -2px;
+  }
+  .seek-bar-container {
+    min-width: 100px;
+  }
+}
+
+/* Seek bar at 400px - long duration times */
+@media (max-width: 400px) {
+  .btm-nav .time-display {
+    font-size: 0.625rem;
+    max-width: 2.25rem;
+  }
+  .seek-bar-container {
+    min-width: 90px;
+  }
+}
+
+/* Volume slider hidden at 360px */
+@media (max-width: 360px) {
+  .volume-slider-track {
+    display: none;
+  }
+  .seek-bar-container {
+    min-width: 80px;
+  }
+}
+
+/* Compact toolbar at 375px */
+@media (max-width: 375px) {
+  .toolbar-container {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+  .sort-control {
+    min-width: 80px;
+  }
+}
+
+/* Notification toasts on mobile */
+@media (max-width: 639px) and (orientation: portrait) {
+  .notification-toast-container .alert {
+    max-height: 90px;
+    font-size: 0.6875rem;
+    padding: 0.5rem 0.625rem;
+  }
+  .toast-dismiss-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
+  }
+}
 ```
 
 ### Test Results
 
 - Unit tests: 162 passed (100%)
-- E2E screenshot tests: 88 passed, 3 skipped
+- E2E screenshot tests: 92 passed, 3 skipped
 - Screenshot categories: 13
 - Viewports tested: 6 (375x667, 667x375, 640x480, 800x600, 1024x768, 1280x720)
