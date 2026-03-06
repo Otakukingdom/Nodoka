@@ -22,9 +22,9 @@ export default function NotificationContainer() {
   // to avoid overlapping with content headers and interactive elements.
   // Uses CSS calc() with safe-area-inset for mobile device compatibility.
 
-  // Player controls bar: 64px min-height + padding + safe-area-inset
+  // Player controls bar: 68px min-height (py-2.5 + h-12 seek-bar-wrapper) + safe-area-inset
   // Add 1rem (16px) extra padding for visual separation
-  const bottomOffset = 'calc(64px + env(safe-area-inset-bottom, 0px) + 1rem)';
+  const bottomOffset = 'calc(68px + env(safe-area-inset-bottom, 0px) + 1rem)';
 
   // Position toasts centered at bottom above player controls
   // This ensures they never overlap with content headers or main UI elements

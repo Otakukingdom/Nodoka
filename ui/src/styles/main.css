@@ -934,7 +934,8 @@ body.reduced-motion .modal.backdrop-blur-sm {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 64px;
+  /* min-height accounts for content: py-2.5 (~20px) + seek-bar-wrapper (~48px) = 68px minimum */
+  min-height: 68px;
   flex-shrink: 0;
   /* Add safe area inset for mobile devices */
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -1708,13 +1709,15 @@ body.reduced-motion .transition-respect-motion {
   }
 
   /* Player controls - ensure adequate spacing and touch targets */
+  /* min-height accounts for: py-2.5 (20px) + seek-bar-wrapper h-12 (48px) = 68px minimum */
+  /* Plus safe-area-inset-bottom for devices with home indicators */
   .player-controls-bar {
     gap: 0.25rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    min-height: 64px;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    min-height: calc(68px + env(safe-area-inset-bottom, 0px));
   }
 
   /* WCAG 2.1 AA: Maintain 44px minimum touch targets even on small screens */
@@ -2124,14 +2127,16 @@ body.focus-mode .player-controls-bar {
 /* Mobile: adjust bottom offset for smaller player controls */
 @media (max-width: 639px) {
   .notification-toast-container {
-    bottom: 155px !important; /* 130px player controls + 25px padding */
+    /* 68px player controls min-height + 16px visual separation */
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
 /* Desktop: ensure notifications clear larger player controls */
 @media (min-width: 640px) {
   .notification-toast-container {
-    bottom: 185px !important; /* 160px player controls + 25px padding */
+    /* 68px player controls min-height + 16px visual separation */
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -2366,11 +2371,12 @@ body.focus-mode .player-controls-bar {
 
 /* Fix bottom navigation obscuring content in landscape on mobile */
 @media (max-height: 500px) and (orientation: landscape) {
-  /* Reduce player control height in landscape */
+  /* Reduce player control height in landscape but maintain minimum for content */
+  /* py-0.25 (8px) + seek-bar-wrapper h-12 (48px) = 56px minimum */
   .player-controls-bar {
     padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
-    min-height: 48px;
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+    min-height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Ensure touch targets still meet minimum 44px */
@@ -2777,12 +2783,10 @@ body.reduced-motion .empty-state-icon-wrapper::before {
     padding-right: 0.125rem;
   }
 
-  /* Control buttons: maintain 44px touch targets via padding expansion */
+  /* Control buttons: maintain 44px touch targets per WCAG 2.1 AA */
   .player-controls-bar .btn-circle.btn-sm {
-    min-width: 40px;
-    min-height: 40px;
-    padding: 10px;
-    margin: -2px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   /* Primary play button: ensure prominence even at compact size */
